@@ -159,14 +159,19 @@ def registration(name, root=ROOT, added=None):
     return max(start, monday_on_or_after(day)) if day else None
 
 
-def test(pairs):
+def test(pairs, exact=False):
+    """`exact`: also the unrounded mean d and p (`mean_d_exact`, `p_exact`), the numbers §3g's
+    order of several WINS reads (`branch_order`); the report prints the rounded ones."""
     d = [a - b for a, b, _g in pairs]
     n, mean, _t, p, G = mlb_refit.paired_test_clustered(d, [g for _a, _b, g in pairs])
     _n, _m, _t2, p_wrong, _G = mlb_refit.paired_test_clustered([-x for x in d], [g for *_x, g in pairs])
     r = lambda v: None if v is None else round(v, 6)  # noqa: E731
-    return {"predictions": n, "games": G, "mean_d": r(mean), "p": r(p), "p_wrong_way": r(p_wrong),
-            "champion_log_loss": r(sum(a for a, _b, _g in pairs) / n) if n else None,
-            "challenger_log_loss": r(sum(b for _a, b, _g in pairs) / n) if n else None}
+    out = {"predictions": n, "games": G, "mean_d": r(mean), "p": r(p), "p_wrong_way": r(p_wrong),
+           "champion_log_loss": r(sum(a for a, _b, _g in pairs) / n) if n else None,
+           "challenger_log_loss": r(sum(b for _a, b, _g in pairs) / n) if n else None}
+    if exact:
+        out.update(mean_d_exact=mean, p_exact=p)
+    return out
 
 
 def contest(rows, champ, name, start, registered, fits=None, entered=True):
@@ -199,7 +204,7 @@ def contest(rows, champ, name, start, registered, fits=None, entered=True):
         out["withdrawal_window"] = dict(h, before=WITHDRAW_BEFORE)
     out["scored"] = test([] if out["withdrawn"] else [pair for _wk, pair, _df in scored])
     counted = [] if out["withdrawn"] or not entered else scored if name in SCORED_ONLY else preds
-    out["counted"] = dict(test([pair for _wk, pair, _df in counted]),
+    out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=True),
                           differing=sum(1 for _wk, _pair, df in counted if df))
     return out
 
@@ -468,12 +473,20 @@ def branch_order(results):
     """`[Sam, 2026-10-26]` §3g: every WINS, the one that gets the league's one branch first: the
     largest mean d over its counted predictions; a tie, the smaller p, then the earlier name in
     `fb_challengers.CHALLENGERS`. The others are reported, and get no branch.
-    ⚠️ `[review, 2026-10-26]` Ordered on the numbers the report prints (`test()` rounds mean d
+    ~~⚠️ `[review, 2026-10-26]` Ordered on the numbers the report prints (`test()` rounds mean d
     and p to 6 decimals), so Sam can check it from the report: two mean d's within 1e-6 are a
-    tie and go to the smaller p (two p's that round to 0 are a tie too), then the name."""
+    tie and go to the smaller p (two p's that round to 0 are a tie too), then the name.~~
+    `[2026-10-27, review 2]` That let a non-frozen reading change the frozen rule's answer: two
+    WINS with mean d 0.0200004 and 0.0199996 both print 0.02, and the branch went by the name to
+    the SMALLER mean d. Ordered on the unrounded numbers (`counted`'s `mean_d_exact`, `p_exact`,
+    stored in the report; the rounded ones where a report has none); the email says when the
+    printed numbers tie (status.ahead)."""
     order = list(FC.CHALLENGERS)
-    return sorted((x for x in results if x.get("verdict") == "WINS"),
-                  key=lambda x: (-x["counted"]["mean_d"], x["counted"]["p"], order.index(x["name"])))
+
+    def rank(x):
+        c = x["counted"]
+        return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
+    return sorted((x for x in results if x.get("verdict") == "WINS"), key=rank)
 
 
 def weekly(root=ROOT, now=None, run=subprocess.run, added=None):

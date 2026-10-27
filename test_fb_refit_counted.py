@@ -45,8 +45,13 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #
 # @vacuity 🔴 ...while the test runs over every counted prediction, equal ones included
 #   file: fb_refit.py
-#   find:     out["counted"] = dict(test([pair for _wk, pair, _df in counted]),
-#   with:     out["counted"] = dict(test([pair for _wk, pair, df in counted if df]),
+#   find:     out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=True),
+#   with:     out["counted"] = dict(test([pair for _wk, pair, df in counted if df], exact=True),
+#
+# @vacuity 🔴 ...and keeps its unrounded mean d and p for §3g's order (review 2, 2026-10-27)
+#   file: fb_refit.py
+#   find:     out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=True),
+#   with:     out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=False),
 #
 # @vacuity 🔴 P and T's withdrawal window is the weeks before 2026-10-19, whatever a switch did to start
 #   file: fb_refit.py
@@ -70,18 +75,23 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #
 # @vacuity 🔴 the one branch goes to the WINS with the largest mean d
 #   file: fb_refit.py
-#   find:                   key=lambda x: (-x["counted"]["mean_d"], x["counted"]["p"], order.index(x["name"])))
-#   with:                   key=lambda x: (x["counted"]["mean_d"], x["counted"]["p"], order.index(x["name"])))
+#   find:         return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
+#   with:         return (c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
 #
 # @vacuity 🔴 ...a tie on mean d, the smaller p
 #   file: fb_refit.py
-#   find:                   key=lambda x: (-x["counted"]["mean_d"], x["counted"]["p"], order.index(x["name"])))
-#   with:                   key=lambda x: (-x["counted"]["mean_d"], -x["counted"]["p"], order.index(x["name"])))
+#   find:         return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
+#   with:         return (-c.get("mean_d_exact", c["mean_d"]), -c.get("p_exact", c["p"]), order.index(x["name"]))
 #
 # @vacuity 🔴 ...then the earlier name in fb_challengers.CHALLENGERS
 #   file: fb_refit.py
-#   find:                   key=lambda x: (-x["counted"]["mean_d"], x["counted"]["p"], order.index(x["name"])))
-#   with:                   key=lambda x: (-x["counted"]["mean_d"], x["counted"]["p"], -order.index(x["name"])))
+#   find:         return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
+#   with:         return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), -order.index(x["name"]))
+#
+# @vacuity 🔴 ...on the UNROUNDED mean d and p, never the 6 decimals the report prints (review 2, 2026-10-27)
+#   file: fb_refit.py
+#   find:         return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
+#   with:         return (-c["mean_d"], c["p"], order.index(x["name"]))
 #
 # @vacuity 🔴 weekly() pushes ONE branch a league, never one per WINS
 #   file: fb_refit.py
@@ -130,8 +140,43 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #
 # @vacuity 🔴 ...says "went to" only when the winner holds its own branch (review, 2026-10-26)
 #   file: status.py
-#   find:                      if own_branch(top.get("branch"), x["outranked_by"]) else
-#   with:                      if True else
+#   find:             if own_branch(br, t):
+#   with:             if True:
+#
+# @vacuity 🔴 ...with a champion named, says so, never "the league's one switch is X's" (review 2, 2026-10-27)
+#   file: status.py
+#   find:             elif not br:                      # fb_refit pushes nothing while the league names a champion
+#   with:             elif False:                      # fb_refit pushes nothing while the league names a champion
+#
+# @vacuity 🔴 ...and says when the older branch on GitHub is the outranked challenger's own (review 2)
+#   file: status.py
+#   find:             elif own_branch(br, x["name"]):
+#   with:             elif False:
+#
+# @vacuity 🔴 ...the "Needs you" line says "the one branch goes to" only when it went (review 2)
+#   file: status.py
+#   find:             if not own_branch(x.get("branch"), x["name"]):
+#   with:             if False:
+#
+# @vacuity 🔴 ...and "the biggest gain" only when it was, never on a tie (review 2)
+#   file: status.py
+#   find:             elif why == "beat the current model by more":
+#   with:             elif True:
+#
+# @vacuity 🔴 ...a tie on gain names the smaller p as the reason (review 2)
+#   file: status.py
+#   find:     if p1 is not None and p2 is not None and p1 < p2:
+#   with:     if False:
+#
+# @vacuity 🔴 ...and a lead only past the printed decimals is said to be one (review 2)
+#   file: status.py
+#   find:             " (by less than the 6 decimals the report prints)" if c1.get("mean_d") == c2.get("mean_d") else "")
+#   with:             "" if True else "")
+#
+# @vacuity 🔴 one of the eight, after a champion switch, counts "since <the restart>", never "since registration"
+#   file: status.py
+#   find:     if x.get("counts") != "all" and (x.get("scored_from") or "") > (x.get("registered") or "9"):
+#   with:     if False:
 #
 # @vacuity 🔴 ...and the "Needs you" line prints the COUNTED numbers, never the scored ones
 #   file: status.py
@@ -474,19 +519,80 @@ ck(S.refit_wins({"challengers": [_s8]}, "NFL")[0][0].endswith(
 # `[review, 2026-10-26]` "the one branch went to RS" only when RS holds its own branch. With a
 #    champion already named (weekly() above) or an older champion branch on GitHub, none was pushed.
 _nb = S.refit_summary(dict(_wd, challengers=list(_wc.values())), "NFL", NOW)
-ck("it WINS; RS beat the current model by more, so the league's one switch is RS's, and no branch was pushed "
-   "for it this week." in _nb and "went to RS" not in _nb,
-   "🔴 a named champion pushed no branch: the email never says the branch went to RS", _nb)
+# `[2026-10-27, review 2]` ~~"RS beat the current model by more, so the league's one switch is RS's, and no
+#    branch was pushed for it this week."~~: with a champion named no switch to RS can happen.
+ck("it WINS; RS beat the current model by more and ranks first, but no branch was pushed: the league already "
+   "has a champion." in _nb and "went to RS" not in _nb and "one switch" not in _nb,
+   "🔴 a named champion pushed no branch: the email never says the branch went to RS, nor that the league's "
+   "one switch is RS's", _nb)
+_nw = S.refit_wins(dict(_wd, challengers=list(_wc.values())), "NFL")
+ck(len(_nw) == 1 and "(E also won this week; RS beat the current model by more, and no branch was pushed). "
+   "NEEDS SAM: IN is already the NFL champion" in _nw[0][0] and "the one branch goes to" not in _nw[0][0],
+   "🔴 ...and its \"Needs you\" line never says \"the one branch goes to\" RS (review 2, 2026-10-27)", _nw)
 _older = [dict(win("E", 0.01, 1e-5), branch=None, branch_pushed=False, outranked_by="RS"),
           dict(win("RS", 0.03, 1e-4), branch="fb/champion-nfl-WX-2026-10-26", branch_pushed=False)]
 _ob = S.refit_summary(dict(_wd, challengers=_older), "NFL", NOW)
-ck("so the league's one switch is RS's, and no branch was pushed for it this week." in _ob
-   and "went to RS" not in _ob,
+ck("it WINS; RS beat the current model by more and ranks first, but no branch was pushed for it: an older "
+   "champion branch, fb/champion-nfl-WX-2026-10-26, is still on GitHub." in _ob
+   and "went to RS" not in _ob and "one switch" not in _ob,
    "🔴 ...nor when an older champion branch (WX's) is still on GitHub", _ob)
+_ow = S.refit_wins(dict(_wd, challengers=_older), "NFL")
+ck(len(_ow) == 1 and "(E also won this week; RS beat the current model by more, and no branch was pushed), "
+   "but an older champion branch, fb/champion-nfl-WX-2026-10-26, is still on GitHub" in _ow[0][0]
+   and "the one branch goes to" not in _ow[0][0],
+   "🔴 ...and its \"Needs you\" line never says the branch goes to RS (review 2, 2026-10-27)", _ow)
+# `[2026-10-27, review 2]` the older branch is the OUTRANKED challenger's own (E's from last Monday): the
+#    email says so, never that the league's one switch is RS's while its clicks offer E's branch
+_olde = [dict(_older[0]), dict(_older[1], branch="fb/champion-nfl-E-2026-10-26")]
+_oe = S.refit_summary(dict(_wd, challengers=_olde), "NFL", NOW)
+ck("it WINS; RS beat the current model by more and ranks first this week, so no branch was pushed for it: E's "
+   "own branch from an earlier Monday, fb/champion-nfl-E-2026-10-26, is still on GitHub." in _oe
+   and "one switch" not in _oe,
+   "🔴 the older branch on GitHub is E's own: E's line says so", _oe)
 _mine = [_older[0], dict(_older[1], branch="fb/champion-nfl-RS-2026-10-26")]
 ck("it WINS; the one branch went to RS, which beat the current model by more."
    in S.refit_summary(dict(_wd, challengers=_mine), "NFL", NOW),
    "   ...and RS's own branch from an earlier Monday, still unmerged, is where it went")
+# `[2026-10-27, review 2]` a tie on gain: the branch goes to the smaller p, and the email says THAT, never
+#    "by more" or "the biggest gain"
+_tie = [dict(win("E", 0.02, 1e-4), branch=None, branch_pushed=False, outranked_by="RS"),
+        dict(win("RS", 0.02, 1e-6), branch="fb/champion-nfl-RS-2026-11-02", branch_pushed=True)]
+eq([x["name"] for x in R.branch_order([dict(x, verdict="WINS") for x in _tie])], ["RS", "E"],
+   "   (a tie on mean d: fb_refit orders RS, the smaller p, first)")
+_ts = S.refit_summary(dict(_wd, challengers=_tie), "NFL", NOW)
+_tw = S.refit_wins(dict(_wd, challengers=_tie), "NFL")
+ck("it WINS; the one branch went to RS, which beat the current model by the same amount, with the smaller p."
+   in _ts and "by more" not in _ts
+   and "(E also won this week; the one branch goes to RS, which beat the current model by the same amount, "
+       "with the smaller p)" in _tw[0][0] and "biggest gain" not in _tw[0][0],
+   "🔴 a tie on gain says the smaller p decided, never \"by more\" or \"the biggest gain\"", (_ts, _tw))
+# `[2026-10-27, review 2]` mean d's that print the same (0.02) but differ unrounded: §3g's "largest mean d"
+#    is the unrounded one (fb_refit.branch_order reads `mean_d_exact`), and the email says the lead is real
+#    but smaller than the printed decimals
+_ex = [dict(win("E", 0.02, 0.0), branch=None, branch_pushed=False, outranked_by="RS"),
+       dict(win("RS", 0.02, 0.0), branch="fb/champion-nfl-RS-2026-11-02", branch_pushed=True)]
+_ex[0]["counted"].update(mean_d_exact=0.0199996, p_exact=0.0)
+_ex[1]["counted"].update(mean_d_exact=0.0200004, p_exact=0.0)
+eq([x["name"] for x in R.branch_order([dict(x, verdict="WINS") for x in _ex])], ["RS", "E"],
+   "🔴 fb_refit: RS's unrounded mean d (0.0200004) beats E's (0.0199996) though both print 0.02 (by the "
+   "rounded ones E's earlier name took the branch)")
+ck("the one branch went to RS, which beat the current model by more (by less than the 6 decimals the report "
+   "prints)." in S.refit_summary(dict(_wd, challengers=_ex), "NFL", NOW),
+   "🔴 ...and the email says the lead is past the printed decimals",
+   S.refit_summary(dict(_wd, challengers=_ex), "NFL", NOW))
+_ce = contest("E", market_set([(HIST, GOOD, 200), (LIVE, GOOD, 100)]))["counted"]
+ck(_ce.get("mean_d_exact") is not None and round(_ce["mean_d_exact"], 6) == _ce["mean_d"]
+   and _ce["mean_d_exact"] != _ce["mean_d"] and _ce.get("p_exact") is not None,
+   "🔴 contest() stores the counted mean d and p unrounded beside the printed ones (the order's input)", _ce)
+# `[2026-10-27, review 2]` after a champion switch one of the eight counts from the restart, and says so
+_sw = dict(win("S", 0.02, 1e-6), counts="scored", scored_from="2026-10-26", branch="fb/champion-nfl-S-2026-11-02")
+_sws = S.refit_summary(dict(_wd, challengers=[_sw]), "NFL", NOW)
+ck("600 predictions scored since 2026-10-26 (the count restarted with the new champion)" in _sws
+   and "since registration" not in _sws
+   and "over 600 predictions scored since 2026-10-26 (the count restarted with the new champion) in 300 games"
+   in S.refit_wins({"challengers": [_sw]}, "NFL")[0][0],
+   "🔴 S after a champion switch: \"scored since 2026-10-26\", never \"since registration\" (registered "
+   "2026-10-19; the weeks between were not counted)", _sws)
 # `[review, 2026-10-26]` the "Needs you" line prints the COUNTED predictions and their p, never the
 #    scored ones a real report also carries (here 40 at p 0.3).
 _cs = dict(win("E", 0.02, 1e-4), branch="fb/champion-nfl-E-2026-11-02",

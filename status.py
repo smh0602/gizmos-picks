@@ -119,11 +119,22 @@ def refit_summary(doc, name, now, due=None):
         if v == "WINS" and x.get("outranked_by"):
             # `[2026-10-26]` "went to" only when the winner holds its OWN branch: with a champion
             #    already named, or an older champion branch on GitHub, no branch was pushed for it.
+            # `[2026-10-27, review 2]` ~~"so the league's one switch is X's"~~: false with a champion
+            #    named (no switch to X can happen) and when the older branch is THIS challenger's own;
+            #    and the reason X ranks first is §3g's (`ahead`), not always "by more".
             top = next((y for y in doc.get("challengers") or [] if y.get("name") == x["outranked_by"]), {})
-            said += ("; the one branch went to %s, which beat the current model by more" % x["outranked_by"]
-                     if own_branch(top.get("branch"), x["outranked_by"]) else
-                     "; %s beat the current model by more, so the league's one switch is %s's, and no branch "
-                     "was pushed for it this week" % (x["outranked_by"], x["outranked_by"]))
+            t, why, br = x["outranked_by"], ahead(top, x), top.get("branch")
+            if own_branch(br, t):
+                said += "; the one branch went to %s, which %s" % (t, why)
+            elif not br:                      # fb_refit pushes nothing while the league names a champion
+                said += "; %s %s and ranks first, but no branch was pushed: the league already has a champion%s" % (
+                    t, why, " (%s)" % doc["champion"] if doc.get("champion") else "")
+            elif own_branch(br, x["name"]):
+                said += ("; %s %s and ranks first this week, so no branch was pushed for it: %s's own branch "
+                         "from an earlier Monday, %s, is still on GitHub" % (t, why, x["name"], br))
+            else:
+                said += ("; %s %s and ranks first, but no branch was pushed for it: an older champion branch, "
+                         "%s, is still on GitHub" % (t, why, br))
         out.append("Challenger %s (%s): %s." % (x["name"], x["what"], {
             "NO DATA": "its data is not stored yet",
             "WITHDRAWN": "withdrawn, it was worse on past games",
@@ -136,8 +147,33 @@ def counted_kind(x):
     """`[Sam, 2026-10-26]` T73 (§3g): what a challenger's verdict counts, in Sam's words."""
     if "counted" not in x:                           # a report from before §3g: its own rule
         return "scored predictions"
+    # `[2026-10-27, review 2]` after a champion switch the eight's scored weeks restart at
+    #    `scored_from` (§3), so ~~"since registration"~~ would claim weeks it no longer counts
+    if x.get("counts") != "all" and (x.get("scored_from") or "") > (x.get("registered") or "9"):
+        return "predictions scored since %s (the count restarted with the new champion)" % x["scored_from"]
     return ("counted predictions (last season and this season)" if x.get("counts") == "all"
             else "predictions scored since registration")
+
+
+def _exact(x):
+    """A challenger's counted mean d and p, unrounded where fb_refit stored them (§3g's order)."""
+    c = x.get("counted") or x.get("scored") or {}
+    return c.get("mean_d_exact", c.get("mean_d")), c.get("p_exact", c.get("p"))
+
+
+def ahead(top, other):
+    """`[2026-10-27, review 2]` Why WINS `top` ranks ahead of WINS `other` in §3g's order
+    (fb_refit.branch_order: the larger mean d, a tie the smaller p, then the challenger list), in
+    words. ~~"beat the current model by more"~~ was said whatever the reason, a tie included."""
+    (m1, p1), (m2, p2) = _exact(top), _exact(other)
+    c1, c2 = top.get("counted") or {}, other.get("counted") or {}
+    if m1 is not None and m2 is not None and m1 > m2:
+        return "beat the current model by more" + (
+            " (by less than the 6 decimals the report prints)" if c1.get("mean_d") == c2.get("mean_d") else "")
+    if p1 is not None and p2 is not None and p1 < p2:
+        return "beat the current model by the same amount, with the smaller p" + (
+            " (smaller past the 6 decimals the report prints)" if c1.get("p") == c2.get("p") else "")
+    return "beat the current model by the same amount, at the same p, and comes first in the challenger list"
 
 
 def counted_words(x, doc):
@@ -179,8 +215,20 @@ def refit_wins(doc, name):
                     s["predictions"], counted_kind(x), s["games"], s["p"], x["alpha"]))
         also = [y["name"] for y in doc.get("challengers") or [] if y.get("outranked_by") == x["name"]]
         if also:
-            what += " (%s also won this week; the one branch goes to the biggest gain, %s)" % (
-                ", ".join(also), x["name"])
+            # `[2026-10-27, review 2]` "the one branch goes to" only when it went (`own_branch`), and
+            #    "the biggest gain" only when it was (`ahead`, against the closest of the others)
+            near = min((y for y in doc["challengers"] if y.get("outranked_by") == x["name"]),
+                       key=lambda y: (-(_exact(y)[0] or 0), _exact(y)[1] if _exact(y)[1] is not None else 1))
+            why = ahead(x, near)
+            if not own_branch(x.get("branch"), x["name"]):
+                what += " (%s also won this week; %s %s, and no branch was pushed)" % (
+                    ", ".join(also), x["name"], why)
+            elif why == "beat the current model by more":
+                what += " (%s also won this week; the one branch goes to the biggest gain, %s)" % (
+                    ", ".join(also), x["name"])
+            else:
+                what += " (%s also won this week; the one branch goes to %s, which %s)" % (
+                    ", ".join(also), x["name"], why)
         br = x.get("branch")
         if not br:
             out.append((what + ". %s" % (x.get("needs_sam") or "NEEDS SAM: no branch was pushed for it"),

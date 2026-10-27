@@ -441,18 +441,47 @@ only) were not read in writing it, and none was computed for T72.
   - "Differs" is an exact comparison of the two predicted probabilities: an
     all-zero input gives the champion's prediction to the last bit (WX before
     stored weather; `test_fb_refit_counted.py` §7, on real fits).
+    ⚠️ For Sam `[2026-10-27, review 2]`: once ONE training row carries a non-zero
+    input (the first stored wind forecast, say), every later walk-forward
+    prediction differs from the champion's, rows with no input of their own
+    included, by as little as 0.0001 (planted league, real fits: wind on one row
+    of one week, every one of the 24 later predictions differing, none on a row
+    with wind of its own; no wind anywhere, 0 of 24). So the floor
+    holds back only an all-zero input, and in effect means 300 predictions from
+    the first stored value on. That fits §3g's words and its example; a size
+    threshold ("differs by at least x") would be a new frozen rule, yours to
+    decide. The code is unchanged.
   - The floor applies to the eight as well, over their counted (scored)
     predictions only: S with 600 history and 150 scored predictions is NOT YET
     MEASURABLE.
   - P and T's withdrawal window is fixed at the weeks before 2026-10-19, whatever
     `scored_from` a champion switch sets, recomputed each week against the
     champion of the day (`withdrawal_window` in the report).
-  - The tie-break orders on the numbers the report prints (6 decimals): mean d's
-    within 1e-6 are a tie, then p, then the order of `fb_challengers.CHALLENGERS`.
+    ⚠️ For Sam `[2026-10-27, review 2]`: recomputed against each champion, a P or
+    T WITHDRAWN today can come back after a switch to a champion that did worse
+    on those weeks, and is then counted on every week, the pre-10-19 predictions
+    that withdrew it included, and can WIN (planted college league: withdrawn
+    against today's champion; 840 counted and WINS after a switch, 600 of them
+    from before 10-19). §2 says a withdrawn challenger is "reported, never
+    scored" and does not say whether that is permanent. Main already behaves
+    this way; whether a withdrawal is permanent (kept through `prev`) or
+    recomputed is a frozen rule, yours to decide. The code is unchanged.
+  - ~~The tie-break orders on the numbers the report prints (6 decimals): mean d's
+    within 1e-6 are a tie, then p, then the order of `fb_challengers.CHALLENGERS`.~~
+    `[2026-10-27, review 2]` That reading changed the frozen rule's answer: two WINS
+    whose mean d's print 0.02 (0.0200004 and 0.0199996) tied, and the branch went
+    by name to the smaller one. The order reads the UNROUNDED mean d and p
+    (`counted`'s `mean_d_exact` and `p_exact`, stored in the report), so "the WINS
+    with the largest mean d" holds past the printed decimals; the email says when
+    a lead or a smaller p is past them, and names the reason a WINS ranks first
+    (a larger gain; a tie, the smaller p; then the challenger list).
     Only the first WINS can get the branch; when it cannot (the league already
     names a CHAMPION, or an older champion branch is on GitHub), no other WINS
     gets one, every other WINS carries `outranked_by`, and the email says no
-    branch was pushed.
+    branch was pushed `[2026-10-27, review 2]` and why (the champion, or whose
+    older branch it is), never ~~"the league's one switch is X's"~~. After a
+    champion switch the email counts one of the eight "since <its restart>",
+    never ~~"since registration"~~.
   - The report stores `floor` (`fb_refit.MIN_SCORED`) and the email reads it
     there (status.py never imports fb_refit). `history` and `scored` stay in the
     report for information; the verdict reads `counted`.
@@ -496,3 +525,4 @@ only) were not read in writing it, and none was computed for T72.
 - 2026-10-26 — §4: WL / WLC's home-edge step made safe after a review (planted league: a warm start from a Monday with no finite best a stuck at -2e15); §3f's definitions and every answer they define unchanged; §2 to §3f unchanged and pinned.
 - 2026-10-26 — §3g T73 added at Sam's instruction ("instead of having it need 300 scored prediction can we just use games from last season and the ones played this season for both cfb and nfl"): the verdict counts every 2025-2026 walk-forward prediction for the eighteen challengers defined before any of their results existed, and only games after registration for the eight shaped on them; the floor counts only predictions that differ from the champion's; one branch to the largest mean d. Written before any result under it; §2 to §3f unchanged and pinned (§3g names what it replaces).
 - 2026-10-26 — §4: §3g's build readings recorded after a review (nothing counted before a challenger's registration Monday; "differs" is exact; the floor counts the eight's scored predictions only; P and T's withdrawal window fixed; the tie-break on the printed numbers; one branch or none). §2 to §3g unchanged and pinned.
+- 2026-10-27 — §4 after a second review: the tie-break reading on the printed 6 decimals struck (it could give the branch to the smaller mean d; the order now reads the unrounded numbers, §3g's own rule); the email's no-branch and tie sentences corrected; two readings flagged for Sam ("differs" once any training row has an input; a withdrawal recomputed after a switch), code unchanged for both. §2 to §3g unchanged and pinned.
