@@ -30,7 +30,11 @@ It asks:
      answer is a failed source, a refused releases call is not repeated, a check that read
      nothing is retried ONCE in its slot, a source failing at 2 slots in a row is a warning that
      is never replanned, a season with no stored schedule owes nothing, and every slot's attempts
-     are logged for the Monday status ("N of M checks ran").
+     are logged for the Monday status ("N of M checks ran"). `[2026-10-27, review 2]` The retry is
+     PLANNED (the row stays fresh after one failed attempt), a check that read something is never
+     retried, a run that served no slot counts for nothing, the check itself reading nothing at 2
+     slots is named in both leagues (our own code raising included), the log keeps 8 days, and the
+     check's day is the real Eastern one.
 
 PLANTED TREES ONLY, each pinned to its own clock. ⛔ The network is a tripwire: nflverse and the
 conference feeds are stand-ins, and a real call fails the file.
@@ -180,6 +184,16 @@ conference feeds are stand-ins, and a real call fails the file.
 #   find:                 and (sl.get("attempt") or 1) <= INJURY_RETRIES):
 #   with:                 and False):
 #
+# @vacuity 🔴 [2026-10-27, review 2] ...planned on the next pass, never a deadline that reads stale
+#   file: freshness.py
+#   find:         | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now)
+#   with:         | slate_moves(data, picks, now) | every_pass(data, now)
+#
+# @vacuity ⛔ [2026-10-27, review 2] ...and only a check that read NOTHING is retried
+#   file: freshness.py
+#   find:     if (served is not None and isinstance(pr, dict) and pr.get("ok") is False
+#   with:     if (served is not None and isinstance(pr, dict)
+#
 # @vacuity ⛔ ...once, never every pass
 #   file: freshness.py
 #   find: INJURY_RETRIES = 1
@@ -189,6 +203,41 @@ conference feeds are stand-ins, and a real call fails the file.
 #   file: freshness.py
 #   find:         if n >= INJURY_FAILED_SLOTS:
 #   with:         if False:
+#
+# @vacuity 🔴 [2026-10-27, review 2] a check that read nothing at 2 slots in a row is named, whatever the cause
+#   file: freshness.py
+#   find:             and len(last) >= INJURY_FAILED_SLOTS and not any(v.get("ok_at") for _k, v in last)):
+#   with:             and False):
+#
+# @vacuity ⛔ [2026-10-27, review 2] ...until an attempt reads something again
+#   file: freshness.py
+#   find:     if (doc.get("ok") is not True                     # the newest attempt, slot or not, read nothing too
+#   with:     if (True
+#
+# @vacuity ⛔ [2026-10-27, review 2] ...while college's SOURCES are judged on the reader's own probe only
+#   file: freshness.py
+#   find:     if "/nfl/" in "/" + str(path).replace(os.sep, "/"):      # college's sources: the reader's probe
+#   with:     if True:
+#
+# @vacuity 🔴 [2026-10-27, review 2] ...in both leagues
+#   file: freshness.py
+#   find:           (re.compile(r"/(?:nfl|ncaaf)/latest/injury-check\.json$"), _injury_check_health))
+#   with:           (re.compile(r"/nfl/latest/injury-check\.json$"), _injury_check_health))
+#
+# @vacuity ⛔ [2026-10-27, review 2] a run serving no slot leaves each source's count as it was
+#   file: collect.py
+#   find:         elif served is None:
+#   with:         elif False:
+#
+# @vacuity ⛔ [2026-10-27, review 2] the slot log keeps 8 days, no more
+#   file: collect.py
+#   find:             if isinstance(v, dict) and k >= iso(at - timedelta(days=_fresh.INJURY_LOG_DAYS))}
+#   with:             if isinstance(v, dict)}
+#
+# @vacuity 🔴 [2026-10-27, review 2] the check's day is the real Eastern one (an EST evening is still that day)
+#   file: freshness.py
+#   find:     for d in sorted({(now - datetime.timedelta(hours=h)).date() for h in (4, 5)}):
+#   with:     for d in [(now - ET_OFFSET).date()]:
 #
 # @vacuity ⛔ ...only while the checks are running (the off-season is no warning)
 #   file: freshness.py
@@ -1197,10 +1246,14 @@ try:
         def _row(t):
             return [r for r in F.survey("data/nfl", "picks", t) if r["mode"] == "injury-check"][0]
         _r1 = _row(PE + 15 * M)
-        ck(_a1["ok"] is False and _a1["slot"]["attempt"] == 1 and _r1["stale"] and _r1["due_at"] == "2026-10-25T13:05Z"
+        _h1, _s1 = F.classify([_row(PE), _r1], "data/nfl", refused=False, block={"state": None})
+        ck(_a1["ok"] is False and _a1["slot"]["attempt"] == 1 and not _r1["stale"] and not _row(PE)["stale"]
+           and not _h1 and not _s1 and _r1["due_at"] == "2026-10-25T13:00Z"
            and "injury-check" in planned(".", "nfl", PE + 15 * M),
-           "🔴 the 9:00 check read nothing (both sources down): its row is due again just after it, and the next "
-           "pass plans the check once more", {k: _r1.get(k) for k in ("stale", "due_at")})
+           "🔴 the 9:00 check read nothing (both sources down): the next pass plans the check once more "
+           "(`freshness.injury_retry`) ~~its row is due again just after it~~ `[2026-10-27, review 2]` while "
+           "its row reads FRESH, at the end of the failed pass and after it: one failed attempt is no "
+           "warning and no `fresh:` finding", {k: _r1.get(k) for k in ("stale", "due_at", "unhealthy")})
         with contextlib.redirect_stdout(io.StringIO()):
             _a2 = C.collect_injury_check(at=PE + 60 * M)
         _r2 = _row(PE + 75 * M)
@@ -1244,7 +1297,115 @@ try:
         ck(bool(F.health(_pp, Z("2026-10-25 23:10"))), "   (the same probe, checked this week, is one)")
         put(os.path.join("data", "ncaaf", "latest", "injury-check.json"), _p)
         eq(F.health(os.path.join("data", "ncaaf", "latest", "injury-check.json"), Z("2026-10-25 23:10")), None,
-           "⛔ college's check is not judged here: its sources are the conference reader's, judged on its own probe")
+           "⛔ college's SOURCES are not judged here (~~college's check is not judged here~~): they are the "
+           "conference reader's, judged on its own probe; `[2026-10-27, review 2]` its check's own slot log is (5h)")
+
+    # 🔴 `[2026-10-27, review 2]` 5b'. A CHECK THAT READ SOMETHING IS NOT RETRIED: no check, no card rebuild
+    G = tree()
+    nfl_sched(G, ["2026-10-25T13:00", "2026-10-25T16:25"])
+    open(os.path.join(G, "data", "nfl", "latest", "props.json.gz"), "wb").close()      # the card rows exist
+    with inside(G):
+        league("nfl")
+        FAIL.clear()
+        with contextlib.redirect_stdout(io.StringIO()):
+            _g1 = C.collect_injury_check(at=PE)
+        fresh_card(G, "nfl", PE + 15 * M)
+        _pg1 = F.plan("data/nfl", "picks", PE + 15 * M)[0]
+        ck(_g1["ok"] is True and "injury-check" not in _pg1 and "card-fb" not in _pg1,
+           "⛔ the 9:00 check READ the reports: the 9:20 pass plans neither the check again nor a card rebuild",
+           _pg1)
+        os.remove(os.path.join("data", "nfl", "latest", "injury-check.json"))
+        FAIL.update({"injuries", "weekly_rosters"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            _g2 = C.collect_injury_check(at=PE)
+        _pg2 = F.plan("data/nfl", "picks", PE + 15 * M)[0]
+        ck(_g2["ok"] is False and "card-fb" in _pg2 and _pg2.index("injury-check") < _pg2.index("card-fb"),
+           "   ...while the same check reading NOTHING is retried, and the card is rebuilt after it", _pg2)
+        FAIL.clear()
+
+    def _rowl(lg, t):
+        return [r for r in F.survey("data/" + lg, "picks", t) if r["mode"] == "injury-check"][0]
+
+    # 🔴 `[2026-10-27, review 2]` 5g. ⛔ A RUN THAT SERVED NO SLOT IS NO GAME-DAY CHECK. The first pass after
+    #    the merge (no probe yet) ran on a Tuesday with nflverse down; then Thursday's 9:00 slot failed, with its
+    #    retry. One slot has failed, not two.
+    U = tree()
+    nfl_sched(U, ["2026-11-05T20:15"])                          # Thursday night, 8:15 pm EST
+    with inside(U):
+        league("nfl")
+        FAIL.update({"injuries", "weekly_rosters"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            _u0 = C.collect_injury_check(at=Z("2026-11-03 15:01"))      # Tuesday: no slot
+            C.collect_injury_check(at=Z("2026-11-05 14:05"))            # Thursday 9:05 EST
+            _u2 = C.collect_injury_check(at=Z("2026-11-05 14:30"))      # its retry
+        _ru = _rowl("nfl", Z("2026-11-05 14:35"))
+        ck(_u0["slot"] is None and not _ru["stale"] and not _ru["unhealthy"]
+           and [(v["failing_slots"], v["failing_since"]) for _k, v in sorted(_u2["sources"].items())]
+           == [(["2026-11-05T14:00Z"], "2026-11-05T14:05:00Z")] * 2,
+           "⛔ the Tuesday run served no slot: Thursday's 9:00 failure is ONE failed slot (not a warning), "
+           "dated from Thursday's check, not from Tuesday", (_ru.get("unhealthy"), _u2["sources"]))
+        FAIL.clear()
+
+    # 🔴 `[2026-10-27, review 2]` 5h. OUR OWN CODE FAILING AT EVERY SLOT IS NAMED TOO, IN BOTH LEAGUES. Both
+    #    nflverse files answer, then our code raises: `ok` is false while every source reads ok, so counting
+    #    sources never saw it. Two slots of it (each with its retry) are a warning, never replanned.
+    V = tree()
+    nfl_sched(V, ["2026-11-01T13:00", "2026-11-01T20:20"])
+    _ws = nfl.week_statuses
+
+    def _bug(*a, **k):
+        raise TypeError("planted: our own code")
+    with inside(V):
+        league("nfl")
+        FAIL.clear()
+        try:
+            nfl.week_statuses = _bug
+            with contextlib.redirect_stdout(io.StringIO()):
+                _v1 = C.collect_injury_check(at=Z("2026-11-01 14:05"))      # 9:05 EST
+                C.collect_injury_check(at=Z("2026-11-01 15:05"))            # its retry
+            _rv1 = _rowl("nfl", Z("2026-11-01 15:15"))
+            with contextlib.redirect_stdout(io.StringIO()):
+                C.collect_injury_check(at=Z("2026-11-01 17:05"))            # 12:05 EST
+                C.collect_injury_check(at=Z("2026-11-01 18:05"))            # its retry
+        finally:
+            nfl.week_statuses = _ws
+        _rv2 = _rowl("nfl", Z("2026-11-01 18:15"))
+        _hv, _sv = F.classify([_rv2], "data/nfl", refused=False, block={"state": None})
+        ck(_v1["ok"] is False and "TypeError" in (_v1.get("error") or "")
+           and all(v["ok"] for v in _v1["sources"].values()) and not _rv1["unhealthy"],
+           "⚠️ the case exists: our code raised while both sources answered; one slot of it is not yet a warning",
+           (_v1.get("error"), _rv1.get("unhealthy")))
+        ck("the last 2 game-day checks read nothing" in (_rv2["unhealthy"] or "")
+           and "TypeError" in (_rv2["unhealthy"] or "") and not _hv and len(_sv) == 1
+           and "injury-check" not in planned(".", "nfl", Z("2026-11-01 18:15")),
+           "🔴 NFL: 9:00 and 12:00 both raised in OUR code: the row is unhealthy, naming the error (a soft "
+           "warning, a `fresh:` finding), and NOT replanned", _rv2.get("unhealthy"))
+    W = tree()
+    cfb_sched(W, ["2026-10-31T23:30:00.000Z"])                  # Saturday 7:30 pm EDT
+    _cr, _cn = CI.run, CI.newest_snapshot
+
+    def _snapbug(*a, **k):
+        raise TypeError("planted: our own code")
+    with inside(W):
+        league("ncaaf")
+        try:
+            CI.run = lambda root=None, log=None, **k: {"sources": {"SEC": {"ok": True,
+                                                                           "fetched_at": "2026-10-31T13:00:00Z"}}}
+            CI.newest_snapshot = _snapbug
+            with contextlib.redirect_stdout(io.StringIO()):
+                for _t in ("2026-10-31 13:05", "2026-10-31 14:05"):         # 9:05 EDT and its retry
+                    _w = C.collect_injury_check(at=Z(_t))
+                _rw1 = _rowl("ncaaf", Z("2026-10-31 14:15"))
+                for _t in ("2026-10-31 16:05", "2026-10-31 17:05"):         # 12:05 EDT and its retry
+                    C.collect_injury_check(at=Z(_t))
+        finally:
+            CI.run, CI.newest_snapshot = _cr, _cn
+        _rw2 = _rowl("ncaaf", Z("2026-10-31 17:15"))
+        ck(_w["ok"] is False and "TypeError" in (_w.get("error") or "") and not _rw1["unhealthy"]
+           and "the last 2 game-day checks read nothing" in (_rw2["unhealthy"] or "")
+           and "injury-check" not in planned(".", "ncaaf", Z("2026-10-31 17:15")),
+           "🔴 college too: its check raising at 9:00 and 12:00 is named on its row (the reader's probe never "
+           "sees our check's own code), and not replanned", (_rw1.get("unhealthy"), _rw2.get("unhealthy")))
 
     # 5d. ⛔ A SEASON WITH NO STORED SCHEDULE OWES NOTHING; AN UNREADABLE ONE OWES EVERY SLOT
     Q = tree()
@@ -1303,6 +1464,25 @@ try:
     with inside(E2):
         eq(json.load(open(os.path.join("data", "nfl", "latest", "injury-check.json"), encoding="utf-8")).get("log_since"),
            iso(PE), "   ...from its first check (`log_since`), carried forward")
+    # 🔴 `[2026-10-27, review 2]` ⛔ ...AND IT KEEPS 8 DAYS, NO MORE: the probe is committed on every check
+    X = tree()
+    nfl_sched(X, ["2026-10-25T13:00"])
+    put(os.path.join(X, "data", "nfl", "latest", "injury-check.json"), {"log_since": "2026-10-16T13:05:00Z", "log": {
+        "2026-10-16T13:00Z": {"et": "9:00", "attempts": 1, "ok_at": "2026-10-16T13:05:00Z"},
+        "2026-10-18T13:00Z": {"et": "9:00", "attempts": 1, "ok_at": "2026-10-18T13:05:00Z"}}})
+    with inside(X):
+        league("nfl")
+        with contextlib.redirect_stdout(io.StringIO()):
+            _lx = C.collect_injury_check(at=PE)["log"]
+    eq(sorted(_lx), ["2026-10-18T13:00Z", "2026-10-25T13:00Z"],
+       "⛔ the slot log drops a slot 9 days old (INJURY_LOG_DAYS = 8) and keeps one 7 days old")
+    # 🔴 `[2026-10-27, review 2]` THE DAY IS THE REAL EASTERN ONE: at 04:30Z on Monday 11-02 it is still
+    #    Sunday 11:30 pm EST (the contract's fixed UTC-4 would say Monday 00:30)
+    Y = tree()
+    nfl_sched(Y, ["2026-11-01T23:50"])                          # 11:50 pm EST Sunday = 04:50Z Monday
+    eq(F.injury_check_slots("nfl", Y + "/data/nfl/latest", Z("2026-11-02 04:30")),
+       [("9:00", Z("2026-11-01 14:00")), ("12:00", Z("2026-11-01 17:00")), ("19:00", Z("2026-11-02 00:00"))],
+       "🔴 at 04:30Z Monday (11:30 pm EST Sunday) the slots are SUNDAY's, owed by its 11:50 pm game")
     FAIL.clear()
 finally:
     urllib.request.urlopen = _REAL["urlopen"]

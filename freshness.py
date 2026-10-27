@@ -932,6 +932,10 @@ INJURY_CHECK_ET = ((9, 0), (12, 0), (19, 0))
 #    failed, or it raised: the probe's `ok` false) is owed once more while its slot is still
 #    owed, so one transient 403 or timeout at 12:3x no longer costs the noon reading. ⛔ ONCE:
 #    a second failure waits for the next slot, never every pass (each retry rebuilds the card).
+#    `[2026-10-27, review 2]` ⛔ PLANNED, NEVER MARKED STALE (`injury_retry`, like `slate_moves`):
+#    ~~a retry moment one second after the failed attempt~~ made the row stale at the end of the
+#    very pass that failed, so freshness.json said ok:false and the watchdog raised a `fresh:`
+#    finding over one failed attempt. Only INJURY_FAILED_SLOTS failed slots are a warning.
 INJURY_RETRIES = 1
 INJURY_LOG_DAYS = 8               # the probe's slot log, and the weekly's window inside it
 
@@ -974,20 +978,34 @@ def injury_check_slots(league, latest, now=None):
 
 
 def injury_check_times(league, latest, now=None):
-    """The injury-check row's deadlines: `injury_check_slots` as `Moments`, plus
-    `[2026-10-26, review]` ONE retry moment (INJURY_RETRIES) just after a failed
-    attempt at the newest owed slot, read from the probe (`ok`, `slot.attempt`)."""
+    """The injury-check row's deadlines: `injury_check_slots` as `Moments`.
+    ~~plus `[2026-10-26, review]` ONE retry moment (INJURY_RETRIES) just after a
+    failed attempt~~ `[2026-10-27, review 2]` the retry is planned, never a
+    deadline (`injury_retry`)."""
     now = now or datetime.datetime.now(UTC)
     moments = [m for _l, m in injury_check_slots(league, latest, now)]
-    served = max((m for m in moments if m <= now), default=None)
-    pr = _load(f"{latest}/injury-check.json")
-    if served is not None and isinstance(pr, dict) and pr.get("ok") is False:
-        sl = pr.get("slot") if isinstance(pr.get("slot"), dict) else {}
-        at = _parse(pr.get("checked_at"))
-        if (_parse(sl.get("utc")) == served and at is not None and at >= served
-                and (sl.get("attempt") or 1) <= INJURY_RETRIES):
-            moments.append(at + datetime.timedelta(seconds=1))
     return Moments(moments, label="/".join("%d:%02d" % t for t in INJURY_CHECK_ET) + " real ET, game days")
+
+
+def injury_retry(data="data", now=None):
+    """`[2026-10-26, review]` ONE RETRY (INJURY_RETRIES) of a check that read nothing at the
+    newest owed slot, read from its probe (`ok`, `slot.attempt`). -> {"injury-check"} or set().
+    `[2026-10-27, review 2]` ⛔ PLANNED, NEVER MARKED STALE (`plan`, like `slate_moves`): one
+    failed attempt reads fresh, and only INJURY_FAILED_SLOTS failed slots are a warning."""
+    lg = data.replace(os.sep, "/").rstrip("/").split("/")[-1]
+    if lg not in FB_TIMES:
+        return set()
+    now = now or datetime.datetime.now(UTC)
+    latest = f"{data}/latest"
+    served = max((m for _l, m in injury_check_slots(lg, latest, now) if m <= now), default=None)
+    pr = _load(f"{latest}/injury-check.json")
+    sl = (pr.get("slot") if isinstance(pr, dict) and isinstance(pr.get("slot"), dict) else None) or {}
+    at = _parse(pr.get("checked_at")) if isinstance(pr, dict) else None
+    if (served is not None and isinstance(pr, dict) and pr.get("ok") is False
+            and _parse(sl.get("utc")) == served and at is not None and at >= served
+            and (sl.get("attempt") or 1) <= INJURY_RETRIES):
+        return {"injury-check"}
+    return set()
 
 
 def injury_check_history(league, latest, log, since, now=None):
@@ -1857,8 +1875,17 @@ def _defense_health(path, now):
 #    the checks are running (the newest within IN_SEASON_D days): the off-season is no warning.
 #    ⛔ The NFL's probe only: college's check reads through the conference reader, whose own
 #    probe is judged above (`_injury_probe_health`); judging it twice is two alarms for one fault.
+#    `[2026-10-27, review 2]` (its SOURCES only; see THE CHECK ITSELF below)
 #    ⛔ REPORTED, NEVER REPLANNED (REPORT_ONLY_HEALTH): a re-run cannot answer it before the next
 #    slot, and each one would rebuild the card (CASCADE) and hit a source that is down.
+# 🔴 `[2026-10-27, review 2]` THE CHECK ITSELF, BOTH LEAGUES, WHATEVER THE CAUSE. Counting sources
+#    only, a check that raised in OUR code at every slot (its sources answered, `ok` false) read
+#    fresh and nothing said so: the specific case closed, not the class. So the probe's slot log
+#    is judged too: when each of the last INJURY_FAILED_SLOTS slots that ran has attempts and no
+#    `ok_at`, the check read nothing there, and that is named (with the last error, if ours),
+#    until an attempt reads something again (the probe's `ok`, any run).
+#    Only slots count: a run that served no slot (the first pass after a merge, a manual run) is
+#    in no slot's log and in no source's `failing_slots` (collect.collect_injury_check).
 INJURY_FAILED_SLOTS = 2
 
 
@@ -1871,17 +1898,26 @@ def _injury_check_health(path, now):
     if at is None or now - at > datetime.timedelta(days=IN_SEASON_D):
         return None
     bad = []
-    for s, v in sorted((doc.get("sources") if isinstance(doc.get("sources"), dict) else {}).items()):
-        n = len(v.get("failing_slots") or []) if isinstance(v, dict) else 0
-        if n >= INJURY_FAILED_SLOTS:
-            bad.append(f"{s} has not answered at the last {n} game-day checks "
-                       f"(since {v.get('failing_since')}; last answered {v.get('last_ok_at')})")
+    log = doc.get("log") if isinstance(doc.get("log"), dict) else {}
+    ran = [(k, v) for k, v in sorted(log.items()) if isinstance(v, dict) and (v.get("attempts") or 0)]
+    last = ran[-INJURY_FAILED_SLOTS:]
+    if (doc.get("ok") is not True                     # the newest attempt, slot or not, read nothing too
+            and len(last) >= INJURY_FAILED_SLOTS and not any(v.get("ok_at") for _k, v in last)):
+        bad.append("the last %d game-day checks read nothing (%s)%s" % (
+            len(last), ", ".join("%s ET on %s" % (v.get("et"), k[:10]) for k, v in last),
+            "; the last attempt raised %s" % doc["error"] if doc.get("error") else ""))
+    if "/nfl/" in "/" + str(path).replace(os.sep, "/"):      # college's sources: the reader's probe
+        for s, v in sorted((doc.get("sources") if isinstance(doc.get("sources"), dict) else {}).items()):
+            n = len(v.get("failing_slots") or []) if isinstance(v, dict) else 0
+            if n >= INJURY_FAILED_SLOTS:
+                bad.append(f"{s} has not answered at the last {n} game-day checks "
+                           f"(since {v.get('failing_since')}; last answered {v.get('last_ok_at')})")
     return ("game-day injury check: " + "; ".join(bad)) if bad else None
 
 
 HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_probe_health),
           (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health),
-          (re.compile(r"/nfl/latest/injury-check\.json$"), _injury_check_health))
+          (re.compile(r"/(?:nfl|ncaaf)/latest/injury-check\.json$"), _injury_check_health))
 # Modes whose `health` finding is reported (stale: a soft warning, a `fresh:` finding) but
 # never planned again (`plan`). See INJURY_FAILED_SLOTS.
 REPORT_ONLY_HEALTH = {"injury-check"}
@@ -2405,7 +2441,7 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
             and (allow_paid or not r["paid"])
             and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH)} \
-        | slate_moves(data, picks, now) | every_pass(data, now)
+        | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now)
     changed = True
     while changed:
         changed = False

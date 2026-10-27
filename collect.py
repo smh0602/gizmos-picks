@@ -4627,6 +4627,12 @@ def collect_injury_check(at=None):
         p = _prev_src.get(name) if isinstance(_prev_src.get(name), dict) else {}
         if v.get("ok"):
             v.update(last_ok_at=v.get("last_ok_at") or ts, failing_since=None, failing_slots=[])
+        elif served is None:
+            # `[2026-10-27, review 2]` ⛔ a run serving no slot (the first pass after a merge, a slot
+            #    whose games kicked off between plan and run, a manual run) is no game-day check: it
+            #    leaves the count as it was, so one real slot never reads as two
+            v.update(last_ok_at=v.get("last_ok_at") or p.get("last_ok_at"),
+                     failing_since=p.get("failing_since"), failing_slots=list(p.get("failing_slots") or []))
         else:
             fs = [x for x in (p.get("failing_slots") or []) if x != _key][-5:] + [_key]
             v.update(last_ok_at=v.get("last_ok_at") or p.get("last_ok_at"),
