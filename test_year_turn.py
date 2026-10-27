@@ -10,8 +10,8 @@ the 2027 MLB opener, every one on a planted tree here, nothing read from product
   (§3);
 - 🔴 the news flags found an NFL game's week in the kickoff's calendar-year schedule, so
   from 12-29 (week 17's Thursday game is 01:15Z on 01-01) to the Super Bowl no injury flag
-  was written; and a Monday-night game read as the NEXT week, already wrong on 48 of 272
-  games (§4);
+  was written (32 of 2026's 272 games); and a Monday-night game read as the NEXT week (16
+  games, 7 of them played by 10-27) (§4);
 - 🔴 the MLB pitcher and hitter pulls asked statsapi for `now().year`: from 2027-01-01
   10:04Z an empty 2027 pool, our own RuntimeError, every MLB run red until a 2027 arm had
   20 IP (about mid-April) (§5);
@@ -22,9 +22,15 @@ the 2027 MLB opener, every one on a planted tree here, nothing read from product
 ⚠️ ROOT CAUSE: every one was written inside one season, where the calendar year and the
 season agree and the spring had already passed.
 
-⛔ THE CLASS, NOT THE LINES (§1): every year a module takes from a date — a slice `[:4]`, a
-`.year`, `strftime("%Y")` — is named here per function WITH ITS REASON, so a new one is a
-decision written down. The Python only; the page's season list is the August 2027 follow-up.
+⛔ THE CLASS, NOT THE LINES (§1): every year a module takes from a date is named here per
+function WITH ITS REASON, so a new one is a decision written down. What §1 reads: a `[:4]`
+slice under int(), of str(), or in a %-format, a `+` or an f-string; a `.year` outside a
+datetime/date constructor; a `strftime("%Y")`. ⚠️ What it does not read: a slice handed
+straight to a call or a variable (syntax cannot tell it from a truncation), `split("-")[0]`,
+and a LITERAL year (`data/2026-*`, `players-2026`, `(2025, 2026)`): those are guarded per
+instance (§7's glob). The Python only; the page's season list is the August 2027 follow-up.
+⚠️ A mutation of THIS file cannot be declared here (its `find` would occur twice), so §1's
+scan branches were each proved red by hand `[review, 2026-10-27]`.
 
 # @vacuity a January football card is graded from the season before
 #   file: record_fb.py
@@ -48,8 +54,18 @@ decision written down. The Python only; the page's season list is the August 202
 #
 # @vacuity a football day that settled nothing is not graded
 #   file: watchdog.py
-#   find: d and ((d.get("n") or 0) > 0 or (d.get("voids") or 0) > 0)):
-#   with: d is not None):
+#   find: d and ((d.get("n") or 0) > 0 or (d.get("voids") or 0) > 0
+#   with: d and (True
+#
+# @vacuity a football card whose rows can never settle is not an alarm
+#   file: watchdog.py
+#   find: or not d.get("pending", d.get("carded", 1)))):
+#   with: )):
+#
+# @vacuity the grader says which rows still wait for the log
+#   file: record_fb.py
+#   find: "pending": sum(1 for r in rows if r["state"] == "not in the log yet"),
+#   with: "pending": 0,
 #
 # @vacuity a January game's week is read from its season's schedule
 #   file: fb_why.py
@@ -76,30 +92,55 @@ decision written down. The Python only; the page's season list is the August 202
 #   find: (yr - 1 if age <= NEW_SEASON_GRACE_D else None)
 #   with: (yr - 1)
 #
-# @vacuity an empty answer from a new season still raises
+# @vacuity an empty or broken answer from a new season still raises (a row must carry the bar's field)
 #   file: collect.py
-#   find: if not got[1] and got[0] and before is not None:
-#   with: if not got[1] and before is not None:
+#   find: (sp.get("stat") or {}).get(field) is not None for sp in got[0])
+#   with: True for sp in [0])
+#
+# @vacuity a new season's pool with a domain violation still raises
+#   file: collect.py
+#   find: clean = not (len(got) > 2 and got[2]) and any(
+#   with: clean = any(
+#
+# @vacuity a season never steps backwards once its file is stored
+#   file: collect.py
+#   find: and not (stored is not None and stored >= yr)):
+#   with: ):
+#
+# @vacuity a scores store that stopped adding finals cannot hold the pulls on last season
+#   file: collect.py
+#   find: if before is None and yr < cal:
+#   with: if False:
 #
 # @vacuity the pitcher pull reads the season rule
 #   file: collect.py
-#   find: season_pool("pitchers", _pitcher_pool, f"{PITCHER_MIN_IP} IP")
+#   find: season_pool("pitchers", _pitcher_pool, f"{PITCHER_MIN_IP} IP", "inningsPitched")
 #   with: (now().year,) + _pitcher_pool(now().year)
 #
 # @vacuity the hitter pull reads the season rule
 #   file: collect.py
-#   find: season_pool("hitters", _hitter_pool, f"{HITTER_MIN_PA} PA")
+#   find: season_pool("hitters", _hitter_pool, f"{HITTER_MIN_PA} PA", "plateAppearances")
 #   with: (now().year,) + _hitter_pool(now().year)
 #
 # @vacuity a spring-training game owes no card
 #   file: freshness.py
-#   find: carded = lambda g: types is None or g.get("gameType") is None or g["gameType"] in types
+#   find: carded = lambda g: not (isinstance(g.get("gameType"), str) and g["gameType"] in skip)
 #   with: carded = lambda g: True
 #
-# @vacuity the game types are read from mlb_game_model
+# @vacuity a game type nobody has seen still owes a card (an exclusion list, never an allow-list)
 #   file: freshness.py
-#   find: vals = frozenset(_literal("mlb_game_model.py", "GAME_TYPES")) or None
+#   find: carded = lambda g: not (isinstance(g.get("gameType"), str) and g["gameType"] in skip)
+#   with: carded = lambda g: g.get("gameType") in ("R", "F", "D", "L", "W")
+#
+# @vacuity the codes that owe no card are read from mlb_game_model
+#   file: freshness.py
+#   find: vals = frozenset(_literal("mlb_game_model.py", name)) or None
 #   with: vals = None
+#
+# @vacuity spring training is one of the codes that owe no card
+#   file: mlb_game_model.py
+#   find: NOT_CARDED = {"S", "E", "A", "I"}
+#   with: NOT_CARDED = {"E", "A", "I"}
 #
 # @vacuity every year's odds pulls are read
 #   file: mlb_game_model.py
@@ -160,6 +201,9 @@ try:
         ("collect.py", "mlb_seasons"): (1, MLB_YEAR + ": the year of a stored final"),
         ("collect.py", "mlb_pull_season"): (1, "the calendar only when no stored final can be "
                                                "read, which raises in winter: the loud side"),
+        ("collect.py", "season_pool"): (1, "the calendar's season is ASKED of statsapi only while "
+                                           "the store's newest is older: an answer over the bar "
+                                           "means the store is behind (never the calendar alone)"),
         ("collect.py", "collect_scores"): (2, "the store's fetch window opens 1 March of this "
                                               "year (no MLB game in January or February), and "
                                               "its unread `season` label"),
@@ -176,9 +220,10 @@ try:
 
     def year_uses(path):
         """[(function, line, what)] for every year taken from a date in a module's code:
-        a [:4] or [0:4] slice under int(), of str(...) or %-formatted; a `.year` that is
-        not the first argument of a datetime(x.year, x.month, ...) constructor; and a
-        strftime("%Y"). Comments and strings are not code, so the parse skips them."""
+        a [:4] or [0:4] slice under int(), of str(...), or in a %-format, a `+` or an
+        f-string; a `.year` that is not the first argument of a datetime/date(x.year,
+        x.month, ...) constructor; and a strftime("%Y"). Comments and strings are not
+        code, so the parse skips them."""
         tr = ast.parse(open(path, encoding="utf-8").read())
         parent = {c: n for n in ast.walk(tr) for c in ast.iter_child_nodes(n)}
 
@@ -199,10 +244,12 @@ try:
             if isinstance(n, ast.Subscript) and four(n.slice):
                 if ((isinstance(p, ast.Call) and getattr(p.func, "id", None) == "int" and n in p.args)
                         or (isinstance(n.value, ast.Call) and getattr(n.value.func, "id", None) == "str")
-                        or (isinstance(p, ast.BinOp) and isinstance(p.op, ast.Mod))):
+                        or (isinstance(p, ast.BinOp) and isinstance(p.op, (ast.Mod, ast.Add)))
+                        or isinstance(p, ast.FormattedValue)):
                     out.append((where(n), n.lineno, "a year sliced off a date"))
             elif isinstance(n, ast.Attribute) and n.attr == "year":
                 if not (isinstance(p, ast.Call) and len(p.args) > 1 and p.args[0] is n
+                        and ast.unparse(p.func) in ("datetime", "date", "datetime.datetime", "datetime.date")
                         and isinstance(p.args[1], ast.Attribute) and p.args[1].attr == "month"):
                     out.append((where(n), n.lineno, ".year"))
             elif (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "strftime"
@@ -229,10 +276,14 @@ try:
     _probe = tree()
     with open(os.path.join(_probe, "probe.py"), "w", encoding="utf-8") as fh:
         fh.write("import datetime\n# int(x[:4]) in a comment is not code\n"
-                 "def f(d):\n    return int(d[:4]), datetime.date(d.year, d.month, 1), str(d)[:4], 'x'[:4]\n")
-    eq([w for _f, _l, w in year_uses(os.path.join(_probe, "probe.py"))],
-       ["a year sliced off a date", "a year sliced off a date"],
-       "the scan sees int(d[:4]) and str(d)[:4], and skips a comment, a constructor and a plain slice")
+                 "def f(d):\n    return int(d[:4]), datetime.date(d.year, d.month, 1), str(d)[:4], 'x'[:4]\n"
+                 "def h(d, g):\n    return (d.strftime('%Y'), 'p-%s' % d[:4], f'x{d[:4]}', 'x' + d[:4],\n"
+                 "            g(d.year, d.month))\n")
+    eq(sorted(w for _f, _l, w in year_uses(os.path.join(_probe, "probe.py"))),
+       sorted(["a year sliced off a date"] * 5 + ['strftime("%Y")', ".year"]),
+       "the scan sees int(d[:4]), str(d)[:4], a %-format, an f-string and a `+` of d[:4], "
+       "strftime('%Y') and a .year handed to any call but a date constructor; it skips a comment, "
+       "a datetime.date(d.year, d.month) and a plain slice")
 
     # ═══ §2 a January football card is graded from the season before ═════════════
     section("§2 the football Track Record grades January from the season before")
@@ -310,16 +361,23 @@ try:
     NOW = Z("2027-01-07T15:00Z")
     f = watch(fb_tree("nfl", [jan], [], skipped=[("2027-01-03", "no 2027 player log stored yet")]), NOW)
     ck(bool(f) and f[0]["severity"] == "BROKEN" and "2027-01-03" in f[0]["why"]
-       and "no 2027 player log" in f[0]["why"] and f[0]["repair"] == "record",
-       "🔴 a 4-day-old NFL card missing from record.json is BROKEN, names the day and why",
+       and "no 2027 player log" in f[0]["why"] and f[0]["repair"] == "card-fb",
+       "🔴 a 4-day-old NFL card missing from record.json is BROKEN, names the day and why, and "
+       "names football's grader `card-fb` (`record` does nothing under nfl)",
+       f and (f[0]["why"], f[0]["repair"]))
+    f = watch(fb_tree("nfl", [jan], [{"date": "2027-01-03", "n": 0, "voids": 0, "carded": 1,
+                                      "pending": 1}]), NOW)
+    ck(bool(f) and "nothing on it settled" in f[0]["why"],
+       "🔴 ...and so is one in by_day that settled nothing while a row waits for the log",
        f and f[0]["why"])
     f = watch(fb_tree("nfl", [jan], [{"date": "2027-01-03", "n": 0, "voids": 0, "carded": 1}]), NOW)
-    ck(bool(f) and "nothing on it settled" in f[0]["why"],
-       "🔴 ...and so is one in by_day that settled nothing (the September shape: every row unresolved)",
+    ck(bool(f), "⛔ ...and one from a record written before `pending` existed (fails closed)",
        f and f[0]["why"])
     for what, cards, by_day, now, rf in (
             ("graded", [jan], [{"date": "2027-01-03", "n": 1, "voids": 0}], NOW, "2026-09-07"),
             ("all void", [jan], [{"date": "2027-01-03", "n": 0, "voids": 1}], NOW, "2026-09-07"),
+            ("whose rows can never settle", [jan],
+             [{"date": "2027-01-03", "n": 0, "voids": 0, "carded": 1, "pending": 0}], NOW, "2026-09-07"),
             ("exactly 3 days old", [jan], [], Z("2027-01-06T15:00Z"), "2026-09-07"),
             ("with an empty liked list", [(jan[0], dict(jan[1], liked=[], picks=ROW))], [], NOW, "2026-09-07"),
             ("dated before record_from", [jan], [], NOW, "2027-02-01"),
@@ -330,6 +388,34 @@ try:
     ck(bool(f) and "1 ncaaf card" in f[0]["what"], "🔴 college is asked the same question",
        f and f[0]["what"])
     ck(W.check_record_ungraded in W.CHECKS, "the check is in the watchdog's run list")
+    # `[review, 2026-10-27]` DRIVEN THROUGH THE REAL GRADER: a one-game card (a Thursday
+    #    night) whose player is in the log but not that week (an NFL inactive) is graded as
+    #    it will stay, and must never be an alarm; a card past the log's coverage still is.
+    PT = tree()
+    put(os.path.join(PT, "data", "nfl", "latest", "players-2026.json.gz"), {"season": 2026, "players": {
+        "p1": {"name": "Rec Beta", "pos": "WR", "g": [gm("2026-10-25", 60), gm("2026-11-15", 60)]}}})
+    for d, kick in (("2026-11-05", "2026-11-06T01:15:00Z"), ("2026-11-20", "2026-11-21T01:15:00Z")):
+        put(os.path.join(PT, "picks", "fb-nfl-%s.json" % d), {"date": d, "league": "nfl", "liked": [
+            {"player": "Rec Beta", "market": "player_reception_yds", "side": "over", "line": 40.5,
+             "price": -110, "book": "fanduel", "confidence": 60, "confidence_basis": "RECORD",
+             "raw": "6 of 10", "commence": kick, "game": "DEN @ KC"}]})
+    p = subprocess.run([sys.executable, os.path.join(ROOT, "record_fb.py")], cwd=PT,
+                       env=dict(os.environ, LEAGUE="nfl", FB_RECORD_FROM="2026-09-01"),
+                       capture_output=True, text=True, timeout=300)
+    _pd = {d.get("date"): d for d in (json.load(open(os.path.join(PT, "data", "nfl", "latest", "record.json"),
+                                                    encoding="utf-8")).get("by_day") or [])} \
+        if p.returncode == 0 else {}
+    eq([(d, (_pd.get(d) or {}).get("n"), (_pd.get(d) or {}).get("pending")) for d in ("2026-11-05", "2026-11-20")],
+       [("2026-11-05", 0, 0), ("2026-11-20", 0, 1)],
+       "record_fb: the 11-05 card's row is 'not in the log for that week' (pending 0), the 11-20 "
+       "card's is past the log's coverage (pending 1)")
+    ck(not [x for x in watch(PT, Z("2026-11-10T15:00Z")) + watch(PT, Z("2027-02-01T15:00Z"))
+            if "2026-11-05" in x["why"]],
+       "🔴 a one-game card whose rows can never settle is silent at 5 days and at 88 (it was BROKEN "
+       "forever, and its repair could not change it)")
+    f = watch(PT, Z("2026-11-25T15:00Z"))
+    ck(bool(f) and "2026-11-20" in f[0]["why"] and "2026-11-05" not in f[0]["why"],
+       "🔴 ...while a card whose row still waits for the log is BROKEN after 3 days", f and f[0]["why"])
 
     # ═══ §4 an NFL game's week is THIS game's own row ════════════════════════════
     section("§4 the news flags read THIS game's week, January and Monday night included")
@@ -378,13 +464,16 @@ try:
             if "stats?stats=season" in url:
                 asked.append(s)
                 rows = pools.get(s, [])
+                # n: outs or PA; a str is the raw inningsPitched; None leaves the field out
                 if hit:
                     sp = [{"player": {"id": i, "fullName": "Bat %d" % i}, "team": {"name": "T"},
-                           "stat": {"plateAppearances": n}} for i, n in rows]
+                           "stat": {} if n is None else {"plateAppearances": n}} for i, n in rows]
                 else:
                     sp = [{"player": {"id": i, "fullName": "Arm %d" % i}, "team": {"name": "T"},
-                           "stat": {"inningsPitched": "%d.%d" % (n // 3, n % 3), "gamesStarted": 3,
-                                    "era": "3.00", "whip": "1.1", "wins": 1, "losses": 1}} for i, n in rows]
+                           "stat": dict({} if n is None else {
+                               "inningsPitched": n if isinstance(n, str) else "%d.%d" % (n // 3, n % 3)},
+                               gamesStarted=3, era="3.00", whip="1.1", wins=1, losses=1)}
+                          for i, n in rows]
                 return {"stats": [{"splits": sp}]}, {}
             if "/people?personIds=" in url:
                 return {"people": []}, {}
@@ -398,11 +487,13 @@ try:
 
     FINALS_2026 = {"2026-03-25": [{"gamePk": 1, "gameType": "R"}], "2026-10-31": [{"gamePk": 2, "gameType": "W"}]}
 
-    def pull(kind, at, days, pools, scores_text=None):
+    def pull(kind, at, days, pools, scores_text=None, stored=None):
         """-> (seasons asked, the file's season, raised?, output). The collector on a planted
-        latest/, its clock at `at`, statsapi faked."""
+        latest/, its clock at `at`, statsapi faked; `stored` plants the kind's file of that season."""
         lat = os.path.join(tree(), "latest")
         os.makedirs(lat)
+        if stored is not None:
+            put(os.path.join(lat, "%s.json.gz" % kind), {"season": stored})
         if scores_text is not None:
             with open(os.path.join(lat, "scores.json.gz"), "w") as fh:
                 fh.write(scores_text)
@@ -425,11 +516,14 @@ try:
 
     OK_P = {2026: [(1, 300)], 2027: [(9, 300)]}          # one arm over 20 IP each season
     THIN_P = {2026: [(1, 300)], 2027: [(9, 30)]}         # 2027's arms all under 20 IP
-    a, s, e, _o = pull("pitchers", Z("2027-01-01T10:10Z"), FINALS_2026, OK_P)
-    eq((a[0], s, e), (2026, 2026, None), "🔴 on 2027-01-01 the pitcher pull asks for 2026, the season played")
+    WINTER_P = {2026: [(1, 300)]}                        # statsapi has no 2027 game yet
+    a, s, e, o = pull("pitchers", Z("2027-01-01T10:10Z"), FINALS_2026, WINTER_P)
+    eq((a[:2], s, e, "::warning::" in o), ([2027, 2026], 2026, None, False),
+       "🔴 on 2027-01-01 the pitcher pull asks statsapi whether 2027 is under way (empty: no), "
+       "then pulls 2026, the season played")
     spring = dict(FINALS_2026, **{"2027-03-02": [{"gamePk": 3, "gameType": "S"}]})
-    a, s, e, _o = pull("pitchers", Z("2027-03-10T10:10Z"), spring, OK_P)
-    eq((a[0], s), (2026, 2026), "   ...spring training is not the season: still 2026 on 03-10")
+    a, s, e, _o = pull("pitchers", Z("2027-03-10T10:10Z"), spring, WINTER_P)
+    eq((a[-1], s), (2026, 2026), "   ...spring training is not the season: still 2026 on 03-10")
     opener = dict(spring, **{"2027-03-26": [{"gamePk": 4, "gameType": "R"}]})
     a, s, e, o = pull("pitchers", Z("2027-04-01T10:10Z"), opener, THIN_P)
     ck(a[:1] == [2027] and s == 2026 and e is None and "::warning::pitchers: the 2027 season" in o,
@@ -448,17 +542,46 @@ try:
        "asked %s, %s" % (a, e))
     a, s, e, _o = pull("pitchers", Z("2027-01-01T10:10Z"), None, OK_P, scores_text="not a gzip")
     ck(a[:1] == [2027], "⛔ a store that cannot be read falls back to the calendar (fails closed)", a)
+    # `[review, 2026-10-27]` inside the grace, only a young season falls back:
+    a, s, e, _o = pull("pitchers", Z("2027-04-25T10:10Z"), opener, THIN_P, stored=2027)
+    ck(e and "pitcher pool came back empty" in e and s == 2027,
+       "🔴 a season never steps backwards: with 2027's file stored, a pool gone thin raises and "
+       "keeps the 2027 file", "wrote %s, %s" % (s, e))
+    a, s, e, _o = pull("pitchers", Z("2027-04-01T10:10Z"), opener, {2026: [(1, 300)], 2027: [(9, "10.5")]})
+    ck(e and "pitcher pool came back empty" in e and s is None,
+       "🔴 a 2027 pool with an innings value outside thirds (fabricated data) raises, never falls back",
+       "wrote %s, %s" % (s, e))
+    a, s, e, _o = pull("pitchers", Z("2027-04-01T10:10Z"), opener, {2026: [(1, 300)], 2027: [(9, None)]})
+    ck(e and "pitcher pool came back empty" in e and s is None,
+       "🔴 ...and so does one whose rows carry no inningsPitched (a broken answer, not a young season)",
+       "wrote %s, %s" % (s, e))
+    a, s, e, o = pull("pitchers", Z("2027-06-01T10:10Z"), FINALS_2026, OK_P)
+    ck(a[:1] == [2027] and 2026 not in a and s == 2027 and e is None
+       and "::warning::pitchers: scores.json.gz holds no 2027 final" in o,
+       "🔴 a scores store that stopped adding finals cannot keep June on 2026: statsapi has a 2027 "
+       "arm over 20 IP, so 2027 is pulled and the store is named behind", "asked %s, wrote %s, %s" % (a, s, e))
+    a, s, e, o = pull("pitchers", Z("2027-06-01T10:10Z"), FINALS_2026, WINTER_P)
+    eq((s, e, "::warning::" in o), (2026, None, False),
+       "   ...while a season with no game yet (a lockout) keeps the store's season, no red run")
     a, s, e, _o = pull("hitters", Z("2027-01-01T10:10Z"), FINALS_2026, {2026: [(5, 500)], 2027: []})
-    eq((a[0], s, e), (2026, 2026, None), "🔴 the hitter pull asks for 2026 on 2027-01-01")
+    eq((a[-1], s, e), (2026, 2026, None), "🔴 the hitter pull asks for 2026 on 2027-01-01")
+    a, s, e, _o = pull("hitters", Z("2027-04-01T10:10Z"), opener, {2026: [(5, 500)], 2027: [(6, None)]})
+    ck(e and "hitter pool came back empty" in e,
+       "🔴 a 2027 hitter pool whose rows carry no plateAppearances raises", e)
+    a, s, e, _o = pull("hitters", Z("2027-04-25T10:10Z"), opener, {2026: [(5, 500)], 2027: [(6, 20)]},
+                       stored=2027)
+    ck(e and "hitter pool came back empty" in e and s == 2027,
+       "🔴 ...and with 2027's hitter file stored, a pool gone thin raises and keeps it", "wrote %s, %s" % (s, e))
     a, s, e, o = pull("hitters", Z("2027-04-01T10:10Z"), opener, {2026: [(5, 500)], 2027: [(6, 20)]})
     ck(s == 2026 and e is None and "::warning::hitters" in o,
        "🔴 ...and pulls 2026, saying so, while no 2027 bat has 80 PA", "wrote %s, %s" % (s, e))
     a, s, e, _o = pull("hitters", Z("2027-05-15T10:10Z"), opener, {2026: [(5, 500)], 2027: [(6, 20)]})
     ck(e and "hitter pool came back empty" in e, "   ...and raises once the grace is spent", e)
 
-    # ═══ §6 only a game the product cards owes an MLB card ═══════════════════════
-    section("§6 a spring-training or All-Star day owes no MLB card")
+    # ═══ §6 every game owes an MLB card except the codes that owe none ═══════════
+    section("§6 a spring-training or All-Star day owes no MLB card; any other game does")
     import freshness as F  # noqa: E402
+    import mlb_game_model as G  # noqa: E402
 
     def day_of(games, total=None):
         t = tree()
@@ -467,23 +590,38 @@ try:
                 "totalGames": len(games) if total is None else total,
                 "dates": [{"games": [dict(g, gamePk=i + 1) for i, g in enumerate(games)]}]}})
         return F.no_games_day("2027-02-20", data=t)
-    eq(F._mlb_game_types(), frozenset({"R", "F", "D", "L", "W"}), "the set is mlb_game_model's own")
-    eq([day_of([{"gameType": "S"}] * 15), day_of([{"gameType": "E"}, {"gameType": "S"}]),
-        day_of([{"gameType": "A"}])], [True, True, True],
-       "🔴 a spring day, an exhibition day and an All-Star day owe nothing")
-    eq([day_of([{"gameType": "S"}, {"gameType": "R"}]), day_of([{}]), day_of([{"gameType": "W"}])],
-       [False, False, False], "⛔ a day with a regular-season game, a game with no gameType, and a "
-                              "World Series day still owe a card")
-    _t = F._mlb_game_types
+    eq((F._mlb_not_carded(), F._mlb_game_types()),
+       (frozenset(G.NOT_CARDED) or None, frozenset(G.GAME_TYPES) or None),
+       "the sets are mlb_game_model's own")
+    ck(G.NOT_CARDED and G.GAME_TYPES and not (G.NOT_CARDED & G.GAME_TYPES),
+       "   ...and no code both owes a card and owes none")
+    _lit = F._literal
     try:
-        F._mlb_game_types = lambda: None
-        ck(day_of([{"gameType": "S"}] * 2) is False, "⛔ when the set cannot be read, every game counts")
+        F._literal = lambda m, n: {"X"} if (m, n) == ("mlb_game_model.py", "NOT_CARDED") else _lit(m, n)
+        F._MLB_SETS.clear()
+        eq(F._mlb_not_carded(), frozenset({"X"}), "   ...read from that file, never a copy")
     finally:
-        F._mlb_game_types = _t
+        F._literal = _lit
+        F._MLB_SETS.clear()
+    eq([day_of([{"gameType": "S"}] * 15), day_of([{"gameType": "E"}, {"gameType": "S"}]),
+        day_of([{"gameType": "A"}]), day_of([{"gameType": "I"}])], [True, True, True, True],
+       "🔴 a spring day, an exhibition day, an All-Star day and an intrasquad day owe nothing")
+    eq([day_of([{"gameType": c}]) for c in "RFDLW"], [False] * 5,
+       "⛔ a regular-season, wild-card, division, league-championship and World Series day each owe a card")
+    eq([day_of([{"gameType": "S"}, {"gameType": "R"}]), day_of([{}]), day_of([{"gameType": "RS"}] * 15),
+        day_of([{"gameType": ""}]), day_of([{"gameType": 7}])],
+       [False] * 5, "🔴 ...and so do a day with one regular-season game, a game with no gameType, a code "
+                    "nobody has seen, an empty code and a non-text one (an allow-list read them as "
+                    "no games and silenced the card, results, relay and watchdog)")
+    _t = F._mlb_not_carded
+    try:
+        F._mlb_not_carded = lambda: None
+        ck(day_of([{"gameType": "S"}] * 2) is False, "⛔ when the list cannot be read, every game counts")
+    finally:
+        F._mlb_not_carded = _t
 
     # ═══ §7 the MLB game model: every year's odds, the season's own lineups ═══════
     section("§7 the MLB game model reads 2027's odds and no spring lineup")
-    import mlb_game_model as G  # noqa: E402
     GT = tree()
     put(os.path.join(GT, "data", "2027-03-26", "gamelines", "1300.json.gz"), {
         "pulled_at": "2027-03-26T13:00:00Z", "games": [{

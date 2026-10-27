@@ -374,9 +374,13 @@ STUB_CALLED = "STUB: cfb.build_schedule("
 
 
 def _sandbox_collect(d):
-    """Write the no-network wrapper into sandbox `d`, and pin its team directory."""
+    """Write the no-network wrapper into sandbox `d`, and pin its team directory. ⚠️ The copy
+    is first set to LAST season (the 1 August state) on every clock, so the tripwire check
+    below needs the pin today: with the live file already this season's, dropping the pin
+    stayed green until 2027-08-01 `[review, 2026-10-27]`."""
     with open(f"{d}/_nonet.py", "w", encoding="utf-8") as fh:
         fh.write(NONET)
+    _teams_season(d, F.current_football_season() - 1)
     _pin_teams(d)
 
 
@@ -387,13 +391,18 @@ def _pin_teams(d):
     the new directory, the no-network wrapper refused it, and "not one of the collector
     sandboxes reached for the network" went red on correct code until a college pass had
     rebuilt the live file. The copy declares the clock's season; its teams are kept."""
+    _teams_season(d, F.current_football_season())
+
+
+def _teams_season(d, season):
+    """Set the season sandbox `d`'s copied teams.json declares, its teams kept."""
     p = f"{d}/data/ncaaf/latest/teams.json"
     try:
         with open(p, encoding="utf-8") as fh:
             doc = json.load(fh)
     except (OSError, ValueError):
         return
-    doc["season"] = F.current_football_season()
+    doc["season"] = season
     with open(p, "w", encoding="utf-8") as fh:
         json.dump(doc, fh)
 # 🔴 DRIVEN, NOT READ. Reading the source cannot tell the stand-down's
@@ -511,8 +520,8 @@ ck("🔴 ...but it FETCHES ANYWAY when the failure is OURS",
 ck("   ...and it ANNOUNCES that it ignored an armed back-off",
    "a CFBD back-off is armed" in _o,
    "a mode that 'should' have stood down and did not must say why")
-ck("⛔ ...and not one of the %d collector sandboxes reached for the network"
-   % len(_OUTS),
+ck("⛔ ...and not one of the %d collector sandboxes reached for the network (each starts "
+   "from LAST season's team directory, so this needs the pin)" % len(_OUTS),
    len(_OUTS) == 4 and not [o for o in _OUTS if "NONET: urlopen REFUSED" in o],
    "the tripwire fired: something fetched past the stub")
 _pt = tempfile.mkdtemp()
@@ -523,7 +532,7 @@ _pin_teams(_pt)
 with open(f"{_pt}/data/ncaaf/latest/teams.json", encoding="utf-8") as _fh:
     _pd = json.load(_fh)
 shutil.rmtree(_pt, ignore_errors=True)
-ck("⛔ ...because each sandbox's team directory declares the clock's season, its teams kept "
+ck("⛔ ...the pin rewrites a last-season team directory to the clock's season, its teams kept "
    "(`[2026-10-27]` from 1 August the copied live file named last season, and every sandbox "
    "asked CFBD for the new one)",
    _pd == {"season": F.current_football_season(), "teams": {"Akron": {"conf": "MAC"}}}, str(_pd))

@@ -15,8 +15,18 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #
 # @vacuity 🔴 an unstamped stored file is stamped in place
 #   file: fb_history.py
-#   find: if doc and doc.get("games") and not _stamped(doc):
+#   find: if doc and doc.get("games") and _F.stamp_of(p) is None:
 #   with: if False:
+#
+# @vacuity 🔴 a stamp write cut short leaves the stored file whole (the write is atomic)
+#   file: fb_history.py
+#   find:     tmp = p + ".tmp"
+#   with:     tmp = p
+#
+# @vacuity 🔴 a stored file whose stamp the contract cannot read is stamped (one reader)
+#   file: fb_history.py
+#   find: if doc and doc.get("games") and _F.stamp_of(p) is None:
+#   with: if doc and doc.get("games") and not any(doc.get(k) for k in ("pulled_at", "built_at", "generated_at", "written_at")):
 #
 # @vacuity 🔴 one failing NFL season never stops the others
 #   file: fb_history.py
@@ -144,6 +154,39 @@ ck(str(_res.get(2020)).startswith("stamped") and F.stamp_of(_u + "/data/nfl/hist
    "🔴 an UNSTAMPED stored file is stamped in place once, its games untouched (never re-fetched)",
    _res.get(2020))
 eq(HX.store_nfl(quiet, _u, build=build).get(2020), None, "   ...and the next run leaves it alone")
+# `[review, 2026-10-27]` stamped is what the CONTRACT reads, not a key being present: a stamp
+#    it cannot parse is stamped again, once.
+put(_u, "data/nfl/history/schedule-2021.json.gz",
+    {"season": 2021, "built_at": "n/a", "games": [g("2021_1", "2021-10-03", "LV", "KC", 1, 2)]})
+_res = HX.store_nfl(quiet, _u, build=build)
+ck(str(_res.get(2021)).startswith("stamped") and F.stamp_of(_u + "/data/nfl/history/schedule-2021.json.gz"),
+   "🔴 a stored file whose stamp the contract cannot read is stamped (freshness.stamp_of, one reader)",
+   _res.get(2021))
+# ...and a stamp that cannot be written is named, never raised, and leaves the file whole.
+put(_u, "data/nfl/history/schedule-2022.json.gz",
+    {"season": 2022, "games": [g("2022_1", "2022-10-02", "LV", "KC", 1, 2)]})
+_p22 = _u + "/data/nfl/history/schedule-2022.json.gz"
+_raw22 = open(_p22, "rb").read()
+_dump = HX.json.dump
+
+
+def _cut(*a, **k):
+    a[1].write('{"season": 20')
+    raise OSError("disk full")
+
+
+HX.json.dump = _cut
+try:
+    _res = HX.store_nfl(quiet, _u, build=build)
+    _raised = None
+except Exception as e:        # noqa: BLE001
+    _raised = e
+finally:
+    HX.json.dump = _dump
+ck(_raised is None and str(_res.get(2022)).startswith("failed: OSError")
+   and open(_p22, "rb").read() == _raw22 and not os.path.exists(_p22 + ".tmp"),
+   "🔴 a stamp write cut short is named and never raised; the stored file is byte-identical and "
+   "no temporary file is left (the write is atomic)", (_raised, _res.get(2022) if _raised is None else None))
 
 _old = (cfb._priced, cfb.build_schedule, cfb.get)
 asked, allow = [], {"v": False}

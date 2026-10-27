@@ -96,6 +96,15 @@ GRACE_MIN = 75
 #    watchdog reports it and does not race it.
 SAFE_REPAIRS = ("card", "card-fb", "record")
 
+# 🔴 `[2026-10-27]` THE REPAIRS THAT ACT IN EACH LEAGUE, ONE TABLE. The repair loop runs a
+#    mode under every league, and collect.py's `card` and `record` do nothing under
+#    football ("Nothing done": its card and its record are both `card-fb`), nor `card-fb`
+#    under MLB. The football record findings named `record` and ran a no-op until the
+#    repair was withdrawn. ✅ `Report` drops a repair that does not act in its finding's
+#    league (the key's second part) and says so, so the finding escalates at once.
+#    test_repair_loop.py §4 fails if this table and each league's contract disagree.
+REBUILDS = {"mlb": ("card", "record"), "nfl": ("card-fb",), "ncaaf": ("card-fb",)}
+
 # 🔴🔴 A REPAIR THAT NEVER WORKS IS A FINDING NOBODY IS COMING TO FIX.
 # `[measured 2026-09-14: 35 pointless rebuilds over 9½ hours]`
 #
@@ -236,6 +245,10 @@ class Report:
         self.items = []
 
     def bad(self, key, what, why, repair=None, severity="BROKEN"):
+        lg = (str(key).split(":") + [""])[1]
+        if repair and lg in REBUILDS and repair not in REBUILDS[lg]:
+            why = "%s ⛔ `%s` does nothing under %s, so no repair is named." % (why, repair, lg)
+            repair = None
         self.items.append({"key": key, "severity": severity, "what": what,
                            "why": why, "repair": repair})
 
@@ -681,6 +694,21 @@ def check_freshness(rep, now):
         stale = [r for r in (f.get("artifacts") or []) if r.get("stale")]
         if not stale:
             continue
+        # 🔴 `[2026-10-27]` A FILE THAT EXISTS AND READS MISSING CARRIES NO STAMP THE CONTRACT
+        #    READS: a writer's fault, which no rebuild repairs (the next file is the same
+        #    shape). The seven NFL history schedules read MISSING from 10-16 to 10-27 under a
+        #    standing `fresh:nfl`, read as staleness that fixes itself. Named on its own.
+        nostamp = sorted(str(r["path"]) for r in stale
+                         if r.get("missing") and r.get("kind") == "file" and r.get("path")
+                         and os.path.isfile(os.path.join(ROOT, str(r["path"]))))
+        if nostamp:
+            rep.warn("nostamp:%s" % lg,
+                     "%d %s file(s) exist but carry no time the freshness contract reads"
+                     % (len(nostamp), lg),
+                     "%s. ⛔ Each reads MISSING until its writer stamps it (pulled_at, "
+                     "built_at, generated_at or written_at): rebuilding it writes the "
+                     "same shape, so the converge loop cannot clear this."
+                     % ", ".join(nostamp[:6] + (["..."] if len(nostamp) > 6 else [])))
         names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
         # ⛔ NO REPAIR NAMED, ON PURPOSE. The converge loop in this same
         #    job is what repairs staleness, and it has already run by the
@@ -813,6 +841,7 @@ def check_record_written(rep, now):
     """
     for lg, d in DATA.items():
         p = os.path.join(ROOT, d, "latest", "record.json")
+        grader = "record" if lg == "mlb" else "card-fb"     # REBUILDS: football's grader is card-fb
         if not os.path.exists(p):
             # 🔴🔴 A MISSING FILE WAS SILENTLY SKIPPED, AND THAT IS THE
             #    MOST COMPLETE FORM OF THE FAILURE THIS CHECK EXISTS FOR.
@@ -834,7 +863,7 @@ def check_record_written(rep, now):
                         "record.json does not exist, and %d published "
                         "card(s) exist to grade — the page has nothing to "
                         "show on that tab" % _published(lg),
-                        repair="record")
+                        repair=grader)
             continue
         age = F.age_minutes(p, now)
         if age is None or age == F.MISSING:
@@ -844,7 +873,7 @@ def check_record_written(rep, now):
                      "the %s Track Record has not been regraded in %.0f "
                      "hours" % (lg, age / 60.0),
                      "record.json is %.0f minutes old" % age,
-                     repair="record")
+                     repair=grader)
 
 
 def check_odds_refused(rep, now):
@@ -1239,9 +1268,15 @@ def _fb_ungraded(rep, lg, today):
     dated card on or after the record's `record_from`, carrying rows in the list it is
     graded on (`liked` when the card has one, else `picks`), more than
     UNGRADED_AFTER_DAYS behind today (ET), whose day is not in `by_day` or settled
-    nothing there (no graded row and no void). A card with no rows has nothing to
-    grade. Measured 2026-10-27 over every card day: graded 0.1 to 0.5 days after it
-    ended, the slowest 3.3 (college 09-07, while the updates were being repaired)."""
+    nothing there (no graded row and no void) while a row still waits for the log
+    (`pending`; an older file without it counts every row). A card with no rows has
+    nothing to grade, and a row record_fb can never settle (no log for the player, an
+    ambiguous name, a college player who did not dress, an NFL inactive) is graded as
+    it will stay: a one-game card of those is correct, not late `[review, 2026-10-27]`.
+    Measured 2026-10-27 over every card day from `record_from`: graded 0.1 to 0.5 days
+    after the card's ET day ended on 43 of 47 days. The four slow ones were all in
+    September, while the updates were being repaired: NFL 09-09 1.3, 09-10 2.3 and 09-17
+    2.3 days (about 16 hours inside this line), college 09-07 3.3 (past it)."""
     rec = _read(os.path.join(ROOT, DATA[lg], "latest", "record.json"))
     if not isinstance(rec, dict) or "by_day" not in rec:
         return          # a missing or foreign record is check_record_written's
@@ -1262,7 +1297,8 @@ def _fb_ungraded(rep, lg, today):
             continue
         d = days.get(day)
         if day < floor or age <= UNGRADED_AFTER_DAYS or (
-                d and ((d.get("n") or 0) > 0 or (d.get("voids") or 0) > 0)):
+                d and ((d.get("n") or 0) > 0 or (d.get("voids") or 0) > 0
+                       or not d.get("pending", d.get("carded", 1)))):
             continue
         late.append("%s (%d days; %s)" % (day, age, why_skipped.get(day) or (
             "nothing on it settled" if d else "not in the record at all")))
@@ -1272,7 +1308,7 @@ def _fb_ungraded(rep, lg, today):
                 "Track Record" % (len(late), lg, UNGRADED_AFTER_DAYS),
                 "; ".join(late) + ". ⛔ Every pick on those cards is "
                 "absent from the published record.",
-                repair="record")
+                repair="card-fb")
 
 
 # 🔴🔴 ONE THING THIS FILE DELIBERATELY DOES NOT CHECK, AND THE REASON

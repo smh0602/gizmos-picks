@@ -21,6 +21,8 @@ import gzip
 import json
 import os
 
+import freshness as _F       # stdlib only: the contract's own stamp reader
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 NFL_SEASONS = (2018, 2019, 2020, 2021, 2022, 2023, 2024)     # ⛔ §3d
 CFB_SEASONS = (2023, 2024)                                   # ⛔ §3d
@@ -50,15 +52,19 @@ def _stamp():
 def _write(p, doc):
     """`[2026-10-27]` Every file carries `written_at`: the NFL schedules were written with no
     stamp, so the contract read all seven as MISSING from 10-16 on, and health.json carried
-    a standing `fresh:nfl` DEGRADED that a real NFL staleness would have hidden under."""
+    a standing `fresh:nfl` DEGRADED that a real NFL staleness would have hidden under.
+    ⛔ Atomic (a temporary file, then `os.replace`): a stored season is now rewritten in
+    place, and a write cut short would leave a file that never rebuilds `[review]`."""
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    with gzip.open(p, "wt", encoding="utf-8") as fh:
-        json.dump(dict(doc, written_at=_stamp()), fh, separators=(",", ":"))
-
-
-def _stamped(doc):
-    """Does a stored doc name the moment it was produced (freshness.STAMP_FIELDS)?"""
-    return any((doc or {}).get(k) for k in ("pulled_at", "built_at", "generated_at", "written_at"))
+    tmp = p + ".tmp"
+    try:
+        with gzip.open(tmp, "wt", encoding="utf-8") as fh:
+            json.dump(dict(doc, written_at=_stamp()), fh, separators=(",", ":"))
+        os.replace(tmp, p)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
 
 
 def alias(doc):
@@ -75,14 +81,16 @@ def store_nfl(log=log, root=None, build=None):
     out, rows = {}, None
     for s in NFL_SEASONS:
         p = os.path.join(hdir("nfl", root), "schedule-%d.json.gz" % s)
-        if os.path.exists(p):
-            doc = _jz(p)
-            if doc and doc.get("games") and not _stamped(doc):
-                _write(p, doc)            # `[2026-10-27]` its games untouched; only the stamp is new
-                out[s] = "stamped (%d games)" % len(doc["games"])
-                log("  history nfl %d: %s" % (s, out[s]))
-            continue
         try:
+            if os.path.exists(p):
+                # `[2026-10-27]` a stored file the contract reads no stamp in (its own reader,
+                # so one list of stamp fields) is stamped once: its games untouched
+                doc = _jz(p)
+                if doc and doc.get("games") and _F.stamp_of(p) is None:
+                    _write(p, doc)
+                    out[s] = "stamped (%d games)" % len(doc["games"])
+                    log("  history nfl %d: %s" % (s, out[s]))
+                continue
             if build is None:
                 import nfl as _nfl
                 if rows is None:

@@ -30,6 +30,10 @@ from mlb_pitcher_cal import fb_model, logit    # C2's one ridge-logistic fit, no
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 GAME_TYPES = {"R", "F", "D", "L", "W"}    # regular season and postseason, never spring
+# `[2026-10-27]` the codes that owe NO card: statsapi /gameTypes S spring training, E exhibition,
+#    A All-Star, I intrasquad. ⛔ An exclusion list, so a code nobody has seen still owes a card
+#    (freshness.no_games_day reads it, parsed, never imported); disjoint from GAME_TYPES.
+NOT_CARDED = {"S", "E", "A", "I"}
 OUTS = 27
 K_START_OUTS = 60      # a starter's ER per out, toward the league, over 60 outs (20 IP)
 K_START_N = 4          # his outs per start, toward the league mean, over 4 starts

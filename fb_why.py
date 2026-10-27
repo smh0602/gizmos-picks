@@ -113,7 +113,8 @@ def game_week(latest, home, away, when):
     or None. `[2026-10-27]` news_flags_fb asked `signal9.week_of`, which opens the file of
     the kickoff's CALENDAR year (a January game found no file: weeks 17-18 and the playoffs
     lost every injury flag) and takes the first week whose last ET date is on or after the
-    UTC day (a Monday-night game, 00:15Z Tuesday, read as next week: 48 of 272 games)."""
+    UTC day (a Monday-night game, 00:15Z Tuesday, read as next week: 16 of 2026's 272 games,
+    7 of them played by 10-27; with the 32 January games that found no file, 48 wrong)."""
     sched = (_jz(os.path.join(latest, "schedule-%s.json.gz" % season_of(when))) or {}).get("games")
     hits = games_in(sched, home, away, when, "week")
     return hits[0]["week"] if hits else None

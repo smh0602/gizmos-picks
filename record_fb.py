@@ -599,6 +599,9 @@ def main():
             "voids": sum(1 for r in rows if str(r["state"]).startswith("void")),
             "unresolved": sum(1 for r in rows if r["won"] is None
                               and not str(r["state"]).startswith("void")),
+            # `[2026-10-27]` the rows that can still settle (the game is past the log's
+            # coverage); the watchdog's ungraded check fires only on these.
+            "pending": sum(1 for r in rows if r["state"] == "not in the log yet"),
             "carded": len(rows),
             "log_covers_through": covers,
         })
@@ -675,7 +678,7 @@ def main():
                       for m in sorted({r.get("card_method") or METHOD_BEFORE for r in A})},
         "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
                     "carded": d["carded"], "voids": d["voids"],
-                    "unresolved": d["unresolved"]} for d in days],
+                    "unresolved": d["unresolved"], "pending": d["pending"]} for d in days],
         "days_graded": sum(1 for d in days if d["n"]),
         "cards_seen": len(days),
         # 🔴 THE RESET, ON THE FILE, SO THE PAGE DOES NOT HAVE TO GUESS.

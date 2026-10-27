@@ -605,6 +605,10 @@ section("THE STORED-DATA PROBE ON TWO CORRECT TREES IT ONCE FAILED")
 # by the calendar year it was skipped, and this is red). (2) A newest card with 25-style picks and
 # an EMPTY liked list: the probe must take the last card with rows in its graded list,
 # so NEXT METHOD runs and passes (taken by `picks`, it graded nothing and went red).
+# (3) `[2026-10-27]` A newest card on a season's opening week (2027-09-09) puts the probe
+# in 2027 with no 2027 log, as a week-1 card can come before its log (fb_why.season_of):
+# the stored path must note and add no failure. Since (1) changed, this is the only case
+# that reaches probe_blocked's "no log stored" answer `[review]`.
 import tcheck as _TC  # noqa: E402
 
 
@@ -624,7 +628,8 @@ def _guard_tree(lg, date, liked_empty):
 
 
 for _tag, _date, _empty, _want_note in (("YEAR TURN", "2026-12-31", False, False),
-                                         ("LIKED EMPTY", "2026-09-27", True, False)):
+                                         ("LIKED EMPTY", "2026-09-27", True, False),
+                                         ("NEW SEASON, NO LOG YET", "2027-09-09", False, True)):
     _g = _guard_tree("nfl", _date, _empty)
     _nf0, _nn0 = len(_TC.FAILURES), len(_TC._NOTES)
     try:

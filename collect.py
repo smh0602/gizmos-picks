@@ -2449,7 +2449,16 @@ def pitching_log_row(g):
 #    For NEW_SEASON_GRACE_D days after that season's first such final, a pool that
 #    answers with nobody over the bar pulls the season before, said out loud.
 #    ⛔ Anything else empty still raises: an empty answer, a season older than the
-#    grace, a store that cannot be read (the calendar year, as before).
+#    grace, a store that cannot be read (the calendar year, as before), and inside
+#    the grace a pool that is not CLEAN (a domain violation, or no row carrying the
+#    bar's field: a broken answer, never a young season) or a season this pull's
+#    stored file already holds (a season never steps backwards: the pool over the
+#    bar only grows). `[review, 2026-10-27]`
+#    ✅ A store that stopped adding finals cannot hold the pulls on last season: while
+#    the store's newest season is older than the calendar's, statsapi is asked for the
+#    calendar's (free; empty all winter, so nothing changes there), and anyone over the
+#    bar means the season is under way: that season is pulled, with a warning that the
+#    scores store is behind. A lockout's empty pool keeps the store's season.
 #    ⚠️ What the card should read while a new season's pool is thin is Sam's call:
 #    this keeps what it reads today (the previous season's file) and no more.
 #    45 days: in 2026 the first 80-PA bat came 19 days after the opener, and a Tokyo or
@@ -2487,12 +2496,40 @@ def mlb_pull_season():
     return yr, (yr - 1 if age <= NEW_SEASON_GRACE_D else None)
 
 
-def season_pool(kind, pool, bar):
+def _stored_season(kind):
+    """The season the stored `<kind>.json.gz` holds, or None when it cannot be read."""
+    try:
+        s = json.load(gzip.open(f"{LATEST}/{kind}.json.gz", "rt")).get("season")
+    except Exception:
+        return None
+    return s if isinstance(s, int) else None
+
+
+def season_pool(kind, pool, bar, field):
     """(season, *pool(season)) for the pitcher or hitter pull: `pool(yr)` -> (splits,
-    the pool over the bar, ...). ⛔ ONE COPY of the season rule above (rule 117)."""
+    the pool over the bar[, domain violations]); `field` is the stat the bar reads.
+    ⛔ ONE COPY of the season rule above (rule 117)."""
     yr, before = mlb_pull_season()
+    cal = now().year
+    if before is None and yr < cal:
+        try:
+            ahead = pool(cal)
+        except Exception as e:
+            ahead = None
+            log(f"  {kind}: asking statsapi for {cal}: {type(e).__name__}")
+        if ahead and ahead[1]:
+            print(f"::warning::{kind}: scores.json.gz holds no {cal} final but statsapi has "
+                  f"{len(ahead[1])} over {bar}: the scores store is behind; pulling {cal}",
+                  flush=True)
+            return (cal,) + tuple(ahead)
     got = pool(yr)
-    if not got[1] and got[0] and before is not None:
+    # ⛔ only a CLEAN pool falls back (no domain violation, and a row carrying the bar's
+    #    field), and never once this pull's stored file holds `yr`
+    clean = not (len(got) > 2 and got[2]) and any(
+        (sp.get("stat") or {}).get(field) is not None for sp in got[0])
+    stored = _stored_season(kind)
+    if (not got[1] and before is not None and clean
+            and not (stored is not None and stored >= yr)):
         print(f"::warning::{kind}: the {yr} season is under {NEW_SEASON_GRACE_D} days old and "
               f"none of the {len(got[0])} in its pool has {bar} yet; pulling {before} until one "
               f"does", flush=True)
@@ -2525,7 +2562,7 @@ def _pitcher_pool(yr):
 
 
 def collect_pitchers():
-    yr, splits, people, skipped = season_pool("pitchers", _pitcher_pool, f"{PITCHER_MIN_IP} IP")
+    yr, splits, people, skipped = season_pool("pitchers", _pitcher_pool, f"{PITCHER_MIN_IP} IP", "inningsPitched")
     if not people:
         raise RuntimeError("pitcher pool came back empty")
 
@@ -3517,7 +3554,7 @@ def _hitter_pool(yr):
 
 def collect_hitters():
     # `[2026-10-27]` ~~now().year~~: the season from the stored finals (`season_pool`)
-    yr, splits, people = season_pool("hitters", _hitter_pool, f"{HITTER_MIN_PA} PA")
+    yr, splits, people = season_pool("hitters", _hitter_pool, f"{HITTER_MIN_PA} PA", "plateAppearances")
     if not people:
         raise RuntimeError("hitter pool came back empty — endpoint or season wrong")
 

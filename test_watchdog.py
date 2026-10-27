@@ -29,6 +29,11 @@ the deadline from `last_due`, and at that hour those are DIFFERENT DAYS.
 Sunday's card was on disk, complete. ✅ The day now comes from the deadline
 itself, and section 2 drives that exact clock.
 
+# @vacuity 🔴 a contract file that exists but reads MISSING is named (it carries no stamp)
+#   file: watchdog.py
+#   find:         if nostamp:
+#   with:         if False:
+#
 # @vacuity 🔴 an all-zero schedule day owes no card (#200)
 #   file: freshness.py
 #   find:     return bool(seen) and all(n == 0 for n in seen)
@@ -1192,6 +1197,36 @@ else:
        "contents: read" in sr,
        "🔴 the job that DECIDES whether to wake an agent must not be able "
        "to change the thing it is deciding about")
+
+print("\n═══ 🔴 A CONTRACT FILE THAT EXISTS AND READS MISSING CARRIES NO STAMP ═══")
+# `[2026-10-27]` The seven NFL history schedules had no stamp: 11 days of a standing
+#    `fresh:nfl` that read as staleness the converge loop repairs. A planted contract.
+with Tree() as t:
+    _now = datetime.datetime(2026, 10, 27, 15, 0, tzinfo=UTC)
+    t.write("data/nfl/history/schedule-2018.json.gz", "planted")
+    t.write("data/nfl/latest/freshness.json", {"artifacts": [
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2018.json.gz",
+         "missing": True, "stale": True},
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2019.json.gz",
+         "missing": True, "stale": True},
+        {"mode": "nfl-logs", "kind": "dir", "path": "data/nfl/latest",
+         "missing": True, "stale": True},
+        {"mode": "props", "kind": "file", "path": "data/nfl/latest/players-2026.json.gz",
+         "missing": False, "stale": True}]})
+    t.write("data/nfl/latest/players-2026.json.gz", "planted")
+    _rep = W.Report()
+    W.check_freshness(_rep, _now)
+    _ns = [i for i in _rep.items if i["key"] == "nostamp:nfl"]
+    ck("🔴 a contract file that exists but reads MISSING is named on its own, DEGRADED, no repair",
+       len(_ns) == 1 and _ns[0]["severity"] == "DEGRADED" and _ns[0]["repair"] is None
+       and "schedule-2018" in _ns[0]["why"],
+       "got %r" % [(i["key"], i["why"][:120]) for i in _rep.items])
+    ck("   ...and only that one: not a file that is absent, a directory, or a file merely late",
+       _ns and "1 nfl file" in _ns[0]["what"] and "2019" not in _ns[0]["why"]
+       and "players-2026" not in _ns[0]["why"],
+       "got %r" % (_ns and _ns[0]["what"],))
+    ck("   ...and the staleness itself is still reported as before",
+       any(i["key"] == "fresh:nfl" for i in _rep.items))
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the watchdog catches "
      "everything. It catches the four shapes that have actually bitten — "

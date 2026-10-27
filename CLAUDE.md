@@ -1063,12 +1063,19 @@ note boxes, tags and the stale bar now require their absence.
   `freshness.current_football_season`, and an NFL game's week is its own schedule row
   (`fb_why.game_week`). The MLB pulls ask for the newest season with a stored final of a
   game the product cards (`collect.mlb_pull_season`; ~~`now().year`~~ turned every MLB run
-  red from 01-01 to mid-April); for 45 days after that season's first final, a pool nobody
-  has cleared pulls the season before, with a `::warning::`. Only those games owe a card:
-  `no_games_day` counts `mlb_game_model.GAME_TYPES` (parsed), so a spring-training or
-  All-Star day owes none. `test_year_turn.py` §1 fails on any other year taken from a date
-  unless it is named with its reason. ⚠️ Left, with the decisions that are Sam's: the
-  handoff's R6.
+  red from 01-01 to mid-April); while that season is older than the calendar's, statsapi
+  is asked whether the calendar's is under way (a scores store that stopped adding
+  finals). For 45 days after a season's first final, a CLEAN pool nobody has cleared
+  pulls the season before, with a `::warning::`; a broken pool (a domain violation, the
+  bar's field missing), or a season the pull's own file already holds, still raises
+  (`collect.season_pool`). Every MLB game owes a card except a code in
+  `mlb_game_model.NOT_CARDED` (spring training, exhibition, All-Star, intrasquad; parsed,
+  and an exclusion list, so a code nobody has seen still owes one). `test_year_turn.py` §1
+  fails on a year sliced off a date (under int(), of str(), in a %-format, a `+` or an
+  f-string), a `.year` outside a date constructor, or a `strftime("%Y")`, unless it is
+  named with its reason; ⚠️ a LITERAL year (`data/2026-*`, `(2025, 2026)`) is not seen
+  and is guarded per instance. ⚠️ Left, with the decisions that are Sam's: the handoff's
+  R6.
 - 🔴 **AN MLB RUN THAT REACHES THE END OF ITS HOLD STARTS ITS SUCCESSOR (THE
   RELAY).** `[Sam, 2026-10-06]` *"a card is on time even when GitHub starts a
   scheduled run hours late"*: on 10-06 the card due 14:00Z was built 16:02Z,
@@ -1118,7 +1125,12 @@ note boxes, tags and the stale bar now require their absence.
   `watchdog.check_odds_refused` is BROKEN until a paid pull lands after it, and its alert
   gives Sam the steps in `docs/FIX-ODDS-KEY.md` (`SAM_DOES`), never a prompt for Claude
   and never the self-repair list. ⛔ The run's own colour is unchanged (Sam's 09-26
-  rule). `test_odds_refused.py`.
+  rule). `test_odds_refused.py`. ✅ `[2026-10-27]` A finding names only a repair that acts
+  in its own league (`watchdog.REBUILDS`: MLB `card`/`record`, football `card-fb`, checked
+  against each league's contract by `test_repair_loop.py` §4; `Report` drops any other and
+  says so): football's Track Record findings had named `record`, a no-op under football.
+  The football ungraded-card alarm fires only while a row still waits for the log
+  (record_fb's `pending`), never on a card whose rows can never settle.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
