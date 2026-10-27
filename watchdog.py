@@ -700,21 +700,23 @@ def check_freshness(rep, now):
         #    standing `fresh:nfl`, read as staleness that fixes itself. Named on its own.
         #    ⚠️ Asked of the file NOW (`F.stamp_of`), not of freshness.json alone, which the
         #    pass wrote before this step's repairs: a file a repair just wrote, stamped, is
-        #    not named `[review, 2026-10-27]`.
+        #    not named; and only a file the contract can READ (`F._load`): a truncated or
+        #    corrupt one stays under fresh:<lg>, which a rebuild repairs `[review, 2026-10-27]`.
         nostamp = sorted(str(r["path"]) for r in stale
                          if r.get("missing") and r.get("kind") == "file" and r.get("path")
                          and os.path.isfile(os.path.join(ROOT, str(r["path"])))
+                         and F._load(os.path.join(ROOT, str(r["path"]))) is not None
                          and F.stamp_of(os.path.join(ROOT, str(r["path"]))) is None)
         if nostamp:
             rep.warn("nostamp:%s" % lg,
-                     "%d %s file(s) exist but carry no time the freshness contract reads"
+                     "%d %s file(s) are readable but carry no time the freshness contract reads"
                      % (len(nostamp), lg),
                      "%s. ⛔ Each reads MISSING until it is rewritten with a stamp "
                      "(pulled_at, built_at, generated_at or written_at): while its writer "
                      "writes none, every rebuild is the same, and only a code change "
                      "clears it." % ", ".join(nostamp[:6] + (["..."] if len(nostamp) > 6 else [])))
             stale = [r for r in stale if str(r.get("path")) not in nostamp]
-            if not stale:
+            if not stale:  # every stale row was an unstamped file, named above
                 continue
         names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
         # ⛔ NO REPAIR NAMED, ON PURPOSE. The converge loop in this same

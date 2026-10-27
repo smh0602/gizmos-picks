@@ -208,9 +208,12 @@ def load_log(season):
 def load_schedule(season):
     """{team: [its games]} from schedule-<season> in this tree, or {} when it cannot be read."""
     try:
-        games = json.load(gzip.open(f"{LATEST}/schedule-{season}.json.gz", "rt")).get("games") or []
+        doc = json.load(gzip.open(f"{LATEST}/schedule-{season}.json.gz", "rt"))
     except (OSError, ValueError, EOFError):
         return {}
+    games = doc.get("games") if isinstance(doc, dict) else None
+    if not isinstance(games, list):
+        return {}         # ⛔ never raises: a bad schedule must not stop the props record
     out = {}
     for g in games:
         if isinstance(g, dict):
@@ -659,8 +662,18 @@ def main():
         rows = grade_card(card, P, idx, covers, scheds[season], ids[season])
         graded = [r for r in rows if r["won"] is not None]
         if not graded:
-            skipped.append((date, "nothing settled yet — the log does not "
-                                  "reach this slate"))
+            # `[review, 2026-10-27]` the reason is the day's own: "the log does not reach
+            #    this slate" only when that is what every owed row says (the watchdog's
+            #    alarm quotes it to Sam)
+            _owed = sorted({str(r["state"]) for r in rows if r["won"] is None
+                            and not str(r["state"]).startswith("void")
+                            and r["state"] not in SETTLED_UNRESOLVED})
+            skipped.append((date, "nothing settled yet — " + (
+                "its list is empty, nothing to grade" if not rows
+                else "the log does not reach this slate" if _owed == ["not in the log yet"]
+                else "; ".join(_owed) if _owed
+                else "every row is unresolved for good (%s)" % "; ".join(
+                    sorted({str(r["state"]) for r in rows if r["won"] is None})))))
         days.append({
             "date": date, "rows": rows, "graded": graded,
             "n": len(graded), "w": sum(1 for r in graded if r["won"]),

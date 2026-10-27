@@ -85,6 +85,26 @@ scan branches were each proved red by hand `[review, 2026-10-27]`.
 #   find: return bool(g.get("final") and g.get("home_score") is not None and g.get("away_score") is not None
 #   with: return bool(True and g.get("home_score") is not None and g.get("away_score") is not None
 #
+# @vacuity a college player's team is read off his own rows (college has no player-level team)
+#   file: record_fb.py
+#   find: team = (min(dated)[1] if dated else None) or pl.get("team")
+#   with: team = pl.get("team")
+#
+# @vacuity the alarm's reason names the day's own owed states
+#   file: record_fb.py
+#   find: "the log does not reach this slate" if _owed == ["not in the log yet"]
+#   with: "the log does not reach this slate" if True
+#
+# @vacuity an empty card's reason says its list is empty
+#   file: record_fb.py
+#   find: "its list is empty, nothing to grade" if not rows
+#   with: "its list is empty, nothing to grade" if False
+#
+# @vacuity a schedule that is not an object never stops the record
+#   file: record_fb.py
+#   find: games = doc.get("games") if isinstance(doc, dict) else None
+#   with: games = doc.get("games")
+#
 # @vacuity an NFL kickoff is compared with the log in the log's own (ET) calendar
 #   file: record_fb.py
 #   find: log_day = (card_fb.et_date(p.get("commence")) or day) if LEAGUE == "nfl" else day
@@ -428,18 +448,20 @@ try:
     #    Correct and silent for ever: an NFL inactive (his teammate's row of that game is in
     #    the log), a postponed game, a game not final. Owed, so BROKEN after 3 days: a final
     #    game the log does not hold, a game past the log's coverage, a pick with no kickoff.
-    def graded(lg, players, sched, cards):
+    def graded(lg, players, sched, cards, sched_doc="games"):
         t = tree()
         lat = os.path.join(t, "data", lg, "latest")
         put(os.path.join(lat, "players-2026.json.gz"), {"season": 2026, "players": players})
-        put(os.path.join(lat, "schedule-2026.json.gz"), {"season": 2026, "games": sched})
+        put(os.path.join(lat, "schedule-2026.json.gz"),
+            {"season": 2026, "games": sched} if sched_doc == "games" else sched_doc)
         for d, kick in cards:
             row = {"player": "Rec Beta", "market": "player_reception_yds", "side": "over", "line": 40.5,
                    "price": -110, "book": "fanduel", "confidence": 60, "confidence_basis": "RECORD",
                    "raw": "6 of 10", "game": "DEN @ KC"}
             if kick:
                 row["commence"] = kick
-            put(os.path.join(t, "picks", "fb-%s-%s.json" % (lg, d)), {"date": d, "league": lg, "liked": [row]})
+            put(os.path.join(t, "picks", "fb-%s-%s.json" % (lg, d)),
+                {"date": d, "league": lg, "liked": [] if kick == "EMPTY" else [row]})
         p = subprocess.run([sys.executable, os.path.join(ROOT, "record_fb.py")], cwd=t,
                            env=dict(os.environ, LEAGUE=lg, FB_RECORD_FROM="2026-09-01"),
                            capture_output=True, text=True, timeout=300)
@@ -463,7 +485,7 @@ try:
          sg("G12", "2026-11-12T20:15"), sg("G15", "2026-11-15T13:00")],
         [("2026-11-05", "2026-11-06T01:15:00Z"), ("2026-11-08", "2026-11-08T18:00:00Z"),
          ("2026-11-10", "2026-11-11T01:15:00Z"), ("2026-11-12", "2026-11-13T01:15:00Z"),
-         ("2026-11-20", "2026-11-21T01:15:00Z"), ("2026-11-09", None)])
+         ("2026-11-20", "2026-11-21T01:15:00Z"), ("2026-11-09", None), ("2026-11-03", "EMPTY")])
     eq([(d, (_pd.get(d) or {}).get("n"), (_pd.get(d) or {}).get("owed"))
         for d in ("2026-11-05", "2026-11-08", "2026-11-10", "2026-11-12", "2026-11-20", "2026-11-09")],
        [("2026-11-05", 0, 0), ("2026-11-08", 0, 0), ("2026-11-10", 0, 0),
@@ -480,6 +502,22 @@ try:
     ck(bool(f) and all(d in f[0]["why"] for d in ("2026-11-09", "2026-11-12", "2026-11-20")),
        "🔴 ...while a final game the log lacks, a game past its coverage and a pick with no kickoff "
        "are BROKEN after 3 days", f and f[0]["why"])
+    ck(bool(f) and "2026-11-12 (13 days; nothing settled yet — the game is final but not in the log)" in f[0]["why"]
+       and "2026-11-09 (16 days; nothing settled yet — pick has no kickoff)" in f[0]["why"]
+       and "2026-11-20 (5 days; nothing settled yet — the log does not reach this slate)" in f[0]["why"],
+       "🔴 ...and each day the alarm sends Sam names its own cause (it said \"the log does not reach "
+       "this slate\" for all three)", f and f[0]["why"])
+    _sk = {x.get("date"): x.get("why") for x in json.load(open(os.path.join(
+        PT, "data", "nfl", "latest", "record.json"), encoding="utf-8")).get("skipped") or []}
+    eq(_sk.get("2026-11-03"), "nothing settled yet — its list is empty, nothing to grade",
+       "   ...and a card with an empty list says so (it read \"the log does not reach this slate\")")
+    _t0, _pd0, p = graded("nfl", {
+        "p1": {"name": "Rec Beta", "pos": "WR", "team": "KC",
+               "g": [gm2("2026-10-25", "G25"), gm2("2026-11-15", "G15")]}},
+        [], [("2026-11-15", "2026-11-15T18:00:00Z")], sched_doc=None)
+    ck(p.returncode == 0 and (_pd0.get("2026-11-15") or {}).get("n") == 1,
+       "⛔ a schedule file that is valid JSON but not an object never stops the record: the card "
+       "is graded as before", (_pd0, (p.stderr or p.stdout)[-200:]))
     # A Monday-night game the newest in the log: nflverse dates it Monday (ET), its kickoff is
     #    00:15Z Tuesday. An inactive there is in the log's coverage, not past it.
     _t2, _pd2, p = graded("nfl", {
@@ -487,9 +525,30 @@ try:
         "p2": {"name": "Mate Delta", "pos": "WR", "team": "DAL", "g": [gm2("2026-10-26", "G26", "DAL")]}},
         [sg("G19", "2026-10-19T20:15", home="DAL"), sg("G26", "2026-10-26T20:15", home="DAL")],
         [("2026-10-26", "2026-10-27T00:15:00Z")])
-    ck((_pd2.get("2026-10-26") or {}).get("owed") == 0 and not watch(_t2, Z("2026-10-31T05:00Z")),
+    ck((_pd2.get("2026-10-26") or {}).get("owed") == 0 and not watch(_t2, Z("2026-10-31T05:00Z"))
+       and not watch(_t2, Z("2027-01-22T15:00Z")),
        "🔴 an inactive on a Monday-night card is compared in the log's ET calendar: owed nothing, "
-       "silent at 5 days", (_pd2, (p.stderr or p.stdout)[-200:]))
+       "silent at 5 days and at 88", (_pd2, (p.stderr or p.stdout)[-200:]))
+    # College, in its own shape: no player-level team (each row carries it), CFBD's UTC starts.
+    #    A Tuesday game the schedule calls final but the log lacks, while the log already holds
+    #    another team's Wednesday game, is owed; with a teammate's row of it, he did not dress.
+    def cfb_case(teammate):
+        pl = {"c1": {"name": "Rec Beta", "pos": "WR", "g": [gm2("2026-10-24", "C24", "Kent State")]},
+              "c9": {"name": "Other Guy", "pos": "WR", "g": [gm2("2026-11-04", "C04", "Ohio")]}}
+        if teammate:
+            pl["c2"] = {"name": "Mate Kent", "pos": "WR", "g": [gm2("2026-11-03", "C03", "Kent State")]}
+        return graded("ncaaf", pl,
+                      [sg("C24", "2026-10-24T16:00:00.000Z", home="Kent State"),
+                       sg("C03", "2026-11-03T23:30:00.000Z", home="Kent State"),
+                       sg("C04", "2026-11-05T00:00:00.000Z", home="Ohio")],
+                      [("2026-11-03", "2026-11-03T23:30:00Z")])
+    _tc, _pdc, p = cfb_case(False)
+    _tm, _pdm, p2 = cfb_case(True)
+    ck((_pdc.get("2026-11-03") or {}).get("owed") == 1 and bool(watch(_tc, Z("2026-11-08T15:00Z"), "ncaaf"))
+       and (_pdm.get("2026-11-03") or {}).get("owed") == 0 and not watch(_tm, Z("2026-11-08T15:00Z"), "ncaaf"),
+       "🔴 college: a final Tuesday game the log lacks is owed and BROKEN after 3 days; with a "
+       "teammate's row of it, the player did not dress and it is silent",
+       (_pdc, _pdm, (p.stderr or p.stdout)[-200:], (p2.stderr or p2.stdout)[-200:]))
     # A log whose rows carry no date covers nothing: the card is owed, never read as an inactive.
     _t3, _pd3, p = graded("nfl", {
         "p1": {"name": "Rec Beta", "pos": "WR", "team": "KC",
@@ -536,6 +595,9 @@ try:
     section("§5 the MLB pitcher and hitter pulls never ask for a season not yet played")
     import collect as C  # noqa: E402
 
+    import urllib.error  # noqa: E402
+    LASTEXC = [None]
+
     def fake(pools, down=()):
         """statsapi, by season: pools[season] = [(id, outs or PA)]; a season in `down` answers an
         HTTP error. Records every pool asked."""
@@ -547,7 +609,7 @@ try:
             if "stats?stats=season" in url:
                 asked.append(s)
                 if s in down:
-                    raise OSError("HTTP Error 503: Service Unavailable")
+                    raise urllib.error.HTTPError(url, 503, "Service Unavailable", {}, io.BytesIO(b""))
                 rows = pools.get(s, [])
                 # n: outs or PA; a str is the raw inningsPitched; None leaves the field out
                 if hit:
@@ -593,6 +655,7 @@ try:
                 (C.collect_pitchers if kind == "pitchers" else C.collect_hitters)()
         except Exception as e:
             err = "%s: %s" % (type(e).__name__, e)
+            LASTEXC[0] = e
         finally:
             C.get, C.LATEST, C.now = saved
         f = os.path.join(lat, "%s.json.gz" % kind)
@@ -655,9 +718,12 @@ try:
     ck(e and "pitcher pool came back empty" in e and s == 2027 and 2026 not in a,
        "🔴 a store behind a stored 2027 file asks for 2027: an empty answer raises and keeps the "
        "file (it wrote 2026 over it)", "asked %s, wrote %s, %s" % (a, s, e))
+    LASTEXC[0] = None
     a, s, e, o = pull("pitchers", Z("2027-06-01T10:10Z"), FINALS_2026, OK_P, stored=2027, down=(2027,))
-    ck(e and "503" in e and s == 2027,
-       "🔴 ...and an HTTP error raises (an outside source) and keeps it", "wrote %s, %s" % (s, e))
+    import freshness as _F5  # noqa: E402
+    ck(e and "503" in e and s == 2027 and _F5.outside_source(LASTEXC[0]) is not None,
+       "🔴 ...and an HTTP error raises, judged an outside source (a warning while the file is in "
+       "date, never our own red), and keeps the file", "wrote %s, %s, %r" % (s, e, LASTEXC[0]))
     a, s, e, o = pull("pitchers", Z("2028-01-05T10:10Z"), FINALS_2026, OK_P, stored=2027)
     ck(s == 2027 and e is None and a[:1] == [2028] and "the scores store is behind" in o,
        "🔴 ...and the next winter pulls 2027, the season before, never 2026", "asked %s, wrote %s, %s" % (a, s, e))

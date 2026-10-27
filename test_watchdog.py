@@ -39,6 +39,16 @@ itself, and section 2 drives that exact clock.
 #   find:                          and F.stamp_of(os.path.join(ROOT, str(r["path"]))) is None)
 #   with:                          )
 #
+# @vacuity 🔴 ...and only a file the contract can READ (a truncated one stays a staleness)
+#   file: watchdog.py
+#   find:                          and F._load(os.path.join(ROOT, str(r["path"]))) is not None
+#   with:                          and True
+#
+# @vacuity 🔴 ...and with nothing else stale, no staleness finding at all
+#   file: watchdog.py
+#   find: if not stale:  # every stale row was an unstamped file, named above
+#   with: if False:
+#
 # @vacuity 🔴 ...and the staleness finding leaves it out (converge cannot repair it)
 #   file: watchdog.py
 #   find:             stale = [r for r in stale if str(r.get("path")) not in nostamp]
@@ -1211,10 +1221,23 @@ else:
 print("\n═══ 🔴 A CONTRACT FILE THAT EXISTS AND READS MISSING CARRIES NO STAMP ═══")
 # `[2026-10-27]` The seven NFL history schedules had no stamp: 11 days of a standing
 #    `fresh:nfl` that read as staleness the converge loop repairs. A planted contract.
+def _gz(t, rel, doc=None, raw=None):
+    p = os.path.join(t.d, rel)
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    if raw is not None:
+        open(p, "wb").write(raw)
+    else:
+        with gzip.open(p, "wt", encoding="utf-8") as fh:
+            json.dump(doc, fh)
+
+
 with Tree() as t:
     _now = datetime.datetime(2026, 10, 27, 15, 0, tzinfo=UTC)
-    t.write("data/nfl/history/schedule-2018.json.gz", "planted")
+    _gz(t, "data/nfl/history/schedule-2018.json.gz", {"season": 2018, "games": []})   # the live shape
+    _gz(t, "data/nfl/history/schedule-2020.json.gz", raw=gzip.compress(b'{"season": 2020, "ga')[:30])
     t.write("data/nfl/latest/freshness.json", {"artifacts": [
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2020.json.gz",
+         "missing": True, "stale": True},
         {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2018.json.gz",
          "missing": True, "stale": True},
         {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2019.json.gz",
@@ -1235,15 +1258,27 @@ with Tree() as t:
        len(_ns) == 1 and _ns[0]["severity"] == "DEGRADED" and _ns[0]["repair"] is None
        and "schedule-2018" in _ns[0]["why"],
        "got %r" % [(i["key"], i["why"][:120]) for i in _rep.items])
-    ck("   ...and only that one: not a file that is absent, a directory, a file merely late, or "
-       "one a repair has just written with its stamp (asked of the file now, not of freshness.json)",
+    ck("   ...and only that one: not a file that is absent, a directory, a file merely late, "
+       "one a repair has just written with its stamp (asked of the file now, not of freshness.json), "
+       "or a truncated one (a rebuild repairs that)",
        _ns and "1 nfl file" in _ns[0]["what"] and "2019" not in _ns[0]["why"]
+       and "2020" not in _ns[0]["why"]
        and "players-2026" not in _ns[0]["why"] and "record.json" not in _ns[0]["why"],
        "got %r" % (_ns and (_ns[0]["what"], _ns[0]["why"][:160]),))
     _fr = [i for i in _rep.items if i["key"] == "fresh:nfl"]
-    ck("   ...and the staleness itself is still reported, without the file named above (the "
-       "converge loop cannot repair that one)",
-       len(_fr) == 1 and "4 artifact(s)" in _fr[0]["why"], _fr and _fr[0]["why"][:120])
+    ck("   ...and the staleness itself is still reported, the truncated file in it and without the "
+       "unstamped one (the converge loop cannot repair that one)",
+       len(_fr) == 1 and "5 artifact(s)" in _fr[0]["why"], _fr and _fr[0]["why"][:120])
+with Tree() as t:
+    _gz(t, "data/nfl/history/schedule-2018.json.gz", {"season": 2018, "games": []})
+    t.write("data/nfl/latest/freshness.json", {"artifacts": [
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2018.json.gz",
+         "missing": True, "stale": True}]})
+    _rep = W.Report()
+    W.check_freshness(_rep, _now)
+    eq(sorted(i["key"] for i in _rep.items), ["nostamp:nfl"],
+       "🔴 the live shape (every stale row an unstamped file) is the no-stamp finding alone: no "
+       "'0 artifact(s) are stale' line saying the converge loop will repair it")
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the watchdog catches "
      "everything. It catches the four shapes that have actually bitten — "
