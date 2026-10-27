@@ -1496,6 +1496,15 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   ⛔ It imports no other repo module (sandboxes copy it alone):
                   the US DST rule `_us_eastern_offset` lives here, fb_weather
                   reads it from here `[2026-10-26]`.
+                  `[2026-10-27]` ✅ Every other deadline stays at a FIXED UTC-4
+                  all year, on purpose: it is the minute its cron fires, and a
+                  GitHub cron is UTC. From 11-01 each is the same UTC minute, an
+                  hour earlier by the wall clock (the card's "10:00" is 9:00
+                  EST). ⛔ Moving them means moving the crons (Sam's upload).
+                  The page reads Eastern time by the zone everywhere
+                  (`etWallDate`, `fbStartDate`, `fbEspnDay`); a fixed offset on
+                  the page, or a new one in the Python not named with its reason,
+                  fails `test_et_clock_change.py`.
 verify_freshness.py  fails the run when the site is not current.
                   `[Sam, 2026-10-01]` The page shows no stale-data bar
                   and no "out of date" note; staleness reaches Sam
