@@ -499,6 +499,113 @@ def push_change(prefix, branch, edit, message, root=ROOT, run=subprocess.run):
     return branch, True
 
 
+# ══════════════════════════════════════════════════════════════════════
+# §3i T74 — THE PROPS MODEL ON LAST SEASON PLUS THIS ONE `[Sam, 2026-10-27]`
+# ══════════════════════════════════════════════════════════════════════
+# *"set up the monday contest to train it on 25-26"*, then *"build as written"*. The champion is
+# today's props model (stage 1 on every season in fb_props_model.SEASONS); P2526 the identical
+# model whose stage 1 trains on the season in progress and the one before. ⛔ A WINS switches
+# nothing by itself: one branch for Sam (`push_props_branch`).
+PROPS_NAME = "P2526"
+PROPS_MIN = 500                      # ⛔ §3i rule 4: paired predictions in the league
+PROPS_ALPHA = 0.01                   # ⛔ §3i rule 4: one-sided
+PROPS_MARK = "def props_contest("    # §3i rule 6: the merge day is the day this line reached main
+
+
+def props_registration(root=ROOT, added=None):
+    """§3i rule 6: the first Monday AFTER the day the contest reached this checkout's first-parent
+    line (on main: its PR's merge day), or None without git history. `added` (tests): {P2526: day}."""
+    if added and PROPS_NAME in added:
+        merged = added[PROPS_NAME]
+    else:
+        r = subprocess.run(["git", "log", "--first-parent", "--format=%cs", "-S", PROPS_MARK, "--", "fb_refit.py"],
+                           capture_output=True, text=True, cwd=root)
+        got = r.stdout.split() if r.returncode == 0 else []
+        merged = got[-1] if got else None
+    if not merged:
+        return None
+    return monday_on_or_after((datetime.date.fromisoformat(merged) + datetime.timedelta(days=1)).isoformat())
+
+
+def props_pairs(champion, challenger, season):
+    """§3i rule 3: [(champion loss, challenger loss, game)] over the graded lines of `season` both
+    walk-forwards price: one per (game, player, market, line), P(over) or P(yes)."""
+    import fb_why
+
+    def rows(wf):
+        got = {}
+        for r in wf.get("graded") or []:
+            if r.get("p_model") is None or r.get("y") is None:
+                continue
+            if fb_why.season_of(str(r.get("day") or r.get("commence") or "")[:10]) != season:
+                continue
+            got.setdefault((r["game"], r["player"], r["market"], r["line"]), r)
+        return got
+    a, b = rows(champion), rows(challenger)
+    keys = sorted(k for k in set(a) & set(b) if a[k]["y"] == b[k]["y"])
+    return ([(loss(a[k]["p_model"], a[k]["y"]), loss(b[k]["p_model"], b[k]["y"]), a[k]["game"]) for k in keys],
+            len(set(a) - set(b)), len(set(b) - set(a)))
+
+
+def props_verdict(res):
+    """§3i rule 4: WINS at PROPS_MIN or more paired predictions, mean d above 0 and one-sided
+    p under PROPS_ALPHA (the unrounded numbers); NOT YET MEASURABLE under PROPS_MIN; else NOT YET."""
+    if res["predictions"] < PROPS_MIN:
+        return "NOT YET MEASURABLE"
+    m, p = res.get("mean_d_exact", res["mean_d"]), res.get("p_exact", res["p"])
+    return "WINS" if m is not None and m > 0 and p is not None and p < PROPS_ALPHA else "NOT YET"
+
+
+def props_contest(lg, root=ROOT, now=None, added=None, wf=None):
+    """§3i T74: one league's props-model contest -> its report. `wf` (tests): {"champion": a
+    walk-forward, "challenger": another}; otherwise both are run here from the stored logs."""
+    import card_fb as CF
+    import fb_props_model as PM
+    import freshness as FR
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    season, chal = FR.current_football_season(now), PM.last_two(now)
+    out = {"name": PROPS_NAME, "what": "the props model trained on last season plus this one",
+           "spec": "research/fb_refit_spec.md §3i", "season": season,
+           "champion_seasons": list(PM.SEASONS), "challenger_seasons": list(chal),
+           "floor": PROPS_MIN, "alpha": PROPS_ALPHA, "registered": props_registration(root, added)}
+    if CF.PROPS_SEASONS.get(lg) == CF.LAST_TWO:      # rule 5: the champion IS the challenger
+        return dict(out, champion_seasons=list(chal), verdict="SWITCHED")
+    if not out["registered"] or out["registered"] > today:
+        return dict(out, verdict="NOT YET REGISTERED")
+    if wf is None:
+        logs = PM.load_logs(lg, root, chal)
+        if set(logs) != set(chal):
+            return dict(out, verdict="NO DATA",
+                        why="no stored player log for %s" % ", ".join(str(s) for s in sorted(set(chal) - set(logs))))
+        wf = {"challenger": PM.walk_forward(lg, root, logs), "champion": PM.walk_forward(lg, root, PM.load_logs(lg, root))}
+    pairs, only_a, only_b = props_pairs(wf["champion"], wf["challenger"], season)
+    res = test(pairs, exact=True)
+    return dict(out, counted=res, verdict=props_verdict(res), champion_only=only_a, challenger_only=only_b)
+
+
+def set_props_seasons(src, lg):
+    """card_fb.py's text with ONE change: that league's PROPS_SEASONS entry, "all" -> LAST_TWO."""
+    out, n = re.subn(r'(?m)^(PROPS_SEASONS = \{.*"%s": )"all"' % lg, r"\g<1>LAST_TWO", src)
+    if n != 1:
+        raise RuntimeError("the %s PROPS_SEASONS entry was not found once in card_fb.py" % lg)
+    return out
+
+
+def push_props_branch(lg, day, root=ROOT, run=subprocess.run):
+    """§3i rule 5: ⛔ ONE branch per league while any fb/props-seasons-<lg>-* is on origin; never
+    main, never a PR. -> (the branch, pushed now?)."""
+    def edit(tmp):
+        p = os.path.join(tmp, "card_fb.py")
+        with open(p, encoding="utf-8") as fh:
+            src = fh.read()
+        with open(p, "w", encoding="utf-8", newline="") as fh:
+            fh.write(set_props_seasons(src, lg))
+    return push_change("fb/props-seasons-%s-" % lg, "fb/props-seasons-%s-%s" % (lg, day), edit,
+                       "fb: %s won T74 (%s): the props model on last season plus this one, for Sam"
+                       % (PROPS_NAME, lg), root, run)
+
+
 def branch_order(results):
     """`[Sam, 2026-10-26]` §3g: every WINS, the one that gets the league's one branch first: the
     largest mean d over its counted predictions; a tie, the smaller p, then the earlier name in
@@ -547,6 +654,16 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
             doc["injury_backtest"] = fb_inj_backtest.auto(lg, root, now, run, prev=_was)
         except Exception as e:
             doc["injury_backtest"] = dict(_was or {}, error="%s: %s" % (type(e).__name__, e))
+        # `[Sam, 2026-10-27]` §3i T74: the props model's own contest. ⛔ Never raises (the error is
+        #    kept beside last week's report and the email says so); a WINS pushes one branch for Sam.
+        try:
+            ps = props_contest(lg, root, now, added)
+            if ps["verdict"] == "WINS":
+                ps["branch"], ps["branch_pushed"] = push_props_branch(lg, now.strftime("%Y-%m-%d"), root, run)
+            doc["props_seasons"] = ps
+        except Exception as e:
+            doc["props_seasons"] = dict((prev or {}).get("props_seasons") or {},
+                                        error="%s: %s" % (type(e).__name__, e))
         # `[R1, 2026-10-18]` the league's own run time, kept: the job's limit is 90 minutes and
         #    the first real run (2026-10-19) is the first measurement on real data.
         doc["elapsed_seconds"] = round(time.time() - t0, 1)

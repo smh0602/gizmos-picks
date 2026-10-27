@@ -32,6 +32,7 @@ import card_fb                      # the champion: rate_for, norm, price floors
 import collect                      # PROP_MARKETS, league_books: what is pulled, and from whom
 import dossier_fb as D              # team_codes: book team names -> log team codes
 import fb_model as F                # fit, predict, record, devig, implied, decimal, monday, L
+import freshness as FR              # current_football_season: the season in progress (§3i)
 import mlb_refit                    # paired_test_clustered: the ONE cluster-robust paired test
 import one_side                     # prop_side: only the side the model gives 50% or more
 import possession as P             # share_before: signal 6 from EARLIER games only
@@ -237,9 +238,24 @@ def target(market, g):
 # ══════════════════════════════════════════════════════════════════════
 # THE LOGS, STREAMED IN DATE ORDER — every input from EARLIER games only
 # ══════════════════════════════════════════════════════════════════════
-def load_logs(lg, root=None):
+def last_two(now=None):
+    """`[Sam, 2026-10-27]` §3i rule 2: the season in progress and the one before, rolling."""
+    cur = FR.current_football_season(now)
+    return (cur - 1, cur)
+
+
+def train_logs(lg, root=None, now=None):
+    """The logs the live props model trains on: every season in SEASONS (design §1), or, from
+    Sam's merge of a §3i switch for the league (card_fb.PROPS_SEASONS), last season plus this one."""
+    if card_fb.PROPS_SEASONS.get(lg) == card_fb.LAST_TWO:
+        return load_logs(lg, root, last_two(now))
+    return load_logs(lg, root)
+
+
+def load_logs(lg, root=None, seasons=None):
+    """{season: players} for `seasons` (SEASONS, design §1, when None) that are stored."""
     out = {}
-    for s in SEASONS:
+    for s in seasons or SEASONS:
         d = jz(os.path.join(root or ROOT, "data", lg, "latest", "players-%d.json.gz" % s))
         if d and d.get("players"):
             out[s] = d["players"]
@@ -937,6 +953,7 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
 
 def build(lg=None, root=None, out=None, logs=None):
     lg = (lg or LEAGUE).lower()
+    logs = train_logs(lg, root) if logs is None else logs
     wf = walk_forward(lg, root, logs)
     rec = {}
     for mk in markets_for(lg):
@@ -957,6 +974,8 @@ def build(lg=None, root=None, out=None, logs=None):
     doc = {"league": lg, "kind": "MODEL",
            "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "design": "research/fb_props_design.md",
+           # `[Sam, 2026-10-27]` §3i: the seasons stage 1 trained on, and whether the switch is on
+           "train_seasons": sorted(logs), "seasons_mode": card_fb.PROPS_SEASONS.get(lg, "all"),
            "books": sorted(set(collect.BOOKS[k] for k in F.books_ok(lg))),
            "price_floor": card_fb.PRICE_FLOOR, "price_ceiling": card_fb.PRICE_CEIL,
            "record": rec,
