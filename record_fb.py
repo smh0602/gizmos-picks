@@ -124,6 +124,7 @@ RECORD_FROM = os.environ.get("FB_RECORD_FROM", "2026-09-07")
 # from the card (ledger rule 66).
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import card_fb  # noqa: E402
+import fb_why  # noqa: E402  (season_of: the season a football date belongs to)
 
 
 def log(m):
@@ -569,7 +570,14 @@ def main():
         # guard MLB's grader needed after football cards landed in picks/.
         if (card.get("league") or "").lower() != LEAGUE:
             continue
-        season = int(str(date)[:4])
+        # 🔴 `[2026-10-27]` ~~int(str(date)[:4])~~: the CALENDAR year, so every card dated
+        #    January or February (NFL weeks 17-18, the playoffs, the bowls) asked for a
+        #    log of the next season, was skipped, and never reached the Track Record.
+        #    ✅ The football season of the card's day, the one rule (fb_why.season_of).
+        season = fb_why.season_of(date)
+        if season is None:
+            skipped.append((date, "the card's date is not a date"))
+            continue
         if season not in logs:
             logs[season] = load_log(season)
         doc, P = logs[season]

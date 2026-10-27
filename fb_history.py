@@ -43,10 +43,22 @@ def _jz(p):
         return None
 
 
+def _stamp():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _write(p, doc):
+    """`[2026-10-27]` Every file carries `written_at`: the NFL schedules were written with no
+    stamp, so the contract read all seven as MISSING from 10-16 on, and health.json carried
+    a standing `fresh:nfl` DEGRADED that a real NFL staleness would have hidden under."""
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with gzip.open(p, "wt", encoding="utf-8") as fh:
-        json.dump(doc, fh, separators=(",", ":"))
+        json.dump(dict(doc, written_at=_stamp()), fh, separators=(",", ":"))
+
+
+def _stamped(doc):
+    """Does a stored doc name the moment it was produced (freshness.STAMP_FIELDS)?"""
+    return any((doc or {}).get(k) for k in ("pulled_at", "built_at", "generated_at", "written_at"))
 
 
 def alias(doc):
@@ -64,6 +76,11 @@ def store_nfl(log=log, root=None, build=None):
     for s in NFL_SEASONS:
         p = os.path.join(hdir("nfl", root), "schedule-%d.json.gz" % s)
         if os.path.exists(p):
+            doc = _jz(p)
+            if doc and doc.get("games") and not _stamped(doc):
+                _write(p, doc)            # `[2026-10-27]` its games untouched; only the stamp is new
+                out[s] = "stamped (%d games)" % len(doc["games"])
+                log("  history nfl %d: %s" % (s, out[s]))
             continue
         try:
             if build is None:

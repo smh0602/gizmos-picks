@@ -198,8 +198,13 @@ def advance(st, I, day):
     for pid, x in I["hits"].get(day, ()):
         st.hit[pid].update(bases=(x.get("tb") or 0) + (x.get("bb") or 0), pa=x.get("pa") or 0)
         st.lg.update(bases=(x.get("tb") or 0) + (x.get("bb") or 0), pa=x.get("pa") or 0)
+    # `[2026-10-27]` ~~every stored lineup~~: only a team's lineup from a game the model
+    #    reads (GAME_TYPES, never spring). The lineup store keeps spring training and
+    #    exhibitions from 1 March, so the 2026 opener's usual nine came from spring
+    #    lineups (329 of 329 held, 48 "teams" with Canada and Cuba among them).
+    played = {t for g in games for t in (g.get("home"), g.get("away"))}
     for team, lu in (I["lineups"].get(day) or {}).items():
-        if len(lu) == 9:
+        if len(lu) == 9 and team in played:
             st.lineups[team].append(lu)
 
 
@@ -277,7 +282,9 @@ def _mode(xs):
 def books(root=ROOT):
     """(ET day, away, home) -> the books' no-vig chances from the LAST pull before first pitch."""
     last = {}
-    for p in sorted(glob.glob(os.path.join(root, "data", "2026-*", "gamelines", "*.json.gz"))):
+    # `[2026-10-27]` ~~data/2026-*~~: every year's dated pulls, or the 2027 opener had no
+    #    books, so no run line (card.game_line_rows drops a market with no line)
+    for p in sorted(glob.glob(os.path.join(root, "data", "[0-9][0-9][0-9][0-9]-*", "gamelines", "*.json.gz"))):
         d = _load(p)
         for g in d.get("games") or []:
             c = g.get("commence") or ""

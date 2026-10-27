@@ -2439,8 +2439,69 @@ def pitching_log_row(g):
             "np": st.get("numberOfPitches"), "bf": st.get("battersFaced")}
 
 
-def collect_pitchers():
-    yr = now().year
+# 🔴 `[2026-10-27]` THE MLB SEASON A PULL ASKS FOR COMES FROM THE STORED FINALS, NEVER
+#    THE CALENDAR. ~~`yr = now().year`~~ asked statsapi for 2027 from 1 January, got an
+#    empty pool and raised ("pitcher pool came back empty", our own error): every MLB
+#    run red from 01-01 10:04Z until a 2027 arm had 20 IP and a bat 80 PA, about
+#    mid-April (2026's first: 04-05 and 04-13).
+#    ✅ The season is the newest one with a stored final of a game the product cards
+#    (`freshness._mlb_game_types`), so January to the opener pulls the season played.
+#    For NEW_SEASON_GRACE_D days after that season's first such final, a pool that
+#    answers with nobody over the bar pulls the season before, said out loud.
+#    ⛔ Anything else empty still raises: an empty answer, a season older than the
+#    grace, a store that cannot be read (the calendar year, as before).
+#    ⚠️ What the card should read while a new season's pool is thin is Sam's call:
+#    this keeps what it reads today (the previous season's file) and no more.
+#    45 days: in 2026 the first 80-PA bat came 19 days after the opener, and a Tokyo or
+#    Seoul series can open the season a week or more before the rest.
+NEW_SEASON_GRACE_D = 45
+
+
+def mlb_seasons(path=None):
+    """{season: the ET day of its first stored final of a carded game}, read from
+    scores.json.gz (only Final games are stored), or None when it cannot be read."""
+    try:
+        days = json.load(gzip.open(path or f"{LATEST}/scores.json.gz", "rt")).get("days")
+    except Exception:
+        return None
+    if not isinstance(days, dict):
+        return None
+    types = _fresh._mlb_game_types()
+    first = {}
+    for day, rows in days.items():
+        if re.match(r"\d{4}-\d\d-\d\d$", str(day)) and any(
+                isinstance(r, dict) and (types is None or r.get("gameType") in types)
+                for r in rows or []):
+            y = int(day[:4])          # an MLB season is the calendar year of its games
+            first[y] = min(first.get(y, day), day)
+    return first
+
+
+def mlb_pull_season():
+    """(season to pull, the season before while the new one is inside its grace, else None)."""
+    first = mlb_seasons()
+    if not first:
+        return now().year, None       # nothing readable: the calendar, which raises in winter
+    yr = max(first)
+    age = (now() - datetime.strptime(first[yr], "%Y-%m-%d").replace(tzinfo=timezone.utc)).days
+    return yr, (yr - 1 if age <= NEW_SEASON_GRACE_D else None)
+
+
+def season_pool(kind, pool, bar):
+    """(season, *pool(season)) for the pitcher or hitter pull: `pool(yr)` -> (splits,
+    the pool over the bar, ...). ⛔ ONE COPY of the season rule above (rule 117)."""
+    yr, before = mlb_pull_season()
+    got = pool(yr)
+    if not got[1] and got[0] and before is not None:
+        print(f"::warning::{kind}: the {yr} season is under {NEW_SEASON_GRACE_D} days old and "
+              f"none of the {len(got[0])} in its pool has {bar} yet; pulling {before} until one "
+              f"does", flush=True)
+        yr, got = before, pool(before)
+    return (yr,) + tuple(got)
+
+
+def _pitcher_pool(yr):
+    """(splits, the 20-IP pool, domain violations) for season `yr`."""
     pool, _ = get(f"{STATS}/stats?stats=season&group=pitching&season={yr}&gameType=R"
                   f"&limit=900&sortStat=inningsPitched")
     splits = (pool.get("stats") or [{}])[0].get("splits", []) if pool.get("stats") else []
@@ -2459,7 +2520,12 @@ def collect_pitchers():
                            "era": st.get("era"), "whip": st.get("whip"),
                            "w": st.get("wins"), "l": st.get("losses"),
                            "gs": st.get("gamesStarted"), "outs": outs})
-    log(f"pitcher pool: {len(splits)} returned, {len(people)} with >= {PITCHER_MIN_IP} IP")
+    log(f"pitcher pool {yr}: {len(splits)} returned, {len(people)} with >= {PITCHER_MIN_IP} IP")
+    return splits, people, skipped
+
+
+def collect_pitchers():
+    yr, splits, people, skipped = season_pool("pitchers", _pitcher_pool, f"{PITCHER_MIN_IP} IP")
     if not people:
         raise RuntimeError("pitcher pool came back empty")
 
@@ -3429,9 +3495,8 @@ def collect_news():
 HITTER_MIN_PA = 80
 
 
-def collect_hitters():
-    yr = now().year
-
+def _hitter_pool(yr):
+    """(splits, the 80-PA pool) for season `yr`."""
     # One call gets the whole hitter pool ranked by plate appearances,
     # which is far cheaper than walking 30 rosters.
     pool, _ = get(
@@ -3446,7 +3511,13 @@ def collect_hitters():
         if pa >= HITTER_MIN_PA and pl.get("id"):
             people.append({"id": pl["id"], "name": pl.get("fullName"),
                            "pa": pa, "team": (sp.get("team") or {}).get("name")})
-    log(f"hitter pool: {len(splits)} returned, {len(people)} with >= {HITTER_MIN_PA} PA")
+    log(f"hitter pool {yr}: {len(splits)} returned, {len(people)} with >= {HITTER_MIN_PA} PA")
+    return splits, people
+
+
+def collect_hitters():
+    # `[2026-10-27]` ~~now().year~~: the season from the stored finals (`season_pool`)
+    yr, splits, people = season_pool("hitters", _hitter_pool, f"{HITTER_MIN_PA} PA")
     if not people:
         raise RuntimeError("hitter pool came back empty — endpoint or season wrong")
 

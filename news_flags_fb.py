@@ -39,8 +39,8 @@ import daystore                     # the ONE dated, write-once writer
 import dossier_fb as D              # team_codes — the board-to-files join
 import fb_props_model as M          # load_logs, name_index, game_row, league
 import freshness
+import fb_why                       # game_week — THIS game's own week
 import record_fb                    # _played — the card's own "did he play"
-import signal9                      # week_of — a card's own week
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -185,7 +185,8 @@ def _flag(kind, subj, source, status, headline=None, link=None, published=None, 
 
 
 def flags(lg, players, teams, news, inj, shared, idx, resolve, week_of):
-    """-> (flags, report). Pure: every input is passed in."""
+    """-> (flags, report). Pure: every input is passed in. `week_of(row)` is the week
+    of the row's own game (its home, away and commence)."""
     out, rep = [], {"headlines": len(news), "players": len(players), "teams": len(teams),
                     "injury_rows": len(inj), "ambiguous_skipped": 0}
     import card_fb
@@ -193,7 +194,7 @@ def flags(lg, players, teams, news, inj, shared, idx, resolve, week_of):
         home_c, away_c = resolve(s["home"]), resolve(s["away"])
         # 1. the injury report: exact full name, and his team must be in this game
         if inj:
-            wk = week_of(s["commence"])
+            wk = week_of(s)
             for r in inj:
                 if str(r.get("week")) != str(wk) or r.get("team") not in (home_c, away_c):
                     continue
@@ -218,7 +219,7 @@ def flags(lg, players, teams, news, inj, shared, idx, resolve, week_of):
     for t in teams:
         code = resolve(t["name"])
         if inj and code:
-            wk = week_of(t["commence"])
+            wk = week_of(t)
             for r in inj:
                 st = INJ_STATUS.get((r.get("report_status") or "").strip().lower())
                 if st and r.get("team") == code and str(r.get("week")) == str(wk):
@@ -358,7 +359,13 @@ def build(lg=None, root=None, now=None, log=log, logs=None):
     logs = logs if logs is not None else M.load_logs(lg, root)
     shared, idx = shared_names(lg, root, logs)
     resolve = D.team_codes(lg)
-    week_of = (lambda c: signal9.week_of(lg, (c or "")[:10], root)) if lg == "nfl" else (lambda c: None)
+    # `[2026-10-27]` ~~signal9.week_of(lg, commence[:10])~~: the kickoff's calendar-year
+    #    file and a UTC day, so January games (weeks 17-18, the playoffs) had no week and a
+    #    Monday-night game read as the next week. ✅ THIS game's row, in its season's file.
+    latest = os.path.join(_data(lg, root), "latest")
+    week_of = ((lambda r: fb_why.game_week(latest, resolve(r.get("home")), resolve(r.get("away")),
+                                           r.get("commence")))
+               if lg == "nfl" else (lambda r: None))
     fl, rep = flags(lg, players, teams, headlines(lg, root, now), injury_rows(lg, root, now),
                     shared, idx, resolve, week_of)
     fs = first_seen(lg, root)

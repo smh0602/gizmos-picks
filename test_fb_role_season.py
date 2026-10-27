@@ -144,8 +144,6 @@ eq(W.prop_why({"player": "Backup Quarterback", "market": "player_pass_yds", "sid
 section("3. 🔴 THE REAL CARD SETS IT FOR EVERY PLAYER ON THE BOARD")
 # ══════════════════════════════════════════════════════════════════════
 _n = datetime.datetime.now(UTC)
-_K = (_n + datetime.timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
-_T = tempfile.mkdtemp(prefix="roleseason-")
 
 
 def put(path, doc):
@@ -155,37 +153,58 @@ def put(path, doc):
 
 
 _vets = ["Vet One", "Vet Two", "Vet Three", "Backup Quarterback"]
-try:
-    _L = os.path.join(_T, "data", "nfl", "latest")
-    put(os.path.join(_L, "props.json.gz"), {"pulled_at": (_n - datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "games": [{"id": "ev1", "away": "Seattle Seahawks", "home": "Denver Broncos", "commence": _K, "props": [
-            {"player": w, "market": "player_receptions", "line": 3.5,
-             "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 3}}}
-            for w in _vets + ["Rook Receiver", "Twin Back"]]}]})
-    # `[2026-10-27, review 2]` Twin Back is Michael Carter's shape: 2025 held the name twice (an Eagles CB
-    #    and a Cardinals RB), 2026 once (the CB); neither plays for Seattle or Denver
-    put(os.path.join(_L, "players-2025.json.gz"), {"season": 2025, "players": dict({
-        "p%d" % i: {"name": w, "pos": "WR", "g": [g("2025-09-%02d" % (j + 7), 0.9, 0.25, rec=5) for j in range(10)]}
-        for i, w in enumerate(_vets)},
-        tb1={"name": "Twin Back", "pos": "CB", "g": [g("2025-09-%02d" % (j + 7), 0.0, team="PHI") for j in range(10)]},
-        tb2={"name": "Twin Back", "pos": "RB", "g": [g("2025-09-%02d" % (j + 7), 0.6, 0.1, 9.0, team="ARI", rec=2)
-                                                    for j in range(10)]})})
-    # this season: the three veterans and the rookie have played; the backup has not
-    put(os.path.join(_L, "players-2026.json.gz"), {"season": 2026, "players": dict(
-        {"p%d" % i: {"name": w, "pos": "WR", "g": [g("2026-10-%02d" % d, 0.7, 0.2, rec=4) for d in (4, 11)]}
-         for i, w in enumerate(_vets[:3])},
-        r1={"name": "Rook Receiver", "pos": "WR", "g": [g("2026-10-%02d" % d, 0.12, 0.04, rec=1) for d in (4, 11)]},
-        tb1={"name": "Twin Back", "pos": "CB", "g": [g("2026-10-%02d" % d, 0.0, team="PHI") for d in (4, 11)]})})
-    _cwd = os.getcwd()
+
+
+def built_card(kick):
+    """card_fb.main() on a planted board kicking off at `kick`. ⛔ `[2026-10-27]` The tree is
+    pinned to the kickoff it plants: ~~players-2025 / players-2026, games 2026-10-04 and -11~~
+    were literal years beside a kickoff from the real clock, so from 2027-02-27 (the kickoff's
+    season turned to 2027 on 03-01) the card read players-2026 alone and two checks went red
+    on correct code. Now S is the kickoff's own season (`fb_why.season_of`), the logs are
+    players-<S-1> and players-<S>, and this season's games fall 12 and 5 days before it."""
+    K = kick.strftime("%Y-%m-%dT%H:%M:%SZ")
+    D = datetime.date.fromisoformat(CF.et_date(K))
+    S = W.season_of(D.isoformat())
+    last = ["%d-09-%02d" % (S - 1, j + 7) for j in range(10)]
+    this = [(D - datetime.timedelta(days=k)).isoformat() for k in (12, 5)]
+    T = tempfile.mkdtemp(prefix="roleseason-")
     try:
-        os.chdir(_T)
-        CF.main()
-        CARD = json.load(open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8"))
+        L = os.path.join(T, "data", "nfl", "latest")
+        put(os.path.join(L, "props.json.gz"), {"pulled_at": (_n - datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "games": [{"id": "ev1", "away": "Seattle Seahawks", "home": "Denver Broncos", "commence": K, "props": [
+                {"player": w, "market": "player_receptions", "line": 3.5,
+                 "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 3}}}
+                for w in _vets + ["Rook Receiver", "Twin Back"]]}]})
+        # `[2026-10-27, review 2]` Twin Back is Michael Carter's shape: last season held the name twice (an
+        #    Eagles CB and a Cardinals RB), this season once (the CB); neither plays for Seattle or Denver
+        put(os.path.join(L, "players-%d.json.gz" % (S - 1)), {"season": S - 1, "players": dict({
+            "p%d" % i: {"name": w, "pos": "WR", "g": [g(d, 0.9, 0.25, rec=5) for d in last]}
+            for i, w in enumerate(_vets)},
+            tb1={"name": "Twin Back", "pos": "CB", "g": [g(d, 0.0, team="PHI") for d in last]},
+            tb2={"name": "Twin Back", "pos": "RB", "g": [g(d, 0.6, 0.1, 9.0, team="ARI", rec=2) for d in last]})})
+        # this season: the three veterans and the rookie have played; the backup has not
+        put(os.path.join(L, "players-%d.json.gz" % S), {"season": S, "players": dict(
+            {"p%d" % i: {"name": w, "pos": "WR", "g": [g(d, 0.7, 0.2, rec=4) for d in this]}
+             for i, w in enumerate(_vets[:3])},
+            r1={"name": "Rook Receiver", "pos": "WR", "g": [g(d, 0.12, 0.04, rec=1) for d in this]},
+            tb1={"name": "Twin Back", "pos": "CB", "g": [g(d, 0.0, team="PHI") for d in this]})})
+        cwd = os.getcwd()
+        try:
+            os.chdir(T)
+            CF.main()
+            return json.load(open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8"))
+        finally:
+            os.chdir(cwd)
     finally:
-        os.chdir(_cwd)
-finally:
-    shutil.rmtree(_T, ignore_errors=True)
-_role = {r["player"]: r.get("role") for r in CARD.get("picks") or []}
+        shutil.rmtree(T, ignore_errors=True)
+
+
+def roles(card):
+    return {r["player"]: r.get("role") for r in card.get("picks") or []}
+
+
+CARD = built_card(_n + datetime.timedelta(days=2))
+_role = roles(CARD)
 ck(set(_role) >= set(_vets) | {"Rook Receiver"}, "⚠️ the planted board's five players are on the built card",
    str(sorted(_role)))
 eq((_role.get("Vet One"), _role.get("Rook Receiver"), _role.get("Backup Quarterback")),
@@ -199,3 +218,12 @@ ck("Twin Back" in _role and _role["Twin Back"] is None,
    "🔴 a name the game's teams cannot settle (Michael Carter's shape) gets NO role on the real card, never the "
    "Eagles CB's 0% of offensive snaps (`[2026-10-27, review 2]`: card_fb.match_player, current_role)",
    _role.get("Twin Back", "not on the card"))
+# `[2026-10-27]` THE SAME BOARD A FEW DAYS INTO A NEW SEASON: a kickoff on the next 5 March, which
+#    fb_why.season_of puts in the season whose games have not started. A tree whose files are not
+#    named from its kickoff (the literal 2025 / 2026 this section had) answers differently here.
+_y = _n.year if _n + datetime.timedelta(days=2) < datetime.datetime(_n.year, 3, 5, 18, tzinfo=UTC) else _n.year + 1
+_rB = roles(built_card(datetime.datetime(_y, 3, 5, 18, tzinfo=UTC)))
+eq((_rB.get("Vet One"), _rB.get("Rook Receiver"), _rB.get("Backup Quarterback"), _rB.get("Twin Back", "absent")),
+   ({"snap": 0.7, "tgt_share": 0.2, "car": 0.0, "n": 2}, {"snap": 0.12, "tgt_share": 0.04, "car": 0.0, "n": 2},
+    {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0}, None),
+   "🔴 ...and the same roles for a kickoff on %d-03-05, the first days of a season by fb_why.season_of" % _y)

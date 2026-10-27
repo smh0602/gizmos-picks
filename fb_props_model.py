@@ -32,6 +32,7 @@ import card_fb                      # the champion: rate_for, norm, price floors
 import collect                      # PROP_MARKETS, league_books: what is pulled, and from whom
 import dossier_fb as D              # team_codes: book team names -> log team codes
 import fb_model as F                # fit, predict, record, devig, implied, decimal, monday, L
+import fb_why                       # season_of: the season a football date belongs to
 import mlb_refit                    # paired_test_clustered: the ONE cluster-robust paired test
 import one_side                     # prop_side: only the side the model gives 50% or more
 import possession as P             # share_before: signal 6 from EARLIER games only
@@ -895,7 +896,8 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
                    "wx": ({"roof": sg.get("roof"), "temp": sg.get("temp"), "wind": sg.get("wind")}
                           if (sg and lg == "nfl") else None)}
             # a January game belongs to the season that started the September before
-            x = H.features(pid, int(c[:4]) - (1 if int(c[5:7]) < 3 else 0), mk, ctx)
+            # (`[2026-10-27]` the one rule, ~~a second copy of it here~~)
+            x = H.features(pid, fb_why.season_of(c), mk, ctx)
             m = models.get(mk)
             if x is None or m is None:
                 continue

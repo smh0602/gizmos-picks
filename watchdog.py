@@ -1196,9 +1196,14 @@ def check_record_ungraded(rep, now):
     than UNGRADED_AFTER_DAYS behind today (ET) and is absent from
     `by_day` is reported, whatever held it back. No box score, a feed
     state nobody has seen yet, a grader bug: one finding covers them all.
-    ⚠️ MLB only. The football records are built by `record_fb.py` in a
-    different shape, and that lane was out of scope for this change.
+    ~~⚠️ MLB only. The football records are built by `record_fb.py` in a
+    different shape, and that lane was out of scope for this change.~~
+    `[2026-10-27]` Football too (`_fb_ungraded`): record_fb read a January
+    card's log by the CALENDAR year and skipped every one (NFL weeks 17-18,
+    the playoffs, the bowls), and nothing would have said so.
     """
+    for lg in ("nfl", "ncaaf"):
+        _fb_ungraded(rep, lg, datetime.date.fromisoformat(_et_today(now)))
     rec = _read(os.path.join(ROOT, "data", "latest", "record.json"))
     if not isinstance(rec, dict) or "by_day" not in rec:
         return          # a missing or foreign record is check_record_written's
@@ -1224,6 +1229,47 @@ def check_record_ungraded(rep, now):
         rep.bad("record:mlb:ungraded",
                 "%d MLB card(s) older than %d days are missing from the "
                 "Track Record" % (len(late), UNGRADED_AFTER_DAYS),
+                "; ".join(late) + ". ⛔ Every pick on those cards is "
+                "absent from the published record.",
+                repair="record")
+
+
+def _fb_ungraded(rep, lg, today):
+    """One football league's half of `check_record_ungraded`, in record_fb's shape: a
+    dated card on or after the record's `record_from`, carrying rows in the list it is
+    graded on (`liked` when the card has one, else `picks`), more than
+    UNGRADED_AFTER_DAYS behind today (ET), whose day is not in `by_day` or settled
+    nothing there (no graded row and no void). A card with no rows has nothing to
+    grade. Measured 2026-10-27 over every card day: graded 0.1 to 0.5 days after it
+    ended, the slowest 3.3 (college 09-07, while the updates were being repaired)."""
+    rec = _read(os.path.join(ROOT, DATA[lg], "latest", "record.json"))
+    if not isinstance(rec, dict) or "by_day" not in rec:
+        return          # a missing or foreign record is check_record_written's
+    days = {d.get("date"): d for d in rec.get("by_day") or []}
+    why_skipped = {x.get("date"): x.get("why") for x in rec.get("skipped") or []}
+    floor = str(rec.get("record_from") or "")
+    late = []
+    for f in sorted(glob.glob(os.path.join(ROOT, "picks", "fb-%s-20*.json" % lg))):
+        card = _read(f)
+        if not isinstance(card, dict) or (card.get("league") or "").lower() != lg:
+            continue
+        if not (card.get("liked") if "liked" in card else card.get("picks")):
+            continue        # nothing carded, nothing to grade
+        day = str(card.get("date") or os.path.basename(f)[len("fb-%s-" % lg):-5])
+        try:
+            age = (today - datetime.date.fromisoformat(day)).days
+        except ValueError:
+            continue
+        d = days.get(day)
+        if day < floor or age <= UNGRADED_AFTER_DAYS or (
+                d and ((d.get("n") or 0) > 0 or (d.get("voids") or 0) > 0)):
+            continue
+        late.append("%s (%d days; %s)" % (day, age, why_skipped.get(day) or (
+            "nothing on it settled" if d else "not in the record at all")))
+    if late:
+        rep.bad("record:%s:ungraded" % lg,
+                "%d %s card(s) older than %d days are missing from the "
+                "Track Record" % (len(late), lg, UNGRADED_AFTER_DAYS),
                 "; ".join(late) + ". ⛔ Every pick on those cards is "
                 "absent from the published record.",
                 repair="record")

@@ -269,6 +269,8 @@ def no_games_day(day, data="data"):
     `[2026-10-23]` ~~any reading listing a game~~: 10-20's first 12 readings
     listed ALCS Game 7 (if necessary) until Game 6 ended the series, and the
     day owed a card and results through 10-22 (test_dropped_game.py).
+    `[2026-10-27]` ~~any game~~: only a game the product cards counts
+    (`_mlb_game_types`), so a spring-training or All-Star day owes nothing.
     """
     nxt = (datetime.date.fromisoformat(day)
            + datetime.timedelta(days=1)).isoformat()
@@ -296,6 +298,34 @@ def no_games_day(day, data="data"):
 #    odd reading never drops a game. 10-20 had 74.
 DROPPED_AFTER = 2
 
+# 🔴 `[2026-10-27]` A DAY OWES A CARD ONLY FOR THE GAMES THE PRODUCT CARDS: the regular
+#    season and the postseason, `mlb_game_model.GAME_TYPES` (⛔ one copy, PARSED, never
+#    imported: the `_literal` rule). statsapi's sportId=1 schedule also lists spring
+#    training (S), exhibitions (E) and the All-Star Game (A): scores.json.gz holds 311 S
+#    and 29 E games in 2026-03 and an A-only 2026-07-14. Counted, each spring day from
+#    about 2027-02-19 owed a card no board can price: every MLB pass red from the 14:00Z
+#    deadline and the watchdog BROKEN, for five weeks. ⛔ Fails closed: a game with no
+#    gameType counts, and every game counts when the set cannot be read.
+_GAME_TYPES = {}
+
+
+def _mlb_game_types():
+    """frozenset of the gameTypes that owe a card, or None (count every game)."""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mlb_game_model.py")
+    try:
+        st = os.stat(p)
+    except OSError:
+        return None
+    key = (st.st_mtime_ns, st.st_size)
+    if _GAME_TYPES.get("key") != key:
+        try:
+            vals = frozenset(_literal("mlb_game_model.py", "GAME_TYPES")) or None
+        except Exception:
+            vals = None
+        _GAME_TYPES.clear()
+        _GAME_TYPES.update(key=key, vals=vals)
+    return _GAME_TYPES["vals"]
+
 
 def _games(sc):
     """A schedule body's games, or None when `dates` does not hold exactly
@@ -317,7 +347,8 @@ def _still_listed(reads):
     Game") and DROPPED_AFTER readings pulled after the last one that lists
     it leave it out: the series ended without it.
     ⛔ Fails closed (each reading keeps its `totalGames`): a reading with no
-    pulled_at time, or one whose count names no games, drops nothing."""
+    pulled_at time, or one whose count names no games, drops nothing.
+    `[2026-10-27]` Only games the product cards are counted (`_mlb_game_types`)."""
     times = [_parse(ts) for ts, _ in reads]
     lists = [_games(sc) for _, sc in reads]
     if None in times or None in lists:
@@ -330,7 +361,9 @@ def _still_listed(reads):
             flagged[pk] = flagged.get(pk, True) and g.get("ifNecessary") == "Y"
     gone = {pk for pk, t in last.items()
             if flagged[pk] and sum(u > t for u in times) >= DROPPED_AFTER}
-    return [sum(g["gamePk"] not in gone for g in games) for games in lists]
+    types = _mlb_game_types()
+    carded = lambda g: types is None or g.get("gameType") is None or g["gameType"] in types  # noqa: E731
+    return [sum(g["gamePk"] not in gone and carded(g) for g in games) for games in lists]
 
 
 # ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE (verify_record keeps

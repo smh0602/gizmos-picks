@@ -374,9 +374,28 @@ STUB_CALLED = "STUB: cfb.build_schedule("
 
 
 def _sandbox_collect(d):
-    """Write the no-network wrapper into sandbox `d`."""
+    """Write the no-network wrapper into sandbox `d`, and pin its team directory."""
     with open(f"{d}/_nonet.py", "w", encoding="utf-8") as fh:
         fh.write(NONET)
+    _pin_teams(d)
+
+
+def _pin_teams(d):
+    """⛔ `[2026-10-27]` A SANDBOX IS PINNED TO THE CLOCK IT RUNS UNDER. It copies the live
+    data/ncaaf, whose teams.json declares the season it was built for. From 1 August
+    `current_football_season()` is the next one, so every ncaaf mode first asked CFBD for
+    the new directory, the no-network wrapper refused it, and "not one of the collector
+    sandboxes reached for the network" went red on correct code until a college pass had
+    rebuilt the live file. The copy declares the clock's season; its teams are kept."""
+    p = f"{d}/data/ncaaf/latest/teams.json"
+    try:
+        with open(p, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    except (OSError, ValueError):
+        return
+    doc["season"] = F.current_football_season()
+    with open(p, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh)
 # 🔴 DRIVEN, NOT READ. Reading the source cannot tell the stand-down's
 #    exit from the NEXT branch's exit — the first version of this check
 #    tried and was wrong. Run the collector with the back-off armed.
@@ -496,6 +515,18 @@ ck("⛔ ...and not one of the %d collector sandboxes reached for the network"
    % len(_OUTS),
    len(_OUTS) == 4 and not [o for o in _OUTS if "NONET: urlopen REFUSED" in o],
    "the tripwire fired: something fetched past the stub")
+_pt = tempfile.mkdtemp()
+os.makedirs(f"{_pt}/data/ncaaf/latest")
+with open(f"{_pt}/data/ncaaf/latest/teams.json", "w", encoding="utf-8") as _fh:
+    json.dump({"season": F.current_football_season() - 1, "teams": {"Akron": {"conf": "MAC"}}}, _fh)
+_pin_teams(_pt)
+with open(f"{_pt}/data/ncaaf/latest/teams.json", encoding="utf-8") as _fh:
+    _pd = json.load(_fh)
+shutil.rmtree(_pt, ignore_errors=True)
+ck("⛔ ...because each sandbox's team directory declares the clock's season, its teams kept "
+   "(`[2026-10-27]` from 1 August the copied live file named last season, and every sandbox "
+   "asked CFBD for the new one)",
+   _pd == {"season": F.current_football_season(), "teams": {"Akron": {"conf": "MAC"}}}, str(_pd))
 
 ck("⛔ but a fetch that was ATTEMPTED and returned nothing still does",
    "NOTHING WRITTEN --" in C
