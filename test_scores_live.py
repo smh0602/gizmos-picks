@@ -55,9 +55,17 @@ Trends tab's last-updated line) and the one-line empty state.
 #   file: index.html
 #   find: `<div class="msg">No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</div>`);
 #   with: `<div class="msg">No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</div><div class="note">The ${fbSeason} season rebuilds ${LEAGUE==='ncaaf'?'every morning at 3am ET':'every Tuesday at noon ET'}.</div>`);
+#
+# @vacuity §5: ESPN is asked for a 10pm ET kickoff's ET day, not its UTC day
+#   file: index.html
+#   find:   return isFinite(d) ? etDate(d.getTime()).replace(/-/g, '') : null;
+#   with:   return isFinite(d) ? d.toISOString().slice(0, 10).replace(/-/g, '') : null;
 """
+import json
 import os
 import re
+import shutil
+import subprocess
 
 import freshness as F
 from tcheck import ck, note
@@ -171,10 +179,31 @@ ck("a day-layer failure does not kill the live layer",
    "one quiet miss; the polled query and the stored file still render")
 
 print("\n═══ 5. 🔴 THE ET DAY, NOT THE UTC DAY (rule 149) ═══")
-ck("the day list is built from an ET-shifted date",
-   "4 * 3600 * 1000" in H,
+# ~~ck("the day list is built from an ET-shifted date", "4 * 3600 * 1000" in H)~~
+# `[2026-10-27]` THE WRONG QUESTION: it asked for the text of a fixed -4, which is
+#    exactly what is wrong from 2026-11-01 (EST is -5), and it passed on any page that
+#    held that text anywhere. Now the page's OWN `fbEspnDay` is run on a 10pm kickoff
+#    under daylight AND standard time, and the day list must call it: strictly harder.
+import jsblock  # noqa: E402
+_et = re.search(r"const etDate = [\s\S]*?\n};", H)
+_node = shutil.which("node")
+_got = None
+if _et and _node:
+    _js = "\n".join([_et.group(0)] + [jsblock.js_block(n, "index.html") for n in
+                                      ("etWallDate", "fbStartDate", "fbEspnDay")]
+                    + ["console.log(JSON.stringify(['2026-10-11T02:00:00Z', "
+                       "'2026-11-08T03:00:00Z', '2026-11-08 22:00'].map(fbEspnDay)));"])
+    _p = subprocess.run([_node, "-e", _js], capture_output=True, text=True, timeout=60,
+                        env=dict(os.environ, TZ="UTC"))
+    try:
+        _got = json.loads(_p.stdout.strip().splitlines()[-1])
+    except Exception:
+        _got = _p.stderr[-200:]
+ck("the day list is built from the ET date (10pm EDT, 10pm EST, an unzoned 10pm)",
+   _got == ["20261010", "20261107", "20261108"]
+   and "fbEspnDay(g.start)" in H[H.find("if (fbScSeason === liveSeason){"):][:600],
    "a 10pm ET kickoff is the NEXT UTC day; asking ESPN for it would "
-   "return the wrong slate")
+   "return the wrong slate (got %r)" % (_got,))
 ck("...and only for the season we actually poll",
    "if (fbScSeason === liveSeason){" in H,
    "asking ESPN about 2025 while the reader is in 2025 tells them nothing")
