@@ -417,6 +417,28 @@ only) were not read in writing it, and none was computed for T72.
   Monday adds a few percent more games. No new simulation was run; the bar stays Sam's
   0.01 / k.
 
+## 3h. A withdrawal is permanent; "differs" stays exact (frozen)
+
+Sam, 2026-10-27, asked whether a withdrawn P or T should stay withdrawn or be judged again
+each Monday against whichever model is champion, and whether "differs" in §3g's floor should
+need a minimum size: *"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*
+This section adds to §2's withdrawal and to §3g's floor and withdrawal bullets, by name;
+nothing above it is edited. Written before any result under it was computed. The stored
+weekly reports (fb-refit.json) were not read in writing it.
+
+- **A withdrawal is permanent.** A challenger WITHDRAWN in a league's weekly report stays
+  WITHDRAWN in every later weekly report of that league, whoever the champion is: never
+  scored, never counted, never a WINS, and never again in k.
+- **Until then, unchanged.** A P or T not yet withdrawn is judged by §2's test on §3g's
+  window (the weeks before 2026-10-19) every Monday, against that Monday's champion.
+- **Carried by the report.** Each weekly report records the day a challenger was first
+  withdrawn (`withdrawn_since`), and each Monday carries the league's previous report
+  forward. A withdrawal in a report written before this section, which has no such day,
+  dates from that report's own day.
+- **"Differs" stays exact.** In §3g's floor, a counted prediction differs from the
+  champion's when the two predicted probabilities are not equal, by any amount. There is no
+  minimum size.
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
@@ -448,15 +470,17 @@ only) were not read in writing it, and none was computed for T72.
     of one week, every one of the 24 later predictions differing, none on a row
     with wind of its own; no wind anywhere, 0 of 24). So the floor
     holds back only an all-zero input, and in effect means 300 predictions from
-    the first stored value on. That fits §3g's words and its example; a size
+    the first stored value on. That fits §3g's words and its example; ~~a size
     threshold ("differs by at least x") would be a new frozen rule, yours to
-    decide. The code is unchanged.
+    decide. The code is unchanged.~~ `[Sam, 2026-10-27]` answered: exact, no
+    minimum size (§3h). The code is unchanged.
   - The floor applies to the eight as well, over their counted (scored)
     predictions only: S with 600 history and 150 scored predictions is NOT YET
     MEASURABLE.
   - P and T's withdrawal window is fixed at the weeks before 2026-10-19, whatever
     `scored_from` a champion switch sets, recomputed each week against the
-    champion of the day (`withdrawal_window` in the report).
+    champion of the day (`withdrawal_window` in the report) `[2026-10-27, §3h]`
+    until the challenger is first withdrawn.
     ⚠️ For Sam `[2026-10-27, review 2]`: recomputed against each champion, a P or
     T WITHDRAWN today can come back after a switch to a champion that did worse
     on those weeks, and is then counted on every week, the pre-10-19 predictions
@@ -464,8 +488,22 @@ only) were not read in writing it, and none was computed for T72.
     against today's champion; 840 counted and WINS after a switch, 600 of them
     from before 10-19). §2 says a withdrawn challenger is "reported, never
     scored" and does not say whether that is permanent. Main already behaves
-    this way; whether a withdrawal is permanent (kept through `prev`) or
-    recomputed is a frozen rule, yours to decide. The code is unchanged.
+    this way; ~~whether a withdrawal is permanent (kept through `prev`) or
+    recomputed is a frozen rule, yours to decide. The code is unchanged.~~
+    `[Sam, 2026-10-27]` answered: permanent (§3h).
+  - `[2026-10-27]` §3h as built: `league()` reads the previous report's
+    challengers (weekly() passes it as `prev`); one marked withdrawn there is
+    passed to `contest` as `withdrawn_since` (its own day, or that report's
+    `built_at` day when it has none) and stays WITHDRAWN, never counted, outside
+    k. The withdrawal window is still computed and reported for it, against the
+    champion of the day, for information only. Only P and T (`withdrawable`) are
+    carried. A carried withdrawal is kept on a week the challenger is NO DATA or
+    NOT APPLICABLE too, so it is never dropped by a week it could not be built.
+    A first withdrawal is dated the report's own day.
+    ⚠️ The carry lives in the report, like `champion_since`: a lost or deleted
+    fb-refit.json carries nothing, and the next Monday judges P and T again
+    against the champion of the day. Before any champion switch that gives the
+    same answer (the same window, the same champion).
   - ~~The tie-break orders on the numbers the report prints (6 decimals): mean d's
     within 1e-6 are a tie, then p, then the order of `fb_challengers.CHALLENGERS`.~~
     `[2026-10-27, review 2]` That reading changed the frozen rule's answer: two WINS
@@ -526,3 +564,4 @@ only) were not read in writing it, and none was computed for T72.
 - 2026-10-26 — §3g T73 added at Sam's instruction ("instead of having it need 300 scored prediction can we just use games from last season and the ones played this season for both cfb and nfl"): the verdict counts every 2025-2026 walk-forward prediction for the eighteen challengers defined before any of their results existed, and only games after registration for the eight shaped on them; the floor counts only predictions that differ from the champion's; one branch to the largest mean d. Written before any result under it; §2 to §3f unchanged and pinned (§3g names what it replaces).
 - 2026-10-26 — §4: §3g's build readings recorded after a review (nothing counted before a challenger's registration Monday; "differs" is exact; the floor counts the eight's scored predictions only; P and T's withdrawal window fixed; the tie-break on the printed numbers; one branch or none). §2 to §3g unchanged and pinned.
 - 2026-10-27 — §4 after a second review: the tie-break reading on the printed 6 decimals struck (it could give the branch to the smaller mean d; the order now reads the unrounded numbers, §3g's own rule); the email's no-branch and tie sentences corrected; two readings flagged for Sam ("differs" once any training row has an input; a withdrawal recomputed after a switch), code unchanged for both. §2 to §3g unchanged and pinned.
+- 2026-10-27 — §3h added at Sam's instruction (*"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*), answering the two readings flagged above: a withdrawal is permanent (carried by the weekly report, `withdrawn_since`), and "differs" stays exact. Written before any result under it; §2 to §3g unchanged and pinned. §4 records how it is built.

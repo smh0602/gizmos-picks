@@ -194,9 +194,18 @@ def newest_age_minutes(directory, now=None):
 # is not.
 #
 # All times below are ET (America/New_York, UTC-4 Mar-Nov).
+# `[2026-10-27]` ✅ READ AT A FIXED UTC-4 ALL YEAR, ON PURPOSE. Every deadline here
+#    is the minute a cron fires for it, and a GitHub cron is UTC: it does not move
+#    in November. Read in real Eastern time, every deadline would fall an hour
+#    AFTER the run planned for it. So from 2026-11-01 each one is the same UTC
+#    minute and an hour earlier by the wall clock (the card's "10:00" is 9:00 EST).
+#    ⛔ Moving them means moving the crons, which only Sam's upload does. The one
+#    row on real Eastern time is the game-day injury check (`Moments`); the page
+#    reads Eastern time by the zone everywhere (test_et_clock_change.py).
 
 def et_date(now=None):
-    """Today's ET slate date. ⚠️ Fixed -4; ET is UTC-4 from Mar to Nov."""
+    """Today's ET slate date. ⚠️ Fixed -4; ET is UTC-4 from Mar to Nov (the
+    contract's own day all year: see above)."""
     now = now or datetime.datetime.now(UTC)
     return (now - datetime.timedelta(hours=4)).strftime("%Y-%m-%d")
 
@@ -965,7 +974,8 @@ def et_wall_utc(naive):
 #    and plans it from this row, like the college reader's.
 # ⚠️ REAL EASTERN TIME, NOT `ET_OFFSET`: 12:00 is 16:00Z under daylight time
 #    and 17:00Z from 2026-11-01 (`et_wall_utc`). The rest of the contract still
-#    reads the fixed UTC-4; moving it is a separate change.
+#    reads the fixed UTC-4; ~~moving it is a separate change~~ `[2026-10-27]` and
+#    keeps it: its deadlines are its crons' UTC minutes (see above `et_date`).
 # ⛔ A SLOT WHOSE LATER GAMES HAVE ALL STARTED IS OWED NOTHING: a late pass does
 #    no pointless work for it. ~~and nothing reports it as missed~~ `[2026-10-26,
 #    review]` It is not lost: the probe keeps an 8-day log of every slot's attempts

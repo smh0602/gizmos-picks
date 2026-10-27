@@ -2,19 +2,19 @@
  "league": "nfl",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-10-27T07:12:00Z",
+ "built_at": "2026-10-27T19:20:54Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
   "home_edge_points": 0.69,
   "matchup_points_per_unit": {
-   "pass_yds": -0.0241,
-   "rush_yds": -0.0411,
-   "plays": 0.157
+   "pass_yds": -0.0236,
+   "rush_yds": -0.0416,
+   "plays": 0.158
   },
   "sigma": {
-   "margin": 13.22,
-   "total": 14.14
+   "margin": 13.24,
+   "total": 14.13
   },
   "k": {
    "spread": 3.0,
@@ -38,24 +38,24 @@
    "total": 45.8,
    "line": {
     "spread": 3.75,
-    "total": 47.5
+    "total": 48.5
    },
    "score_curve": {
     "spread": 49.9,
-    "total": 45.3,
+    "total": 42.5,
     "moneyline": 61.1
    },
    "calibrated": {
     "spread": 50.0,
-    "total": 48.4,
+    "total": 47.5,
     "moneyline": 59.3
    },
    "fb_model": {
-    "spread": 59.6,
-    "total": 54.5,
-    "moneyline": 66.5
+    "spread": 59.4,
+    "total": 54.9,
+    "moneyline": 66.4
    },
-   "fb_model_ml_curve_spread": 55.7
+   "fb_model_ml_curve_spread": 55.6
   },
   {
    "game_id": "2026_08_ARI_DAL",
@@ -71,25 +71,25 @@
    "margin": 5.0,
    "total": 56.5,
    "line": {
-    "spread": 6.0,
-    "total": 53.5
+    "spread": 6.5,
+    "total": 54.5
    },
    "score_curve": {
-    "spread": 47.0,
-    "total": 58.5,
+    "spread": 45.5,
+    "total": 55.7,
     "moneyline": 64.7
    },
    "calibrated": {
-    "spread": 49.0,
-    "total": 52.9,
+    "spread": 48.5,
+    "total": 51.9,
     "moneyline": 62.3
    },
    "fb_model": {
-    "spread": 56.2,
-    "total": 54.4,
-    "moneyline": 63.0
+    "spread": 59.5,
+    "total": 55.7,
+    "moneyline": 66.6
    },
-   "fb_model_ml_curve_spread": 45.3
+   "fb_model_ml_curve_spread": 47.6
   },
   {
    "game_id": "2026_08_ATL_TB",
@@ -119,11 +119,11 @@
     "moneyline": 54.6
    },
    "fb_model": {
-    "spread": 53.5,
-    "total": 54.2,
-    "moneyline": 63.6
+    "spread": 53.3,
+    "total": 54.4,
+    "moneyline": 63.4
    },
-   "fb_model_ml_curve_spread": 57.1
+   "fb_model_ml_curve_spread": 56.9
   },
   {
    "game_id": "2026_08_BAL_BUF",
@@ -153,11 +153,11 @@
     "moneyline": 63.0
    },
    "fb_model": {
-    "spread": 49.2,
-    "total": 63.8,
-    "moneyline": 71.7
+    "spread": 48.9,
+    "total": 56.9,
+    "moneyline": 68.3
    },
-   "fb_model_ml_curve_spread": 62.2
+   "fb_model_ml_curve_spread": 58.4
   },
   {
    "game_id": "2026_08_CLE_PIT",
@@ -173,25 +173,25 @@
    "margin": 4.1,
    "total": 38.5,
    "line": {
-    "spread": 3.5,
+    "spread": 3.0,
     "total": 39.25
    },
    "score_curve": {
-    "spread": 51.7,
+    "spread": 53.2,
     "total": 47.8,
     "moneyline": 62.0
    },
    "calibrated": {
-    "spread": 50.6,
+    "spread": 51.1,
     "total": 49.3,
     "moneyline": 60.1
    },
    "fb_model": {
-    "spread": 52.6,
-    "total": 50.0,
-    "moneyline": 62.7
+    "spread": 52.1,
+    "total": 49.9,
+    "moneyline": 62.4
    },
-   "fb_model_ml_curve_spread": 52.4
+   "fb_model_ml_curve_spread": 53.6
   },
   {
    "game_id": "2026_08_IND_JAX",
@@ -207,25 +207,25 @@
    "margin": 9.0,
    "total": 51.5,
    "line": {
-    "spread": 7.75,
+    "spread": 8.25,
     "total": 46.75
    },
    "score_curve": {
-    "spread": 53.8,
+    "spread": 52.3,
     "total": 63.0,
     "moneyline": 75.3
    },
    "calibrated": {
-    "spread": 51.3,
+    "spread": 50.8,
     "total": 54.4,
     "moneyline": 71.5
    },
    "fb_model": {
-    "spread": 47.6,
-    "total": 63.6,
-    "moneyline": 75.6
+    "spread": 47.4,
+    "total": 59.3,
+    "moneyline": 73.6
    },
-   "fb_model_ml_curve_spread": 54.4
+   "fb_model_ml_curve_spread": 50.4
   },
   {
    "game_id": "2026_08_LV_NYJ",
@@ -241,25 +241,25 @@
    "margin": -0.3,
    "total": 48.3,
    "line": {
-    "spread": 1.5,
-    "total": 45.25
+    "spread": null,
+    "total": null
    },
    "score_curve": {
-    "spread": 44.4,
-    "total": 58.6,
+    "spread": null,
+    "total": null,
     "moneyline": 49.0
    },
    "calibrated": {
-    "spread": 48.1,
-    "total": 52.9,
+    "spread": null,
+    "total": null,
     "moneyline": 49.1
    },
    "fb_model": {
-    "spread": 60.2,
-    "total": 49.1,
-    "moneyline": 61.0
+    "spread": null,
+    "total": null,
+    "moneyline": 60.9
    },
-   "fb_model_ml_curve_spread": 56.6
+   "fb_model_ml_curve_spread": null
   },
   {
    "game_id": "2026_08_MIN_DET",
@@ -275,25 +275,25 @@
    "margin": -1.4,
    "total": 43.6,
    "line": {
-    "spread": 3.0,
-    "total": 46.25
+    "spread": 3.5,
+    "total": 46.5
    },
    "score_curve": {
-    "spread": 36.9,
-    "total": 42.5,
+    "spread": 35.5,
+    "total": 41.8,
     "moneyline": 45.7
    },
    "calibrated": {
-    "spread": 45.6,
-    "total": 47.5,
+    "spread": 45.1,
+    "total": 47.3,
     "moneyline": 46.4
    },
    "fb_model": {
-    "spread": 48.7,
-    "total": 51.5,
+    "spread": 49.1,
+    "total": 51.7,
     "moneyline": 41.5
    },
-   "fb_model_ml_curve_spread": 33.0
+   "fb_model_ml_curve_spread": 31.6
   },
   {
    "game_id": "2026_08_TEN_CIN",
@@ -323,11 +323,11 @@
     "moneyline": 73.6
    },
    "fb_model": {
-    "spread": 45.9,
-    "total": 52.0,
-    "moneyline": 76.8
+    "spread": 45.7,
+    "total": 52.3,
+    "moneyline": 76.6
    },
-   "fb_model_ml_curve_spread": 47.7
+   "fb_model_ml_curve_spread": 47.5
   },
   {
    "game_id": "2026_08_LAC_LA",
@@ -344,24 +344,24 @@
    "total": 42.5,
    "line": {
     "spread": 6.5,
-    "total": 44.0
+    "total": 44.25
    },
    "score_curve": {
     "spread": 52.4,
-    "total": 45.8,
+    "total": 45.1,
     "moneyline": 70.9
    },
    "calibrated": {
     "spread": 50.8,
-    "total": 48.6,
+    "total": 48.4,
     "moneyline": 67.7
    },
    "fb_model": {
     "spread": 41.0,
-    "total": 53.4,
-    "moneyline": 58.5
+    "total": 47.4,
+    "moneyline": 61.6
    },
-   "fb_model_ml_curve_spread": 39.2
+   "fb_model_ml_curve_spread": 42.4
   },
   {
    "game_id": "2026_08_KC_DEN",
@@ -392,7 +392,7 @@
    },
    "fb_model": {
     "spread": 53.0,
-    "total": 56.3,
+    "total": 56.4,
     "moneyline": 52.5
    },
    "fb_model_ml_curve_spread": 57.0
@@ -411,25 +411,25 @@
    "margin": -8.3,
    "total": 39.2,
    "line": {
-    "spread": -7.5,
+    "spread": -7.25,
     "total": 44.5
    },
    "score_curve": {
-    "spread": 47.6,
+    "spread": 46.9,
     "total": 35.3,
     "moneyline": 26.5
    },
    "calibrated": {
-    "spread": 49.2,
+    "spread": 49.0,
     "total": 45.0,
     "moneyline": 30.1
    },
    "fb_model": {
-    "spread": 63.3,
+    "spread": 63.2,
     "total": 53.3,
-    "moneyline": 30.3
+    "moneyline": 29.8
    },
-   "fb_model_ml_curve_spread": 52.0
+   "fb_model_ml_curve_spread": 50.5
   },
   {
    "game_id": "2026_08_PHI_WAS",
@@ -445,25 +445,25 @@
    "margin": -3.6,
    "total": 43.8,
    "line": {
-    "spread": 4.0,
-    "total": 40.5
+    "spread": 5.5,
+    "total": 40.0
    },
    "score_curve": {
-    "spread": 28.2,
-    "total": 59.3,
+    "spread": 24.5,
+    "total": 60.7,
     "moneyline": 39.2
    },
    "calibrated": {
-    "spread": 42.4,
-    "total": 53.1,
+    "spread": 40.9,
+    "total": 53.6,
     "moneyline": 41.0
    },
    "fb_model": {
-    "spread": 63.2,
-    "total": 58.4,
-    "moneyline": 57.4
+    "spread": 63.3,
+    "total": 52.1,
+    "moneyline": 55.1
    },
-   "fb_model_ml_curve_spread": 45.5
+   "fb_model_ml_curve_spread": 38.7
   },
   {
    "game_id": "2026_08_CHI_SEA",
@@ -476,87 +476,87 @@
     "home": 25.7,
     "away": 21.1
    },
-   "margin": 4.5,
+   "margin": 4.6,
    "total": 46.8,
    "line": {
     "spread": 3.0,
     "total": 46.5
    },
    "score_curve": {
-    "spread": 54.6,
-    "total": 50.9,
-    "moneyline": 63.4
+    "spread": 54.7,
+    "total": 50.8,
+    "moneyline": 63.5
    },
    "calibrated": {
-    "spread": 51.5,
+    "spread": 51.6,
     "total": 50.3,
     "moneyline": 61.3
    },
    "fb_model": {
-    "spread": 51.2,
-    "total": 55.9,
-    "moneyline": 62.5
+    "spread": 50.9,
+    "total": 56.5,
+    "moneyline": 62.0
    },
-   "fb_model_ml_curve_spread": 53.7
+   "fb_model_ml_curve_spread": 53.2
   }
  ],
  "backtest": {
-  "games_predicted": 373,
+  "games_predicted": 374,
   "first": "2025-09-11",
-  "last": "2026-10-25",
+  "last": "2026-10-26",
   "point_error": {
-   "games": 371,
+   "games": 372,
    "margin": {
     "score_model": {
-     "mae": 10.51,
-     "rmse": 13.24
+     "mae": 10.53,
+     "rmse": 13.26
     },
     "fb_model_own_ratings": {
-     "mae": 10.62,
-     "rmse": 13.32
+     "mae": 10.65,
+     "rmse": 13.34
     },
     "closing_line": {
-     "mae": 9.7,
+     "mae": 9.71,
      "rmse": 12.27
     }
    },
    "total": {
     "score_model": {
      "mae": 11.08,
-     "rmse": 14.07
+     "rmse": 14.06
     },
     "fb_model_own_ratings": {
      "mae": 11.12,
-     "rmse": 14.12
+     "rmse": 14.11
     },
     "closing_line": {
-     "mae": 10.24,
-     "rmse": 12.93
+     "mae": 10.26,
+     "rmse": 12.94
     }
    }
   },
   "log_loss": {
    "spread": {
-    "score_curve": 0.7096,
-    "calibrated": 0.6918,
-    "fb_model": 0.7104,
-    "ml_curve": 0.705,
-    "ml_curve_games": 226,
-    "fb_model_on_ml_curve_games": 0.7104,
-    "games": 226
+    "score_curve": 0.7115,
+    "calibrated": 0.6924,
+    "fb_model": 0.7103,
+    "ml_curve": 0.7064,
+    "ml_curve_games": 227,
+    "fb_model_on_ml_curve_games": 0.7103,
+    "games": 227
    },
    "total": {
-    "score_curve": 0.7178,
-    "calibrated": 0.7011,
-    "fb_model": 0.7038,
-    "games": 227
+    "score_curve": 0.7167,
+    "calibrated": 0.7007,
+    "fb_model": 0.7035,
+    "games": 228
    },
    "moneyline": {
-    "score_curve": 0.6455,
-    "calibrated": 0.6449,
-    "fb_model": 0.644,
-    "books_devigged": 0.6336,
-    "games": 227
+    "score_curve": 0.6463,
+    "calibrated": 0.6456,
+    "fb_model": 0.6444,
+    "books_devigged": 0.6326,
+    "games": 228
    }
   },
   "calibration": {
@@ -582,9 +582,9 @@
      },
      {
       "band": "65-70",
-      "games": 17,
-      "stated": 67.2,
-      "hit": 58.8
+      "games": 18,
+      "stated": 67.3,
+      "hit": 55.6
      },
      {
       "band": "70+",
@@ -602,9 +602,9 @@
      },
      {
       "band": "55-60",
-      "games": 47,
+      "games": 48,
       "stated": 56.8,
-      "hit": 55.3
+      "hit": 54.2
      },
      {
       "band": "60-65",
@@ -628,9 +628,9 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 87,
+      "games": 88,
       "stated": 52.6,
-      "hit": 43.7
+      "hit": 44.3
      },
      {
       "band": "55-60",
@@ -672,9 +672,9 @@
      },
      {
       "band": "60-65",
-      "games": 35,
-      "stated": 62.7,
-      "hit": 62.9
+      "games": 36,
+      "stated": 62.8,
+      "hit": 61.1
      },
      {
       "band": "65-70",
@@ -706,9 +706,9 @@
      },
      {
       "band": "60-65",
-      "games": 46,
-      "stated": 62.1,
-      "hit": 52.2
+      "games": 47,
+      "stated": 62.2,
+      "hit": 53.2
      },
      {
       "band": "65-70",
@@ -726,9 +726,9 @@
     "calibrated": [
      {
       "band": "50-55",
-      "games": 156,
+      "games": 157,
       "stated": 52.2,
-      "hit": 51.9
+      "hit": 52.2
      },
      {
       "band": "55-60",
@@ -758,9 +758,9 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 139,
+      "games": 140,
       "stated": 52.5,
-      "hit": 56.8
+      "hit": 57.1
      },
      {
       "band": "55-60",
@@ -798,9 +798,9 @@
      },
      {
       "band": "55-60",
-      "games": 49,
-      "stated": 56.9,
-      "hit": 49.0
+      "games": 50,
+      "stated": 56.8,
+      "hit": 48.0
      },
      {
       "band": "60-65",
@@ -824,9 +824,9 @@
     "calibrated": [
      {
       "band": "50-55",
-      "games": 52,
+      "games": 53,
       "stated": 52.6,
-      "hit": 46.2
+      "hit": 45.3
      },
      {
       "band": "55-60",
@@ -856,9 +856,9 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 50,
-      "stated": 52.8,
-      "hit": 56.0
+      "games": 51,
+      "stated": 52.7,
+      "hit": 54.9
      },
      {
       "band": "55-60",
@@ -891,61 +891,61 @@
    "spread": {
     "books": {
      "score_curve": {
-      "picks": 103,
+      "picks": 104,
       "wins": 49,
-      "hit_rate": 47.6,
-      "roi": -7.5,
+      "hit_rate": 47.1,
+      "roi": -8.4,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 103,
+      "picks": 104,
       "wins": 49,
-      "hit_rate": 47.6,
-      "roi": -7.0,
+      "hit_rate": 47.1,
+      "roi": -7.9,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 104,
-      "wins": 57,
-      "hit_rate": 54.8,
-      "roi": 6.7,
+      "picks": 105,
+      "wins": 58,
+      "hit_rate": 55.2,
+      "roi": 7.5,
       "price_assumed": 0
      },
      "ml_curve": {
-      "picks": 104,
+      "picks": 105,
       "wins": 59,
-      "hit_rate": 56.7,
-      "roi": 10.1,
+      "hit_rate": 56.2,
+      "roi": 9.0,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 262,
+      "picks": 263,
       "wins": 132,
-      "hit_rate": 50.4,
-      "roi": -3.9,
+      "hit_rate": 50.2,
+      "roi": -4.3,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 262,
+      "picks": 263,
       "wins": 132,
-      "hit_rate": 50.4,
-      "roi": -3.9,
+      "hit_rate": 50.2,
+      "roi": -4.3,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 220,
-      "wins": 111,
-      "hit_rate": 50.5,
-      "roi": -3.5,
+      "picks": 221,
+      "wins": 112,
+      "hit_rate": 50.7,
+      "roi": -3.0,
       "price_assumed": 0
      },
      "ml_curve": {
-      "picks": 220,
+      "picks": 221,
       "wins": 122,
-      "hit_rate": 55.5,
-      "roi": 6.1,
+      "hit_rate": 55.2,
+      "roi": 5.6,
       "price_assumed": 0
      }
     }
@@ -953,47 +953,47 @@
    "total": {
     "books": {
      "score_curve": {
-      "picks": 105,
-      "wins": 53,
-      "hit_rate": 50.5,
-      "roi": -3.2,
+      "picks": 106,
+      "wins": 54,
+      "hit_rate": 50.9,
+      "roi": -2.3,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 104,
-      "wins": 52,
-      "hit_rate": 50.0,
-      "roi": -3.5,
+      "picks": 105,
+      "wins": 53,
+      "hit_rate": 50.5,
+      "roi": -2.7,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 105,
-      "wins": 60,
-      "hit_rate": 57.1,
-      "roi": 11.0,
+      "picks": 106,
+      "wins": 61,
+      "hit_rate": 57.5,
+      "roi": 11.7,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 271,
-      "wins": 134,
-      "hit_rate": 49.4,
-      "roi": -5.7,
+      "picks": 272,
+      "wins": 135,
+      "hit_rate": 49.6,
+      "roi": -5.3,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 271,
-      "wins": 134,
-      "hit_rate": 49.4,
-      "roi": -5.7,
+      "picks": 272,
+      "wins": 135,
+      "hit_rate": 49.6,
+      "roi": -5.3,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 228,
-      "wins": 122,
-      "hit_rate": 53.5,
-      "roi": 2.4,
+      "picks": 229,
+      "wins": 123,
+      "hit_rate": 53.7,
+      "roi": 2.8,
       "price_assumed": 0
      }
     }
@@ -1001,47 +1001,47 @@
    "moneyline": {
     "books": {
      "score_curve": {
-      "picks": 105,
+      "picks": 106,
       "wins": 61,
-      "hit_rate": 58.1,
-      "roi": -9.6,
+      "hit_rate": 57.5,
+      "roi": -10.4,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 105,
+      "picks": 106,
       "wins": 61,
-      "hit_rate": 58.1,
-      "roi": -9.6,
+      "hit_rate": 57.5,
+      "roi": -10.4,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 105,
+      "picks": 106,
       "wins": 64,
-      "hit_rate": 61.0,
-      "roi": -0.2,
+      "hit_rate": 60.4,
+      "roi": -1.2,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 270,
+      "picks": 271,
       "wins": 161,
-      "hit_rate": 59.6,
-      "roi": -9.9,
+      "hit_rate": 59.4,
+      "roi": -10.2,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 270,
+      "picks": 271,
       "wins": 161,
-      "hit_rate": 59.6,
-      "roi": -9.9,
+      "hit_rate": 59.4,
+      "roi": -10.2,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 227,
+      "picks": 228,
       "wins": 144,
-      "hit_rate": 63.4,
-      "roi": -0.6,
+      "hit_rate": 63.2,
+      "roi": -1.0,
       "price_assumed": 0
      }
     }
@@ -1050,19 +1050,19 @@
   "coin_flip_log_loss": 0.6931,
   "coherence": {
    "score_curve": {
-    "games": 270,
+    "games": 271,
     "cover_above_win": 0
    },
    "calibrated": {
-    "games": 270,
+    "games": 271,
     "cover_above_win": 20
    },
    "fb_model": {
-    "games": 228,
-    "cover_above_win": 58
+    "games": 229,
+    "cover_above_win": 59
    },
    "ml_curve": {
-    "games": 228,
+    "games": 229,
     "cover_above_win": 0
    }
   }
@@ -1081,17 +1081,17 @@
  },
  "fb_model_opposite_picks": {
   "books": {
-   "games_with_both": 51,
+   "games_with_both": 52,
    "cannot_both_hit": 0,
    "games": []
   },
   "closing": {
-   "games_with_both": 98,
+   "games_with_both": 99,
    "cannot_both_hit": 0,
    "games": []
   },
   "this_week": {
-   "games_with_both": 6,
+   "games_with_both": 5,
    "cannot_both_hit": 0,
    "games": []
   }

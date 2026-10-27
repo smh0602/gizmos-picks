@@ -202,8 +202,8 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 T71: ...and SM is fitted on the input built BEFORE the contest, never on zeros
 #   file: fb_refit.py
-#   find:                            fits=challenger_fits(rows, n, lg, root) if reg else None))
-#   with:                            fits=challenger_fits([dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in rows], n, lg, root) if reg else None))
+#   find:                                fits=challenger_fits(rows, n, lg, root) if reg else None,
+#   with:                                fits=challenger_fits([dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in rows], n, lg, root) if reg else None,
 #
 # @vacuity 🔴 T71: the pins see rushing by every position, not QBs and RBs only
 #   file: fb_matchups.py
