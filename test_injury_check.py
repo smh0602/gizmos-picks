@@ -20,7 +20,15 @@ It asks:
      reads the reports once per slot;
   4. college's model reading (Sam's "do 9am, 12pm, 7pm"): a game still to start reads the newest
      report as of the build; a started or final game, and every caller that passes no moment (the
-     training rows, the record, fb_inj_backtest), reads §3's tested 9:00 cut.
+     training rows, fb_inj_backtest), reads §3's tested 9:00 cut; `[2026-10-26, review]` a played
+     game is ALSO read as of its last pre-kickoff build (the ledger's last snapshot that looked at
+     it) into `inj_shown`, which the record's replay reads (test_fb_model_record.py §5);
+  5. `[2026-10-26, review]` what the reviews found: the injuries file keeps its 3am deadline
+     (nfl-logs rewrites it daily; only the check skips an unchanged rewrite), an empty nflverse
+     answer is a failed source, a refused releases call is not repeated, a check that read
+     nothing is retried ONCE in its slot, a source failing at 2 slots in a row is a warning that
+     is never replanned, a season with no stored schedule owes nothing, and every slot's attempts
+     are logged for the Monday status ("N of M checks ran").
 
 PLANTED TREES ONLY, each pinned to its own clock. ⛔ The network is a tripwire: nflverse and the
 conference feeds are stand-ins, and a real call fails the file.
@@ -75,20 +83,35 @@ conference feeds are stand-ins, and a real call fails the file.
 #   find: UNTIMED = {"injury-check"}
 #   with: UNTIMED = set()
 #
-# @vacuity 🔴 an injuries file written only on a change has no clock deadline
+# @vacuity 🔴 injuries-<season> keeps its 3am deadline (an nflverse outage reads stale) [2026-10-26, review]
 #   file: freshness.py
-#   find:         _store += [(f"injuries-{s}", []) for s in _yrs]
-#   with:         _store += [(f"injuries-{s}", T["possession"]) for s in _yrs]
+#   find:         _store += [(f"injuries-{s}", T["possession"] if s == season else []) for s in _yrs]
+#   with:         _store += [(f"injuries-{s}", []) for s in _yrs]
 #
-# @vacuity 🔴 ...not even as a champion's input (T69 IN reads it)
-#   file: freshness.py
-#   find:                      T[due] if due and not ON_CHANGE.search(fname.format(s=season)) else [],
-#   with:                      T[due] if due else [],
-#
-# @vacuity 🔴 an unchanged injuries file is not rewritten
+# @vacuity 🔴 nfl-logs' daily call rewrites the injuries file, changed or not (its heartbeat)
 #   file: nfl.py
-#   find:             if _same_but_stamp(old, doc):           # `[2026-10-26]` nothing changed: not rewritten
+#   find: def store_injuries(base, seasons, log=print, now=None, fetch_rows=None, only_on_change=False):
+#   with: def store_injuries(base, seasons, log=print, now=None, fetch_rows=None, only_on_change=True):
+#
+# @vacuity 🔴 the check's call does not rewrite an unchanged injuries file
+#   file: nfl.py
+#   find:             if only_on_change and _same_but_stamp(old, doc):     # `[2026-10-26]` the check's call
 #   with:             if False:
+#
+# @vacuity 🔴 ...because the check asks for it
+#   file: nfl.py
+#   find:                                                   only_on_change=True)[season]
+#   with:                                                   only_on_change=False)[season]
+#
+# @vacuity ⛔ an empty nflverse answer is a failed source, never every player cleared
+#   file: nfl.py
+#   find:                     raise ValueError("answered with no rows for %s" % season)
+#   with:                     pass
+#
+# @vacuity ⛔ a refused releases call is not repeated for the second source
+#   file: nfl.py
+#   find:                         raise seen[1]
+#   with:                         pass
 #
 # @vacuity 🔴 an NFL snapshot only when the statuses or inactives changed
 #   file: nfl.py
@@ -127,8 +150,73 @@ conference feeds are stand-ins, and a real call fails the file.
 #
 # @vacuity ⛔ college reads the reports once per slot (the reader's run in this pass is reused)
 #   file: collect.py
-#   find:             if served is not None and prev is not None and prev >= served[1]:
+#   find:             if served is not None and ran is not None and ran >= served[1]:
 #   with:             if False:
+#
+# @vacuity 🔴 a check that read nothing says so in its probe (`ok`)
+#   file: collect.py
+#   find:     probe["ok"] = bool(not probe.get("error") and any((v or {}).get("ok") for v in _src.values()))
+#   with:     probe["ok"] = True
+#
+# @vacuity 🔴 a failing source's slots accumulate (the health check's evidence)
+#   file: collect.py
+#   find:             fs = [x for x in (p.get("failing_slots") or []) if x != _key][-5:] + [_key]
+#   with:             fs = [_key]
+#
+# @vacuity 🔴 the slot log records only a check that read something as having run
+#   file: collect.py
+#   find:         e["ok_at"] = e.get("ok_at") or (ts if probe["ok"] else None)
+#   with:         e["ok_at"] = ts
+#
+# @vacuity 🔴 ...from the probe's first check, carried forward
+#   file: collect.py
+#   find:     probe["log_since"] = prev.get("log_since") or ts        # the first check this probe recorded
+#   with:     probe["log_since"] = ts
+#
+# @vacuity 🔴 a failed check is retried in its slot
+#   file: freshness.py
+#   find:                 and (sl.get("attempt") or 1) <= INJURY_RETRIES):
+#   with:                 and False):
+#
+# @vacuity ⛔ ...once, never every pass
+#   file: freshness.py
+#   find: INJURY_RETRIES = 1
+#   with: INJURY_RETRIES = 99
+#
+# @vacuity 🔴 a source failing at 2 slots in a row is named
+#   file: freshness.py
+#   find:         if n >= INJURY_FAILED_SLOTS:
+#   with:         if False:
+#
+# @vacuity ⛔ ...only while the checks are running (the off-season is no warning)
+#   file: freshness.py
+#   find:     if at is None or now - at > datetime.timedelta(days=IN_SEASON_D):
+#   with:     if at is None:
+#
+# @vacuity ⛔ ...and it is reported, never replanned (no card rebuild every pass)
+#   file: freshness.py
+#   find: REPORT_ONLY_HEALTH = {"injury-check"}
+#   with: REPORT_ONLY_HEALTH = set()
+#
+# @vacuity ⛔ a season with no stored schedule owes nothing
+#   file: freshness.py
+#   find:     if not os.path.exists(path):          # no stored schedule for the season: nothing owed
+#   with:     if False:
+#
+# @vacuity 🔴 a Moments deadline's next moment is the first one after now
+#   file: freshness.py
+#   find:         return min((m for m in times_et if m > now), default=None)
+#   with:         return None
+#
+# @vacuity 🔴 the Monday status counts a slot that never ran
+#   file: status.py
+#   find:         missed = [h for h in hist if not h["ok_at"] and not h["attempts"]]
+#   with:         missed = []
+#
+# @vacuity ⛔ ...but never one before the probe's first check
+#   file: status.py
+#   find:                 and (h["utc"] in log or first is None or F._parse(h["utc"]) >= first)]
+#   with:                 ]
 #
 # @vacuity 🔴 a college game still to start reads the newest report as of the build
 #   file: cfb_injuries.py
@@ -140,10 +228,25 @@ conference feeds are stand-ins, and a real call fails the file.
 #   find:     if cut is None or now is None or k is None or k <= now:
 #   with:     if cut is None or now is None or k is None:
 #
+# @vacuity 🔴 a played game is read as of ITS moment when one is given (the record's replay)
+#   file: cfb_injuries.py
+#   find:                 cut = read_cut(r.get("kickoff"), when.get(gid, now))   # ~~pick_cutoff(r.get("kickoff"))~~ [Sam, 2026-10-26]
+#   with:                 cut = read_cut(r.get("kickoff"), now)
+#
+# @vacuity 🔴 ...into `inj_shown`, beside the 9:00 reading
+#   file: cfb_injuries.py
+#   find:                 r["sig"]["inj_shown"] = _reading(shown, r, roles)
+#   with:                 pass
+#
+# @vacuity 🔴 ...at the ledger's last snapshot before kickoff, on the live build
+#   file: fb_model.py
+#   find:             shown = fb_ledger.looked_moments(lg, root)
+#   with:             shown = None
+#
 # @vacuity 🔴 the live build passes its moment to the rows
 #   file: fb_model.py
-#   find:     rows = build_rows(lg, root, extra_top, extra_players, inj_now=now)
-#   with:     rows = build_rows(lg, root, extra_top, extra_players)
+#   find:     rows = build_rows(lg, root, extra_top, extra_players, ratings=own, inj_now=now)
+#   with:     rows = build_rows(lg, root, extra_top, extra_players, ratings=own)
 #
 # @vacuity ⛔ no training or backtest caller passes the live moment (fb_inj_backtest)
 #   file: fb_inj_backtest.py
@@ -503,24 +606,65 @@ try:
        "the check) within 20 minutes after it", "none within 20 min: %s" % _lag)
 
     # ══════════════════════════════════════════════════════════════════
-    section("2d. 🔴 FILES WRITTEN ONLY ON A CHANGE HAVE NO CLOCK DEADLINE; THE NFL SNAPSHOTS ARE STORED ONLY")
+    section("2d. 🔴 THE INJURIES FILE KEEPS ITS 3AM DEADLINE: AN NFLVERSE OUTAGE IS SEEN")
     # ══════════════════════════════════════════════════════════════════
+    # ⛔ `[2026-10-26, review]` ~~FILES WRITTEN ONLY ON A CHANGE HAVE NO CLOCK DEADLINE~~: the first
+    #    build stopped nfl-logs rewriting an unchanged injuries file and took the deadline off it, so
+    #    a 10-day nflverse outage (the file 10 days old, the check's probe fresh with both sources
+    #    failed) was stale nowhere, and with T69 IN champion its input could rot without a red run.
+    #    Only the check skips an unchanged rewrite; nfl-logs' daily rewrite is the file's heartbeat.
     P = tree()
-    _rows = F.contract(P + "/data/nfl", P + "/picks", Z("2026-10-25 16:05"))
-    _inj = [r for r in _rows if re.search(r"/injuries-\d{4}\.json\.gz$", r[1][1].replace(os.sep, "/"))]
-    ck(_inj and all(list(r[2]) == [] for r in _inj),
-       "🔴 injuries-<season> (rewritten only on a change) has no clock deadline: a quiet day is no warning",
-       [(r[1][1][-21:], r[2]) for r in _inj])
+    nfl_sched(P, ["2026-10-25T20:20"])
+    NOWO = Z("2026-10-25 16:40")                                   # Sunday 12:40 EDT
+    _poss = list(F.FB_TIMES["nfl"]["possession"])
+    _rows = F.contract(P + "/data/nfl", P + "/picks", NOWO)
+    _inj = {re.search(r"injuries-(\d{4})", r[1][1]).group(1): list(r[2]) for r in _rows
+            if re.search(r"/injuries-\d{4}\.json\.gz$", r[1][1].replace(os.sep, "/"))}
+    eq(_inj, {"2025": [], "2026": _poss},
+       "🔴 injuries-<this season> keeps nfl-logs' 3am deadline (a past season, written once, has none)")
     _ci = F.champion_inputs
     try:
         F.champion_inputs = lambda league, champion=None: [("injuries-{s}.json.gz", "possession")]
-        _ch = [r for r in F.contract(P + "/data/nfl", P + "/picks", Z("2026-10-25 16:05"))
-               if r[4] == F.CHAMPION_INPUT]
+        _ch = [r for r in F.contract(P + "/data/nfl", P + "/picks", NOWO) if r[4] == F.CHAMPION_INPUT]
     finally:
         F.champion_inputs = _ci
-    ck(len(_ch) == 1 and list(_ch[0][2]) == [],
-       "🔴 ...not even as a champion's input (T69 IN reads it): a 3am deadline would be a red run every "
-       "quiet day the morning IN became champion", [(r[1][1][-21:], r[2]) for r in _ch])
+    ck(len(_ch) == 1 and list(_ch[0][2]) == _poss,
+       "🔴 ...and as a champion's input (T69 IN reads it), the same deadline", [(r[1][1][-21:], r[2]) for r in _ch])
+    _lat = os.path.join(P, "data", "nfl", "latest")
+    put(os.path.join(_lat, "injuries-2026.json.gz"), {"season": 2026, "built_at": iso(NOWO - 10 * D), "teams": {}})
+    put(os.path.join(_lat, "injury-check.json"),
+        {"league": "nfl", "built_at": iso(NOWO - 30 * M), "checked_at": iso(NOWO - 30 * M), "ok": False,
+         "sources": {"injuries": {"ok": False, "error": "HTTPError 404"},
+                     "weekly_rosters": {"ok": False, "error": "HTTPError 404"}}})
+    _st = {r["path"].replace(os.sep, "/").split("/latest/")[-1]: r
+           for r in F.survey(P + "/data/nfl", P + "/picks", NOWO)}
+    _r = _st.get("injuries-2026.json.gz") or {}
+    _hard, _soft = F.classify([_r], P + "/data/nfl", refused=False, block={"state": None}) if _r else ([], [])
+    ck(_r.get("stale") and _r.get("due_at") == "2026-10-25T07:00Z" and not _hard and len(_soft) == 1,
+       "🔴 a 10-day nflverse outage (file 10 days old, the check's probe fresh): injuries-2026 is STALE, a "
+       "warning (stored only), though the check ran 30 minutes ago", {k: _r.get(k) for k in ("stale", "due_at")})
+    try:
+        F.champion_inputs = lambda league, champion=None: [("injuries-{s}.json.gz", "possession")]
+        _cr = [r for r in F.survey(P + "/data/nfl", P + "/picks", NOWO) if r["why"] == F.CHAMPION_INPUT]
+    finally:
+        F.champion_inputs = _ci
+    _hard, _soft = F.classify(_cr, P + "/data/nfl", refused=False, block={"state": None})
+    ck(len(_cr) == 1 and _cr[0]["stale"] and len(_hard) == 1,
+       "🔴 ...and with T69 IN champion, a RED run (its input has rotted)", "hard=%d soft=%d" % (len(_hard), len(_soft)))
+    _logs = []
+    _o1 = nfl.store_injuries(_lat, [2026], log=_logs.append, now=NOWO, fetch_rows=lambda s: [])
+    _b = json.load(gzip.open(os.path.join(_lat, "injuries-2026.json.gz"), "rt", encoding="utf-8"))
+    _o2 = nfl.store_injuries(_lat, [2026], log=_logs.append, now=NOWO + M, fetch_rows=lambda s: [])
+    _b2 = json.load(gzip.open(os.path.join(_lat, "injuries-2026.json.gz"), "rt", encoding="utf-8"))
+    ck(_o2[2026].startswith("written") and _b2.get("built_at") == iso(NOWO + M) and _b.get("built_at") == iso(NOWO),
+       "🔴 nfl-logs' call (no only_on_change) rewrites an UNCHANGED file: its built_at is when nflverse last "
+       "answered", (_o1, _o2))
+    _r = {r["path"].replace(os.sep, "/").split("/latest/")[-1]: r
+          for r in F.survey(P + "/data/nfl", P + "/picks", NOWO + M)}.get("injuries-2026.json.gz") or {}
+    ck(_r and not _r["stale"], "   ...so after a good nfl-logs run the row is fresh again", _r.get("stale"))
+    _o3 = nfl.store_injuries(_lat, [2026], log=_logs.append, now=NOWO + 2 * M, fetch_rows=lambda s: [],
+                             only_on_change=True)
+    ck(_o3[2026].startswith("unchanged"), "   (the check's call, only_on_change, leaves it as it is)", _o3)
 
     # ══════════════════════════════════════════════════════════════════
     section("3. 🔴 THE MODE: FREE, BOTH LEAGUES, ITS PROBE ON EVERY ATTEMPT")
@@ -572,9 +716,10 @@ try:
         _p = C.collect_injury_check(at=PIN)
         _snaps = sorted(glob.glob(os.path.join("data", "nfl", "*", "injury-reports", "*.json.gz")))
         eq((_p["slot"], _p["next_slot"], _p["slots_owed_today"]),
-           ({"et": "12:00", "utc": "2026-10-25T16:00Z", "late_min": 41.0}, {"et": "19:00", "utc": "2026-10-25T23:00Z"},
-            ["9:00", "12:00", "19:00"]),
-           "🔴 the probe names the slot it served (12:00 ET = 16:00Z, 41 minutes after it) and the next one")
+           ({"et": "12:00", "utc": "2026-10-25T16:00Z", "attempt": 1, "late_min": 41.0},
+            {"et": "19:00", "utc": "2026-10-25T23:00Z"}, ["9:00", "12:00", "19:00"]),
+           "🔴 the probe names the slot it served (12:00 ET = 16:00Z, 41 minutes after it, its first attempt) "
+           "and the next one")
         eq((_p["week"], _p["counts"], {k: v["ok"] for k, v in _p["sources"].items()}),
            (8, {"teams": 2, "with_status": 1, "inactive": 1}, {"injuries": True, "weekly_rosters": True}),
            "🔴 NFL: the check's week (8, today's games, not last week's 7), every player with a status, and "
@@ -649,13 +794,21 @@ try:
         os.remove(os.path.join("data", "nfl", "latest", "backfill-report.txt"))
 
         # the mode through run_mode: no key, both leagues, nothing for MLB
+        # ⛔ `[2026-10-26, review]` on the tree's own clock (PIN), never the real one: "the real
+        #    clock, or a tree pinned to NOW, never one of each" (CLAUDE.md)
         _out = io.StringIO()
+        _now = C.now
         try:
+            C.now = lambda: PIN + 200 * M
             with contextlib.redirect_stdout(_out):
                 C.run_mode("injury-check")
             _exit = None
         except SystemExit as e:
             _exit = e.code
+        finally:
+            C.now = _now
+        _pr = json.load(open(os.path.join("data", "nfl", "latest", "injury-check.json"), encoding="utf-8"))
+        eq(_pr.get("checked_at"), iso(PIN + 200 * M), "   (run_mode's check ran on the tree's pinned clock)")
         ck(_exit is None and not any("unknown mode" in l for l in lines(_out)),
            "🔴 run_mode dispatches injury-check with no Odds key (FREE): it never spends a credit",
            "exit %r: %s" % (_exit, shown(lines(_out)[-2:])))
@@ -754,6 +907,58 @@ try:
     eq(CI.read_cut("2026-10-24T19:30:00Z", Z("2026-10-24 12:00")), CI.pick_cutoff("2026-10-24T19:30:00Z"),
        "   before 9:00 ET the cut IS §3's (8:59:59 ET)")
 
+    # 🔴 `[2026-10-26, review]` THE RECORD READS WHAT THE SITE SHOWED. Once g1 is played, the live
+    #    build reads it at §3's 9:00 cut (QB Out) for TRAINING, and ALSO as of its last pre-kickoff
+    #    build (1:00 pm ET: QB cleared, the pick the site showed) into `inj_shown`, the record's.
+    _at = CI.pick_time_outs(2026, R, Z("2026-10-24 21:00"), at={"g1": "2026-10-24T17:00:00Z"})
+    eq(([p["name"] for p in (_at.get("g1") or {}).get("Alabama", [])],
+        [p["name"] for p in (_at.get("g2") or {}).get("LSU", [])]), ([], []),
+       "🔴 `at` reads a played game as of ITS moment (g1 at 1:00 pm: cleared); a game not in it as `now` says")
+
+    class FakeRoles:                 # one QB out = (1, 0, 0); the roster maths is test_cfb_injury_model's
+        def __init__(self, season, root=None):
+            pass
+
+        def team_out(self, team, players, day):
+            return (1.0 if any(p.get("position") == "QB" for p in players) else 0.0, 0.0, 0.0)
+    _roles = CI.Roles
+    try:
+        CI.Roles = FakeRoles
+        _rows = [{"id": g, "season": 2026, "day": "2026-10-24", "final": fin, "sig": {}, "home": h, "away": a}
+                 for g, fin, h, a in (("g1", True, "Alabama", "Georgia"), ("g2", True, "LSU", "Ole Miss"))]
+        CI.attach(_rows, R, now=Z("2026-10-25 01:00"), shown_at={"g1": "2026-10-24T17:00:00Z"})
+        _r1, _r2 = _rows
+        eq((_r1["sig"]["inj"]["qb"], (_r1["sig"].get("inj_shown") or {}).get("qb"), "inj_shown" in _r2["sig"]),
+           ((1.0, 0.0), (0.0, 0.0), False),
+           "🔴 attach: played g1 trains on §3's 9:00 reading (QB Out) and carries `inj_shown` as of its last "
+           "pre-kickoff build (cleared); g2, with no recorded build, carries none")
+        _up = [{"id": "g1", "season": 2026, "day": "2026-10-24", "final": False, "sig": {}, "home": "Alabama",
+                "away": "Georgia"}]
+        CI.attach(_up, R, now=Z("2026-10-24 17:00"), shown_at={"g1": "2026-10-24T16:00:00Z"})
+        eq((_up[0]["sig"]["inj"]["qb"], "inj_shown" in _up[0]["sig"]), ((0.0, 0.0), False),
+           "   a game still to start reads the newest report as of the build, and carries no `inj_shown`")
+    finally:
+        CI.Roles = _roles
+    # ...and the moment is the ledger's: the LAST snapshot before kickoff that looked at the game
+    for _when, _look in (("2026-10-24 16:00", {"g1": "2026-10-24T19:30:00Z"}),
+                         ("2026-10-24 17:00", {"g1": "2026-10-24T19:30:00Z", "g2": "2026-10-24T23:00:00Z"}),
+                         ("2026-10-24 20:00", {"g2": "2026-10-24T23:00:00Z", "g1": "2026-10-24T19:30:00Z"})):
+        daystore.archive({"league": "ncaaf", "taken_at": iso(Z(_when)), "game_model": [], "props_model": [],
+                          "looked_at": {"game_model": _look, "props_model": {}}},
+                         os.path.join(R, "data", "ncaaf"), "model-picks", log=lambda m: None, when=Z(_when))
+    import fb_model as FM  # noqa: E402
+    GOT = []
+    _att = CI.attach
+    try:
+        CI.attach = lambda rows, root=None, now=None, shown_at=None: GOT.append((now, shown_at))
+        FM.injury_readings("ncaaf", [], R, now=Z("2026-10-25 01:00"))
+        FM.injury_readings("ncaaf", [], R)
+    finally:
+        CI.attach = _att
+    eq(GOT, [(Z("2026-10-25 01:00"), {"g1": "2026-10-24T17:00:00Z", "g2": "2026-10-24T20:00:00Z"}), (None, None)],
+       "🔴 the live build hands attach each game's last pre-kickoff snapshot (g1: 1:00 pm, not the 4:00 pm one "
+       "after its kickoff; g2: 4:00 pm); a caller with no build moment reads no ledger")
+
     # 🔴 THE LIVE BUILD PASSES ITS MOMENT; NO TRAINING OR BACKTEST CALLER DOES
     import fb_inj_backtest as B  # noqa: E402
     import fb_model as FM  # noqa: E402
@@ -801,6 +1006,159 @@ try:
        "⛔ only fb_model.build passes the live moment; every other caller of build_rows (the backtest, the "
        "refit, the score model, the lambda test, the alt-lines check) reads §3's cut",
        "with: %s; without: %s" % (_with, sorted(set(k for k in _without if k[1] != "<module>"))))
+
+    # ══════════════════════════════════════════════════════════════════
+    section("5. 🔴 THE REVIEWS' FINDINGS `[2026-10-26, review]`")
+    # ══════════════════════════════════════════════════════════════════
+    # 5a. ⛔ an EMPTY nflverse answer is a failed source; a refused releases call is not repeated
+    E = tree()
+    nfl_sched(E, ["2026-10-25T13:00", "2026-10-25T16:25"])
+    PE = Z("2026-10-25 13:05")                                  # 9:05 EDT, Sunday
+    with inside(E):
+        league("nfl")
+        _f = os.path.join("data", "nfl", "latest", "injuries-2026.json.gz")
+        put(_f, {"season": 2026, "built_at": iso(PE - 6 * H), "teams": {"SEA": {"8": {"players": [
+            {"gsis_id": "p1", "full_name": "A One", "report_status": "Out"}], "starting_qb": None}}}})
+        _before = open(_f, "rb").read()
+        _inj_rows, SRC["injuries"] = SRC["injuries"], []
+        try:
+            _pe = C.collect_injury_check(at=PE)
+        finally:
+            SRC["injuries"] = _inj_rows
+        _s = _pe["sources"]["injuries"]
+        ck(_s["ok"] is False and "no rows" in (_s.get("error") or "") and open(_f, "rb").read() == _before
+           and not glob.glob(os.path.join("data", "nfl", "*", "injury-reports", "*.json.gz")),
+           "⛔ nflverse answered with NO ROWS: a failed source, the stored file is NOT rewritten as every player "
+           "cleared, and no snapshot", _s)
+        del CALLS[:]
+        _rel = nfl._releases
+
+        def refused(log=print, max_pages=10):
+            CALLS.append("releases")
+            raise urllib.error.HTTPError("planted://releases", 403, "rate limited", None, None)
+        nfl._releases = refused
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                _pr = C.collect_injury_check(at=PE + M)
+        finally:
+            nfl._releases = _rel
+        eq((CALLS.count("releases"), sorted(k for k, v in _pr["sources"].items() if v["ok"] is False)),
+           (1, ["injuries", "weekly_rosters"]),
+           "⛔ GitHub refused the releases call: ONE call, both sources recorded failed (not a second refused call)")
+
+        # 5b. 🔴 ONE RETRY WITHIN THE SLOT, NEVER EVERY PASS
+        os.remove(os.path.join("data", "nfl", "latest", "injury-check.json"))
+        FAIL.update({"injuries", "weekly_rosters"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            _a1 = C.collect_injury_check(at=PE)
+
+        def _row(t):
+            return [r for r in F.survey("data/nfl", "picks", t) if r["mode"] == "injury-check"][0]
+        _r1 = _row(PE + 15 * M)
+        ck(_a1["ok"] is False and _a1["slot"]["attempt"] == 1 and _r1["stale"] and _r1["due_at"] == "2026-10-25T13:05Z"
+           and "injury-check" in planned(".", "nfl", PE + 15 * M),
+           "🔴 the 9:00 check read nothing (both sources down): its row is due again just after it, and the next "
+           "pass plans the check once more", {k: _r1.get(k) for k in ("stale", "due_at")})
+        with contextlib.redirect_stdout(io.StringIO()):
+            _a2 = C.collect_injury_check(at=PE + 60 * M)
+        _r2 = _row(PE + 75 * M)
+        ck(_a2["slot"]["attempt"] == 2 and not _r2["stale"] and "injury-check" not in planned(".", "nfl", PE + 75 * M),
+           "⛔ ...it failed again: ONE retry only, the row is fresh until the noon slot (no check, and no card "
+           "rebuild, on every pass)", {k: _r2.get(k) for k in ("stale", "due_at", "unhealthy")})
+
+        # 5c. 🔴 A SOURCE DOWN AT 2 SLOTS IN A ROW IS A WARNING THAT IS NEVER REPLANNED
+        ck(not _r2.get("unhealthy"), "   one slot down is not yet a warning", _r2.get("unhealthy"))
+        with contextlib.redirect_stdout(io.StringIO()):
+            C.collect_injury_check(at=Z("2026-10-25 16:05"))
+            _a4 = C.collect_injury_check(at=Z("2026-10-25 16:35"))
+        _r4 = _row(Z("2026-10-25 16:50"))
+        _hard, _soft = F.classify([_r4], "data/nfl", refused=False, block={"state": None})
+        ck(_r4["stale"] and "weekly_rosters has not answered at the last 2 game-day checks" in (_r4["unhealthy"] or "")
+           and not _hard and len(_soft) == 1 and "injury-check" not in planned(".", "nfl", Z("2026-10-25 16:50")),
+           "🔴 9:00 and 12:00 both read nothing: the row is STALE with the reason (a soft warning, a `fresh:` "
+           "finding), and NOT planned again (it would rebuild the card every pass)", _r4.get("unhealthy"))
+        eq([len(v["failing_slots"]) for _k, v in sorted(_a4["sources"].items())], [2, 2],
+           "   (the probe counts the slots each source failed at in a row)")
+        FAIL.clear()
+        with contextlib.redirect_stdout(io.StringIO()):
+            _a5 = C.collect_injury_check(at=Z("2026-10-25 23:05"))
+        _r5 = _row(Z("2026-10-25 23:10"))
+        ck(_a5["ok"] and not _r5["stale"] and all(v["failing_slots"] == [] and v["last_ok_at"] == "2026-10-25T23:05:00Z"
+                                                  for v in _a5["sources"].values()),
+           "   nflverse back at 7:00 pm: the warning clears and each source's last answer is recorded", _r5.get("unhealthy"))
+        _pp = os.path.join("data", "nfl", "latest", "injury-check.json")
+        _p = json.load(open(_pp, encoding="utf-8"))
+        for v in _p["sources"].values():
+            v["failing_slots"], v["failing_since"] = ["a", "b"], "x"
+        _p["checked_at"] = iso(Z("2026-10-25 23:05") - 9 * D)
+        put(_pp, _p)
+        eq(F.health(_pp, Z("2026-10-25 23:10")), None,
+           "⛔ a failing source whose last check was over 8 days ago (the off-season) is no warning")
+        _p["checked_at"] = iso(Z("2026-10-25 23:05"))
+        put(_pp, _p)
+        ck(bool(F.health(_pp, Z("2026-10-25 23:10"))), "   (the same probe, checked this week, is one)")
+        put(os.path.join("data", "ncaaf", "latest", "injury-check.json"), _p)
+        eq(F.health(os.path.join("data", "ncaaf", "latest", "injury-check.json"), Z("2026-10-25 23:10")), None,
+           "⛔ college's check is not judged here: its sources are the conference reader's, judged on its own probe")
+
+    # 5d. ⛔ A SEASON WITH NO STORED SCHEDULE OWES NOTHING; AN UNREADABLE ONE OWES EVERY SLOT
+    Q = tree()
+    eq(F.injury_check_slots("nfl", Q + "/data/nfl/latest", Z("2027-08-05 13:05")), [],
+       "⛔ August 1st names the 2027 season before its schedule is stored: no check owed (both cards would be "
+       "rebuilt three times a day for nothing)")
+    with open(os.path.join(Q, "data", "nfl", "latest", "schedule-2027.json.gz"), "wb") as fh:
+        fh.write(b"not a gzip")
+    eq([s[0] for s in F.injury_check_slots("nfl", Q + "/data/nfl/latest", Z("2027-08-05 13:05"))],
+       ["9:00", "12:00", "19:00"], "   ...an UNREADABLE stored schedule is cannot-tell: every slot owed, as before")
+
+    # 5e. 🔴 MOMENTS: next_due is the first moment after now
+    _mo = F.Moments([Z("2026-10-25 13:00"), Z("2026-10-25 16:00")], label="x")
+    eq((F.next_due(_mo, Z("2026-10-25 14:00")), F.next_due(_mo, Z("2026-10-25 16:00"))), (Z("2026-10-25 16:00"), None),
+       "🔴 a Moments' next deadline is its first moment strictly after now (after_last_survey reads it)")
+
+    # 5f. 🔴 EVERY SLOT'S ATTEMPTS ARE LOGGED, AND THE MONDAY STATUS COUNTS THEM
+    import status as ST  # noqa: E402
+    S2 = tree()
+    nfl_sched(S2, ["2026-10-25T13:00", "2026-10-25T16:25", "2026-10-25T20:20", "2026-10-26T20:15"])
+    put(os.path.join(S2, "data", "nfl", "latest", "injury-check.json"), {"log_since": "2026-10-22T13:05:00Z", "log": {
+        "2026-10-25T13:00Z": {"et": "9:00", "attempts": 1, "ok_at": "2026-10-25T13:10:00Z"},
+        "2026-10-25T16:00Z": {"et": "12:00", "attempts": 1, "ok_at": "2026-10-25T17:30:00Z"},
+        "2026-10-26T13:00Z": {"et": "9:00", "attempts": 2, "ok_at": None},
+        "2026-10-26T16:00Z": {"et": "12:00", "attempts": 1, "ok_at": "2026-10-26T16:20:00Z"}}})
+    _lines = ST.injury_checks(S2, Z("2026-10-26 23:30"))
+    eq(_lines, ["- NFL: 3 of 5 checks ran (1 after some of their games had started: Sun 10-25 12:00 ET); read "
+                "nothing: Mon 10-26 9:00 ET; never ran: Sun 10-25 19:00 ET.", "- College: no check has run yet."],
+       "🔴 the Monday status: Sunday 9:00 ran; 12:00 ran after the 1pm games had started; 19:00 never ran before "
+       "the 8:20pm game; Monday 9:00 read nothing; Monday 19:00 is still open (the 8:15pm game), so not counted")
+    _pp2 = os.path.join(S2, "data", "nfl", "latest", "injury-check.json")
+    _d2 = json.load(open(_pp2, encoding="utf-8"))
+    _d2["log_since"] = "2026-10-25T23:30:00Z"
+    put(_pp2, _d2)
+    eq(ST.injury_checks(S2, Z("2026-10-26 23:30"))[0],
+       "- NFL: 3 of 4 checks ran (1 after some of their games had started: Sun 10-25 12:00 ET); read nothing: "
+       "Mon 10-26 9:00 ET.",
+       "⛔ a slot before the probe's first check (`log_since`: the check shipped Sunday evening) is not a miss")
+    _body = ST.build(S2, Z("2026-10-26 23:30"))[0]
+    ck("## Game-day injury checks (last 7 days)" in _body and ST.injury_checks(S2, Z("2026-10-26 23:30"))[0] in _body,
+       "   ...in the weekly email's body, under its own heading")
+    E2 = tree()
+    nfl_sched(E2, ["2026-10-25T13:00", "2026-10-25T16:25"])
+    with inside(E2):
+        league("nfl")
+        FAIL.update({"injuries", "weekly_rosters"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            C.collect_injury_check(at=PE)
+            FAIL.clear()
+            C.collect_injury_check(at=PE + 60 * M)
+            _lg = C.collect_injury_check(at=Z("2026-10-25 16:10"))["log"]
+    eq(_lg, {"2026-10-25T13:00Z": {"et": "9:00", "attempts": 2, "first_at": iso(PE), "ok_at": iso(PE + 60 * M)},
+             "2026-10-25T16:00Z": {"et": "12:00", "attempts": 1, "first_at": "2026-10-25T16:10:00Z",
+                                   "ok_at": "2026-10-25T16:10:00Z"}},
+       "🔴 the probe's slot log: the 9:00 slot's two attempts (the first read nothing, the retry did) and the 12:00 one")
+    with inside(E2):
+        eq(json.load(open(os.path.join("data", "nfl", "latest", "injury-check.json"), encoding="utf-8")).get("log_since"),
+           iso(PE), "   ...from its first check (`log_since`), carried forward")
+    FAIL.clear()
 finally:
     urllib.request.urlopen = _REAL["urlopen"]
     nfl._raw, nfl._releases, nfl._rows = _REAL["raw"], _REAL["releases"], _REAL["rows"]

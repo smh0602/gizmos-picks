@@ -922,8 +922,18 @@ def et_wall_utc(naive):
 #    and 17:00Z from 2026-11-01 (`et_wall_utc`). The rest of the contract still
 #    reads the fixed UTC-4; moving it is a separate change.
 # ⛔ A SLOT WHOSE LATER GAMES HAVE ALL STARTED IS OWED NOTHING: a late pass does
-#    no pointless work for it and nothing reports it as missed.
+#    no pointless work for it. ~~and nothing reports it as missed~~ `[2026-10-26,
+#    review]` It is not lost: the probe keeps an 8-day log of every slot's attempts
+#    (`collect.collect_injury_check`), and the Monday status counts, from it and the
+#    schedule, the checks that ran, failed or never ran before their games
+#    (`injury_check_history`). A count in the weekly, never a finding.
 INJURY_CHECK_ET = ((9, 0), (12, 0), (19, 0))
+# 🔴 `[2026-10-26, review]` ONE RETRY WITHIN THE SLOT. A check that read nothing (every source
+#    failed, or it raised: the probe's `ok` false) is owed once more while its slot is still
+#    owed, so one transient 403 or timeout at 12:3x no longer costs the noon reading. ⛔ ONCE:
+#    a second failure waits for the next slot, never every pass (each retry rebuilds the card).
+INJURY_RETRIES = 1
+INJURY_LOG_DAYS = 8               # the probe's slot log, and the weekly's window inside it
 
 
 def _et_today(now):
@@ -940,14 +950,20 @@ def injury_check_slots(league, latest, now=None):
     """-> [("hh:mm" ET, real UTC moment)] of TODAY's (ET) injury-check slots a
     game still needs: one kicking off on this ET day AFTER the slot that has
     not kicked off by `now` (college counts a game with an FBS side, as every
-    college row does). ⛔ No readable schedule is CANNOT TELL, and cannot-tell
-    keeps every slot of the day owed (the `_props_warranted` rule)."""
+    college row does). ⛔ An UNREADABLE schedule is CANNOT TELL, and cannot-tell
+    keeps every slot of the day owed (the `_props_warranted` rule).
+    `[2026-10-26, review]` ⛔ A season whose schedule is not STORED yet (August 1st
+    names the new season before its file lands) owes nothing: it has no game to
+    check for, and owing every slot would rebuild both cards three times a day."""
     now = now or datetime.datetime.now(UTC)
     day = _et_today(now)
     nxt = day + datetime.timedelta(days=1)
     start = et_wall_utc(datetime.datetime(day.year, day.month, day.day))
     end = et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day))
-    games = kickoff_games(league, f"{latest}/schedule-{current_football_season(now)}.json.gz")
+    path = f"{latest}/schedule-{current_football_season(now)}.json.gz"
+    if not os.path.exists(path):          # no stored schedule for the season: nothing owed
+        return []
+    games = kickoff_games(league, path)
     kicks = None if games is None else [k for k, _g in games if start <= k < end and k > now]
     out = []
     for hh, mm in INJURY_CHECK_ET:
@@ -958,9 +974,51 @@ def injury_check_slots(league, latest, now=None):
 
 
 def injury_check_times(league, latest, now=None):
-    """The injury-check row's deadlines: `injury_check_slots` as `Moments`."""
-    return Moments((m for _l, m in injury_check_slots(league, latest, now)),
-                   label="/".join("%d:%02d" % t for t in INJURY_CHECK_ET) + " real ET, game days")
+    """The injury-check row's deadlines: `injury_check_slots` as `Moments`, plus
+    `[2026-10-26, review]` ONE retry moment (INJURY_RETRIES) just after a failed
+    attempt at the newest owed slot, read from the probe (`ok`, `slot.attempt`)."""
+    now = now or datetime.datetime.now(UTC)
+    moments = [m for _l, m in injury_check_slots(league, latest, now)]
+    served = max((m for m in moments if m <= now), default=None)
+    pr = _load(f"{latest}/injury-check.json")
+    if served is not None and isinstance(pr, dict) and pr.get("ok") is False:
+        sl = pr.get("slot") if isinstance(pr.get("slot"), dict) else {}
+        at = _parse(pr.get("checked_at"))
+        if (_parse(sl.get("utc")) == served and at is not None and at >= served
+                and (sl.get("attempt") or 1) <= INJURY_RETRIES):
+            moments.append(at + datetime.timedelta(seconds=1))
+    return Moments(moments, label="/".join("%d:%02d" % t for t in INJURY_CHECK_ET) + " real ET, game days")
+
+
+def injury_check_history(league, latest, log, since, now=None):
+    """`[2026-10-26, review]` -> [{"day", "et", "utc", "games", "attempts", "ok_at",
+    "started"}]: every slot from ET day `since` (a date) to `now` that a game came after
+    (`injury_check_slots` at the day's start), joined to the probe's slot log (`log`,
+    {utc: {"attempts", "ok_at"}}). `games`: how many games kicked off that ET day after
+    the slot; `open`: how many of them have not kicked off at `now` (a slot with none
+    open and no attempt was MISSED; with some, it may still run); `started`: how many had
+    kicked off at its first successful attempt (None when none succeeded). The Monday
+    status counts from it. ⛔ Reads only."""
+    now = now or datetime.datetime.now(UTC)
+    out, day = [], since
+    while day <= _et_today(now):
+        t0 = et_wall_utc(datetime.datetime(day.year, day.month, day.day))
+        nxt = day + datetime.timedelta(days=1)
+        t1 = et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day))
+        games = kickoff_games(league, f"{latest}/schedule-{current_football_season(t0)}.json.gz") or []
+        kicks = [k for k, _g in games if t0 <= k < t1]
+        for et, slot in injury_check_slots(league, latest, t0):
+            if slot > now:
+                continue
+            e = (log or {}).get(slot.strftime("%Y-%m-%dT%H:%MZ")) or {}
+            ok = _parse(e.get("ok_at"))
+            after = [k for k in kicks if k > slot]
+            out.append({"day": day.isoformat(), "et": et, "utc": slot.strftime("%Y-%m-%dT%H:%MZ"),
+                        "games": len(after), "open": sum(1 for k in after if k > now),
+                        "attempts": int(e.get("attempts") or 0), "ok_at": e.get("ok_at"),
+                        "started": None if ok is None else sum(1 for k in after if k <= ok)})
+        day = nxt
+    return out
 
 
 def _props_warranted(league, latest, now):
@@ -1303,14 +1361,10 @@ def _football_contract(league, data, picks, now):
     # `[Sam, 2026-10-12]` T65: once Sam names a game-model CHAMPION, the file
     #    behind its input is a row like the others (talent: once a season,
     #    so only a missing season's file is late).
-    #    `[2026-10-26]` ⛔ A file written only on a change (ON_CHANGE) has no clock deadline
-    #    here either: T69 IN reads injuries-<season>, and a 3am deadline on it would be a red
-    #    run, every quiet day, the morning IN became champion.
     for fname, due in champion_inputs(league):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{fname.format(s=season)}"),
-                     T[due] if due and not ON_CHANGE.search(fname.format(s=season)) else [],
-                     False, CHAMPION_INPUT))
+                     T[due] if due else [], False, CHAMPION_INPUT))
     # `[Sam, 2026-10-14]` NEW DATA, STORED ONLY (see STORED_ONLY): the daily
     #    NWS forecasts and, by league, injuries / advanced stats, venues and CFBD
     #    weather. History seasons and once-a-season files are late only when
@@ -1319,10 +1373,10 @@ def _football_contract(league, data, picks, now):
     _yrs = sorted(set(FOOTBALL_HISTORY) | {season})
     _store = [(f"weather-{season}", T["possession"])]
     if league == "nfl":
-        # `[2026-10-26]` ~~T["possession"] if s == season else []~~: nfl.store_injuries now
-        #    rewrites the file only when its content changes (ON_CHANGE), so its age says
-        #    nothing; its writers are watched by the injury-check probe and nfl-logs' rows.
-        _store += [(f"injuries-{s}", []) for s in _yrs]
+        # ⛔ `[2026-10-26, review]` THE 3AM DEADLINE STAYS: nfl-logs rewrites the file every
+        #    day (its `built_at` is when nflverse last answered), so an outage reads stale here.
+        #    Only the game-day check skips an unchanged rewrite (nfl.store_injuries).
+        _store += [(f"injuries-{s}", T["possession"] if s == season else []) for s in _yrs]
     else:
         _store += [(f"adv-{s}", T["possession"] if s == season else []) for s in _yrs]
         _store += [(f"venues-{season}", [])]
@@ -1651,11 +1705,6 @@ SOFT |= {"injury-check"}
 #    recorded, it would be a `late:` finding (DEGRADED) on most game-day evenings with nothing
 #    to repair. The probe keeps each check's own `late_min` instead.
 UNTIMED = {"injury-check"}
-# 🔴 `[2026-10-26]` FILES REWRITTEN ONLY WHEN THEIR CONTENT CHANGES: their age says nothing (a
-#    quiet day writes none), so a row on one carries no clock deadline, stored-only or not.
-#    nfl.store_injuries (git cannot delta a gzip: a daily rewrite of an unchanged file is a
-#    full copy in the history every day).
-ON_CHANGE = re.compile(r"(^|/)injuries-\d{4}\.json\.gz$")
 # 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
 #    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
@@ -1801,8 +1850,41 @@ def _defense_health(path, now):
     return None
 
 
+# 🔴 `[2026-10-26, review]` THE GAME-DAY CHECK'S OWN SOURCES. Its probe is written on every
+#    attempt, so a check whose nflverse reads failed for days read fresh, and nothing said so (the
+#    game-day inactives are fetched by the check alone). A source that has failed at
+#    INJURY_FAILED_SLOTS slots in a row (each slot's retry included) is named. ⛔ Judged only while
+#    the checks are running (the newest within IN_SEASON_D days): the off-season is no warning.
+#    ⛔ The NFL's probe only: college's check reads through the conference reader, whose own
+#    probe is judged above (`_injury_probe_health`); judging it twice is two alarms for one fault.
+#    ⛔ REPORTED, NEVER REPLANNED (REPORT_ONLY_HEALTH): a re-run cannot answer it before the next
+#    slot, and each one would rebuild the card (CASCADE) and hit a source that is down.
+INJURY_FAILED_SLOTS = 2
+
+
+def _injury_check_health(path, now):
+    """The game-day injury check's probe (collect.collect_injury_check)."""
+    doc = _load(path)
+    if not isinstance(doc, dict):
+        return None                       # a missing probe already reads MISSING
+    at = _parse(doc.get("checked_at"))
+    if at is None or now - at > datetime.timedelta(days=IN_SEASON_D):
+        return None
+    bad = []
+    for s, v in sorted((doc.get("sources") if isinstance(doc.get("sources"), dict) else {}).items()):
+        n = len(v.get("failing_slots") or []) if isinstance(v, dict) else 0
+        if n >= INJURY_FAILED_SLOTS:
+            bad.append(f"{s} has not answered at the last {n} game-day checks "
+                       f"(since {v.get('failing_since')}; last answered {v.get('last_ok_at')})")
+    return ("game-day injury check: " + "; ".join(bad)) if bad else None
+
+
 HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_probe_health),
-          (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health))
+          (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health),
+          (re.compile(r"/nfl/latest/injury-check\.json$"), _injury_check_health))
+# Modes whose `health` finding is reported (stale: a soft warning, a `fresh:` finding) but
+# never planned again (`plan`). See INJURY_FAILED_SLOTS.
+REPORT_ONLY_HEALTH = {"injury-check"}
 
 
 def health(path, now=None):
@@ -2318,9 +2400,12 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    credits. ⚠️ `dict.fromkeys` keeps the contract's order, which is
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
+    # `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
+    #    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH.
     need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
-            and (allow_paid or not r["paid"])} | slate_moves(data, picks, now) \
-        | every_pass(data, now)
+            and (allow_paid or not r["paid"])
+            and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH)} \
+        | slate_moves(data, picks, now) | every_pass(data, now)
     changed = True
     while changed:
         changed = False

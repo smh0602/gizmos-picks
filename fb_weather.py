@@ -82,8 +82,9 @@ def _iso(t):
 # `[2026-10-26]` ⛔ ONE COPY (rule 117): the US Eastern daylight-time rule moved, unchanged, to
 #    freshness.py, which must stand alone (sandboxes copy it by itself) and now needs it for the
 #    game-day injury check. Read from there; freshness.py is stdlib only too. cfb_injuries keeps
-#    importing it from here.
-from freshness import _us_eastern_offset  # noqa: E402
+#    importing it from here. `[2026-10-26, review]` and so is the wall-time -> UTC step
+#    (`et_wall_utc`), which `kickoff_utc` below had as its own copy of the same expression.
+from freshness import _us_eastern_offset, et_wall_utc  # noqa: E402,F401
 
 
 def kickoff_utc(start):
@@ -101,7 +102,7 @@ def kickoff_utc(start):
         naive = datetime.datetime.strptime(s[:16], "%Y-%m-%dT%H:%M")
     except ValueError:
         return None
-    return (naive - datetime.timedelta(hours=_us_eastern_offset(naive))).replace(tzinfo=UTC)
+    return et_wall_utc(naive)
 
 
 def _get(url, timeout=30):

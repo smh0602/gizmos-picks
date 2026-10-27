@@ -4537,6 +4537,16 @@ def _ensure_cfb_team_directory():
 # ✅ ITS PROBE (latest/injury-check.json) IS WRITTEN ON EVERY ATTEMPT: the slot
 #    it served and how late, each source's answer, the counts, the snapshot, the
 #    next slot. 💰 Free: no key, no Odds credit, no CFBD call. ⛔ Never raises.
+# 🔴 `[2026-10-26, review]` AND IT REMEMBERS (each from the probe before it):
+#    `ok`               the check read something (no error, a source answered);
+#                       a failed one is retried ONCE in its slot (freshness.INJURY_RETRIES)
+#    `slot.attempt`     the attempts at this slot so far
+#    sources' `last_ok_at`, `failing_since`, `failing_slots` (the slots it failed at
+#                       in a row): the NFL's are judged (freshness._injury_check_health)
+#    `log`              {slot utc: {"et", "attempts", "first_at", "ok_at"}}, 8 days: the
+#                       Monday status counts the checks that ran, failed or never ran
+#                       before their games (freshness.injury_check_history), from
+#    `log_since`        the first check the probe recorded (no slot before it is "missed")
 def collect_injury_check(at=None):
     """One game-day injury check for LEAGUE. -> the probe it wrote."""
     at = at or now()
@@ -4546,9 +4556,18 @@ def collect_injury_check(at=None):
     served = max((s for s in slots if s[1] <= at), key=lambda s: s[1], default=None)
     nxt = min((s for s in slots if s[1] > at), key=lambda s: s[1], default=None)
     iso = lambda t: t.strftime("%Y-%m-%dT%H:%MZ")   # noqa: E731
+    try:
+        with open(f"{LATEST}/injury-check.json", encoding="utf-8") as fh:
+            prev = json.load(fh)
+        prev = prev if isinstance(prev, dict) else {}
+    except (OSError, ValueError):
+        prev = {}
+    _ps = prev.get("slot") if isinstance(prev.get("slot"), dict) else {}
+    attempt = 1 + (int(_ps.get("attempt") or 1) if served is not None and _ps.get("utc") == iso(served[1])
+                   else 0)
     probe = {"league": LEAGUE, "kind": "DIAGNOSTIC", "built_at": ts, "checked_at": ts,
              "slot": None if served is None else {
-                 "et": served[0], "utc": iso(served[1]),
+                 "et": served[0], "utc": iso(served[1]), "attempt": attempt,
                  "late_min": round((at - served[1]).total_seconds() / 60.0, 1)},
              "next_slot": None if nxt is None else {"et": nxt[0], "utc": iso(nxt[1])},
              "slots_owed_today": [s[0] for s in slots],
@@ -4572,9 +4591,9 @@ def collect_injury_check(at=None):
                         probe[k] = res[k]
         else:
             import cfb_injuries as _ci
-            prev = _fresh.stamp_of(_ci.probe_path(season, "."))
-            if served is not None and prev is not None and prev >= served[1]:
-                probe["reader"] = "reused the college reader's run at %s (at or after the slot)" % iso(prev)
+            ran = _fresh.stamp_of(_ci.probe_path(season, "."))
+            if served is not None and ran is not None and ran >= served[1]:
+                probe["reader"] = "reused the college reader's run at %s (at or after the slot)" % iso(ran)
                 with open(_ci.probe_path(season, "."), encoding="utf-8") as fh:
                     src = json.load(fh).get("sources") or {}
             else:
@@ -4598,9 +4617,32 @@ def collect_injury_check(at=None):
                                           if str(p.get("status") or "").lower() in _ci.OUT_STATUSES)}
     except Exception as e:
         probe["error"] = "%s: %s" % (type(e).__name__, str(e)[:200])
-    write(f"{LATEST}/injury-check.json", probe)
     _src = probe.get("sources") or {}
-    if probe.get("error") or not _src or not any((v or {}).get("ok") for v in _src.values()):
+    probe["ok"] = bool(not probe.get("error") and any((v or {}).get("ok") for v in _src.values()))
+    _key = iso(served[1]) if served is not None else ts
+    _prev_src = prev.get("sources") if isinstance(prev.get("sources"), dict) else {}
+    for name, v in _src.items():
+        if not isinstance(v, dict):
+            continue
+        p = _prev_src.get(name) if isinstance(_prev_src.get(name), dict) else {}
+        if v.get("ok"):
+            v.update(last_ok_at=v.get("last_ok_at") or ts, failing_since=None, failing_slots=[])
+        else:
+            fs = [x for x in (p.get("failing_slots") or []) if x != _key][-5:] + [_key]
+            v.update(last_ok_at=v.get("last_ok_at") or p.get("last_ok_at"),
+                     failing_since=p.get("failing_since") or ts, failing_slots=fs)
+    _log = {k: v for k, v in (prev.get("log") or {}).items()
+            if isinstance(v, dict) and k >= iso(at - timedelta(days=_fresh.INJURY_LOG_DAYS))}
+    if served is not None:
+        e = dict(_log.get(_key) or {}, et=served[0])
+        e["attempts"] = int(e.get("attempts") or 0) + 1
+        e["first_at"] = e.get("first_at") or ts
+        e["ok_at"] = e.get("ok_at") or (ts if probe["ok"] else None)
+        _log[_key] = e
+    probe["log"] = dict(sorted(_log.items()))
+    probe["log_since"] = prev.get("log_since") or ts        # the first check this probe recorded
+    write(f"{LATEST}/injury-check.json", probe)
+    if not probe["ok"]:
         # print, not log(): GitHub reads an annotation only at the start of a line
         print(f"::warning::injury-check read nothing for {LEAGUE} ("
               + (probe.get("error") or "; ".join("%s: %s" % (k, (v or {}).get("error"))

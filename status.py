@@ -203,6 +203,47 @@ def injury_branch(doc, name, recorded=False):
                     "4. Click \"Merge pull request\", then \"Confirm merge\"."])]
 
 
+def injury_checks(root, now, days=7):
+    """`[2026-10-26, review]` The game-day injury checks of the last `days` ET days, per football
+    league (Sam: "make sure we're looking at injury status at 12pm of games starting and 7pm"):
+    how many ran before their games, from the probe's slot log and the schedule
+    (`F.injury_check_history`). A slot still open (a game after it to come) that has not run
+    yet is not counted, nor one before the probe's first check (`log_since`: the week the
+    check shipped is not a week of misses). ⛔ A count in the weekly, never a finding."""
+    out = []
+    since = F._et_today(now) - datetime.timedelta(days=days)
+    for name, d in FB:
+        latest = os.path.join(root, d, "latest")
+        probe = _read(os.path.join(latest, "injury-check.json"))
+        if not probe.get("log_since"):
+            out.append("- %s: no check has run yet." % name)
+            continue
+        try:
+            hist = F.injury_check_history(d.split("/")[-1], latest, probe.get("log") or {}, since, now)
+        except Exception as e:
+            out.append("- %s: can't say (%s)." % (name, type(e).__name__))
+            continue
+        first, log = F._parse(probe["log_since"]), probe.get("log") or {}
+        hist = [h for h in hist if (h["attempts"] or h["ok_at"] or not h["open"])
+                and (h["utc"] in log or first is None or F._parse(h["utc"]) >= first)]
+        if not hist:
+            out.append("- %s: no game day." % name)
+            continue
+        def say(hs):
+            return ", ".join("%s %s ET" % (datetime.date.fromisoformat(h["day"]).strftime("%a %m-%d"),
+                                           h["et"]) for h in hs)
+        ran = [h for h in hist if h["ok_at"]]
+        late = [h for h in ran if h["started"]]
+        failed = [h for h in hist if not h["ok_at"] and h["attempts"]]
+        missed = [h for h in hist if not h["ok_at"] and not h["attempts"]]
+        line = "- %s: %d of %d checks ran" % (name, len(ran), len(hist))
+        line += (" (%d after some of their games had started: %s)" % (len(late), say(late))) if late else ""
+        line += ("; read nothing: %s" % say(failed)) if failed else ""
+        line += ("; never ran: %s" % say(missed)) if missed else ""
+        out.append(line + ".")
+    return out
+
+
 def build(root=ROOT, now=None):
     """-> (body, needs): the weekly issue's text and what needs Sam (empty: nothing)."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
@@ -250,6 +291,7 @@ def build(root=ROOT, now=None):
                  "late (due %s)." % (len(late), F.GRACE_MIN, name, r.get("mode"), round(m), r.get("due_at")))
     else:
         L.append("- None.")
+    L += ["", "## Game-day injury checks (last 7 days)"] + injury_checks(root, now)
     bad = sorted(((v or {}).get("failed") or 0, n) for n, v in wf.items() if (v or {}).get("failed"))
     L += ["", "## Failed runs", "- Can't say: %s." % stale if stale else
           "- %d in the last %s hours: %s." % (sum(x for x, _n in bad), runs.get("window_hours"), ", ".join(

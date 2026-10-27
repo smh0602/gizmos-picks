@@ -897,11 +897,13 @@ def _stored_json(path):
 # report_status, practice_status, as nflverse publishes them), and the starting
 # QB from OUR stored player stats (players-<season>: most pass attempts).
 # 💰 Free (nflverse); refreshed by the daily `nfl-logs` run. ⛔ Never raises.
-# 🔴 `[2026-10-26]` REWRITTEN ONLY WHEN ITS CONTENT CHANGES (anything but `built_at`):
-#    git cannot delta a gzip, so every rewrite of an unchanged file was a whole copy in the
-#    history, daily by nfl-logs and now up to three more times a game day by the
-#    injury check (`check_injuries`). `built_at` therefore says when it last CHANGED, and
-#    its contract row has no clock deadline (freshness.ON_CHANGE).
+# 🔴 `[2026-10-26]` nfl-logs' daily run REWRITES it, changed or not, as it always has: its
+#    `built_at` is when nflverse last ANSWERED, and the 3am deadline on that is how an nflverse
+#    outage is seen (a stale stored-only warning; a red run once T69 IN is champion). ⛔ Only
+#    the game-day injury check (`check_injuries`, up to six times a game day) skips the rewrite
+#    of an unchanged file (`only_on_change`): git cannot delta a gzip. `[2026-10-26, review]`
+#    The check's first build skipped it for nfl-logs too and dropped that deadline, so a 10-day
+#    outage was stale nowhere: never weaken a check to make a change pass.
 INJURY_FIELDS = ("gsis_id", "full_name", "position", "report_status", "practice_status")
 
 
@@ -943,9 +945,12 @@ def injuries_doc(season, inj_rows, players_doc, built_at):
             "teams": teams}
 
 
-def store_injuries(base, seasons, log=print, now=None, fetch_rows=None):
+def store_injuries(base, seasons, log=print, now=None, fetch_rows=None, only_on_change=False):
     """Write injuries-<season>.json.gz for each season. -> {season: outcome}.
-    ⛔ NEVER RAISES: a season that fails is named and the run goes on."""
+    ⛔ NEVER RAISES: a season that fails is named and the run goes on.
+    `[2026-10-26]` `only_on_change` (the game-day check's call only): a file whose content
+    would not change is left as it is. ⛔ nfl-logs never passes it (its rewrite is the
+    file's heartbeat)."""
     out, seen = {}, None
     stamp = (now or datetime.datetime.now(datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
     for season in seasons:
@@ -961,7 +966,7 @@ def store_injuries(base, seasons, log=print, now=None, fetch_rows=None):
                                stamp)
             path = os.path.join(base, "injuries-%d.json.gz" % season)
             old = _stored_json(path)
-            if _same_but_stamp(old, doc):           # `[2026-10-26]` nothing changed: not rewritten
+            if only_on_change and _same_but_stamp(old, doc):     # `[2026-10-26]` the check's call
                 out[season] = "unchanged since %s (not rewritten)" % old.get("built_at")
             else:
                 os.makedirs(base, exist_ok=True)
@@ -982,7 +987,8 @@ def store_injuries(base, seasons, log=print, now=None, fetch_rows=None):
 # vame"*. At 9am, 12pm and 7pm ET on a game day (freshness.INJURY_CHECK_ET, the
 # `injury-check` mode):
 #   1. THIS season's report (nflverse `injuries_<season>`) is refreshed into
-#      injuries-<season>.json.gz (`store_injuries`: rewritten only on a change);
+#      injuries-<season>.json.gz (`store_injuries(only_on_change=True)`: this call
+#      rewrites it only on a change; nfl-logs' daily call always does);
 #   2. the check's week's report statuses and its GAME-DAY INACTIVES (nflverse
 #      `roster_weekly_<season>`, status INA: the list posted 90 minutes before
 #      kickoff, which nflverse carried 20-80 minutes after posting for the London
@@ -1047,32 +1053,47 @@ def check_injuries(base, season, now=None, log=print, fetch=None):
     "counts", "injuries_file", "snapshot", "wrote", "changed"}. `fetch(kind, season)`
     -> csv rows (a test's stand-in; kind is "injuries" or "weekly_rosters").
     ⛔ NEVER RAISES. ⛔ A snapshot needs BOTH sources: half a reading stored as a
-    change would read as every listed player cleared."""
+    change would read as every listed player cleared.
+    ⛔ `[2026-10-26, review]` A source that ANSWERS WITH NO ROWS for the season has failed
+    (it is recorded so, and nothing is rewritten or snapshotted): stored, an empty answer
+    reads as every listed player cleared, and the why reads injuries-<season>. A season's
+    file is never empty once its first report is out. And one refused GitHub releases call
+    is not repeated for the second source (`seen` keeps the failure too)."""
     import daystore
     now = now or datetime.datetime.now(datetime.timezone.utc)
     out = {"sources": {}, "week": None, "counts": {}, "injuries_file": None,
            "snapshot": None, "wrote": False, "changed": False}
     try:
         data = os.path.dirname(os.path.normpath(base))
-        seen, rows = [None], {}
+        seen, rows = [None, None], {}          # [the releases listing, its failure]
         for kind in ("injuries", "weekly_rosters"):
             name = FILES[kind].format(y=season)
             try:
                 if fetch is not None:
                     got = fetch(kind, season)
                 else:
+                    if seen[1] is not None:
+                        raise seen[1]
                     if seen[0] is None:
-                        seen[0] = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
-                                                   for a in (r.get("assets") or [])] for r in _releases(log)}
+                        try:
+                            seen[0] = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
+                                                       for a in (r.get("assets") or [])] for r in _releases(log)}
+                        except Exception as e:
+                            seen[1] = e
+                            raise
                     got = _rows(seen[0], kind, name, log)
-                rows[kind] = list(got or [])
+                got = list(got or [])
+                if not got:
+                    raise ValueError("answered with no rows for %s" % season)
+                rows[kind] = got
                 out["sources"][kind] = {"ok": True, "file": name, "rows": len(rows[kind])}
             except Exception as e:
                 out["sources"][kind] = {"ok": False, "file": name,
                                         "error": "%s: %s" % (type(e).__name__, str(e)[:200])}
         if "injuries" in rows:
             out["injuries_file"] = store_injuries(base, [season], log, now,
-                                                  fetch_rows=lambda _s: rows["injuries"])[season]
+                                                  fetch_rows=lambda _s: rows["injuries"],
+                                                  only_on_change=True)[season]
         out["week"] = check_week(base, season, now)
         if len(rows) < 2 or out["week"] is None:
             out["why_no_snapshot"] = ("no game this week in the stored schedule" if len(rows) == 2
