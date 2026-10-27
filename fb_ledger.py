@@ -96,6 +96,13 @@ def snapshot(lg, root=None, when=None, log=log):
         return None
     doc = {"league": lg, "taken_at": now, "game_model": game, "props_model": props,
            "looked_at": looked, "spec": "research/fb_model_live_spec.md"}
+    # `[2026-10-27, review 2]` THE GAME PICKS' OWN MOMENT: fb-model.json's `read_at`, when its rows
+    #    read the injury reports. It is minutes before `taken_at` on a good pass, and hours when this
+    #    pass's model build failed and the file on disk is an earlier build's (card-fb builds the
+    #    ledger either way). `looked_moments` dates the record's replay with it, never `taken_at`.
+    #    A file written before it existed carries none, and `taken_at` stands.
+    if isinstance(gm.get("read_at"), str):
+        doc["model_read_at"] = gm["read_at"]
     return daystore.archive(doc, _data(lg, root), "model-picks", log=log, when=when)
 
 
@@ -151,13 +158,24 @@ def ledger_picks(snaps):
 
 
 def looked_moments(lg, root=None, model="game_model"):
-    """`[2026-10-26, review]` {game_id: taken_at}: the moment of the last snapshot before each
+    """`[2026-10-26, review]` {game_id: moment}: the moment of the last snapshot before each
     game's kickoff that looked at it (`chosen`), i.e. the build whose picks the site last showed
     for it. fb_model's live build reads it so the Model picks record replays each played college
     game's injury reading as of that build (cfb_injuries.attach `shown_at`): Sam's "the record
     grades what the site shows" (2026-10-16), with his "do 9am, 12pm, 7pm" (2026-10-26).
+    `[2026-10-27, review 2]` The moment is the game model's READING (`model_read_at`, from
+    fb-model.json's `read_at`), not the snapshot's `taken_at`, which can be minutes later (or a
+    failed build's pass hours later): a report fetched in between was never read for those
+    picks. `taken_at` only for a snapshot without one, and never a moment after it.
     ⛔ Reads only; never writes, grades or edits a snapshot."""
-    return {gid: taken for (m, gid), (taken, _ps) in chosen(snapshots(lg, root)).items() if m == model}
+    snaps = snapshots(lg, root)
+    read = {s["taken_at"]: s.get("model_read_at") for s in snaps} if model == "game_model" else {}
+    out = {}
+    for (m, gid), (taken, _ps) in chosen(snaps).items():
+        if m == model:
+            r = read.get(taken)
+            out[gid] = r if isinstance(r, str) and r <= taken else taken
+    return out
 
 
 # ══════════════════════════════════════════════════════════════════════

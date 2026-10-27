@@ -974,7 +974,8 @@ def as_shown(r):
     recorded one. A college game still to start reads the newest report at each build (Sam, "do
     9am, 12pm, 7pm"), so the record's replay must read the same report ("THE MODEL PICKS RECORD
     GRADES WHAT THE SITE SHOWS", Sam 2026-10-16). ⛔ Only the replay reads it: every fit, the
-    injury fit included, trains on `sig["inj"]`, §3's tested 9:00 cut."""
+    injury fit included, trains on `sig["inj"]`, §3's tested 9:00 cut. `[2026-10-27, review 2]`
+    The reports are read as of that build; the archive and role files as stored now."""
     s = r.get("sig") or {}
     if "inj_shown" not in s:
         return r
@@ -1257,6 +1258,11 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None, now=
                     price_note=ASSUMED_NOTE if any(p.get("assumed") for p in graded) else None)
     doc = {"league": lg, "kind": "MODEL",
            "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+           # `[2026-10-27, review 2]` the moment the rows read the injury reports at (`now`, minutes
+           #    before `built_at`). The ledger's snapshot copies it (fb_ledger `model_read_at`) and the
+           #    record replays each college game as of it, never the snapshot's own later minute.
+           "read_at": (now if now.tzinfo else now.replace(tzinfo=datetime.timezone.utc))
+           .astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "design": "research/fb_model_design.md",
            "books": sorted(set(collect.BOOKS[k] for k in books_ok(lg))),
            "record": {mk: rec(wf["books"][mk]) for mk in MARKETS},

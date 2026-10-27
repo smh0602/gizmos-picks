@@ -23,6 +23,8 @@ It asks:
      training rows, fb_inj_backtest), reads §3's tested 9:00 cut; `[2026-10-26, review]` a played
      game is ALSO read as of its last pre-kickoff build (the ledger's last snapshot that looked at
      it) into `inj_shown`, which the record's replay reads (test_fb_model_record.py §5);
+     `[2026-10-27, review 2]` at that build's OWN moment (a property over 120 build moments: the
+     replay reads what the live build read), dated by the model's reading (`read_at`);
   5. `[2026-10-26, review]` what the reviews found: the injuries file keeps its 3am deadline
      (nfl-logs rewrites it daily; only the check skips an unchanged rewrite), an empty nflverse
      answer is a failed source, a refused releases call is not repeated, a check that read
@@ -230,8 +232,18 @@ conference feeds are stand-ins, and a real call fails the file.
 #
 # @vacuity 🔴 a played game is read as of ITS moment when one is given (the record's replay)
 #   file: cfb_injuries.py
-#   find:                 cut = read_cut(r.get("kickoff"), when.get(gid, now))   # ~~pick_cutoff(r.get("kickoff"))~~ [Sam, 2026-10-26]
-#   with:                 cut = read_cut(r.get("kickoff"), now)
+#   find:                 cut = (shown_cut(r.get("kickoff"), when[gid]) if gid in when      # the replay: at its build
+#   with:                 cut = (read_cut(r.get("kickoff"), now) if gid in when      # the replay: at its build
+#
+# @vacuity 🔴 [2026-10-27, review 2] ...at that build's own moment, never a later 9:00 cut (the property)
+#   file: cfb_injuries.py
+#   find:                 cut = (shown_cut(r.get("kickoff"), when[gid]) if gid in when      # the replay: at its build
+#   with:                 cut = (read_cut(r.get("kickoff"), when[gid]) if gid in when      # the replay: at its build
+#
+# @vacuity ⛔ [2026-10-27, review 2] ...and a game that had kicked off by that build keeps §3's cut, as live
+#   file: cfb_injuries.py
+#   find:     if t is None or k is None or k <= t:
+#   with:     if t is None or k is None:
 #
 # @vacuity 🔴 ...into `inj_shown`, beside the 9:00 reading
 #   file: cfb_injuries.py
@@ -242,6 +254,26 @@ conference feeds are stand-ins, and a real call fails the file.
 #   file: fb_model.py
 #   find:             shown = fb_ledger.looked_moments(lg, root)
 #   with:             shown = None
+#
+# @vacuity 🔴 [2026-10-27, review 2] fb-model.json says when its rows read the injury reports
+#   file: fb_model.py
+#   find:            "read_at": (now if now.tzinfo else now.replace(tzinfo=datetime.timezone.utc))
+#   with:            "read_at_": (now if now.tzinfo else now.replace(tzinfo=datetime.timezone.utc))
+#
+# @vacuity 🔴 [2026-10-27, review 2] ...the ledger's snapshot copies it
+#   file: fb_ledger.py
+#   find:         doc["model_read_at"] = gm["read_at"]
+#   with:         pass
+#
+# @vacuity 🔴 [2026-10-27, review 2] ...and the replay is dated by it, never by the snapshot's later minute
+#   file: fb_ledger.py
+#   find:             out[gid] = r if isinstance(r, str) and r <= taken else taken
+#   with:             out[gid] = taken
+#
+# @vacuity ⛔ [2026-10-27, review 2] ...nor by a reading stamped after its snapshot
+#   file: fb_ledger.py
+#   find:             out[gid] = r if isinstance(r, str) and r <= taken else taken
+#   with:             out[gid] = r if isinstance(r, str) else taken
 #
 # @vacuity 🔴 the live build passes its moment to the rows
 #   file: fb_model.py
@@ -906,6 +938,10 @@ try:
        "or before it")
     eq(CI.read_cut("2026-10-24T19:30:00Z", Z("2026-10-24 12:00")), CI.pick_cutoff("2026-10-24T19:30:00Z"),
        "   before 9:00 ET the cut IS §3's (8:59:59 ET)")
+    eq([CI.shown_cut("2026-10-24T19:30:00Z", Z(t)) for t in ("2026-10-24 12:00", "2026-10-24 20:00")],
+       [Z("2026-10-24 12:00"), CI.read_cut("2026-10-24T19:30:00Z", Z("2026-10-24 20:00"))],
+       "🔴 `[2026-10-27, review 2]` a REPLAYED build reads at its own moment (8:00 am ET, never the later 9:00 "
+       "cut); one after the kickoff keeps §3's cut, as the live read does")
 
     # 🔴 `[2026-10-26, review]` THE RECORD READS WHAT THE SITE SHOWED. Once g1 is played, the live
     #    build reads it at §3's 9:00 cut (QB Out) for TRAINING, and ALSO as of its last pre-kickoff
@@ -937,6 +973,61 @@ try:
         CI.attach(_up, R, now=Z("2026-10-24 17:00"), shown_at={"g1": "2026-10-24T16:00:00Z"})
         eq((_up[0]["sig"]["inj"]["qb"], "inj_shown" in _up[0]["sig"]), ((0.0, 0.0), False),
            "   a game still to start reads the newest report as of the build, and carries no `inj_shown`")
+
+        # 🔴 `[2026-10-27, review 2]` THE REPLAY READS WHAT A BUILD AT ITS MOMENT COULD SEE, AT ANY
+        #    MOMENT. The property, over build moments B every 30 minutes from 30 hours before kickoff
+        #    to the kickoff (the evening before, before 9:00 ET on game day, after it), for a 3:30 pm
+        #    ET kickoff and a 1:00 am ET one (whose 9:00 cut falls AFTER its kickoff), with reports
+        #    changing before and after each B: the record's replay, attach(shown_at={g: B}) on every
+        #    stored report, reads what a live attach(now=B) read on a tree holding only the reports
+        #    stamped at or before B. max(9:00 cut, B) read a build before 9:00 ET as of 9:00 (or
+        #    of the kickoff), with reports that build never saw.
+        PROP = []
+        for _kick, _day, _fetch in (
+                ("2026-10-24T19:30:00Z", "2026-10-24",
+                 [("2026-10-23 22:00", "Out"), ("2026-10-24 10:30", "Available"), ("2026-10-24 12:30", "Out"),
+                  ("2026-10-24 14:00", "Available"), ("2026-10-24 18:00", "Out"), ("2026-10-24 19:40", "Available")]),
+                ("2026-10-25T05:00:00Z", "2026-10-25",
+                 [("2026-10-24 14:00", "Out"), ("2026-10-24 22:00", "Available"), ("2026-10-25 01:00", "Out"),
+                  ("2026-10-25 04:30", "Available"), ("2026-10-25 05:30", "Out")])):
+            _full, _grow = tree(), tree()
+            for _t in (_full, _grow):
+                put(os.path.join(_t, "data", "ncaaf", "latest", "schedule-2026.json.gz"),
+                    {"season": 2026, "games": [{"id": "p1", "start": _kick, "home": "Alabama", "away": "Georgia",
+                                                "home_class": "fbs", "away_class": "fbs"}]})
+
+            def _plant(root, when, st, kick=_kick):
+                daystore.archive({"kind": "cfb-injury-reports", "season": 2026, "fetched_at": iso(when),
+                                  "sources": {"SEC": {"ok": True, "fetched_at": iso(when)}},
+                                  "reports": [rep("p1", "Alabama", "Georgia", kick, iso(when - 10 * M), iso(when),
+                                                  _qb(st))], "refused": []},
+                                 os.path.join(root, "data", "ncaaf"), "injury-reports", log=lambda m: None, when=when)
+            _left = [(Z(w), st) for w, st in _fetch]
+            for _w, _st in _left:
+                _plant(_full, _w, _st)
+            _k = CI._utc(_kick)
+            _b = _k - 30 * H
+            while _b < _k:
+                while _left and _left[0][0] <= _b:
+                    _plant(_grow, *_left.pop(0))
+                _live = [{"id": "p1", "season": 2026, "day": _day, "final": False, "sig": {}, "home": "Alabama",
+                          "away": "Georgia"}]
+                CI.attach(_live, _grow, now=_b)
+                _rec = [dict(_live[0], final=True, sig={})]
+                CI.attach(_rec, _full, now=_k + 6 * H, shown_at={"p1": iso(_b)})
+                _q = lambda s, k: (s[k] or {}).get("qb") if k in s else "ABSENT"  # noqa: E731
+                PROP.append((_kick, iso(_b), _b < CI.pick_cutoff(_kick), _q(_live[0]["sig"], "inj"),
+                             _q(_rec[0]["sig"], "inj_shown")))
+                _b += 30 * M
+        ck(len(PROP) == 120 and {(x[0], x[2]) for x in PROP} == {("2026-10-24T19:30:00Z", True),
+                                                                 ("2026-10-24T19:30:00Z", False),
+                                                                 ("2026-10-25T05:00:00Z", True)}
+           and {x[3] for x in PROP} == {(1.0, 0.0), (0.0, 0.0), None},
+           "⚠️ the case exists: 120 build moments, before and after the 9:00 cut, reading the QB out, cleared and "
+           "no report at all", sorted({(x[0], x[2], x[3]) for x in PROP}, key=str))
+        eq([x for x in PROP if x[3] != x[4]], [],
+           "🔴🔴 at EVERY build moment the record's replay (`inj_shown`) reads exactly what that build read live "
+           "from the reports it could see: the evening before, before 9:00 ET, after it, and a 1:00 am kickoff")
     finally:
         CI.Roles = _roles
     # ...and the moment is the ledger's: the LAST snapshot before kickoff that looked at the game
@@ -958,6 +1049,57 @@ try:
     eq(GOT, [(Z("2026-10-25 01:00"), {"g1": "2026-10-24T17:00:00Z", "g2": "2026-10-24T20:00:00Z"}), (None, None)],
        "🔴 the live build hands attach each game's last pre-kickoff snapshot (g1: 1:00 pm, not the 4:00 pm one "
        "after its kickoff; g2: 4:00 pm); a caller with no build moment reads no ledger")
+
+    # 🔴 `[2026-10-27, review 2]` ...AND ITS MOMENT IS THE GAME MODEL'S READING, NOT THE SNAPSHOT'S MINUTE.
+    #    fb_model.build stamps when its rows read the reports (`read_at`); the ledger's snapshot copies it
+    #    (`model_read_at`) and looked_moments dates the replay with it. Here the 12:00 pm build read at
+    #    16:00Z (QB Out, the 11:30 am report); the 1:00 pm pass's model build failed, so its snapshot
+    #    at 17:00Z saved the 12:00 build's picks. The 12:45 pm report (QB cleared) was never read for them.
+    L = tree()
+    _lat = os.path.join(L, "data", "ncaaf", "latest")
+    put(os.path.join(_lat, "schedule-2026.json.gz"),
+        {"season": 2026, "games": [{"id": "g1", "start": "2026-10-24T19:30:00Z", "home": "Alabama", "away": "Georgia",
+                                    "home_class": "fbs", "away_class": "fbs"}]})
+    for _w, _st in (("2026-10-24 15:30", "Out"), ("2026-10-24 16:45", "Available")):
+        daystore.archive({"kind": "cfb-injury-reports", "season": 2026, "fetched_at": iso(Z(_w)),
+                          "sources": {"SEC": {"ok": True, "fetched_at": iso(Z(_w))}},
+                          "reports": [rep("g1", "Alabama", "Georgia", "2026-10-24T19:30:00Z", iso(Z(_w) - 10 * M),
+                                          iso(Z(_w)), _qb(_st))], "refused": []},
+                         os.path.join(L, "data", "ncaaf"), "injury-reports", log=lambda m: None, when=Z(_w))
+    _brl, _lgf = FM.build_rows, FM.log
+    try:
+        FM.build_rows, FM.log = (lambda *a, **k: []), (lambda m: None)
+        FM.build("ncaaf", root=L, out=os.path.join(_lat, "fb-model.json"), now=Z("2026-10-24 16:00"))
+    finally:
+        FM.build_rows, FM.log = _brl, _lgf
+    _fm = json.load(open(os.path.join(_lat, "fb-model.json"), encoding="utf-8"))
+    eq(_fm.get("read_at"), "2026-10-24T16:00:00Z", "🔴 fb-model.json says when its rows read the injury reports "
+       "(`read_at`, the build's moment)")
+    _fm["win_chances"] = [{"game_id": "g1", "commence": "2026-10-24T19:30:00Z"}]   # the game its list held
+    put(os.path.join(_lat, "fb-model.json"), _fm)
+    import fb_ledger  # noqa: E402
+    fb_ledger.snapshot("ncaaf", L, when=Z("2026-10-24 17:00"), log=lambda m: None)
+    eq(fb_ledger.looked_moments("ncaaf", L), {"g1": "2026-10-24T16:00:00Z"},
+       "🔴 the snapshot taken at 1:00 pm (that pass's model build failed) dates g1's replay at its picks' own "
+       "reading, 12:00 pm, never at the snapshot's minute")
+    _roles = CI.Roles
+    try:
+        CI.Roles = FakeRoles
+        _pl = [{"id": "g1", "season": 2026, "day": "2026-10-24", "final": True, "sig": {}, "home": "Alabama",
+                "away": "Georgia"}]
+        CI.attach(_pl, L, now=Z("2026-10-25 01:00"), shown_at=fb_ledger.looked_moments("ncaaf", L))
+    finally:
+        CI.Roles = _roles
+    eq((_pl[0]["sig"].get("inj_shown") or {}).get("qb"), (1.0, 0.0),
+       "🔴🔴 ...so the record replays g1 with the QB Out, as the picks the site showed were built (not the 12:45 "
+       "pm report fetched between that reading and the snapshot)")
+    _late = sorted(glob.glob(os.path.join(L, "data", "ncaaf", "*", "model-picks", "*.json.gz")))[-1]
+    with gzip.open(_late, "rt", encoding="utf-8") as fh:
+        _sd = json.load(fh)
+    _sd["model_read_at"] = "2026-10-24T18:00:00Z"
+    put(_late, _sd)
+    eq(fb_ledger.looked_moments("ncaaf", L), {"g1": "2026-10-24T17:00:00Z"},
+       "⛔ a reading stamped after its snapshot is not believed: never a moment later than `taken_at`")
 
     # 🔴 THE LIVE BUILD PASSES ITS MOMENT; NO TRAINING OR BACKTEST CALLER DOES
     import fb_inj_backtest as B  # noqa: E402
