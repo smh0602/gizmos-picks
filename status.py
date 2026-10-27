@@ -117,7 +117,13 @@ def refit_summary(doc, name, now, due=None):
         v = x["verdict"]
         said = {"NOT YET MEASURABLE": "not yet measurable", "NOT YET": "not better yet", "WINS": "it WINS"}.get(v, v)
         if v == "WINS" and x.get("outranked_by"):
-            said += "; the one branch went to %s, which beat the current model by more" % x["outranked_by"]
+            # `[2026-10-26]` "went to" only when the winner holds its OWN branch: with a champion
+            #    already named, or an older champion branch on GitHub, no branch was pushed for it.
+            top = next((y for y in doc.get("challengers") or [] if y.get("name") == x["outranked_by"]), {})
+            said += ("; the one branch went to %s, which beat the current model by more" % x["outranked_by"]
+                     if own_branch(top.get("branch"), x["outranked_by"]) else
+                     "; %s beat the current model by more, so the league's one switch is %s's, and no branch "
+                     "was pushed for it this week" % (x["outranked_by"], x["outranked_by"]))
         out.append("Challenger %s (%s): %s." % (x["name"], x["what"], {
             "NO DATA": "its data is not stored yet",
             "WITHDRAWN": "withdrawn, it was worse on past games",

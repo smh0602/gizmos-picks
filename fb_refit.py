@@ -467,7 +467,10 @@ def push_change(prefix, branch, edit, message, root=ROOT, run=subprocess.run):
 def branch_order(results):
     """`[Sam, 2026-10-26]` §3g: every WINS, the one that gets the league's one branch first: the
     largest mean d over its counted predictions; a tie, the smaller p, then the earlier name in
-    `fb_challengers.CHALLENGERS`. The others are reported, and get no branch."""
+    `fb_challengers.CHALLENGERS`. The others are reported, and get no branch.
+    ⚠️ `[review, 2026-10-26]` Ordered on the numbers the report prints (`test()` rounds mean d
+    and p to 6 decimals), so Sam can check it from the report: two mean d's within 1e-6 are a
+    tie and go to the smaller p (two p's that round to 0 are a tie too), then the name."""
     order = list(FC.CHALLENGERS)
     return sorted((x for x in results if x.get("verdict") == "WINS"),
                   key=lambda x: (-x["counted"]["mean_d"], x["counted"]["p"], order.index(x["name"])))

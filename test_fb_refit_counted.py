@@ -38,6 +38,11 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #   find:                 preds.append((wk, (loss(a[gid][0], y), loss(p_x, y), gid), p_x != a[gid][0]))
 #   with:                 preds.append((wk, (loss(a[gid][0], y), loss(p_x, y), gid), True))
 #
+# @vacuity 🔴 ...and for one of the eight only its differing SCORED predictions (review, 2026-10-26)
+#   file: fb_refit.py
+#   find:                           differing=sum(1 for _wk, _pair, df in counted if df))
+#   with:                           differing=sum(1 for _wk, _pair, df in (preds if counted else []) if df))
+#
 # @vacuity 🔴 ...while the test runs over every counted prediction, equal ones included
 #   file: fb_refit.py
 #   find:     out["counted"] = dict(test([pair for _wk, pair, _df in counted]),
@@ -103,6 +108,11 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #   find:     if x.get("registered") and x["registered"] > str(doc.get("built_at") or "")[:10]:
 #   with:     if False:
 #
+# @vacuity 🔴 ...and one registered on the report's own day has entered (league() counts it)
+#   file: status.py
+#   find:     if x.get("registered") and x["registered"] > str(doc.get("built_at") or "")[:10]:
+#   with:     if x.get("registered") and x["registered"] >= str(doc.get("built_at") or "")[:10]:
+#
 # @vacuity 🔴 ...says which WINS the one branch went to
 #   file: status.py
 #   find:         if v == "WINS" and x.get("outranked_by"):
@@ -117,6 +127,16 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #   file: status.py
 #   find:         also = [y["name"] for y in doc.get("challengers") or [] if y.get("outranked_by") == x["name"]]
 #   with:         also = []
+#
+# @vacuity 🔴 ...says "went to" only when the winner holds its own branch (review, 2026-10-26)
+#   file: status.py
+#   find:                      if own_branch(top.get("branch"), x["outranked_by"]) else
+#   with:                      if True else
+#
+# @vacuity 🔴 ...and the "Needs you" line prints the COUNTED numbers, never the scored ones
+#   file: status.py
+#   find:         s = x.get("counted") or x["scored"]
+#   with:         s = x.get("scored") or x["counted"]
 """
 import atexit
 import datetime
@@ -261,6 +281,18 @@ for n in R.SCORED_ONLY:
     c = contest(n, BOTH)
     ck(c["counts"] == "scored" and c["counted"]["predictions"] == c["scored"]["predictions"] > 0,
        "   %s counts only its scored weeks" % n, (c["counted"]["predictions"], c["scored"]["predictions"]))
+# `[review, 2026-10-26]` §3g's floor for one of the eight counts its differing SCORED predictions
+#    only: S with 600 history and 150 scored predictions, every one better than the champion's and
+#    different from it, is NOT YET MEASURABLE (150 < 300), never a WINS on its history's count.
+FLUKE = market_set([(HIST, GOOD, 200), (LIVE, GOOD, 50)])
+_sf = R.verdicts([contest("S", FLUKE)])[0]
+eq((_sf["history"]["predictions"], _sf["counted"]["predictions"], _sf["counted"]["differing"], _sf["verdict"]),
+   (600, 150, 150, "NOT YET MEASURABLE"),
+   "🔴 S (one of the eight), 600 history + 150 scored predictions all differing: the floor counts the 150, "
+   "NOT YET MEASURABLE")
+_ef = R.verdicts([contest("E", FLUKE)])[0]
+eq((_ef["counted"]["predictions"], _ef["counted"]["differing"], _ef["verdict"]), (500, 500, "WINS"),
+   "   ...while E on the same games (its two markets) counts all 500 and WINS")
 _wide = [n for n in FC.CHALLENGERS if n not in R.SCORED_ONLY and not FC.CHALLENGERS[n]["withdrawable"]]
 ck(all(contest(n, BOTH)["counted"]["predictions"] == 300 * len(FC.CHALLENGERS[n]["markets"]) for n in _wide),
    "🔴 every one of the eighteen (P and T below) counts every week on each of its markets", _wide)
@@ -310,6 +342,14 @@ eq((_doc["floor"], _doc["champion_since"]), (300, None), "the report carries the
 eq({n: (x["registered"], x["counts"], x["counted"]["predictions"]) for n, x in _by.items() if n in ("E", "S", "CL")},
    {"E": ("2026-10-19", "all", 600), "S": ("2026-10-19", "scored", 300), "CL": ("2026-11-02", "all", 900)},
    "🔴 on Monday 11-02: E and CL (registered 11-02, from §3f) count every week; S only its scored weeks")
+# `[review, 2026-10-26]` the email says what league() did: CL registers 2026-11-02 and the report
+#    is built that morning, so it has entered and its 900 are counted (never "enters on 11-02").
+_cl = S.refit_summary(_doc, "NFL", NOW)
+ck(_doc["built_at"][:10] == "2026-11-02"
+   and ("Challenger CL (%s): 900 counted predictions (last season and this season), 900 of them different "
+        "from the current model's (300 needed)" % FC.CHALLENGERS["CL"]["what"]) in _cl
+   and "enters the contest on 2026-11-02" not in _cl,
+   "🔴 the email agrees with league(): CL, registered on the report's own day, has entered (900 counted)", _cl)
 _wed = datetime.datetime(2026, 10, 28, 12, 0, tzinfo=UTC)
 _d2, _b2 = league("nfl", _wed)
 eq((_b2["CL"]["counted"]["predictions"], _b2["CL"]["verdict"], _b2["E"]["counted"]["predictions"]),
@@ -370,6 +410,25 @@ eq({n: (_w[n].get("branch"), _w[n].get("branch_pushed"), _w[n].get("outranked_by
    {"E": (None, False, "RS", "WINS"), "RS": ("fb/champion-nfl-RS-2026-11-02", True, None, "WINS"),
     "IN": (None, False, "RS", "WINS")},
    "🔴 ...and every WINS is reported: E and IN say the branch went to RS")
+# `[review, 2026-10-26]` A league that already names a CHAMPION pushes no branch at all (the real
+#    push_branch, which returns before any git): E is still outranked by RS, and nobody holds a branch.
+T5b = tree()
+_saved = (R.league, IB.auto, dict(FM.CHAMPION))
+try:
+    R.league = lambda lg, root, now, prev=None, added=None: {"league": lg, "challengers": (
+        [win("E", 0.01, 1e-5), win("RS", 0.03, 1e-4)] if lg == "nfl" else [])}
+    IB.auto = lambda *a, **k: {"state": "waiting"}
+    FM.CHAMPION["nfl"] = "IN"
+    R.weekly(root=T5b, now=NOW, run=None)
+finally:
+    R.league, IB.auto = _saved[0], _saved[1]
+    FM.CHAMPION.clear()
+    FM.CHAMPION.update(_saved[2])
+_wc = {x["name"]: x for x in json.load(open(os.path.join(T5b, "data", "nfl", "latest", "fb-refit.json"),
+                                            encoding="utf-8"))["challengers"]}
+eq({n: (_wc[n].get("branch"), _wc[n].get("outranked_by"), bool(_wc[n].get("needs_sam"))) for n in ("E", "RS")},
+   {"E": (None, "RS", False), "RS": (None, None, True)},
+   "🔴 a league that already names a champion: no branch for anyone; RS (the larger gain) carries NEEDS SAM")
 
 # ══════════════════════════════════════════════════════════════════════
 section("6. 🔴 THE MONDAY EMAIL SAYS THE NEW RULE IN SAM'S WORDS, FLOOR FROM THE REPORT")
@@ -412,6 +471,31 @@ ck(S.refit_wins({"challengers": [_s8]}, "NFL")[0][0].endswith(
     "over 600 predictions scored since registration in 300 games, one-sided p = 1e-06 (it needed under 0.0007692)"),
    "🔴 one of the eight's WINS says its predictions were scored since registration",
    S.refit_wins({"challengers": [_s8]}, "NFL"))
+# `[review, 2026-10-26]` "the one branch went to RS" only when RS holds its own branch. With a
+#    champion already named (weekly() above) or an older champion branch on GitHub, none was pushed.
+_nb = S.refit_summary(dict(_wd, challengers=list(_wc.values())), "NFL", NOW)
+ck("it WINS; RS beat the current model by more, so the league's one switch is RS's, and no branch was pushed "
+   "for it this week." in _nb and "went to RS" not in _nb,
+   "🔴 a named champion pushed no branch: the email never says the branch went to RS", _nb)
+_older = [dict(win("E", 0.01, 1e-5), branch=None, branch_pushed=False, outranked_by="RS"),
+          dict(win("RS", 0.03, 1e-4), branch="fb/champion-nfl-WX-2026-10-26", branch_pushed=False)]
+_ob = S.refit_summary(dict(_wd, challengers=_older), "NFL", NOW)
+ck("so the league's one switch is RS's, and no branch was pushed for it this week." in _ob
+   and "went to RS" not in _ob,
+   "🔴 ...nor when an older champion branch (WX's) is still on GitHub", _ob)
+_mine = [_older[0], dict(_older[1], branch="fb/champion-nfl-RS-2026-10-26")]
+ck("it WINS; the one branch went to RS, which beat the current model by more."
+   in S.refit_summary(dict(_wd, challengers=_mine), "NFL", NOW),
+   "   ...and RS's own branch from an earlier Monday, still unmerged, is where it went")
+# `[review, 2026-10-26]` the "Needs you" line prints the COUNTED predictions and their p, never the
+#    scored ones a real report also carries (here 40 at p 0.3).
+_cs = dict(win("E", 0.02, 1e-4), branch="fb/champion-nfl-E-2026-11-02",
+           scored={"predictions": 40, "games": 20, "mean_d": 0.01, "p": 0.3, "p_wrong_way": 0.7,
+                   "champion_log_loss": 0.69, "challenger_log_loss": 0.70})
+_cl6 = S.refit_wins({"challengers": [_cs]}, "NFL")
+ck(_cl6 and "log loss 0.6700 against 0.6800 over 600 counted predictions (last season and this season) in 300 "
+            "games, one-sided p = 0.0001 (it needed under 0.0007692)" in _cl6[0][0],
+   "🔴 a WINS with both blocks: the line reads the 600 counted at p 0.0001, not the 40 scored at p 0.3", _cl6)
 
 # ══════════════════════════════════════════════════════════════════════
 section("7. 🔴 ON REAL FITS: AN INPUT THAT IS ALL ZEROS (WX BEFORE STORED WEATHER) DIFFERS NOWHERE")
