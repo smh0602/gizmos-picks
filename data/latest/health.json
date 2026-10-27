@@ -1,16 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-27T22:05:10Z",
+ "checked_at": "2026-10-27T22:27:19Z",
  "et_date": "2026-10-27",
  "healthy": false,
  "broken": 0,
  "degraded": 7,
  "findings": [
   {
-   "key": "fresh:nfl",
+   "key": "nostamp:nfl",
    "severity": "DEGRADED",
-   "what": "nfl tabs are showing data older than promised (nfl-logs)",
-   "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "what": "7 nfl file(s) are readable but carry no time the freshness contract reads",
+   "why": "data/nfl/history/schedule-2018.json.gz, data/nfl/history/schedule-2019.json.gz, data/nfl/history/schedule-2020.json.gz, data/nfl/history/schedule-2021.json.gz, data/nfl/history/schedule-2022.json.gz, data/nfl/history/schedule-2023.json.gz, .... \u26d4 Each reads MISSING until it is rewritten with a stamp (pulled_at, built_at, generated_at or written_at): while its writer writes none, every rebuild is the same, and only a code change clears it.",
    "repair": null
   },
   {
@@ -61,15 +61,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17619,
-  "pulled_at": "2026-10-27T20:01:51Z",
+  "balance": 17613,
+  "pulled_at": "2026-10-27T22:27:16Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.1,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-27T20:01:51Z",
-  "source": "data/2026-10-27/props-batter/2001.json.gz",
-  "readings_on_disk": 1209,
+  "newest_paid_pull": "2026-10-27T22:27:16Z",
+  "source": "data/nfl/2026-10-27/gamelines/2227.json.gz",
+  "readings_on_disk": 1210,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
