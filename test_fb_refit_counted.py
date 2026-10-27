@@ -9,6 +9,8 @@ prediction toward the verdict; the eight shaped on those games (fb_refit.SCORED_
 only the weeks from registration; the floor counts the predictions that differ from the
 champion's; P and T's withdrawal window stays the weeks before 2026-10-19; one branch, to the
 largest mean d; after a champion switch the eighteen do not restart and the eight do.
+`[Sam, 2026-10-27]` §3h, *"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*:
+a challenger withdrawn once stays withdrawn in every later report (§8).
 
 Planted predictions and a pinned clock only. ⛔ Reads no live data: no fb-refit.json, no
 build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
@@ -182,6 +184,46 @@ build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
 #   file: status.py
 #   find:         s = x.get("counted") or x["scored"]
 #   with:         s = x.get("scored") or x["counted"]
+#
+# @vacuity 🔴 §3h [Sam, 2026-10-27]: a carried withdrawal is never counted or scored
+#   file: fb_refit.py
+#   find:     if c["withdrawable"] and withdrawn_since:        # §3h: withdrawn once, withdrawn for good
+#   with:     if c["withdrawable"] and withdrawn_since and False:
+#
+# @vacuity 🔴 §3h: ...and keeps the day it was first withdrawn
+#   file: fb_refit.py
+#   find:         if n in gone:                                 # kept on a week it could not be built too
+#   with:         if False:
+#
+# @vacuity 🔴 §3h: a first withdrawal is dated the report's own day
+#   file: fb_refit.py
+#   find:             x["withdrawn_since"] = today              # §3h: first withdrawn in this report
+#   with:             pass
+#
+# @vacuity 🔴 §3h: a withdrawal from a report before §3h (no day) is carried, dated that report's day
+#   file: fb_refit.py
+#   find:             out[x["name"]] = x.get("withdrawn_since") or day
+#   with:             out[x["name"]] = x.get("withdrawn_since")
+#
+# @vacuity 🔴 §3h: only P and T are carried
+#   file: fb_refit.py
+#   find:         if c and c["league"] == lg and c["withdrawable"] and x.get("withdrawn") is True:
+#   with:         if c and c["league"] == lg and x.get("withdrawn") is True:
+#
+# @vacuity 🔴 §3h: never from another league's report
+#   file: fb_refit.py
+#   find:     if not isinstance(prev, dict) or prev.get("league") not in (None, lg):
+#   with:     if not isinstance(prev, dict):
+#
+# @vacuity 🔴 §3h: the email says a withdrawal is for good, and since when
+#   file: status.py
+#   find:             "WITHDRAWN": ("withdrawn for good on %s, it was worse on past games" % x["withdrawn_since"]
+#   with:             "WITHDRAWN": ("withdrawn, it was worse on past games"
+#
+# @vacuity 🔴 §3h: "differs" stays exact, with no minimum size
+#   file: fb_refit.py
+#   find:                 preds.append((wk, (loss(a[gid][0], y), loss(p_x, y), gid), p_x != a[gid][0]))
+#   with:                 preds.append((wk, (loss(a[gid][0], y), loss(p_x, y), gid), abs(p_x - a[gid][0]) > 1e-6))
 """
 import atexit
 import datetime
@@ -637,3 +679,78 @@ ck(_wx["counted"]["predictions"] >= 16 and _wx["counted"]["differing"] == 0
    "a forecast on the row predicted included", _wx["counted"])
 ck(_e7["counted"]["predictions"] >= 32 and _e7["counted"]["differing"] == _e7["counted"]["predictions"],
    "🔴 ...while E, whose input is real, differs on every one", _e7["counted"])
+
+# ══════════════════════════════════════════════════════════════════════
+section("8. 🔴 §3h [Sam, 2026-10-27]: A WITHDRAWAL IS PERMANENT; \"DIFFERS\" STAYS EXACT")
+# ══════════════════════════════════════════════════════════════════════
+# *"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."* Recomputed each Monday
+#    against the champion of the day, a P withdrawn today came back after a switch to a champion
+#    that did worse on those weeks, and was counted on the very weeks that withdrew it (review 2).
+_sec3h = re.sub(r"\s+", " ", _spec[_spec.find("\n## 3h. "):_spec.find("\n## 4. ")])
+ck("stays WITHDRAWN in every later weekly report of that league, whoever the champion is" in _sec3h
+   and "by any amount. There is no minimum size." in _sec3h,
+   "§3h is in the frozen spec: a withdrawal stays for good, and \"differs\" is exact", _sec3h[:300])
+NEXT = NOW + datetime.timedelta(days=7)                        # Monday 11-09
+GOOD_P = market_set([(HIST, GOOD, 40), (LIVE, GOOD, 120)], ("spread", "moneyline"))
+_a8, _ba8 = league("ncaaf", NOW, fits={"P": P_FITS})
+eq((_ba8["P"]["verdict"], _ba8["P"].get("withdrawn_since")), ("WITHDRAWN", "2026-11-02"),
+   "🔴 a first withdrawal is dated the report's own day")
+ck("withdrawn_since" not in _ba8["T"] and not _ba8["T"]["withdrawn"],
+   "   ...and a challenger never withdrawn carries no day", _ba8["T"])
+_c8, _bc8 = league("ncaaf", NEXT, fits={"P": GOOD_P})
+ck(not _bc8["P"]["withdrawn"] and _bc8["P"]["counted"]["predictions"] > 0,
+   "   (control: judged afresh, the same P with good weeks before 10-19 is not withdrawn)", _bc8["P"])
+_n8, _bn8 = league("ncaaf", NEXT, prev=_a8, fits={"P": GOOD_P})
+eq((_bn8["P"]["withdrawn"], _bn8["P"]["verdict"], _bn8["P"].get("withdrawn_since"),
+    _bn8["P"]["counted"]["predictions"], _bn8["P"]["scored"]["predictions"]),
+   (True, "WITHDRAWN", "2026-11-02", 0, 0),
+   "🔴 the next Monday reads last week's report: P stays WITHDRAWN from 11-02, never counted or scored, "
+   "though this week's window alone would have kept it")
+ck(_bn8["P"]["withdrawal_window"]["mean_d"] > 0,
+   "   ...and this week's window is still reported, for information", _bn8["P"]["withdrawal_window"])
+_k8 = sum(1 for x in _n8["challengers"] if x["registered"] and not x.get("withdrawn"))
+ck(_k8 == sum(1 for x in _c8["challengers"] if x["registered"] and not x.get("withdrawn")) - 1
+   and all(x.get("alpha") == R.ALPHA / _k8 for x in _n8["challengers"] if x["registered"]),
+   "🔴 ...and never again in k: every bar is 0.01 / one fewer", (_k8, [x.get("alpha") for x in _n8["challengers"]]))
+_s8, _bs8 = league("ncaaf", NEXT, prev=dict(_a8, champion="TS"), fits={"P": GOOD_P})
+eq((_s8["champion_since"], _bs8["P"]["verdict"], _bs8["P"].get("withdrawn_since"), _bs8["P"]["counted"]["predictions"]),
+   ("2026-11-09", "WITHDRAWN", "2026-11-02", 0),
+   "🔴 review 2's case: after a champion switch, a withdrawn P does not come back")
+_o8, _bo8 = league("ncaaf", NEXT, fits={"P": GOOD_P}, prev={
+    "league": "ncaaf", "built_at": "2026-10-26T09:58:41Z", "champion": None, "champion_since": None,
+    "challengers": [{"name": "P", "registered": "2026-10-19", "withdrawn": True, "verdict": "WITHDRAWN"}]})
+eq((_bo8["P"]["verdict"], _bo8["P"].get("withdrawn_since")), ("WITHDRAWN", "2026-10-26"),
+   "🔴 a withdrawal in a report from before §3h (no day of its own) is carried, dated that report's day")
+_x8, _bx8 = league("ncaaf", NEXT, fits={"P": GOOD_P}, prev={
+    "league": "nfl", "built_at": "2026-10-26T09:50:00Z", "challengers": [{"name": "P", "withdrawn": True}]})
+ck(not _bx8["P"]["withdrawn"], "   ...but never from another league's report", _bx8["P"])
+_e8, _be8 = league("nfl", NEXT, prev={
+    "league": "nfl", "built_at": "2026-10-26T09:50:00Z", "challengers": [{"name": "E", "withdrawn": True}]})
+ck(not _be8["E"]["withdrawn"] and "withdrawn_since" not in _be8["E"] and _be8["E"]["counted"]["predictions"] > 0,
+   "   ...and only P and T can be carried (E has no withdrawal rule)", _be8["E"])
+# A week P cannot be built (NOT APPLICABLE against some champion) never drops the withdrawal.
+_saved8 = (R.Fits, R.challenger_fits, FC.attach, FC.applies, R.misses, R.line_moves, R.snapshots)
+R.Fits = lambda rows, feat: CHAMP
+R.challenger_fits = lambda rows, n, lg, root=None: Planted(GOOD_P if n == "P" else BOTH)
+FC.attach = lambda *a, **k: None
+FC.applies = lambda n, row: n != "P"
+R.misses, R.line_moves, R.snapshots = (lambda rows: {}), (lambda rows, champ, snaps: {}), (lambda lg, root: {})
+try:
+    _na8 = R.league("ncaaf", T4, NEXT, rows=[{"season": 2025}], prev=_a8,
+                    added={n: "2025-01-01" for n in FC.CHALLENGERS})
+finally:
+    R.Fits, R.challenger_fits, FC.attach, FC.applies, R.misses, R.line_moves, R.snapshots = _saved8
+_pa8 = next(x for x in _na8["challengers"] if x["name"] == "P")
+eq((_pa8["verdict"], _pa8["withdrawn"], _pa8.get("withdrawn_since")), ("NOT APPLICABLE", True, "2026-11-02"),
+   "🔴 a NOT APPLICABLE week keeps the withdrawal and its day, outside k")
+_after8, _baf8 = league("ncaaf", NEXT + datetime.timedelta(days=7), prev=_na8, fits={"P": GOOD_P})
+eq((_baf8["P"]["verdict"], _baf8["P"].get("withdrawn_since")), ("WITHDRAWN", "2026-11-02"),
+   "🔴 ...so the Monday after it is still WITHDRAWN from 11-02")
+_em8 = S.refit_summary(_n8, "College", NEXT)
+ck("Challenger P (%s): withdrawn for good on 2026-11-02, it was worse on past games." % FC.CHALLENGERS["P"]["what"]
+   in _em8, "🔴 the Monday email says a withdrawal is for good, and since when", _em8)
+# "Differs" stays exact: a prediction one part in a billion from the champion's differs.
+_tiny = {mk: {g: (p + 1e-9, y, wk, r) for g, (p, y, wk, r) in v.items()} for mk, v in CHAMP.preds.items()}
+_ty = contest("E", _tiny)
+eq((_ty["counted"]["differing"], _ty["counted"]["predictions"]), (600, 600),
+   "🔴 \"differs\" is exact: 600 predictions 1e-9 away from the champion's all differ (no minimum size)")

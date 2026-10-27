@@ -339,7 +339,10 @@ note boxes, tags and the stale bar now require their absence.
   S, TS, AV, AVC, AT, ATC, SM, SMC). The 300 floor counts only predictions that differ from
   the champion's (WX before stored weather equals it); p < 0.01/k, k and registration are
   unchanged, and nothing is counted before a challenger's registration Monday. P and T's
-  withdrawal window stays the weeks before 2026-10-19. Several WINS: all reported, ONE branch,
+  withdrawal window stays the weeks before 2026-10-19; `[Sam, 2026-10-27]` *"Yes: keep 'differs'
+  exact, and make P and T's withdrawal permanent."* (§3h): once withdrawn, withdrawn in every
+  later report, outside k (`withdrawn_since`, carried by `fb_refit.carried_withdrawals` from the
+  previous fb-refit.json), and "differs" has no minimum size. Several WINS: all reported, ONE branch,
   to the largest mean d (`fb_refit.branch_order`; `[2026-10-27, review 2]` the UNROUNDED one,
   `mean_d_exact`, never the 6 printed decimals). After a switch the eighteen do not
   restart; the eight do. `history` / `scored` stay in the report for information. The email
