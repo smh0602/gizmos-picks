@@ -875,10 +875,36 @@ const etDate = iso => {
   return d.toLocaleDateString('en-CA', {timeZone: 'America/New_York'});
 };
 
-const todayET = () => {
-  const d = new Date(Date.now() - 4*3600*1000);
-  return d.toISOString().slice(0,10);
-};
+/* `[2026-10-27]` ~~`new Date(Date.now() - 4*3600*1000)`~~: a fixed -4, so from
+   2026-11-01 every night from 11pm EST read as TOMORROW. The IANA zone, as `etDate`.
+   ⛔ No fixed Eastern offset anywhere on this page (test_et_clock_change.py). */
+const todayET = () => etDate(Date.now());
+
+/* 🔴 AN EASTERN WALL-CLOCK STAMP AS THE REAL MOMENT. `[2026-10-27]` nflverse writes a
+   kickoff as Eastern wall time with no zone ("2026-11-01 13:00"), and it was read at a
+   fixed -04:00: right under daylight time only, so from 2026-11-01 a 1:00pm EST kickoff
+   (18:00Z) read as 17:00Z, an hour early. The offset is America/New_York's own at that
+   moment, asked of the IANA zone twice so a stamp near the change lands on its side. */
+function etWallDate(s){
+  const m = /^(\d{4})-(\d\d)-(\d\d)[ T](\d\d):(\d\d)/.exec(String(s || ''));
+  if (!m) return new Date(NaN);
+  const asUtc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  const behind = t => {                  /* ms America/New_York runs behind UTC at t */
+    const p = {};
+    new Intl.DateTimeFormat('en-US', {timeZone: 'America/New_York', hourCycle: 'h23',
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})
+      .formatToParts(new Date(t)).forEach(x => { p[x.type] = x.value; });
+    return t - Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  };
+  return new Date(asUtc + behind(asUtc + behind(asUtc)));
+}
+
+/* A football game's start as a Date: a zoned stamp (CFBD, ESPN, the Odds API) as
+   written, an unzoned one (nflverse) as Eastern wall time. */
+function fbStartDate(s){
+  s = String(s || '');
+  return /[Zz]|[+\-]\d\d:?\d\d$/.test(s) ? new Date(s) : etWallDate(s);
+}
 
 /* 🔴 EVERY READ ASKS THE SERVER. `[2026-10-17]` GitHub Pages sends max-age=600, and a plain
    fetch kept drawing the 16:36Z college card for minutes after the 16:54Z rebuild. 'no-cache'
@@ -3835,16 +3861,9 @@ async function fbScores(){
      ⚠️ The ET date, not the UTC one: a 7:30pm ET kickoff is 23:30Z and a
      10pm ET kickoff is the NEXT UTC day (ledger rule 149). */
   if (fbScSeason === liveSeason){
-    const et = iso => {
-      const t = new Date(iso);
-      if (isNaN(t)) return null;
-      const e = new Date(t.getTime() - 4 * 3600 * 1000);
-      return e.getUTCFullYear().toString()
-           + String(e.getUTCMonth() + 1).padStart(2, '0')
-           + String(e.getUTCDate()).padStart(2, '0');
-    };
+    /* `[2026-10-27]` ~~an inner `et` at a fixed -4~~: `fbEspnDay`. */
     const days = [...new Set(games.filter(g => g.week === fbWeek)
-                                  .map(g => et(g.start))
+                                  .map(g => fbEspnDay(g.start))
                                   .filter(Boolean))].sort();
     await fbDayLoad(days, `${LEAGUE}|${fbScSeason}|${fbWeek}`);
   }
@@ -5589,10 +5608,18 @@ function fbBoxTable(rows, kind, label){
    the stored file knows that until a score lands. */
 function fbKickedOff(g){
   if (!g.start) return false;
-  const s = String(g.start);
-  const d = /[Zz]|[+\-]\d\d:?\d\d$/.test(s) ? new Date(s)
-          : new Date(s.replace(' ', 'T') + '-04:00');   /* naive stamps are ET */
+  /* `[2026-10-27]` ~~unzoned stamps read at a fixed -04:00~~: `fbStartDate`, Eastern
+     wall time by the IANA zone, so a 1pm EST game is not "kicked off" at noon. */
+  const d = fbStartDate(g.start);
   return isFinite(d) && d.getTime() < Date.now();
+}
+
+/* A game's ET date as ESPN's YYYYMMDD, or null. ⚠️ The ET date, not the UTC one (ledger
+   rule 149), and Eastern by the IANA zone: `[2026-10-27]` at a fixed -4, from 2026-11-01
+   an 11pm EST kickoff (Hawai'i's) was asked of ESPN under the next day. */
+function fbEspnDay(s){
+  const d = fbStartDate(s);
+  return isFinite(d) ? etDate(d.getTime()).replace(/-/g, '') : null;
 }
 
 function fbBoxScore(g, by, box){
