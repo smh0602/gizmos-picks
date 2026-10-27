@@ -43,6 +43,21 @@ claim that can be wrong (rule 166).
 #   find:   - Each = sum(w x residual) / (sum(w) + 10); no such game -> 0. The 10 is fixed here,
 #   with:   - Each = sum(w x residual) / (sum(w) + 5); no such game -> 0. The 10 is fixed here,
 #
+# @vacuity 🔴 T73 (§3g): any edit to the counted predictions' floor goes red
+#   file: research/fb_refit_spec.md
+#   find: - **The floor:** at least 300 counted predictions in which the challenger's prediction
+#   with: - **The floor:** at least 200 counted predictions in which the challenger's prediction
+#
+# @vacuity 🔴 T73 (§3g): ...and to the eight that still count only games after registration
+#   file: research/fb_refit_spec.md
+#   find: - **Still only games after registration (§2):** S, TS, AV, AVC, AT, ATC, SM and SMC. Each
+#   with: - **Still only games after registration (§2):** S, TS, AV, AVC, AT, ATC and SM. Each
+#
+# @vacuity 🔴 T73 (§3g): ...and to P and T's fixed withdrawal window
+#   file: research/fb_refit_spec.md
+#   find: - **Withdrawal** (P and T) is unchanged: §2's history window, the weeks before 2026-10-19.
+#   with: - **Withdrawal** (P and T) is unchanged: §2's history window, the weeks before 2026-10-26.
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -184,7 +199,13 @@ FROZEN = {
     # ~~"0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21"~~
     # [Sam, 2026-10-26] T72 (CL, CLC, WL, WLC, MC, MCC, AJ, AJC: the matchup grade) added as
     # section 3f at Sam's instruction, defined before any result; everything before it pinned below.
-    "fb_refit_spec.md": "97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c",
+    # ~~"97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c"~~
+    # [Sam, 2026-10-26] T73: Sam changed the rule. "instead of having it need 300 scored
+    # prediction can we just use games from last season and the ones played this season for
+    # both cfb and nfl": section 3g, written before any result under it, names what it replaces
+    # in sections 2 to 3f and edits none of them; everything before it is pinned below.
+    # ⛔ It moved because SAM changed the rule, not because a result was seen.
+    "fb_refit_spec.md": "f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -195,6 +216,7 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3d. ", "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999"),
                  ("fb_refit_spec.md", "\n## 3e. ", "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb"),
                  ("fb_refit_spec.md", "\n## 3f. ", "0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21"),
+                 ("fb_refit_spec.md", "\n## 3g. ", "97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c"),
                  ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 

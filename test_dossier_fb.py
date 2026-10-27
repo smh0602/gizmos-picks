@@ -155,8 +155,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   find: for g in (board.get("games") or []):
 #   with: for g in (board.get("games") or [])[:0]:
 #
+# `[2026-10-27, review 2]` the table moved, unchanged, to teamkeys.py (dossier_fb re-exports it):
 # @vacuity the fixture reads the builder's own team table, and an empty table is caught before any sweep
-#   file: dossier_fb.py
+#   file: teamkeys.py
 #   find: return dict(ast.literal_eval(n.value))
 #   with: return {}
 #

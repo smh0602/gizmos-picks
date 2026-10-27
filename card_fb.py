@@ -121,6 +121,7 @@ from calibration import MIN_N, band_flags
 import signal9                          # the ONE expected-share formula (signal 9)
 import fb_why                           # the why under each liked pick (Sam, 2026-10-15)
 import one_side                         # one team per game: the expected winner (Sam, 2026-10-16)
+import teamkeys                         # board team name -> the logs' team key (review 2, 2026-10-27)
 
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
@@ -602,13 +603,39 @@ def norm(n):
 SCOPES = {}
 FLOORS = {}
 CUR_SEASON, CUR_P = None, None
-_CUR_IDX = None
 LOG_SCOPE = None
 
 
-def load_logs():
-    """Newest season with enough games to READ A RATE. (season, {pid: player}).
+def load_logs(this_season=None):
+    """THIS season's games first, LAST season's beside them. -> (season, {pid: player}): LAST
+    season's log, the one a row's record starts from (`rate_blend`'s g25, each game at
+    4 / (4 + his games this season)); CUR_SEASON / CUR_P is THIS season's.
 
+    🔴 `[Sam, 2026-10-26]` T73: *"is anything else in our model operating on that same rule,
+    being that it wont change picks until it has a certain amount of scores seen. if so i want
+    to just use games from last season and the ones played this season for both cfb and nfl"*.
+    It was ~~the newest season whose median player has `MIN_GAMES` games, taken WHOLE~~: once
+    this season's median reached 6, its log was passed as g25 at weight 1 and last season was
+    dropped, against `research/fb_card_fix_spec.md` §3 (G25 = his 2025 games, w = 4 / (4 + n26)).
+    Neither league had got there (NFL median 5, college 4 on 2026-10-26), so no card number moved.
+    ✅ Now: THIS season is the newest file with any game; LAST season the newest older file with
+    any game; one stored season is read alone. `this_season` (the slate's, `fb_why.season_of`):
+    a later file is never read, and a season with no game yet reads last season alone, at full
+    weight, which is the spec's formula with no game this season (4 / (4 + 0) = 1). ⛔ The
+    median is logged, never a gate: the 6-game floor is each ROW's, on both seasons together
+    (`gated_games`). `test_card_fb.py` §13, `test_nfl_opener.py` §2.
+    🔴 `[review, 2026-10-26]` The name a board row carries is looked up in BOTH logs
+    (`match_player`): a player with no log last season (a rookie, a player new to FBS) is
+    found in this season's, his G25 none (~~last season's log only~~: the median switch was
+    the one path that would have looked this season up, so without this he was never rated).
+    ⚠️ A caller passing no season (`fb_props_model.champion_logs`, read by its `walk_forward`
+    and by `fb_card_fix`) takes the newest file with any game as this season. From 1 March
+    (when `fb_why.season_of` turns to the next year) until that season's first game it reads
+    the two newest stored seasons while the card reads the newer one alone; only
+    fb-props-model.json's `card_logs_season` / `card_seasons_published` show it, and nothing
+    checks them. In `fb_card_fix` it is the right reading (its 2026 log is fixed by name).
+
+    The history of the rule it replaces, kept:
     🔴 ~~"Newest season that actually has games."~~ ⛔ **THAT WAS WRONG AND
     IT WOULD HAVE EMPTIED THE BOARD FOR THE FIRST SIX WEEKS OF EVERY
     SEASON, SILENTLY.** `[measured 2026-09-04]` the live college run picked
@@ -617,18 +644,24 @@ def load_logs():
     board shipped 0 of 50 rows with a record and nothing said why. ⚠️ The
     NFL would have done the same thing on the Tuesday after week 1.
 
-    ✅ **A SEASON IS USABLE WHEN A TYPICAL PLAYER IN IT COULD CLEAR THE
-    FLOOR** — median games per player >= `MIN_GAMES`. Below that the file
-    exists but cannot answer the question being asked of it.
+    ✅ ~~**A SEASON IS USABLE WHEN A TYPICAL PLAYER IN IT COULD CLEAR THE
+    FLOOR** — median games per player >= `MIN_GAMES`.~~ `[2026-10-26]` A thin
+    season is never read alone while last season is stored: it is this
+    season's first games, and last season carries the record at its weight.
     ⚠️ Falling back to last season is the DESIGNED behaviour, not a
     workaround: every row already says "this is his own record from last
     season", and roster churn is a stated, accepted limit.
-    ⛔ ONE SEASON, NEVER A BLEND. Mixing two seasons' games into one
+    ~~⛔ ONE SEASON, NEVER A BLEND. Mixing two seasons' games into one
     denominator would make the rate a property of the file mix rather than
-    of the player.
+    of the player.~~ Sam reversed that on 2026-09-24 (fb_card_fix_spec §1):
+    the blend weights last season explicitly and the row prints the weight.
     """
-    usable, thinner = None, None
+    seen = []                        # (season, players, file, median, file's season): any game, newest first
     for f in sorted(glob.glob(f"{DATA}/latest/players-*.json.gz"), reverse=True):
+        fs = re.search(r"players-(\d{4})\.json\.gz$", f)
+        fs = int(fs.group(1)) if fs else None
+        if this_season is not None and fs is not None and fs > this_season:
+            continue                 # a season after the slate's is never read
         try:
             d = json.load(gzip.open(f, "rt"))
         except Exception:
@@ -641,31 +674,21 @@ def load_logs():
             log(f"  {os.path.basename(f)}: no games yet, skipping")
             continue
         med = counts[len(counts) // 2]
-        row = (d.get("season"), P, os.path.basename(f), med)
-        if thinner is None:
-            thinner = row
-        if med >= MIN_GAMES:
-            usable = row
-            break
-        log(f"  {os.path.basename(f)}: median {med} game(s) per player, "
-            f"under the {MIN_GAMES} needed for a rate — looking further back")
-    # ⛔ THE NEWEST FILE WITH ANY GAMES IS KEPT FOR ONE PURPOSE ONLY:
-    #    SAYING WHY A RATE IS MISSING. `thinner` is whatever the loop saw
-    #    first, which is the newest season that has started.
-    # 🔴 IT IS NEVER A RATE AND NEVER A PROJECTION. In week 2 it holds one
-    #    or two games; `MIN_GAMES` exists precisely because that cannot
-    #    carry a percentage. ✅ But one game is plenty to say "the season
-    #    this record is built from describes a different job", which is
-    #    the question Sam actually asked.
-    global CUR_SEASON, CUR_P, _CUR_IDX
-    if thinner is not None:
-        CUR_SEASON, CUR_P = thinner[0], thinner[1]
-        _CUR_IDX = None                      # the name index is CUR_P's own, rebuilt on first use
-    best = usable or thinner
-    if not best:
+        seen.append((d.get("season"), P, os.path.basename(f), med, fs))
+        log(f"  {os.path.basename(f)}: median {med} game(s) per player")
+        if len(seen) == 2 or (this_season is not None and fs is not None and fs < this_season):
+            break                    # this season and last; or the slate's season has no game yet
+    if not seen:
         log("FATAL: no player log with any games")
         sys.exit(1)
-    season, P, fn, med = best
+    # 🔴 THIS season is the newest file with any game, and it is a RATE's input since
+    #    2026-09-24 (~~"IT IS NEVER A RATE AND NEVER A PROJECTION"~~): `rate_blend`'s g26.
+    #    LAST season is the next file back; with no game this season, or one stored season,
+    #    that one file is both, and nothing is blended.
+    global CUR_SEASON, CUR_P
+    cur = seen[0]
+    CUR_SEASON, CUR_P = cur[0], cur[1]
+    season, P, fn, med, _fs = seen[1] if len(seen) > 1 else cur
     global LOG_SCOPE, USAGE_FLOOR
     LOG_SCOPE = SCOPES.get(fn)
     # ⛔ THE FLOOR COMES OUT OF THE FILE THE RATE IS BUILT FROM, not out
@@ -678,14 +701,19 @@ def load_logs():
             f"the file asks for")
     log(f"logs: {fn} — {len(P)} players, season {season}, "
         f"median {med} games/player"
-        + (f", scope: {LOG_SCOPE}" if LOG_SCOPE else ""))
-    if usable is None:
+        + (f", scope: {LOG_SCOPE}" if LOG_SCOPE else "")
+        + (f"; this season {CUR_SEASON} ({cur[2]}, median {cur[3]}) read first"
+           if len(seen) > 1 else ""))
+    if max(med, cur[3]) < MIN_GAMES:
         # ⛔ SAID OUT LOUD. A board with no rates because the season is
         # young is a legitimate state; a board with no rates and no
         # explanation is the failure.
-        log(f"  ⚠️ NO season has a median of {MIN_GAMES}+ games yet — this "
-            f"board will carry prices and few or no records, and the card "
-            f"says so.")
+        # `[2026-10-26]` ~~"NO season has a median of 6+ games yet — this board will carry
+        #    prices and few or no records"~~: the 6-game floor is each row's, over his two
+        #    seasons together, so a thin median says fewer records, not none.
+        log(f"  ⚠️ neither season's median player has {MIN_GAMES}+ games of his own — a row "
+            f"is rated only when his games in both seasons together reach {MIN_GAMES}, so "
+            f"expect fewer records on this board.")
     return season, P
 
 
@@ -700,6 +728,64 @@ def index_by_name(P):
     for pid, p in P.items():
         idx.setdefault(norm(p.get("name")), []).append(pid)
     return idx
+
+
+def match_player(who, idx, cur=None, cur_idx=None, teams=frozenset(), day=None, last=None):
+    """`[Sam, 2026-10-26]` T73: which player a board name is, LAST season's log (`idx`, the
+    log `last`) and THIS season's (`cur`, its `cur_idx`; None when one log is both), in the
+    board game whose two teams are `teams` (the logs' own team keys, `teamkeys.team_codes`;
+    an unresolved side left out) -> [pid]: one is a match, more is ambiguous, none is
+    unmatched. ⛔ Never a guess (`index_by_name`).
+
+    *"use games from last season and the ones played this season"*: ~~last season's log
+    only~~ left a rookie, or a player new to FBS, unmatched all season, his games this
+    season never read (found by review, 2026-10-26).
+    ~~1. Last season's one match, when he has a game this season or this season's log does
+       not hold the name: a name shared THIS season (the WR Justin Jefferson's with a
+       Cleveland LB) stays his.
+    2. Otherwise THIS season's holders of the name. One is the match: a rookie (G25 none,
+       research/fb_card_fix_spec.md §3); a name last season held twice; and a name whose
+       last-season holder has no game this season while one other player holds it now
+       (Akron's Marcel Williams: 2025's id, 11 games, none in 2026; 2026's is another id,
+       7 games), the one playing. Two or more are ambiguous.
+    3. A name this season does not hold: last season's holders (two or more: ambiguous).~~
+    `[2026-10-27, review 2]` ~~1-3~~ chose by WHICH LOG held the name and never asked his
+    team, so a namesake on neither team took the row: the Titans' RB Michael Carter's NFL
+    rows read the Eagles CB's record (2025 held the name twice, 2026 once); Kent State's
+    Brandon White's anytime TD read Kansas State's WR's 3 of 16, and on
+    picks/fb-ncaaf-2026-09-26.json his PROJ 33.2.
+    ✅ A NAME SHARED BY TWO OR MORE PLAYERS (either log) IS DECIDED BY THE GAME'S TWO TEAMS,
+    the source `fb_props_model.current_picks` and `resolve()` use, or by nobody:
+    1. the holders whose latest game THIS season before `day` was for a team in the game
+       (the Justin Jefferson WR, on Minnesota, over a Cleveland LB of the same name);
+    2. else the holders with no game this season whose latest game LAST season was;
+    3. else nobody decides: ambiguous. Two holders on one side are ambiguous too.
+    A LONE holder keeps the name (a rookie, a player new to FBS, a veteran) wherever he
+    played, ⛔ except in college, where no player changes FBS teams during a season: one who
+    played THIS season for a team not in the game is someone else, and the name is unmatched
+    (NC State's Darius Johnson on Syracuse's rows). An NFL lone holder elsewhere is kept: a
+    trade (Marvin Harrison Jr., ARI 2025, HOU 2026, at JAX on 10-18).
+    `test_card_fb.py` §13c."""
+    k = norm(who)
+    a = idx.get(k) or []
+    b = (cur_idx.get(k) or []) if cur_idx is not None else []
+    cands = list(dict.fromkeys(list(a) + list(b)))
+
+    def team_of(log_, pid, before):
+        gs = (((log_ or {}).get(pid) or {}).get("g")) or []
+        gs = sorted(games_before(gs, before) if before else gs, key=lambda g: g.get("d") or "")
+        return gs[-1].get("team") if gs else None
+
+    now = {p: team_of(cur, p, day) for p in cands}
+    if len(cands) <= 1:
+        if (cands and LEAGUE == "ncaaf" and teams and now[cands[0]] is not None
+                and now[cands[0]] not in teams):
+            return []
+        return cands
+    on_now = [p for p in cands if now[p] is not None and now[p] in teams]
+    if on_now:
+        return on_now
+    return [p for p in cands if now[p] is None and team_of(last, p, None) in teams] or cands
 
 
 def qualifying(games):
@@ -1804,22 +1890,21 @@ def current_role(who, pids, plog, rated_season):
     prints. ~~His rated-season log when this season has none~~ (Tanner McKee, no 2026 snap,
     printed 2025's 44% of snaps) ~~and none at all for a rookie~~ (no 2025 log: 4 of 25
     liked NFL props had no role on 10-16, so an over on a rookie skipped the role check).
-    By his id in this season's log, else by a unique name there (never a guess). A player
+    By his id in this season's log, ~~else by a unique name there (never a guess)~~
+    `[2026-10-27, review 2]` and ONLY by the id `match_player` chose for the row's game: the
+    unique-name fallback had no team check, so the Titans' RB Michael Carter's TD row (his
+    name ambiguous) carried the Eagles CB's 0% of offensive snaps, and the role check uses
+    it. A rookie is matched in this season's log now, so his id finds him. An ambiguous or
+    unmatched name has NO role (None), never a namesake's. A player
     with a rated-season log and no game this season has NO role this season: every share
     0, n 0, so an over on him fails the check and no role sentence prints. Same season as
     the rated one: his rated log."""
-    global _CUR_IDX
     if not CUR_P or CUR_SEASON == rated_season:
         return role_of(plog)
-    if len(pids) == 1 and pids[0] in CUR_P:
+    if len(pids) != 1:
+        return None                          # ⛔ ambiguous or unmatched: never a namesake's role
+    if pids[0] in CUR_P:
         return role_of(CUR_P[pids[0]])
-    if _CUR_IDX is None:
-        _CUR_IDX = index_by_name(CUR_P)
-    cur = _CUR_IDX.get(norm(who)) or []
-    if len(cur) == 1:
-        return role_of(CUR_P[cur[0]])
-    if len(cur) > 1:
-        return None                          # ⛔ ambiguous: never guessed
     return {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0} if plog is not None else None
 
 
@@ -2110,9 +2195,24 @@ def main():
         log(f"no props board for {LEAGUE} yet ({type(e).__name__}) — nothing to card")
         return 0
 
-    season, P = load_logs()
-    idx = index_by_name(P)
     _card_day = slate_date(B)
+    # `[Sam, 2026-10-26]` this season first, last season beside it, every week: the slate's own
+    #    season says which is "this" (a week-1 card is built before that season has a game).
+    season, P = load_logs(fb_why.season_of(_card_day))
+    idx = index_by_name(P)
+    # `[review, 2026-10-26]` and this season's log too (`match_player`): a rookie's games count.
+    _cur = CUR_P if (CUR_P and CUR_SEASON != season) else None
+    _cur_idx = index_by_name(_cur) if _cur else None
+    # `[2026-10-27, review 2]` a shared name is decided by the game's two teams (`match_player`),
+    #    read through the one resolver (`teamkeys`). ⛔ A resolver that cannot load never kills the
+    #    card: every side is then unresolved, so a shared name is ambiguous (never a guess) and a
+    #    college lone holder is kept as before; the log says so.
+    try:
+        _team = teamkeys.team_codes(LEAGUE)
+    except Exception as e:                   # ⛔ a missing table never kills the card
+        log(f"  ⚠️ no team resolver ({type(e).__name__}: {e}): a name two players share is "
+            f"ambiguous on this build")
+        _team = lambda name: None  # noqa: E731
     _opp9 = signal9.load(LEAGUE, CUR_SEASON) if (S9_CARD.get(LEAGUE) and CUR_SEASON) else None
     _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
               if CARD_METHOD == METHOD_FIXED else None)
@@ -2136,15 +2236,21 @@ def main():
             unit = bool(TEAM_UNIT.search(who))
             if not unit:
                 seen_players.add(who)
-            pids = [] if unit else idx.get(norm(who), [])
-            plog = None
+            pids = [] if unit else match_player(
+                who, idx, _cur, _cur_idx, teams={_team(g.get("home")), _team(g.get("away"))} - {None},
+                day=_card_day, last=P)
+            plog, plog_season = None, season
             if RATES_OK and not unit:
                 if len(pids) > 1:
                     ambiguous.add(who)
                 elif not pids:
                     unmatched.add(who)
-                else:
+                elif pids[0] in P:
                     plog = P[pids[0]]
+                else:
+                    # `[review, 2026-10-26]` no log last season: his this-season log is
+                    #    the row's (its position, its role); his G25 is none.
+                    plog, plog_season = _cur[pids[0]], CUR_SEASON
 
             for side, sd in (pr.get("sides") or {}).items():
                 price = sd.get("price")
@@ -2161,7 +2267,8 @@ def main():
                     if S9_CARD.get(LEAGUE) and _opp9:
                         _pl9 = (_opp9.get("players") or {}).get(pids[0]) or {}
                         _r9 = signal9.card_scale(_opp9, pids[0], _pl9.get("team_now"), None, mk)
-                    r = rate_blend(plog.get("g") or [], _g26, mk, pr.get("line"), side, _p0, _r9)
+                    r = rate_blend((P.get(pids[0]) or {}).get("g") or [], _g26, mk, pr.get("line"), side,
+                                   _p0, _r9)
                     if r is None:
                         thin += 1
                 elif plog is not None and gate_ok:
@@ -2220,9 +2327,13 @@ def main():
                         row["season_detail"] = _d
                     row["confidence_note"] = (
                         f"His record at this exact line, reading this season first: "
-                        f"{_d['h26']} of {_d['n26']} in {CUR_SEASON}, with his "
-                        f"{season} record ({_d['h25']} of {_d['n25']}) counting "
-                        f"{_d['w25']:g} per game, pulled toward the "
+                        f"{_d['h26']} of {_d['n26']} in {CUR_SEASON}, "
+                        # `[review, 2026-10-26]` a rookie (or no counted game last season):
+                        #    ~~"with his 2025 record (0 of 0) counting 0.364 per game"~~
+                        + (f"with his {season} record ({_d['h25']} of {_d['n25']}) counting "
+                           f"{_d['w25']:g} per game, " if _d['n25'] else
+                           f"with no {season} game of his counted, ")
+                        + f"pulled toward the "
                         f"{round(100 * _d['p0'])}% of games in which players at his "
                         f"position clear this line. Fewer than 10 games' worth never "
                         f"shows 90% or more."
@@ -2280,7 +2391,8 @@ def main():
                 else:
                     row["why"] = [gate_why] if (plog is not None
                                                  and not gate_ok) else [
-                        no_rate_reason(RATES_OK, plog, who, mk, season)]
+                        no_rate_reason(RATES_OK, plog, who, mk, plog_season,
+                                       CUR_SEASON if _cur else None, pids)]
                 # 🔴 `[Sam, 2026-10-09]` "Where fb_props_model prices a prop on the
                 #    card ... the row's confidence is the model's probability and the
                 #    card ranks by it. A prop it does not price keeps the player's own
@@ -2839,8 +2951,12 @@ COLLEGE_NOTE = (
     "record at all.")
 
 
-def role_change_note(who, market, rated_season):
+def role_change_note(who, market, rated_season, pids=()):
     """What he is doing THIS season, when last season describes another job.
+    `[2026-10-27, review 2]` His this-season log is found by `pids`, the id `match_player`
+    chose for the row's game, ~~by his name in this season's log~~: a namesake there, on
+    another team, would have lent HIS season to the sentence (the class of the role
+    fallback that gave the Titans' RB Michael Carter the Eagles CB's snaps).
 
     🔴 THE POINT SAM MADE, ANSWERED WITH NUMBERS RATHER THAN A SHRUG.
     `[2026-09-11]` *"he was not starting last year"* -- and the current
@@ -2857,16 +2973,13 @@ def role_change_note(who, market, rated_season):
     """
     if not CUR_P or CUR_SEASON == rated_season:
         return None
-    global _CUR_IDX
-    if _CUR_IDX is None:
-        _CUR_IDX = index_by_name(CUR_P)
-    pids = _CUR_IDX.get(norm(who)) or []
     # ⛔ AMBIGUOUS NAMES ARE NOT GUESSED AT. `index_by_name` keeps them as
     #    a LIST on purpose, for the same reason the MLB collector's
     #    `resolve()` refuses to pick a first match: attaching one player's
     #    season to another player's price is the worse error, and this
-    #    sentence is optional.
-    if len(pids) != 1:
+    #    sentence is optional. `[2026-10-27, review 2]` ⛔ Nor is a NAME read
+    #    here at all: only the row's own matched id (`pids`).
+    if len(pids or ()) != 1 or pids[0] not in CUR_P:
         return None
     p = CUR_P.get(pids[0]) or {}
     g = p.get("g") or []
@@ -2900,7 +3013,7 @@ def role_change_note(who, market, rated_season):
               f"one built on the wrong job.")
 
 
-def no_rate_reason(rates_ok, plog, who, market=None, season=None):
+def no_rate_reason(rates_ok, plog, who, market=None, season=None, this_season=None, pids=()):
     """Why this row carries a price and no rate. ⛔ Never a gate — rule 53.
 
     🔴 ~~ONE SENTENCE FOR EVERY CAUSE.~~ The old form said "appears in too
@@ -2911,7 +3024,10 @@ def no_rate_reason(rates_ok, plog, who, market=None, season=None):
     if not rates_ok:
         return COLLEGE_NOTE
     if plog is None:
-        return (f"No {season or 'prior season'} game log matched {who} — he "
+        # `[review, 2026-10-26]` both logs are looked up (`match_player`), so both are named.
+        _logs = (f"{season} or {this_season}" if this_season and this_season != season
+                 else f"{season or 'prior season'}")
+        return (f"No {_logs} game log matched {who} — he "
                 f"is new, changed his listed name, or shares one. No record "
                 f"is shown rather than a guess.")
     if LEAGUE == "nfl":
@@ -2919,7 +3035,7 @@ def no_rate_reason(rates_ok, plog, who, market=None, season=None):
                 f"a rate from. Fewer than {MIN_GAMES} is not a rate.")
     g = plog.get("g") or []
     parts = PARTICIPATED.get(market) or ()
-    role = role_change_note(who, market, season) if market else None
+    role = role_change_note(who, market, season, pids) if market else None
     # ⛔ NAME THE ACTUAL CAUSE. Participation first, because it is the one
     #    that produced a 94%-confidence number on a player who had not
     #    played the position.

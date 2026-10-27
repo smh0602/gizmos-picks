@@ -305,7 +305,8 @@ note boxes, tags and the stale bar now require their absence.
   it). `[Sam, 2026-10-14]` T66 (§3a, Cowork's pre-registration) adds S (NFL: the
   champion without head-to-head and signal 9) and TS (college: T's talent margin,
   the line, neutral and dome only), all three markets, registered 2026-10-19, no
-  withdrawal; only games after registration count. `[Sam, 2026-10-15]` T68 (§3b) adds AV/AVC
+  withdrawal; only games after registration count (`[Sam, 2026-10-26]` still true for these
+  two: see T73 below). `[Sam, 2026-10-15]` T68 (§3b) adds AV/AVC
   (Sam's averages) and WX/WXC (wind); T69 (§3c, "do all changes") adds IN (NFL injuries on BOTH
   sides of the ball: Out/Doubtful weighted by offensive or DEFENSIVE snap share, starting QB
   out), AT/ATC (Sam's averages blended into totals) and RS/RSC (rest); T70 (§3d) adds H/HC
@@ -329,7 +330,20 @@ note boxes, tags and the stale bar now require their absence.
   method. A report over 8 days old is DEGRADED. `[R1, 2026-10-18]` A report that never lands
   is DEGRADED too (`watchdog.check_learner_landing`). While the league already names a
   CHAMPION, a WINS pushes nothing and its report carries NEEDS SAM; a second switch (an
-  ordered CHAMPION list) is Sam's, §3 unchanged. `test_fb_refit.py`.
+  ordered CHAMPION list) is Sam's, §3 unchanged. `test_fb_refit.py`. `[Sam, 2026-10-26]` T73
+  (§3g): *"instead of having it need 300 scored prediction can we just use games from last
+  season and the ones played this season for both cfb and nfl"*. The verdict reads each
+  challenger's `counted` predictions: ~~only games after registration count~~ EVERY 2025-2026
+  walk-forward prediction for the eighteen defined before any of their results existed, and
+  only games after registration for the eight shaped on those games (`fb_refit.SCORED_ONLY`:
+  S, TS, AV, AVC, AT, ATC, SM, SMC). The 300 floor counts only predictions that differ from
+  the champion's (WX before stored weather equals it); p < 0.01/k, k and registration are
+  unchanged, and nothing is counted before a challenger's registration Monday. P and T's
+  withdrawal window stays the weeks before 2026-10-19. Several WINS: all reported, ONE branch,
+  to the largest mean d (`fb_refit.branch_order`; `[2026-10-27, review 2]` the UNROUNDED one,
+  `mean_d_exact`, never the 6 printed decimals). After a switch the eighteen do not
+  restart; the eight do. `history` / `scored` stay in the report for information. The email
+  reads the floor from the report (`floor`), never a 300 of its own. `test_fb_refit_counted.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
   *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
   ... only show confidence score on each pick that the model picks, BASED ON THE
@@ -639,6 +653,28 @@ note boxes, tags and the stale bar now require their absence.
   model's probability and the card ranks by it. A prop it does not price keeps the
   player's own rate."* A priced row is `confidence_basis` MODEL (`model_p`, whole-number
   `confidence`), an unpriced one RECORD; the record stays in `rate` / `record`.
+  `[Sam, 2026-10-26]` The record blends THIS season's games and LAST season's at
+  4 / (4 + this season's games) (`research/fb_card_fix_spec.md` §3) every week, the same
+  rule Sam asked of the contest (*"use games from last season and the ones played this
+  season"*): ~~once this season's median player reached 6 games, `card_fb.load_logs` took
+  that season alone and dropped last season~~ (not reached by either league before the fix:
+  NFL median 5, college 4). A slate whose season has no game yet reads last season alone
+  (its weight is then 1). `test_card_fb.py` §13, `test_nfl_opener.py` §2. `[review,
+  2026-10-26]` A board name is looked up in BOTH seasons' logs (`card_fb.match_player`;
+  ~~last season's only~~, which left a rookie or a player new to FBS unrated all season): a
+  rookie is rated on his games this season (G25 none); ~~last season's one holder keeps a name
+  he still plays under (a name shared this season stays his); a holder with no game this
+  season yields it to this season's one holder; anything else is ambiguous, never a guess~~
+  `[2026-10-27, review 2]` (that chose by which LOG held a name and never asked his team: the
+  Titans' RB Michael Carter read the Eagles CB's record, Kent State's Brandon White Kansas
+  State's WR's) a name two players hold is decided by the BOARD GAME'S TWO TEAMS
+  (`teamkeys.team_codes`): the holder whose latest game this season was for one of them,
+  else a holder with no game this season whose last-season team is one, else nobody
+  (ambiguous, never a guess). A lone holder keeps his name, except in college, where one who
+  has played this season for another team is someone else; an NFL lone holder elsewhere is
+  kept (a trade). The row's role and role sentence read only that matched id, never a
+  namesake's by name (`current_role`, `role_change_note`). The
+  60% name join counts a match in either log. `test_card_fb.py` §13c, `test_fb_role_season.py`.
   `collect.build_card_fb` builds the props model first on BOTH card paths (the props
   pull and `card-fb`); it prices the props board itself and stamps `board_pulled_at`,
   and a model that priced another board leaves the whole build on the record
@@ -661,7 +697,8 @@ note boxes, tags and the stale bar now require their absence.
   betting on guys like tory horton because he's had 2 good games ... he's a wr4"*: an over or
   anytime TD is liked only at 40%+ of snaps over his last 3 games, 12%+ of targets on a
   receiving prop, 8+ carries on a rushing prop (`card_fb.role_ok`); an under is never blocked.
-  `[2026-10-16]` The role is `card_fb.current_role`: THIS season's log, by id or a unique name.
+  `[2026-10-16]` The role is `card_fb.current_role`: THIS season's log, by id ~~or a unique name~~
+  (`[2026-10-27, review 2]` the matched id only; an ambiguous or unmatched name has none).
   ~~A rookie had none (the check skipped him); a player with no game this season used last
   season's~~. A player with no game this season now has a zero role (n 0), so his over fails.
   Shares are stored at 4 decimals and rounded once on the page. `test_fb_best_plays.py`,
@@ -1249,6 +1286,9 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   through the one branch pusher, `push_change`.
                   `[R1, 2026-10-18]` while CHAMPION is set, a WINS pushes no
                   branch (NEEDS SAM); each league's `elapsed_seconds` is stored.
+                  `[Sam, 2026-10-26]` T73 (§3g): the verdict reads `counted`
+                  (every 2025-2026 week, or only scored weeks for SCORED_ONLY);
+                  several WINS -> one branch, `branch_order`; `floor` stored.
 fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   (nflverse, free; OAK stored as LV) and college 2023-2024 schedules
                   + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
@@ -1408,6 +1448,12 @@ tcheck.py         the one check harness every test file uses.
                   output through `shown()`; annotate on purpose only
                   with `annotate()` (test_workflow_commands.py).
 ranking.py        the one tie-aware ranker, both leagues
+teamkeys.py       THE ONE TEAM-NAME RESOLVER `[2026-10-27, review 2]`: a book's team
+                  name -> the key the league's files use (NFL_TEAMS parsed out of
+                  collect.py; college teams.json, folded, longest prefix, three
+                  aliases), moved unchanged out of dossier_fb.py, which re-exports
+                  it. The card reads it (`card_fb.match_player`) and so never
+                  reaches the dossier (`test_dossier_fb.py` §3). ⛔ Never a guess.
 one_side.py       ONE TEAM PER GAME (Sam, 2026-10-16): the expected winner
                   (the Game Lines tab's rule, read by winners.py), the filter
                   every list of side picks runs, and the guard verify_card.py

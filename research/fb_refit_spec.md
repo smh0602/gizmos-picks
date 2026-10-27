@@ -372,17 +372,119 @@ computed before this section was written. Only games after registration count (�
   them), and the player props' opponent numbers (there is no weekly props contest, and
   earlier attempts to adjust them failed; that is its own registration, later).
 
+## 3g. T73 — the verdict counts last season and this season (frozen)
+
+Sam, 2026-10-26, after T72 merged: *"instead of having it need 300 scored prediction can
+we just use games from last season and the ones played this season for both cfb and nfl.
+id rather have it do that and learn progressievley week after week than wait for 300
+different scores"*, and *"is anything else in our model operating on that same rule, being
+that it wont change picks until it has a certain amount of scores seen. if so i want to
+just use games from last season and the ones played this season for both cfb and nfl"*.
+This section replaces, by name, §2's "Scored weeks", §3's 300 rule and its restart
+sentence, and the "only games after registration count" sentences of §3a to §3f, for the
+challengers it names; nothing above it is edited. Written before any result under it was
+computed. The history results already stored for T65 to T71 (fb-refit.json, information
+only) were not read in writing it, and none was computed for T72.
+
+- **Counted weeks.** For E, P, T, WX, WXC, IN, RS, RSC, H, HC, CL, CLC, WL, WLC, MC, MCC,
+  AJ and AJC (each defined before any of its results on these games existed): EVERY
+  walk-forward prediction over the stored seasons (`fb_model.SEASONS`: 2025 and 2026),
+  the weeks before its registration and after alike. Each is §2's prediction, unchanged:
+  champion and challenger fitted only on rows before that week's Monday. The first
+  predictions are where `fb_model.MIN_TRAIN` lets a fit exist (as stored on 2026-10-26:
+  NFL from 2025-11-17, college from 2025-09-22). Each Monday adds that week's games.
+- **Still only games after registration (§2):** S, TS, AV, AVC, AT, ATC, SM and SMC. Each
+  was designed or registered after its results on these same games were seen (§3a; §3b's
+  T68 results; §3c's AT and ATC, shaped by the measured breakdown of Sam's averages; §3e's
+  backtest), so judging it on them would let a fluke read as a win.
+- **The floor:** at least 300 counted predictions in which the challenger's prediction
+  differs from the champion's (one equal to the champion's carries no evidence, e.g. WX
+  and WXC before stored weather); below it, NOT YET MEASURABLE.
+- **The bar is unchanged:** mean d > 0 and p < 0.01 / (the challengers registered, not
+  withdrawn, in that league), d clustered by game, one-sided, every Monday, over the
+  counted predictions (all of them, equal ones included).
+- **Withdrawal** (P and T) is unchanged: §2's history window, the weeks before 2026-10-19.
+- **More than one WINS on one Monday:** all are reported; the one branch (§3) goes to the
+  WINS with the largest mean d (a tie: the smaller p, then the earlier name in
+  `fb_challengers.CHALLENGERS`).
+- **After a champion switch:** a challenger named in the first bullet is judged against the
+  new champion over every counted week (both walk-forward); it does not restart. The eight
+  in the second bullet restart as §3 says.
+- **Registration** still decides when a challenger enters the contest and the count k (§2
+  to §3f, unchanged).
+- ⚠️ **Repeated looks.** §3's 2% / 4.5% figures came from a simulation of forward-only
+  weekly checks. Under this section the first look is about two seasons at once and each
+  Monday adds a few percent more games. No new simulation was run; the bar stays Sam's
+  0.01 / k.
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
   each league's rows once (`fb_model.build_rows`), attaches every challenger's
   number (`fb_challengers.attach`), runs the contest and the scoreboard, writes
-  `data/<lg>/latest/fb-refit.json`, and pushes the WINS branch.
+  `data/<lg>/latest/fb-refit.json`, and pushes ~~the WINS branch~~
+  `[2026-10-26]` one branch a league, to the first WINS in
+  `fb_refit.branch_order` (§3g).
 - "The day its data first exists on main" is the first commit that added each
   file (`git log --diff-filter=A`; the workflow checks out full history).
 - A champion switch is noticed by the first weekly run after the merge (the
   report's stored `champion` differs); `champion_since` is the first Monday on
-  or after that run, and scored weeks restart there.
+  or after that run, and scored weeks restart there. `[2026-10-26]` §3g: only
+  the eight's (`SCORED_ONLY`) counted weeks restart there; the eighteen keep
+  every week.
+- `[2026-10-26]` §3g as built (`fb_refit.contest`, `verdicts`, `weekly`), the
+  readings of what §3g leaves open, recorded after a review:
+  - Before its registration Monday a challenger has entered nothing: none of its
+    predictions is counted (league() passes `entered`), though it still counts in
+    k, as §2 to §3f had it. The email says when it enters; a challenger
+    registered on the report's own day has entered.
+  - "Differs" is an exact comparison of the two predicted probabilities: an
+    all-zero input gives the champion's prediction to the last bit (WX before
+    stored weather; `test_fb_refit_counted.py` §7, on real fits).
+    ⚠️ For Sam `[2026-10-27, review 2]`: once ONE training row carries a non-zero
+    input (the first stored wind forecast, say), every later walk-forward
+    prediction differs from the champion's, rows with no input of their own
+    included, by as little as 0.0001 (planted league, real fits: wind on one row
+    of one week, every one of the 24 later predictions differing, none on a row
+    with wind of its own; no wind anywhere, 0 of 24). So the floor
+    holds back only an all-zero input, and in effect means 300 predictions from
+    the first stored value on. That fits §3g's words and its example; a size
+    threshold ("differs by at least x") would be a new frozen rule, yours to
+    decide. The code is unchanged.
+  - The floor applies to the eight as well, over their counted (scored)
+    predictions only: S with 600 history and 150 scored predictions is NOT YET
+    MEASURABLE.
+  - P and T's withdrawal window is fixed at the weeks before 2026-10-19, whatever
+    `scored_from` a champion switch sets, recomputed each week against the
+    champion of the day (`withdrawal_window` in the report).
+    ⚠️ For Sam `[2026-10-27, review 2]`: recomputed against each champion, a P or
+    T WITHDRAWN today can come back after a switch to a champion that did worse
+    on those weeks, and is then counted on every week, the pre-10-19 predictions
+    that withdrew it included, and can WIN (planted college league: withdrawn
+    against today's champion; 840 counted and WINS after a switch, 600 of them
+    from before 10-19). §2 says a withdrawn challenger is "reported, never
+    scored" and does not say whether that is permanent. Main already behaves
+    this way; whether a withdrawal is permanent (kept through `prev`) or
+    recomputed is a frozen rule, yours to decide. The code is unchanged.
+  - ~~The tie-break orders on the numbers the report prints (6 decimals): mean d's
+    within 1e-6 are a tie, then p, then the order of `fb_challengers.CHALLENGERS`.~~
+    `[2026-10-27, review 2]` That reading changed the frozen rule's answer: two WINS
+    whose mean d's print 0.02 (0.0200004 and 0.0199996) tied, and the branch went
+    by name to the smaller one. The order reads the UNROUNDED mean d and p
+    (`counted`'s `mean_d_exact` and `p_exact`, stored in the report), so "the WINS
+    with the largest mean d" holds past the printed decimals; the email says when
+    a lead or a smaller p is past them, and names the reason a WINS ranks first
+    (a larger gain; a tie, the smaller p; then the challenger list).
+    Only the first WINS can get the branch; when it cannot (the league already
+    names a CHAMPION, or an older champion branch is on GitHub), no other WINS
+    gets one, every other WINS carries `outranked_by`, and the email says no
+    branch was pushed `[2026-10-27, review 2]` and why (the champion, or whose
+    older branch it is), never ~~"the league's one switch is X's"~~. After a
+    champion switch the email counts one of the eight "since <its restart>",
+    never ~~"since registration"~~.
+  - The report stores `floor` (`fb_refit.MIN_SCORED`) and the email reads it
+    there (status.py never imports fb_refit). `history` and `scored` stay in the
+    report for information; the verdict reads `counted`.
 - The scoreboard (a report, it decides nothing), 2026 season, the champion's
   walk-forward predictions: the gap to the books per market (moneyline: the
   row's pml; spread and total: 0.5) with a 90% interval and a 4-week trend; the
@@ -421,3 +523,6 @@ computed before this section was written. Only games after registration count (�
 - 2026-10-16 — §3e corrected before Sam's approval, after an independent review: registration is the first Monday AFTER the merge day (a Monday-evening merge would have scored that night's game after kickoff); the coherence sentence was wrong ("a rare game") and now gives the measured numbers; SM / SMC's code is frozen with them. §4 gains the NOT APPLICABLE stopgap. §2 to §3d unchanged.
 - 2026-10-26 — §3f T72 (CL, CLC, WL, WLC, MC, MCC, AJ, AJC: the matchup grade) added at Sam's instruction ("let's do all of this, if any is repeating don't do it twice"), defined before any result for them; head-to-head is not tested again (S, TS). §2 to §3e unchanged and pinned.
 - 2026-10-26 — §4: WL / WLC's home-edge step made safe after a review (planted league: a warm start from a Monday with no finite best a stuck at -2e15); §3f's definitions and every answer they define unchanged; §2 to §3f unchanged and pinned.
+- 2026-10-26 — §3g T73 added at Sam's instruction ("instead of having it need 300 scored prediction can we just use games from last season and the ones played this season for both cfb and nfl"): the verdict counts every 2025-2026 walk-forward prediction for the eighteen challengers defined before any of their results existed, and only games after registration for the eight shaped on them; the floor counts only predictions that differ from the champion's; one branch to the largest mean d. Written before any result under it; §2 to §3f unchanged and pinned (§3g names what it replaces).
+- 2026-10-26 — §4: §3g's build readings recorded after a review (nothing counted before a challenger's registration Monday; "differs" is exact; the floor counts the eight's scored predictions only; P and T's withdrawal window fixed; the tie-break on the printed numbers; one branch or none). §2 to §3g unchanged and pinned.
+- 2026-10-27 — §4 after a second review: the tie-break reading on the printed 6 decimals struck (it could give the branch to the smaller mean d; the order now reads the unrounded numbers, §3g's own rule); the email's no-branch and tie sentences corrected; two readings flagged for Sam ("differs" once any training row has an input; a withdrawal recomputed after a switch), code unchanged for both. §2 to §3g unchanged and pinned.

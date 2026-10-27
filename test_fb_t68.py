@@ -233,8 +233,10 @@ eq([R.registration("WX", G1), R.registration("AV", G1)], ["2026-10-19", "2026-10
 
 
 def res(name):
+    # `[Sam, 2026-10-26]` T73 (§3g): the verdict reads `counted` (~~`scored`~~), its floor the predictions
+    #    that differ from the champion's.
     return {"name": name, "registered": "2026-10-19", "withdrawn": False,
-            "scored": {"predictions": 300, "mean_d": 0.05, "p": 0.0021}}
+            "counted": {"predictions": 300, "differing": 300, "mean_d": 0.05, "p": 0.0021}}
 
 
 al = {lg: R.verdicts([res(n) for n, c in FC.CHALLENGERS.items() if c["league"] == lg])[0]["alpha"]

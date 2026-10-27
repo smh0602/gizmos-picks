@@ -3,6 +3,11 @@
 `[Sam, 2026-10-12]` "how do we make sure the model knows these teams better
 than they do or in the least is learning how to do so". T65, frozen in
 `research/fb_refit_spec.md` §2 before any challenger result.
+`[Sam, 2026-10-26]` T73 (§3g): *"instead of having it need 300 scored prediction
+can we just use games from last season and the ones played this season for both
+cfb and nfl"*. The verdict reads each challenger's COUNTED predictions: every
+2025-2026 walk-forward week, except for the eight shaped on those games
+(`SCORED_ONLY`), which still count only the weeks from registration.
 
     python fb_refit.py weekly     # both leagues -> data/<lg>/latest/fb-refit.json
 
@@ -35,9 +40,19 @@ ROOT = FM.ROOT
 LEAGUES = (("nfl", "NFL"), ("ncaaf", "College"))
 SEASON = 2026                        # the scoreboard's season
 REGISTERED_FROM = "2026-10-19"       # ⛔ §2: the first Monday after T65's PR
-MIN_SCORED = 300                     # ⛔ §2
+# ⛔ §2; `[Sam, 2026-10-26]` §3g: ~~300 scored predictions~~ 300 COUNTED predictions in which
+#    the challenger's prediction differs from the champion's (one equal to it carries no evidence).
+MIN_SCORED = 300
 ALPHA = 0.01                         # ⛔ §2, divided by the league's registered count
 WITHDRAW_ALPHA = 0.05                # ⛔ §2, P and T only
+# ⛔ §3g, FROZEN: the eight still judged only on games after registration (§2), each designed or
+#    registered after its results on these same games were seen. Every other challenger counts
+#    every walk-forward week of the stored seasons (`fb_model.SEASONS`). test_fb_refit_counted.py
+#    pins this list to §3g's own text.
+SCORED_ONLY = ("S", "TS", "AV", "AVC", "AT", "ATC", "SM", "SMC")
+# ⛔ §3g: P and T's withdrawal reads §2's history window, the weeks before 2026-10-19, fixed:
+#    a champion switch moves `scored_from`, never this.
+WITHDRAW_BEFORE = "2026-10-19"
 Z90 = 1.645
 
 
@@ -144,43 +159,61 @@ def registration(name, root=ROOT, added=None):
     return max(start, monday_on_or_after(day)) if day else None
 
 
-def test(pairs):
+def test(pairs, exact=False):
+    """`exact`: also the unrounded mean d and p (`mean_d_exact`, `p_exact`), the numbers §3g's
+    order of several WINS reads (`branch_order`); the report prints the rounded ones."""
     d = [a - b for a, b, _g in pairs]
     n, mean, _t, p, G = mlb_refit.paired_test_clustered(d, [g for _a, _b, g in pairs])
     _n, _m, _t2, p_wrong, _G = mlb_refit.paired_test_clustered([-x for x in d], [g for *_x, g in pairs])
     r = lambda v: None if v is None else round(v, 6)  # noqa: E731
-    return {"predictions": n, "games": G, "mean_d": r(mean), "p": r(p), "p_wrong_way": r(p_wrong),
-            "champion_log_loss": r(sum(a for a, _b, _g in pairs) / n) if n else None,
-            "challenger_log_loss": r(sum(b for _a, b, _g in pairs) / n) if n else None}
+    out = {"predictions": n, "games": G, "mean_d": r(mean), "p": r(p), "p_wrong_way": r(p_wrong),
+           "champion_log_loss": r(sum(a for a, _b, _g in pairs) / n) if n else None,
+           "challenger_log_loss": r(sum(b for _a, b, _g in pairs) / n) if n else None}
+    if exact:
+        out.update(mean_d_exact=mean, p_exact=p)
+    return out
 
 
-def contest(rows, champ, name, start, registered, fits=None):
-    """One challenger: history (weeks before `start`) and scored (from it on)."""
+def contest(rows, champ, name, start, registered, fits=None, entered=True):
+    """One challenger: history (weeks before `start`) and scored (from it on), kept for information.
+    `[Sam, 2026-10-26]` §3g: the verdict reads `counted`: EVERY walk-forward prediction for a
+    challenger not in SCORED_ONLY (`counts` "all"), only the scored weeks for one in it ("scored"),
+    nothing before its registration Monday (`entered` False) and nothing once WITHDRAWN.
+    `differing` is how many of them differ from the champion's (§3g's floor). P and T's
+    withdrawal reads the weeks before WITHDRAW_BEFORE, whatever `start` a champion switch set."""
     c = FC.CHALLENGERS[name]
     out = {"name": name, "what": c["what"], "markets": list(c["markets"]), "registered": registered,
-           "scored_from": start}
+           "scored_from": start, "counts": "scored" if name in SCORED_ONLY else "all"}
     if not registered:
         return dict(out, verdict="NO DATA")
     fits = fits or Fits(rows, challenger_feat(name))
-    hist, scored = [], []
+    preds = []                                   # (Monday, (champion loss, challenger loss, game), differs)
     for mk in c["markets"]:
         a = champ.predictions(mk)
         # `[R1, 2026-10-18]` only the games the champion prices: a pair needs both, so this
         #    changes no number, and H / HC no longer fit every history-row Monday (test_fb_refit §16).
         for gid, (p_x, y, wk, _r) in fits.predictions(mk, lambda r: r["id"] in a).items():
             if gid in a:
-                (scored if wk >= start else hist).append((loss(a[gid][0], y), loss(p_x, y), gid))
-    out["history"] = test(hist)
-    h = out["history"]
+                preds.append((wk, (loss(a[gid][0], y), loss(p_x, y), gid), p_x != a[gid][0]))
+    scored = [x for x in preds if x[0] >= start]
+    out["history"] = test([pair for wk, pair, _df in preds if wk < start])
+    h = test([pair for wk, pair, _df in preds if wk < WITHDRAW_BEFORE]) if c["withdrawable"] else None
     out["withdrawn"] = bool(c["withdrawable"] and h["mean_d"] is not None and h["mean_d"] < 0
                             and h["p_wrong_way"] is not None and h["p_wrong_way"] < WITHDRAW_ALPHA)
-    out["scored"] = test([] if out["withdrawn"] else scored)
+    if h is not None:
+        out["withdrawal_window"] = dict(h, before=WITHDRAW_BEFORE)
+    out["scored"] = test([] if out["withdrawn"] else [pair for _wk, pair, _df in scored])
+    counted = [] if out["withdrawn"] or not entered else scored if name in SCORED_ONLY else preds
+    out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=True),
+                          differing=sum(1 for _wk, _pair, df in counted if df))
     return out
 
 
 def verdicts(results):
-    """§2: WINS needs MIN_SCORED predictions, mean d > 0 and p < ALPHA / the
-    number of challengers registered and not withdrawn in the league."""
+    """§2: WINS needs ~~MIN_SCORED predictions~~, mean d > 0 and p < ALPHA / the
+    number of challengers registered and not withdrawn in the league (k, unchanged).
+    `[Sam, 2026-10-26]` §3g: on the COUNTED predictions (contest), at least MIN_SCORED
+    of them differing from the champion's; the test itself runs over all of them."""
     k = sum(1 for x in results if x["registered"] and not x.get("withdrawn"))
     for x in results:
         if not x["registered"]:
@@ -188,10 +221,10 @@ def verdicts(results):
         x["alpha"] = ALPHA / k if k else None
         if x.get("verdict") == "NOT APPLICABLE":      # §4: counted in k, never scored
             continue
-        s = x["scored"]
+        s = x["counted"]
         if x["withdrawn"]:
             x["verdict"] = "WITHDRAWN"
-        elif s["predictions"] < MIN_SCORED:
+        elif s["differing"] < MIN_SCORED:
             x["verdict"] = "NOT YET MEASURABLE"
         elif s["mean_d"] > 0 and s["p"] is not None and s["p"] < x["alpha"]:
             x["verdict"] = "WINS"
@@ -329,6 +362,10 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     since = (prev or {}).get("champion_since")
     if prev is not None and prev.get("champion") != champion:
         since = monday_on_or_after(today)          # §2: scored weeks restart at the next Monday
+    # `[Sam, 2026-10-26]` §3g: `since` cuts only the scored weeks (SCORED_ONLY's count restarts);
+    #    every other challenger is judged against the new champion over every week, and the
+    #    withdrawal window stays the weeks before WITHDRAW_BEFORE. Before its registration
+    #    Monday a challenger has not entered the contest: nothing is counted for it yet.
     champ = Fits(rows, FM.features)
     res = []
     for n in names:
@@ -340,12 +377,14 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
                         "why": "its frozen inputs cannot be built against champion %s" % champion})
             continue
         res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
+                           entered=bool(reg) and reg <= today,
                            fits=challenger_fits(rows, n, lg, root) if reg else None))
     sb = {mk: gap(list(champ.predictions(mk, lambda r: r["season"] == SEASON).values()), mk)
           for mk in FM.MARKETS}
     return {"league": lg, "kind": "DESCRIPTIVE", "spec": "research/fb_refit_spec.md",
             "built_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "champion": champion,
-            "champion_since": since, "season": SEASON, "scoreboard": sb, "miss": misses(rows),
+            "champion_since": since, "season": SEASON, "floor": MIN_SCORED,
+            "scoreboard": sb, "miss": misses(rows),
             "line_moves": line_moves(rows, champ, snapshots(lg, root)),
             "challengers": verdicts(res)}
 
@@ -430,6 +469,26 @@ def push_change(prefix, branch, edit, message, root=ROOT, run=subprocess.run):
     return branch, True
 
 
+def branch_order(results):
+    """`[Sam, 2026-10-26]` §3g: every WINS, the one that gets the league's one branch first: the
+    largest mean d over its counted predictions; a tie, the smaller p, then the earlier name in
+    `fb_challengers.CHALLENGERS`. The others are reported, and get no branch.
+    ~~⚠️ `[review, 2026-10-26]` Ordered on the numbers the report prints (`test()` rounds mean d
+    and p to 6 decimals), so Sam can check it from the report: two mean d's within 1e-6 are a
+    tie and go to the smaller p (two p's that round to 0 are a tie too), then the name.~~
+    `[2026-10-27, review 2]` That let a non-frozen reading change the frozen rule's answer: two
+    WINS with mean d 0.0200004 and 0.0199996 both print 0.02, and the branch went by the name to
+    the SMALLER mean d. Ordered on the unrounded numbers (`counted`'s `mean_d_exact`, `p_exact`,
+    stored in the report; the rounded ones where a report has none); the email says when the
+    printed numbers tie (status.ahead)."""
+    order = list(FC.CHALLENGERS)
+
+    def rank(x):
+        c = x["counted"]
+        return (-c.get("mean_d_exact", c["mean_d"]), c.get("p_exact", c["p"]), order.index(x["name"]))
+    return sorted((x for x in results if x.get("verdict") == "WINS"), key=rank)
+
+
 def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     for lg, _name in LEAGUES:
@@ -440,8 +499,12 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
             with open(path, encoding="utf-8") as fh:
                 prev = json.load(fh)
         doc = league(lg, root, now, prev=prev, added=added)
+        wins = branch_order(doc["challengers"])
         for x in doc["challengers"]:
             if x["verdict"] == "WINS":
+                if x is not wins[0]:          # §3g: every WINS is reported; ONE branch, to the first
+                    x["branch"], x["branch_pushed"], x["outranked_by"] = None, False, wins[0]["name"]
+                    continue
                 x["branch"], x["branch_pushed"] = push_branch(lg, x["name"], now.strftime("%Y-%m-%d"), root, run)
                 if not x["branch"]:
                     c = FM.CHAMPION.get(lg)
