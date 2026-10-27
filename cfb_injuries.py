@@ -235,6 +235,48 @@ def pick_cutoff(kickoff):
         - datetime.timedelta(seconds=1)
 
 
+# 🔴 `[Sam, 2026-10-26]` A GAME STILL TO START READS THE NEWEST REPORT AT THE BUILD.
+#    Asked "Should college's injury adjustment use the 12pm/7pm reports, or the 9am one it
+#    was tested on?", Sam answered *"do 9am, 12pm, 7pm"*: the game-day injury check
+#    (freshness.INJURY_CHECK_ET) reads the reports at 9am, 12pm and 7pm ET and rebuilds the
+#    model, and a game that has NOT kicked off at that build reads the newest report as of
+#    the build. Everything else about the reading is §3's tested rule, unchanged (`_eligible`,
+#    `_judge` with live=False, the 36-hour published rule, the archive's night-before column,
+#    both teams needed, None never zero). Before 9:00 ET it IS §3's reading.
+#    ⛔ A game that has kicked off, or `now` None (training rows, fb_inj_backtest, which never
+#    pass it), keeps §3's 9:00 cut exactly: what was tested does not move.
+#    🔴 `[2026-10-26, review]` AND THE RECORD READS WHAT THE SITE SHOWED ("THE MODEL PICKS RECORD
+#    GRADES WHAT THE SITE SHOWS", Sam 2026-10-16): a played game is ALSO read at the moment of
+#    the last build before its kickoff (`attach(shown_at=)`, from the ledger's last snapshot
+#    that looked at it, fb_ledger.looked_moments) into `inj_shown`, which only the record's
+#    replay reads (fb_model.as_shown). Training still reads `inj`, §3's 9:00 cut.
+#    🔴 `[2026-10-27, review 2]` ...READ AT THAT BUILD'S OWN MOMENT (`shown_cut`), never at
+#    `read_cut`'s later 9:00 cut. Live, max(9:00 cut, the build) is harmless: no report fetched
+#    after the build exists on disk yet. Replayed, every later report exists, so a build before
+#    9:00 ET (the 9am and 12pm checks did not run, or the game left later builds' list) was read
+#    as of 9:00, and a kickoff before 9:00 ET as of its kickoff: reports that build never saw,
+#    and the record graded picks the site never showed (test_injury_check.py §4, the property).
+def read_cut(kickoff, now=None):
+    """The moment a game's report is read at: §3's `pick_cutoff`, or, for a game that has
+    not kicked off at the build moment `now`, the later of that and `now` (the report read is
+    always one fetched before the kickoff, `_eligible`). ⛔ The live read only: a replay of a
+    build reads at `shown_cut`."""
+    cut, k = pick_cutoff(kickoff), _utc(kickoff)
+    if cut is None or now is None or k is None or k <= now:
+        return cut
+    return max(cut, now)
+
+
+def shown_cut(kickoff, at):
+    """The moment the record's replay reads a game that a build at `at` read: `at` itself
+    while the game had not kicked off by then (a build at `at` saw exactly the reports
+    fetched by `at`, and no later one existed to read), else `read_cut`'s §3 cut."""
+    t, k = _utc(at), _utc(kickoff)
+    if t is None or k is None or k <= t:
+        return pick_cutoff(kickoff)
+    return t
+
+
 def strip_images(x):
     """Every `data:` string removed, at any depth (map_feed §7)."""
     if isinstance(x, dict):
@@ -1007,15 +1049,31 @@ def _column_known(col, kickoff):
     return WEEKDAYS.index(col) < _eastern(k).weekday()
 
 
-def pick_time_outs(season, root=None):
+def pick_time_outs(season, root=None, now=None, at=None):
     """§3: {game_id: {team: [Out / Out for Season / Doubtful players]}} as
     known at pick time. From the archive: its night-before column, when that
     column was posted before the game's ET day (`_column_known`). From the
     snapshots: the report `report_for` would give for the last moment before
     9:00 am ET on the game's ET day, if it is current (not a live read). A
     snapshot's reading replaces the archive's for its teams. A team with no
-    reading is absent, ⛔ never an empty list. ⛔ Never raises."""
+    reading is absent, ⛔ never an empty list. ⛔ Never raises.
+    `[Sam, 2026-10-26]` `now`: the build moment. A game not kicked off by then
+    reads at `read_cut` (the newest report as of the build); None, every game at
+    §3's 9:00 cut, as tested. `[2026-10-26, review]` `at`: {game_id: moment}, a
+    game read as of ITS moment instead (the record's replay of what was shown);
+    `[2026-10-27, review 2]` at `shown_cut`, the moment itself, never a later cut."""
     out = {}
+    try:
+        now = _utc(now) if now is not None else None
+    except Exception:
+        now = None
+    when = {}
+    for gid, t in (at or {}).items():
+        try:
+            if _utc(t) is not None:
+                when[str(gid)] = _utc(t)
+        except Exception:
+            pass
     try:
         doc = _jz(archive_path(season, root)) or {}
         for conf, c in sorted((doc.get("conferences") or {}).items()):
@@ -1045,7 +1103,8 @@ def pick_time_outs(season, root=None):
                 continue
             for r in snap.get("reports") or []:
                 gid = str(r.get("game_id"))
-                cut = pick_cutoff(r.get("kickoff"))
+                cut = (shown_cut(r.get("kickoff"), when[gid]) if gid in when      # the replay: at its build
+                       else read_cut(r.get("kickoff"), now))                      # live: [Sam, 2026-10-26]
                 if gid not in best and cut and _eligible(r, cut):
                     best[gid] = (r, cut)
         for gid, (r, cut) in best.items():
@@ -1347,24 +1406,42 @@ class Roles:
         return qb, round(o, 4), round(d, 4)
 
 
-def attach(rows, root=None):
+def _reading(outs, r, roles):
+    """One row's {"qb", "off", "def"} from `pick_time_outs`' outs, or None (no report for BOTH
+    teams, or no defence log)."""
+    rep = outs.get(str(r.get("id"))) or {}
+    if r["home"] not in rep or r["away"] not in rep:
+        return None
+    h = roles.team_out(r["home"], rep[r["home"]], r["day"])
+    a = roles.team_out(r["away"], rep[r["away"]], r["day"])
+    return (None if h is None or a is None else
+            {"qb": (h[0], a[0]), "off": (h[1], a[1]), "def": (h[2], a[2])})
+
+
+def attach(rows, root=None, now=None, shown_at=None):
     """`fb_model.build_rows`' college rows -> r["sig"]["inj"] = {"qb": (h, a), "off": (h, a),
     "def": (h, a)}, or None when the game has no pick-time report for BOTH teams (design §3: no
-    report is no reading, never zero) or the season's defence log is not stored."""
+    report is no reading, never zero) or the season's defence log is not stored.
+    `[Sam, 2026-10-26]` `now`, the build moment, reaches `pick_time_outs`: a game still to start
+    reads the newest report as of the build ("do 9am, 12pm, 7pm"); None is §3's 9:00 reading.
+    `[2026-10-26, review]` `shown_at` ({game_id: moment of its last pre-kickoff build}, the live
+    build's only): each PLAYED game in it also gets r["sig"]["inj_shown"], its reading as of that
+    moment, so the record replays the pick the site showed (fb_model.as_shown). ⛔ `inj` is
+    untouched by it: training reads §3's cut. `[2026-10-27, review 2]` What is replayed as of
+    that moment is the REPORTS (`shown_cut`); the archive and the role files are read as
+    stored now (rewritten in place: games built before they were stored read today's copies)."""
     seasons = {}
     for r in rows:
         seasons.setdefault(r["season"], []).append(r)
     for season, rs in seasons.items():
-        outs, roles = pick_time_outs(season, root), Roles(season, root)
+        outs, roles = pick_time_outs(season, root, now), Roles(season, root)
+        played = {str(r.get("id")) for r in rs if r.get("final")} & {str(g) for g in (shown_at or {})}
+        shown = pick_time_outs(season, root, None, at={g: shown_at[g] for g in shown_at
+                                                      if str(g) in played}) if played else {}
         for r in rs:
-            rep = outs.get(str(r.get("id"))) or {}
-            if r["home"] not in rep or r["away"] not in rep:
-                r["sig"]["inj"] = None
-                continue
-            h = roles.team_out(r["home"], rep[r["home"]], r["day"])
-            a = roles.team_out(r["away"], rep[r["away"]], r["day"])
-            r["sig"]["inj"] = (None if h is None or a is None else
-                               {"qb": (h[0], a[0]), "off": (h[1], a[1]), "def": (h[2], a[2])})
+            r["sig"]["inj"] = _reading(outs, r, roles)
+            if str(r.get("id")) in played:
+                r["sig"]["inj_shown"] = _reading(shown, r, roles)
     return rows
 
 

@@ -305,7 +305,10 @@ _KNOWN = {"scores", "results", "pitchers", "hitters", "record", "gamelines",
           "game-model",
           # `[Sam, 2026-10-17]` the college injury reader: an arm in `run_mode`,
           # free, planned by converge from its probe row (test_cfb_injuries_wiring.py).
-          "cfb-injuries"}
+          "cfb-injuries",
+          # `[Sam, 2026-10-26]` the game-day injury check, both football leagues: an arm
+          # in `run_mode`, free, planned by converge from its probe row (test_injury_check.py).
+          "injury-check"}
 # ⚠️ THIS LIST IS TYPED BY HAND, AND IT ONCE CARRIED `news-archive` — a
 #    mode with no arm in `run_mode` — so this check passed while converge
 #    printed "unknown mode" on every football pass. The question "does the

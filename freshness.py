@@ -353,6 +353,22 @@ def results_settled(day, data="data"):
                                for g in games)
 
 
+class Moments(tuple):
+    """`[Sam, 2026-10-26]` A ROW'S DEADLINES AS REAL UTC MOMENTS, not ET
+    wall-clock tuples. The game-day injury check (`injury_check_times`) is due
+    at 9:00, 12:00 and 19:00 REAL Eastern time, only on a day with a game still
+    to start after the slot, so it cannot be written as `(hh, mm, {days})`:
+    those are read at the file's fixed UTC-4 (`ET_OFFSET`), an hour early from
+    November. ✅ `last_due` / `next_due` / `survey` read a Moments as it is:
+    the newest moment at or before `now`, the first one after it, and `label`
+    for the survey's `due_et`. ⛔ Every other row keeps its tuples untouched."""
+
+    def __new__(cls, moments=(), label=""):
+        self = tuple.__new__(cls, sorted(moments))
+        self.label = label
+        return self
+
+
 def last_due(times_et, now=None):
     """The most recent scheduled build time that has already passed.
 
@@ -373,8 +389,12 @@ def last_due(times_et, now=None):
     ⛔ LOOK BACK FAR ENOUGH TO FIND ONE. A weekly deadline can be six days
     behind, so the 2-day window that served daily MLB artifacts would
     return None and mark a perfectly fresh weekly file as never-due.
+    `[2026-10-26]` A `Moments` is real UTC already: its newest moment at or
+    before `now`.
     """
     now = now or datetime.datetime.now(UTC)
+    if isinstance(times_et, Moments):
+        return max((m for m in times_et if m <= now), default=None)
     et = now - ET_OFFSET
     best = None
     for back in range(0, 8):
@@ -395,8 +415,11 @@ def next_due(times_et, now=None):
     """The next scheduled build time strictly after `now` — `last_due`'s
     mirror, same day rules and the same fixed ET offset. None if none in a
     week. `[2026-09-24]` The alt-line pull buys each game at the LAST props
-    deadline before its kickoff, so it asks whether another one comes first."""
+    deadline before its kickoff, so it asks whether another one comes first.
+    `[2026-10-26]` A `Moments`: its first moment after `now`."""
     now = now or datetime.datetime.now(UTC)
+    if isinstance(times_et, Moments):
+        return min((m for m in times_et if m > now), default=None)
     et = now - ET_OFFSET
     best = None
     for fwd in range(0, 8):
@@ -799,9 +822,13 @@ def kickoffs_utc(league, path):
     rather than hiding one, **but a four-hour error is a four-hour error
     and it is fixed here, in one place, for every caller.**
     ⚠️ Winter matters: ET is UTC-5 from November, and the NFL plays into
-    January. Real `zoneinfo` is used where it exists and the file's fixed
+    January. Real `zoneinfo` is used where it exists and ~~the file's fixed
     -4 is the fallback, which is an hour off in the winter and SAID SO
-    rather than assumed away.
+    rather than assumed away~~ `[2026-10-26]` the fallback is the US
+    daylight-time rule, computed (`et_wall_utc`), so a platform with no tz
+    database (Windows) reads a November 1pm kickoff as 18:00Z, not 17:00Z:
+    the game-day injury check decides from these kickoffs which of its
+    slots a game still needs (test_injury_check.py).
 
     Returns aware UTC datetimes, or **None if the schedule cannot be read**
     -- and None means *cannot tell*, never *nothing to do*.
@@ -847,8 +874,168 @@ def kickoff_games(league, path):
         elif zone is not None:
             k = t.replace(tzinfo=zone).astimezone(UTC)
         else:
-            k = t.replace(tzinfo=UTC) + ET_OFFSET
+            k = et_wall_utc(t)          # ~~t.replace(tzinfo=UTC) + ET_OFFSET~~ [2026-10-26]
         out.append((k, g))
+    return out
+
+
+def _us_eastern_offset(naive):
+    """-4 inside US daylight time (second Sunday of March 02:00 to first Sunday
+    of November 02:00, the rule since 2007), else -5. ⛔ Computed, not looked up:
+    no tz database is assumed on the runner.
+    `[2026-10-26]` ⛔ THE ONE COPY (rule 117), moved here unchanged from
+    fb_weather.py, which reads it from here (and cfb_injuries from fb_weather).
+    ⛔ freshness.py imports no other repo module: tests and the gate copy it into
+    sandboxes by itself, and the first build of the injury check, importing this
+    from fb_weather, killed every football contract there (test_injury_check.py)."""
+    y = naive.year
+    mar = datetime.datetime(y, 3, 8) + datetime.timedelta(days=(6 - datetime.datetime(y, 3, 8).weekday()) % 7)
+    nov = datetime.datetime(y, 11, 1) + datetime.timedelta(days=(6 - datetime.datetime(y, 11, 1).weekday()) % 7)
+    return -4 if mar.replace(hour=2) <= naive < nov.replace(hour=2) else -5
+
+
+def et_wall_utc(naive):
+    """`[2026-10-26]` US Eastern wall-clock time (naive) -> real UTC, by the US
+    daylight-time rule (`_us_eastern_offset`, the rule cfb_injuries and the NWS
+    forecasts already use), computed rather than looked up, so a runner or a
+    laptop without a tz database gets the same answer as one with it."""
+    return (naive - datetime.timedelta(hours=_us_eastern_offset(naive))).replace(tzinfo=UTC)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE GAME-DAY INJURY CHECK: 9AM, 12PM AND 7PM REAL EASTERN TIME.
+#    `[Sam, 2026-10-26]`
+# ══════════════════════════════════════════════════════════════════════
+# Sam: *"make sure we're looking at injury status at 12pm of games starting and
+# 7pm so we can make sure the models adjusted for injuries when deciding outcome
+# for a vame"*; asked whether college's adjustment should read the 12pm/7pm
+# reports or the 9am one it was tested on: *"do 9am, 12pm, 7pm"*.
+# ✅ ONE ROW PER LEAGUE (`injury-check`, its probe `latest/injury-check.json`),
+#    due at each of these slots on an ET day with a game still to kick off
+#    AFTER the slot. The mode reads the injury reports (the NFL's nflverse
+#    report and game-day inactives, college's conference reports) and
+#    `CASCADE` rebuilds the card in the same pass, so the game model, the Game
+#    Lines tab, the card and its whys are rebuilt with the status as of the
+#    check. ⛔ NO CRON CHANGE: the hourly football pass converges both leagues
+#    and plans it from this row, like the college reader's.
+# ⚠️ REAL EASTERN TIME, NOT `ET_OFFSET`: 12:00 is 16:00Z under daylight time
+#    and 17:00Z from 2026-11-01 (`et_wall_utc`). The rest of the contract still
+#    reads the fixed UTC-4; moving it is a separate change.
+# ⛔ A SLOT WHOSE LATER GAMES HAVE ALL STARTED IS OWED NOTHING: a late pass does
+#    no pointless work for it. ~~and nothing reports it as missed~~ `[2026-10-26,
+#    review]` It is not lost: the probe keeps an 8-day log of every slot's attempts
+#    (`collect.collect_injury_check`), and the Monday status counts, from it and the
+#    schedule, the checks that ran, failed or never ran before their games
+#    (`injury_check_history`). A count in the weekly, never a finding.
+INJURY_CHECK_ET = ((9, 0), (12, 0), (19, 0))
+# 🔴 `[2026-10-26, review]` ONE RETRY WITHIN THE SLOT. A check that read nothing (every source
+#    failed, or it raised: the probe's `ok` false) is owed once more while its slot is still
+#    owed, so one transient 403 or timeout at 12:3x no longer costs the noon reading. ⛔ ONCE:
+#    a second failure waits for the next slot, never every pass (each retry rebuilds the card).
+#    `[2026-10-27, review 2]` ⛔ PLANNED, NEVER MARKED STALE (`injury_retry`, like `slate_moves`):
+#    ~~a retry moment one second after the failed attempt~~ made the row stale at the end of the
+#    very pass that failed, so freshness.json said ok:false and the watchdog raised a `fresh:`
+#    finding over one failed attempt. Only INJURY_FAILED_SLOTS failed slots are a warning.
+INJURY_RETRIES = 1
+INJURY_LOG_DAYS = 8               # the probe's slot log, and the weekly's window inside it
+
+
+def _et_today(now):
+    """The real Eastern date `now` falls on."""
+    for d in sorted({(now - datetime.timedelta(hours=h)).date() for h in (4, 5)}):
+        nxt = d + datetime.timedelta(days=1)
+        if et_wall_utc(datetime.datetime(d.year, d.month, d.day)) <= now < \
+                et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day)):
+            return d
+    return (now - ET_OFFSET).date()          # unreachable: one of the two holds
+
+
+def injury_check_slots(league, latest, now=None):
+    """-> [("hh:mm" ET, real UTC moment)] of TODAY's (ET) injury-check slots a
+    game still needs: one kicking off on this ET day AFTER the slot that has
+    not kicked off by `now` (college counts a game with an FBS side, as every
+    college row does). ⛔ An UNREADABLE schedule is CANNOT TELL, and cannot-tell
+    keeps every slot of the day owed (the `_props_warranted` rule).
+    `[2026-10-26, review]` ⛔ A season whose schedule is not STORED yet (August 1st
+    names the new season before its file lands) owes nothing: it has no game to
+    check for, and owing every slot would rebuild both cards three times a day."""
+    now = now or datetime.datetime.now(UTC)
+    day = _et_today(now)
+    nxt = day + datetime.timedelta(days=1)
+    start = et_wall_utc(datetime.datetime(day.year, day.month, day.day))
+    end = et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day))
+    path = f"{latest}/schedule-{current_football_season(now)}.json.gz"
+    if not os.path.exists(path):          # no stored schedule for the season: nothing owed
+        return []
+    games = kickoff_games(league, path)
+    kicks = None if games is None else [k for k, _g in games if start <= k < end and k > now]
+    out = []
+    for hh, mm in INJURY_CHECK_ET:
+        slot = et_wall_utc(datetime.datetime(day.year, day.month, day.day, hh, mm))
+        if kicks is None or any(k > slot for k in kicks):
+            out.append(("%d:%02d" % (hh, mm), slot))
+    return out
+
+
+def injury_check_times(league, latest, now=None):
+    """The injury-check row's deadlines: `injury_check_slots` as `Moments`.
+    ~~plus `[2026-10-26, review]` ONE retry moment (INJURY_RETRIES) just after a
+    failed attempt~~ `[2026-10-27, review 2]` the retry is planned, never a
+    deadline (`injury_retry`)."""
+    now = now or datetime.datetime.now(UTC)
+    moments = [m for _l, m in injury_check_slots(league, latest, now)]
+    return Moments(moments, label="/".join("%d:%02d" % t for t in INJURY_CHECK_ET) + " real ET, game days")
+
+
+def injury_retry(data="data", now=None):
+    """`[2026-10-26, review]` ONE RETRY (INJURY_RETRIES) of a check that read nothing at the
+    newest owed slot, read from its probe (`ok`, `slot.attempt`). -> {"injury-check"} or set().
+    `[2026-10-27, review 2]` ⛔ PLANNED, NEVER MARKED STALE (`plan`, like `slate_moves`): one
+    failed attempt reads fresh, and only INJURY_FAILED_SLOTS failed slots are a warning."""
+    lg = data.replace(os.sep, "/").rstrip("/").split("/")[-1]
+    if lg not in FB_TIMES:
+        return set()
+    now = now or datetime.datetime.now(UTC)
+    latest = f"{data}/latest"
+    served = max((m for _l, m in injury_check_slots(lg, latest, now) if m <= now), default=None)
+    pr = _load(f"{latest}/injury-check.json")
+    sl = (pr.get("slot") if isinstance(pr, dict) and isinstance(pr.get("slot"), dict) else None) or {}
+    at = _parse(pr.get("checked_at")) if isinstance(pr, dict) else None
+    if (served is not None and isinstance(pr, dict) and pr.get("ok") is False
+            and _parse(sl.get("utc")) == served and at is not None and at >= served
+            and (sl.get("attempt") or 1) <= INJURY_RETRIES):
+        return {"injury-check"}
+    return set()
+
+
+def injury_check_history(league, latest, log, since, now=None):
+    """`[2026-10-26, review]` -> [{"day", "et", "utc", "games", "attempts", "ok_at",
+    "started"}]: every slot from ET day `since` (a date) to `now` that a game came after
+    (`injury_check_slots` at the day's start), joined to the probe's slot log (`log`,
+    {utc: {"attempts", "ok_at"}}). `games`: how many games kicked off that ET day after
+    the slot; `open`: how many of them have not kicked off at `now` (a slot with none
+    open and no attempt was MISSED; with some, it may still run); `started`: how many had
+    kicked off at its first successful attempt (None when none succeeded). The Monday
+    status counts from it. ⛔ Reads only."""
+    now = now or datetime.datetime.now(UTC)
+    out, day = [], since
+    while day <= _et_today(now):
+        t0 = et_wall_utc(datetime.datetime(day.year, day.month, day.day))
+        nxt = day + datetime.timedelta(days=1)
+        t1 = et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day))
+        games = kickoff_games(league, f"{latest}/schedule-{current_football_season(t0)}.json.gz") or []
+        kicks = [k for k, _g in games if t0 <= k < t1]
+        for et, slot in injury_check_slots(league, latest, t0):
+            if slot > now:
+                continue
+            e = (log or {}).get(slot.strftime("%Y-%m-%dT%H:%MZ")) or {}
+            ok = _parse(e.get("ok_at"))
+            after = [k for k in kicks if k > slot]
+            out.append({"day": day.isoformat(), "et": et, "utc": slot.strftime("%Y-%m-%dT%H:%MZ"),
+                        "games": len(after), "open": sum(1 for k in after if k > now),
+                        "attempts": int(e.get("attempts") or 0), "ok_at": e.get("ok_at"),
+                        "started": None if ok is None else sum(1 for k in after if k <= ok)})
+        day = nxt
     return out
 
 
@@ -956,6 +1143,14 @@ def _football_contract(league, data, picks, now):
     #    in the same pass reads this pass's reports. `[2026-10-17, review]` placed before the
     #    card rows only, a props pass built the card on the previous pass's reports.
     #    ✅ SOFT (see SOFT): a failed read costs a why sentence, never a card.
+    # 🔴 `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK, BOTH LEAGUES (INJURY_CHECK_ET): due at
+    #    9:00, 12:00 and 19:00 real ET on a day with a game still to kick off after the slot,
+    #    on its own probe (written on every attempt). ⛔ BEFORE EVERY CARD-BUILDING MODE, like
+    #    the college reader (which stays first, so a check in the same pass reuses its read),
+    #    and `CASCADE` puts `card-fb` after it. ✅ SOFT, and never in lateness.json (UNTIMED).
+    rows = [("injury-check", ("file", f"{latest}/injury-check.json"),
+             injury_check_times(league, latest, now), False,
+             "Game-day injury check — 9am, 12pm, 7pm ET, then the card is rebuilt")] + rows
     if league == "ncaaf":          # college only: the NFL's injuries ride nfl-logs
         rows.insert(0,
             ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
@@ -1196,6 +1391,9 @@ def _football_contract(league, data, picks, now):
     _yrs = sorted(set(FOOTBALL_HISTORY) | {season})
     _store = [(f"weather-{season}", T["possession"])]
     if league == "nfl":
+        # ⛔ `[2026-10-26, review]` THE 3AM DEADLINE STAYS: nfl-logs rewrites the file every
+        #    day (its `built_at` is when nflverse last answered), so an outage reads stale here.
+        #    Only the game-day check skips an unchanged rewrite (nfl.store_injuries).
         _store += [(f"injuries-{s}", T["possession"] if s == season else []) for s in _yrs]
     else:
         _store += [(f"adv-{s}", T["possession"] if s == season else []) for s in _yrs]
@@ -1515,6 +1713,16 @@ SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
 #    `cfb_injuries.run` never raises; SOFT covers the rest (its import, the
 #    arm), so a failed read is a `::warning::` and the pass goes on to the card.
 SOFT |= {"cfb-injuries"}
+# `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK (INJURY_CHECK_ET), both leagues. A failed
+#    read costs that check's statuses (the NFL's are stored only; college's model reads the
+#    newest report it has), never a card: the card-fb it cascades to stays hard.
+SOFT |= {"injury-check"}
+# ⛔ `[2026-10-26]` ROWS lateness.json DOES NOT RECORD (`record_builds`). The injury check's
+#    slot is served by whichever football pass lands first after it, and GitHub starts those
+#    passes 34 minutes after noon (p50) and 59 after 7pm, 145 at p90 (measured 10-03 -> 10-26):
+#    recorded, it would be a `late:` finding (DEGRADED) on most game-day evenings with nothing
+#    to repair. The probe keeps each check's own `late_min` instead.
+UNTIMED = {"injury-check"}
 # 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
 #    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
@@ -1660,8 +1868,60 @@ def _defense_health(path, now):
     return None
 
 
+# 🔴 `[2026-10-26, review]` THE GAME-DAY CHECK'S OWN SOURCES. Its probe is written on every
+#    attempt, so a check whose nflverse reads failed for days read fresh, and nothing said so (the
+#    game-day inactives are fetched by the check alone). A source that has failed at
+#    INJURY_FAILED_SLOTS slots in a row (each slot's retry included) is named. ⛔ Judged only while
+#    the checks are running (the newest within IN_SEASON_D days): the off-season is no warning.
+#    ⛔ The NFL's probe only: college's check reads through the conference reader, whose own
+#    probe is judged above (`_injury_probe_health`); judging it twice is two alarms for one fault.
+#    `[2026-10-27, review 2]` (its SOURCES only; see THE CHECK ITSELF below)
+#    ⛔ REPORTED, NEVER REPLANNED (REPORT_ONLY_HEALTH): a re-run cannot answer it before the next
+#    slot, and each one would rebuild the card (CASCADE) and hit a source that is down.
+# 🔴 `[2026-10-27, review 2]` THE CHECK ITSELF, BOTH LEAGUES, WHATEVER THE CAUSE. Counting sources
+#    only, a check that raised in OUR code at every slot (its sources answered, `ok` false) read
+#    fresh and nothing said so: the specific case closed, not the class. So the probe's slot log
+#    is judged too: when each of the last INJURY_FAILED_SLOTS slots that ran has attempts and no
+#    `ok_at`, the check read nothing there, and that is named (with the last error, if ours),
+#    until an attempt reads something again (the probe's `ok`, any run).
+#    Only slots count: a run that served no slot (the first pass after a merge, a manual run) is
+#    in no slot's log and in no source's `failing_slots` (collect.collect_injury_check).
+INJURY_FAILED_SLOTS = 2
+
+
+def _injury_check_health(path, now):
+    """The game-day injury check's probe (collect.collect_injury_check)."""
+    doc = _load(path)
+    if not isinstance(doc, dict):
+        return None                       # a missing probe already reads MISSING
+    at = _parse(doc.get("checked_at"))
+    if at is None or now - at > datetime.timedelta(days=IN_SEASON_D):
+        return None
+    bad = []
+    log = doc.get("log") if isinstance(doc.get("log"), dict) else {}
+    ran = [(k, v) for k, v in sorted(log.items()) if isinstance(v, dict) and (v.get("attempts") or 0)]
+    last = ran[-INJURY_FAILED_SLOTS:]
+    if (doc.get("ok") is not True                     # the newest attempt, slot or not, read nothing too
+            and len(last) >= INJURY_FAILED_SLOTS and not any(v.get("ok_at") for _k, v in last)):
+        bad.append("the last %d game-day checks read nothing (%s)%s" % (
+            len(last), ", ".join("%s ET on %s" % (v.get("et"), _et_today(_parse(k)) if _parse(k) else k[:10])
+                                 for k, v in last),
+            "; the last attempt raised %s" % doc["error"] if doc.get("error") else ""))
+    if "/nfl/" in "/" + str(path).replace(os.sep, "/"):      # college's sources: the reader's probe
+        for s, v in sorted((doc.get("sources") if isinstance(doc.get("sources"), dict) else {}).items()):
+            n = len(v.get("failing_slots") or []) if isinstance(v, dict) else 0
+            if n >= INJURY_FAILED_SLOTS:
+                bad.append(f"{s} has not answered at the last {n} game-day checks "
+                           f"(since {v.get('failing_since')}; last answered {v.get('last_ok_at')})")
+    return ("game-day injury check: " + "; ".join(bad)) if bad else None
+
+
 HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_probe_health),
-          (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health))
+          (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health),
+          (re.compile(r"/(?:nfl|ncaaf)/latest/injury-check\.json$"), _injury_check_health))
+# Modes whose `health` finding is reported (stale: a soft warning, a `fresh:` finding) but
+# never planned again (`plan`). See INJURY_FAILED_SLOTS.
+REPORT_ONLY_HEALTH = {"injury-check"}
 
 
 def health(path, now=None):
@@ -1999,6 +2259,11 @@ CASCADE = {
     "gamelines":     ["props-board"],
     "results":       ["record"],
     "scores":        ["record"],
+    # 🔴 `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK REBUILDS THE CARD IN THE SAME PASS:
+    #    the game model, the Game Lines tab, the card and its whys, with the status as of the
+    #    check. ⛔ NOT `cfb-injuries`: it is planned on every college pass Wed-Sat, and a
+    #    card rebuild on every pass is not what Sam asked for (test_injury_check.py).
+    "injury-check":  ["card-fb"],
 }
 
 
@@ -2030,7 +2295,7 @@ def survey(data="data", picks="picks", now=None, entries=None):
             # ⚠️ A deadline may carry the days it applies on. The label
             # says so, because "12:00" and "Mon 12:00" are different
             # promises and a reader is entitled to know which.
-            "due_et": "/".join(
+            "due_et": times.label if isinstance(times, Moments) else "/".join(
                 (f"{t[0]}:{t[1]:02d}" if len(t) < 3 else
                  f"{'/'.join(_DOW[d] for d in sorted(t[2]))} {t[0]}:{t[1]:02d}")
                 for t in times),
@@ -2067,6 +2332,8 @@ def survey(data="data", picks="picks", now=None, entries=None):
 #    usual 10-15 minute delay; 10-06's card was 122 minutes late.
 # ⛔ A row whose deadline is a MAXIMUM AGE (`LATE_GRACE_MIN`: the hourly run
 #    list) has no time it was due, so it is not recorded.
+# ⛔ `[2026-10-26]` Nor is an UNTIMED row (the game-day injury check): its probe keeps
+#    its own lateness, and GitHub's start delay is not a finding about it.
 GRACE_MIN = 60
 LATENESS_FILE = "lateness.json"
 
@@ -2082,7 +2349,7 @@ def record_builds(rows, path, now=None):
         arts, late = {}, []
     for r in rows:
         if (r.get("due_at") is None or r.get("stale") or r.get("age_min") is None
-                or r.get("mode") in LATE_GRACE_MIN):
+                or r.get("mode") in LATE_GRACE_MIN or r.get("mode") in UNTIMED):
             continue
         key = re.sub(r"\d{4}-\d{2}-\d{2}", "{date}", r["path"])   # picks/{date}.json is ONE artifact
         old = arts.get(key) or {}
@@ -2170,9 +2437,12 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    credits. ⚠️ `dict.fromkeys` keeps the contract's order, which is
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
+    # `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
+    #    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH.
     need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
-            and (allow_paid or not r["paid"])} | slate_moves(data, picks, now) \
-        | every_pass(data, now)
+            and (allow_paid or not r["paid"])
+            and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH)} \
+        | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now)
     changed = True
     while changed:
         changed = False

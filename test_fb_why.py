@@ -259,8 +259,8 @@ with and without it: every other field byte for byte the same.
 #
 # @vacuity 🔴 build writes the list from that handed-over solve
 #   file: fb_model.py
-#   find: rows = build_rows(lg, root, extra_top, extra_players, ratings=own)
-#   with: rows = build_rows(lg, root, extra_top, extra_players)
+#   find: rows = build_rows(lg, root, extra_top, extra_players, ratings=own, inj_now=now)
+#   with: rows = build_rows(lg, root, extra_top, extra_players, inj_now=now)
 #
 # @vacuity 🔴 the list changes no other field of fb-model.json
 #   file: fb_model.py
@@ -777,7 +777,9 @@ try:
         for real in (False, True):                  # the baseline first, before any list code has run
             F.above_average_block = _orig6[2] if real else (lambda *a, **k: {"monday": {}, "teams": {}})
             out6 = os.path.join(T, "fb-model-%d.json" % real)
-            DOCS[real] = F.build("nfl", out=out6)
+            # `[2026-10-27, review 2]` one pinned build moment for both: fb-model.json now says when its rows
+            #    read the injury reports (`read_at`), and two clock reads a second apart would differ
+            DOCS[real] = F.build("nfl", out=out6, now=NOW6)
             TXT[real] = re.sub(r'"built_at": "[^"]*"', '"built_at": ""', open(out6, encoding="utf-8").read())
     finally:
         F.build_rows, F.log, F.above_average_block = _orig6

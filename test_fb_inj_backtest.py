@@ -101,6 +101,21 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #   file: status.py
 #   find:     if st.get("state") != "measured" or not st.get("branch"):
 #   with:     if True:
+#
+# @vacuity 🔴 [2026-10-26] once main holds the entry (Sam merged), the email stops asking him to merge
+#   file: status.py
+#   find:     if recorded:
+#   with:     if False:
+#
+# @vacuity 🔴 [2026-10-26] ...decided by the tree's own research/fb_sim_backtest.json, in the email itself
+#   file: status.py
+#   find:         doc, name, injury_recorded(root, d.split("/")[-1]))]
+#   with:         doc, name, False)]
+#
+# @vacuity 🔴 [2026-10-26] a live build's moment reaches college's injury reading
+#   file: fb_model.py
+#   find:         return cfb_injuries.attach(rows, root, now=now, shown_at=shown)
+#   with:         return cfb_injuries.attach(rows, root, shown_at=shown)
 """
 import json
 import os
@@ -161,13 +176,20 @@ import fb_model as FM  # noqa: E402
 
 _calls = []
 _fake = types.ModuleType("cfb_injuries")
-_fake.attach = lambda rows, root=None: _calls.append(("college", len(rows))) or rows
+# `[2026-10-26]` the stand-in takes the real signature's `now` (a live build's moment) and records it
+# `[2026-10-26, review]` ...and `shown_at` (each played game's last pre-kickoff build, the record's)
+_fake.attach = lambda rows, root=None, now=None, shown_at=None: _calls.append(
+    ("college", len(rows), now, shown_at)) or rows
+_empty = tempfile.mkdtemp(prefix="injbt-")          # ⛔ no ledger of production's is read
 _saved_mod, _saved_in = sys.modules.get("cfb_injuries"), fb_challengers.attach
 sys.modules["cfb_injuries"] = _fake
 fb_challengers.attach = lambda name, lg, rows, root=None: _calls.append(("IN", lg)) or rows
 try:
     FM.injury_readings("ncaaf", [{}, {}])
     _college = list(_calls)
+    _calls.clear()
+    FM.injury_readings("ncaaf", [{}], _empty, now="BUILD")
+    _college_now = list(_calls)
     _calls.clear()
     FM.injury_readings("nfl", [{}])
     _nfl = list(_calls)
@@ -177,8 +199,14 @@ finally:
         sys.modules.pop("cfb_injuries", None)
     else:
         sys.modules["cfb_injuries"] = _saved_mod
-eq(_college, [("college", 2)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
-   "(which read data/nfl: every college team would read zero)")
+    shutil.rmtree(_empty, ignore_errors=True)
+# `[2026-10-26]` ~~[("college", 2)]~~: the reading's moment is asked too (None: §3's tested 9:00 read)
+eq(_college, [("college", 2, None, None)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
+   "(which read data/nfl: every college team would read zero), at §3's tested reading by default, and no "
+   "ledger is read")
+eq(_college_now, [("college", 1, "BUILD", {})],
+   "🔴 [2026-10-26] ...and a live build's moment reaches college's reading (Sam: \"do 9am, 12pm, 7pm\"), with "
+   "the ledger's shown moments (none in an empty tree)")
 eq(_nfl, [("IN", "nfl")], "🔴 an NFL row gets T69 IN's readings")
 
 # ══════════════════════════════════════════════════════════════════════
@@ -426,3 +454,29 @@ ck("🔴 the Monday email names a waiting injury branch, its result and its clic
 ck("✅ ...and says nothing while it waits for data or once it is recorded",
    ST.injury_branch({"injury_backtest": {"state": "waiting"}}, "College") == []
    and ST.injury_branch({"injury_backtest": {"state": "recorded"}}, "College") == [])
+
+# 🔴 `[2026-10-26]` ONCE SAM MERGED THE BRANCH, THE EMAIL STOPS ASKING HIM TO. fb-refit.json still
+#    says "measured" (with the branch) until the next Monday's job rewrites it, and the email read
+#    only that file, so it kept listing a merged branch under "Needs you". The tree's own
+#    research/fb_sim_backtest.json (main, once merged) decides. Asked through `status.build`, the
+#    email itself, on a planted tree: the same fb-refit.json, without and with the entry recorded.
+_t = tempfile.mkdtemp(prefix="injst-")
+try:
+    for _d in ("data/latest", "data/nfl/latest", "data/ncaaf/latest", "research"):
+        os.makedirs(os.path.join(_t, _d))
+    json.dump({"checked_at": NOW.strftime("%Y-%m-%dT%H:%M:%SZ"), "findings": []},
+              open(os.path.join(_t, "data", "latest", "health.json"), "w", encoding="utf-8"))
+    json.dump({"injury_backtest": {"state": "measured", "branch": "fb/injuries-ncaaf-2026-10-19",
+                                   "passes": True, "entry": dict(_PASS, questions=900)}},
+              open(os.path.join(_t, "data", "ncaaf", "latest", "fb-refit.json"), "w", encoding="utf-8"))
+    _rp = os.path.join(_t, "research", "fb_sim_backtest.json")
+    json.dump({"injuries": {"nfl": {}}}, open(_rp, "w", encoding="utf-8"))
+    _before = ST.build(root=_t, now=NOW)[1]
+    json.dump({"injuries": {"nfl": {}, "ncaaf": dict(_PASS, questions=900)}}, open(_rp, "w", encoding="utf-8"))
+    _after = ST.build(root=_t, now=NOW)[1]
+finally:
+    shutil.rmtree(_t, ignore_errors=True)
+ck("🔴 [2026-10-26] the email lists the College branch while main has no ncaaf entry",
+   any("College injuries" in n and "PASSED" in n for n in _before), str(_before)[:300])
+ck("🔴 [2026-10-26] ...and stops the moment main holds it (the merge), though fb-refit.json still says "
+   "measured", not any("College injuries" in n for n in _after), str(_after)[:300])

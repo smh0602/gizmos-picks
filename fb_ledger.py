@@ -96,6 +96,13 @@ def snapshot(lg, root=None, when=None, log=log):
         return None
     doc = {"league": lg, "taken_at": now, "game_model": game, "props_model": props,
            "looked_at": looked, "spec": "research/fb_model_live_spec.md"}
+    # `[2026-10-27, review 2]` THE GAME PICKS' OWN MOMENT: fb-model.json's `read_at`, when its rows
+    #    read the injury reports. It is minutes before `taken_at` on a good pass, and hours when this
+    #    pass's model build failed and the file on disk is an earlier build's (card-fb builds the
+    #    ledger either way). `looked_moments` dates the record's replay with it, never `taken_at`.
+    #    A file written before it existed carries none, and `taken_at` stands.
+    if isinstance(gm.get("read_at"), str):
+        doc["model_read_at"] = gm["read_at"]
     return daystore.archive(doc, _data(lg, root), "model-picks", log=log, when=when)
 
 
@@ -118,12 +125,11 @@ def pick_key(model, p):
     return "%s|%s|%s|%s" % (model, p.get("game_id"), p.get("player"), p.get("market"))
 
 
-def ledger_picks(snaps):
-    """spec §3, amended §3a [Sam, 2026-10-16]: for each game and model, the
-    picks from the LAST snapshot taken before its kickoff that LOOKED AT that
-    game. A snapshot looked at a game when it held a pick for it, or listed it
-    in `looked_at` (written from 2026-10-16). When that last snapshot holds no
-    pick for the game, the model withdrew it and nothing is graded."""
+def chosen(snaps):
+    """spec §3, amended §3a [Sam, 2026-10-16]: {(model, game_id): (taken_at, picks)}, the LAST
+    snapshot taken before each game's kickoff that LOOKED AT it (held a pick for it, or listed it
+    in `looked_at`), with its picks for that game ([] = withdrawn). ⛔ The ONE copy of the rule:
+    `ledger_picks` grades from it and `looked_moments` dates the record's replay with it."""
     chosen = {}
     for s in snaps:
         for model in MODELS:
@@ -136,10 +142,39 @@ def ledger_picks(snaps):
             for gid, commence in ((s.get("looked_at") or {}).get(model) or {}).items():
                 if gid not in by_game and s["taken_at"] < (commence or ""):
                     chosen[(model, gid)] = (s["taken_at"], [])        # withdrawn: nothing graded
+    return chosen
+
+
+def ledger_picks(snaps):
+    """spec §3, amended §3a [Sam, 2026-10-16]: for each game and model, the
+    picks from the LAST snapshot taken before its kickoff that LOOKED AT that
+    game (`chosen`). When that last snapshot holds no pick for the game, the
+    model withdrew it and nothing is graded."""
     out = []
-    for (model, _gid), (taken, ps) in chosen.items():
+    for (model, _gid), (taken, ps) in chosen(snaps).items():
         for p in ps:
             out.append(dict(p, model=model, snapshot=taken, key=pick_key(model, p)))
+    return out
+
+
+def looked_moments(lg, root=None, model="game_model"):
+    """`[2026-10-26, review]` {game_id: moment}: the moment of the last snapshot before each
+    game's kickoff that looked at it (`chosen`), i.e. the build whose picks the site last showed
+    for it. fb_model's live build reads it so the Model picks record replays each played college
+    game's injury reading as of that build (cfb_injuries.attach `shown_at`): Sam's "the record
+    grades what the site shows" (2026-10-16), with his "do 9am, 12pm, 7pm" (2026-10-26).
+    `[2026-10-27, review 2]` The moment is the game model's READING (`model_read_at`, from
+    fb-model.json's `read_at`), not the snapshot's `taken_at`, which can be minutes later (or a
+    failed build's pass hours later): a report fetched in between was never read for those
+    picks. `taken_at` only for a snapshot without one, and never a moment after it.
+    ⛔ Reads only; never writes, grades or edits a snapshot."""
+    snaps = snapshots(lg, root)
+    read = {s["taken_at"]: s.get("model_read_at") for s in snaps} if model == "game_model" else {}
+    out = {}
+    for (m, gid), (taken, _ps) in chosen(snaps).items():
+        if m == model:
+            r = read.get(taken)
+            out[gid] = r if isinstance(r, str) and r <= taken else taken
     return out
 
 

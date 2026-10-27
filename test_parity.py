@@ -95,7 +95,10 @@ DRIVEN_BY = {"props-board": "props-player", "fb-record": "card-fb",
              # `[Sam, 2026-10-17]` the college injury reader has no cron: its
              #    probe row shares T["news"], so the hourly college news
              #    cron's converge pass plans it (test_cfb_injuries_wiring.py §1).
-             "cfb-injuries": "news"}
+             "cfb-injuries": "news",
+             # `[Sam, 2026-10-26]` the game-day injury check, both leagues: no cron, the
+             #    hourly news cron's converge pass plans it (test_injury_check.py §2).
+             "injury-check": "news"}
 
 print("\n═══ 1. EVERY FOOTBALL MODE IS ROUTED FOR BOTH LEAGUES ═══")
 c, n = set(SCHED["ncaaf"]), set(SCHED["nfl"])
