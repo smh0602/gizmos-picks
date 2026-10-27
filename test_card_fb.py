@@ -462,47 +462,80 @@ print("\n13c. 🔴 A PLAYER WITH NO LOG LAST SEASON IS FOUND IN THIS SEASON'S (r
 print("    The card looked names up in last season's log only, so a rookie (or a player new to FBS)")
 print("    was unmatched all season and his games this season were never read; the median switch")
 print("    that would have looked this season up was gone. card_fb.match_player, never a guess.")
+print("    `[2026-10-27, review 2]` AND A SHARED NAME IS DECIDED BY THE GAME'S TWO TEAMS: the first")
+print("    form chose by which log held the name, so the Titans' RB Michael Carter read the Eagles")
+print("    CB's record and Kent State's Brandon White read Kansas State's WR's. ~~Every planted player")
+print("    on team 'T', board A @ H~~ (no case could ask the team question): real school names, a")
+print("    planted teams.json, the real dossier_fb resolver, the right player on a game team and his")
+print("    namesake on another.")
 import gzip as _gz13c    # noqa: E402
 import shutil as _sh13c  # noqa: E402
+import dossier_fb as _D13c  # noqa: E402
+
+# the game: UAB @ Illinois. X (San José State) and R (Rice) are in neither side.
+_SCH13c = {"H": "Illinois", "A": "UAB", "X": "San José State", "R": "Rice"}
 
 
 def _plant13c():
     """One planted college league, card_fb.main() on it -> (card, {player: row}, the name-join log, module)."""
-    def _runs(season, start, vals, pid):
+    def _runs(season, start, vals, pid, team, on=None):
         d0 = _dt13.date.fromisoformat(start)
-        return [{"d": (d0 + _dt13.timedelta(weeks=i)).isoformat(), "rush_yds": v, "car": 4 if v else 0,
-                 "rec": 0, "rec_yds": 0, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0, "team": "T",
-                 "game_id": "%d-%d-%s" % (season, i, pid)} for i, v in enumerate(vals)]
+        return [{"d": on or (d0 + _dt13.timedelta(weeks=i)).isoformat(), "rush_yds": v, "car": 4 if v else 0,
+                 "rec": 0, "rec_yds": 0, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0,
+                 "team": _SCH13c[team], "game_id": "%d-%d-%s" % (season, i, pid)} for i, v in enumerate(vals)]
 
     _l25, _l26 = [10, 20, 15, 12, 18, 14, 16, 11, 13, 45], [40, 20, 15, 45, 12, 30, 18]
-    logs = {2025: {"1": ("Runner One", "RB", _l25),
-                   "50": ("Old Name", "RB", [10] * 11),        # no 2026 game; 51 holds the name now
-                   "60": ("Two Face", "RB", _l25),             # no 2026 game; 61 and 62 hold it now
-                   "70": ("Shared Back", "RB", _l25),          # plays 2026 too; an LB shares it in 2026
-                   "80": ("Twin Name", "RB", [10] * 10), "81": ("Twin Name", "RB", _l25)},
-            2026: {"1": ("Runner One", "RB", _l26),
-                   "99": ("Rookie Two", "RB", [10, 22, 15, 40, 12, 18, 25]),
-                   "51": ("Old Name", "RB", [30, 50, 20, 45, 10, 33, 60]),
-                   "61": ("Two Face", "RB", [10] * 7), "62": ("Two Face", "RB", [10] * 7),
-                   "70": ("Shared Back", "RB", _l26), "71": ("Shared Back", "LB", [0] * 7),
-                   "81": ("Twin Name", "RB", _l26),
-                   "98": ("Thin Rookie", "RB", [10, 12, 14])}}
+    _over7, _under7 = [40, 50, 20, 45, 60, 30, 55], [10, 12, 14, 50, 11, 13, 9]
+    # {season: {pid: (name, pos, team, games)}}; H and A are the game's teams
+    logs = {2025: {"1": ("Runner One", "RB", "H", _l25),
+                   "50": ("Old Name", "RB", "R", [10] * 11),   # no 2026 game; 51 holds the name now, on H
+                   "60": ("Two Face", "RB", "R", _l25),        # no 2026 game; 61 (H) and 62 (A) hold it now
+                   "70": ("Shared Back", "RB", "H", _l25),     # plays 2026 too; an LB on X shares it in 2026
+                   "80": ("Twin Name", "RB", "X", [10] * 10), "81": ("Twin Name", "RB", "H", _l25),
+                   # `[2026-10-27, review 2]` the namesake cases
+                   "20": ("Wrong Back", "RB", "X", _l25),      # plays 2026 on X; 21 holds the name on H
+                   "30": ("Gone Back", "RB", "R", _l25),       # gone; 31 holds the name on X
+                   "40": ("Hurt Back", "RB", "H", _l25),       # no 2026 game yet; 41 holds the name on X
+                   "85": ("Twin Two", "RB", "X", _l25), "86": ("Twin Two", "RB", "H", _over7 + [41, 42, 43]),
+                   "95": ("Day Back", "RB", "X", _l25), "96": ("Day Back", "RB", "R", _l25)},
+            2026: {"1": ("Runner One", "RB", "H", _l26),
+                   "99": ("Rookie Two", "RB", "H", [10, 22, 15, 40, 12, 18, 25]),
+                   "51": ("Old Name", "RB", "H", [30, 50, 20, 45, 10, 33, 60]),
+                   "61": ("Two Face", "RB", "H", [10] * 7), "62": ("Two Face", "RB", "A", [10] * 7),
+                   "70": ("Shared Back", "RB", "H", _l26), "71": ("Shared Back", "LB", "X", [0] * 7),
+                   "81": ("Twin Name", "RB", "H", _l26),
+                   "98": ("Thin Rookie", "RB", "H", [10, 12, 14]),
+                   "20": ("Wrong Back", "RB", "X", _under7), "21": ("Wrong Back", "RB", "H", _over7),
+                   "31": ("Gone Back", "RB", "X", _under7),
+                   "41": ("Hurt Back", "RB", "X", _over7),
+                   "91": ("Far Rookie", "RB", "X", _under7),      # a 2026-only lone name, on X
+                   "85": ("Twin Two", "RB", "X", [10] * 7),
+                   "95": ("Day Back", "RB", "X", [10] * 7),
+                   # his one 2026 game, for H, is ON the card's day: it never decides who he is
+                   "96": ("Day Back", "RB", "H", [10], "2026-10-31")}}
     for _s, _start in ((2025, "2025-09-06"), (2026, "2026-09-05")):
         with _gz13c.open(f"data/ncaaf/latest/players-{_s}.json.gz", "wt") as fh:
             json.dump({"season": _s, "scope": "all FBS conferences", "players": {
-                pid: {"name": n, "pos": pos, "g": _runs(_s, _start, v, pid)}
-                for pid, (n, pos, v) in logs[_s].items()}}, fh)
-    _who = ("Runner One", "Rookie Two", "Old Name", "Two Face", "Shared Back", "Twin Name", "Thin Rookie")
+                pid: {"name": v[0], "pos": v[1], "g": _runs(_s, _start, v[3], pid, v[2], *v[4:])}
+                for pid, v in logs[_s].items()}}, fh)
+    with open("data/ncaaf/latest/teams.json", "w", encoding="utf-8") as fh:
+        json.dump({"teams": {t: {} for t in _SCH13c.values()}}, fh)
+    _who = sorted({v[0] for s in logs.values() for v in s.values()})
     with _gz13c.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
         json.dump({"pulled_at": "2026-10-30T12:00:00Z", "n_games": 1, "books_seen": ["fd"],
-                   "games": [{"id": "g1", "away": "A", "home": "H", "commence": "2026-10-31T16:00:00Z",
+                   "games": [{"id": "g1", "away": "UAB Blazers", "home": "Illinois Fighting Illini",
+                              "commence": "2026-10-31T16:00:00Z",
                               "props": [{"player": n, "market": "player_rush_yds", "line": 34.5,
                                          "sides": {"under": {"price": -115, "book": "fd", "n_books": 3,
                                                              "link": "x"}}} for n in _who]}]}, fh)
     C = load("ncaaf")
     said = []
     C.log = lambda m, *a, **k: said.append(str(m))
-    C.main()
+    _root, _D13c.ROOT = _D13c.ROOT, os.getcwd()        # the REAL resolver, on the planted teams.json
+    try:
+        C.main()
+    finally:
+        _D13c.ROOT = _root
     out = json.load(open("picks/fb-ncaaf-latest.json"))
     rows = {}
     for r in (out.get("picks") or []) + (out.get("below_floor") or []):
@@ -519,26 +552,50 @@ finally:
     os.chdir(_cwd13c)
     _sh13c.rmtree(_tmp13c, ignore_errors=True)
 _det = {n: {k: (_rows13c.get(n, {}).get("season_detail") or {}).get(k) for k in ("h25", "n25", "h26", "n26")}
-        for n in ("Rookie Two", "Old Name", "Shared Back", "Twin Name", "Runner One")}
+        for n in ("Rookie Two", "Old Name", "Shared Back", "Twin Name", "Runner One", "Wrong Back", "Hurt Back",
+                  "Twin Two")}
 eq(_det["Rookie Two"], {"h25": 0, "n25": 0, "h26": 6, "n26": 7},
    "🔴 a rookie (no 2025 log) is found in 2026's and rated on his 7 games this season, G25 none")
 ck("with no 2025 game of his counted" in (_rows13c.get("Rookie Two", {}).get("confidence_note") or ""),
    "   ...and his note says no last-season game counted (not \"his 2025 record (0 of 0)\")",
    _rows13c.get("Rookie Two", {}).get("confidence_note"))
 eq(_det["Old Name"], {"h25": 0, "n25": 0, "h26": 4, "n26": 7},
-   "🔴 a namesake: 2025's holder has no 2026 game and one other player holds the name now -> rated on "
-   "THAT player's 7 games, never on 2025's 11")
+   "🔴 a namesake: 2025's holder (Rice) has no 2026 game and the player holding the name now is on Illinois "
+   "-> rated on THAT player's 7 games, never on 2025's 11")
 eq(_det["Shared Back"], {"h25": 9, "n25": 10, "h26": 5, "n26": 7},
-   "🔴 a name shared THIS season (an LB) stays last season's one holder, who plays this season: blended")
+   "🔴 a name shared THIS season (an LB on San José State) stays Illinois's back, who held it last season too: "
+   "blended")
 eq(_det["Twin Name"], {"h25": 9, "n25": 10, "h26": 5, "n26": 7},
-   "🔴 a name 2025 held twice and 2026 once: that one, with his own 2025 games (by id)")
+   "🔴 a name 2025 held twice and 2026 once: Illinois's, with his own 2025 games (by id)")
 eq(_det["Runner One"], {"h25": 9, "n25": 10, "h26": 5, "n26": 7}, "   ...and a plain veteran is unchanged")
 ck("Two Face" not in _rows13c or _rows13c["Two Face"].get("rate") is None,
-   "🔴 2025's holder has no 2026 game and two others hold the name now: ambiguous, no record (never a guess)",
+   "🔴 two players hold the name now, one on each side of the game: ambiguous, no record (never a guess)",
    _rows13c.get("Two Face"))
-eq((_out13c.get("name_match_rate"), bool(_join13c) and "(0 unmatched, 1 ambiguous)" in _join13c[-1]),
-   (round(6 / 7, 3), True),
-   "🔴 the 60% name join counts a match in either season's log: 6 of 7, Two Face the 1 ambiguous")
+# `[2026-10-27, review 2]` the namesake cases: the right player is on a team in the game, his namesake is not
+eq(_det["Wrong Back"], {"h25": 0, "n25": 0, "h26": 2, "n26": 7},
+   "🔴 2025's holder plays 2026 on San José State; Illinois's namesake is the board's player: HIS 2 of 7, "
+   "never San José State's 15 of 17 (Kent State's Brandon White read Kansas State's WR's 3 of 16)")
+eq(_det["Hurt Back"], {"h25": 9, "n25": 10, "h26": 0, "n26": 0},
+   "🔴 2025's holder (Illinois) has no 2026 game yet and San José State's namesake does: Illinois's 9 of 10, "
+   "never the namesake's 2 of 7")
+eq(_det["Twin Two"], {"h25": 2, "n25": 10, "h26": 0, "n26": 0},
+   "🔴 2025 held the name twice and only San José State's plays in 2026: Illinois's own 2 of 10 (the Titans' "
+   "Michael Carter read the Eagles CB's record the same way)")
+for _n13, _say in (("Gone Back", "2025's holder (Rice) is gone and the 2026 holder is on San José State"),
+                   ("Day Back", "a holder's only 2026 game for Illinois is ON the card's day, so it decides "
+                                "nothing; San José State's and Rice's: nobody")):
+    ck(_n13 not in _rows13c or _rows13c[_n13].get("rate") is None,
+       "🔴 %s: ambiguous, no record" % _say, _rows13c.get(_n13))
+_far13 = _rows13c.get("Far Rookie", {})
+ck(_far13.get("rate") is None and " ".join(_far13.get("why") or []).startswith(
+    "No 2025 or 2026 game log matched Far Rookie"),
+   "🔴 a lone 2026 name who has played this season for San José State is not UAB's or Illinois's player "
+   "(college: no one changes FBS teams mid-season): unmatched, no record (NC State's Darius Johnson on "
+   "Syracuse's rows)", _far13)
+ck(_out13c.get("name_match_rate") == round(9 / 13, 3) and bool(_join13c)
+   and "(1 unmatched, 3 ambiguous)" in _join13c[-1],
+   "🔴 the 60% name join counts a match in either season's log, team-checked: 9 of 13 (Far Rookie the 1 "
+   "unmatched; Two Face, Gone Back and Day Back the 3 ambiguous)", (_out13c.get("name_match_rate"), _join13c))
 _why13c = " ".join(_rows13c.get("Two Face", {}).get("why") or [])
 ck(_why13c.startswith("No 2025 or 2026 game log matched Two Face"),
    "   ...and his row says it looked in both seasons' logs", _why13c)
@@ -547,6 +604,25 @@ ck(_thin13c.get("rate") is None and "took part in this market in only 3 of his 3
    in " ".join(_thin13c.get("why") or []),
    "🔴 a rookie with 3 games is matched, not rated (6 is the floor), and his row names HIS season, 2026",
    _thin13c.get("why"))
+# `[2026-10-27, review 2]` the NFL: a lone holder elsewhere is KEPT (a trade), a shared name still needs a team
+_C13n = load("nfl")
+
+
+def _nfl13(pid_team25, pid_team26):
+    P25 = {p: {"name": "Same Back", "g": [{"d": "2025-12-28", "team": t}]} for p, t in pid_team25.items()}
+    P26 = {p: {"name": "Same Back", "g": [{"d": "2026-10-04", "team": t}]} for p, t in pid_team26.items()}
+    return _C13n.match_player("Same Back", _C13n.index_by_name(P25), P26, _C13n.index_by_name(P26),
+                              teams={"HOU", "JAX"}, day="2026-10-18", last=P25)
+
+
+eq(_nfl13({"mh": "ARI"}, {"mh": "HOU"}), ["mh"],
+   "🔴 NFL: a lone holder traded ARI -> HOU is HOU's player (Marvin Harrison Jr. at JAX on 10-18)")
+eq(_nfl13({"mh": "ARI"}, {"mh": "ARI"}), ["mh"],
+   "🔴 NFL: ...and a lone holder whose games this season were elsewhere is KEPT, never refused (a trade the log "
+   "has not caught up with); only college refuses him")
+eq(_nfl13({"cb": "PHI", "rb": "ARI"}, {"cb": "PHI"}), ["cb", "rb"],
+   "🔴 NFL: 2025 held the name twice, 2026 once, neither on HOU or JAX: ambiguous (Michael Carter, the "
+   "Eagles CB and the Titans RB), never the one who has played")
 
 
 print("\n14. 🔴 THE ROW SAYS ITS RECORD AT THE LINE, THIS SEASON FIRST")
@@ -829,28 +905,59 @@ ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
 #
 # @vacuity [review, 2026-10-26] §13c: a board name is looked up in this season's log too
 #   file: card_fb.py
-#   find: pids = [] if unit else match_player(who, idx, _cur, _cur_idx)
-#   with: pids = [] if unit else idx.get(norm(who), [])
+#   find: pids = [] if unit else match_player(
+#   with: pids = [] if unit else (lambda who, idx, *a, **k: idx.get(norm(who), []))(
 #
 # @vacuity [review, 2026-10-26] §13c: ...which main() hands match_player whenever the seasons differ
 #   file: card_fb.py
 #   find: _cur = CUR_P if (CUR_P and CUR_SEASON != season) else None
 #   with: _cur = None
 #
-# @vacuity [review, 2026-10-26] §13c: a name last season does not settle goes to this season's holders
+# ~~@vacuity [review, 2026-10-26] §13c: a name last season does not settle goes to this season's holders~~
+#   (find `return b or a`), ~~last season's holder with no game this season yields the name~~ and
+#   ~~...but one who plays this season keeps a name shared now~~ (find `if len(a) == 1 and (not b or
+#   a[0] in (cur or {})):`): `[2026-10-27, review 2]` that rule chose by which LOG held the name and
+#   never asked his team, so a namesake on neither team took the row (the Titans' Michael Carter, Kent
+#   State's Brandon White). Its code is gone; the game's two teams decide now, guarded below.
+# @vacuity [2026-10-27, review 2] §13c: main() hands match_player the board game's two teams
 #   file: card_fb.py
-#   find: return b or a
-#   with: return a
+#   find: teams={_team(g.get("home")), _team(g.get("away"))} - {None},
+#   with: teams=set(),
 #
-# @vacuity [review, 2026-10-26] §13c: last season's holder with no game this season yields the name
+# @vacuity [2026-10-27, review 2] §13c: a shared name goes to the holder playing for a team in the game
 #   file: card_fb.py
-#   find: if len(a) == 1 and (not b or a[0] in (cur or {})):
-#   with: if len(a) == 1:
+#   find: return on_now
+#   with: return cands
 #
-# @vacuity [review, 2026-10-26] §13c: ...but one who plays this season keeps a name shared now
+# @vacuity [2026-10-27, review 2] §13c: ...decided by his TEAM, never by which log holds the name
 #   file: card_fb.py
-#   find: if len(a) == 1 and (not b or a[0] in (cur or {})):
-#   with: if len(a) == 1 and not b:
+#   find: on_now = [p for p in cands if now[p] is not None and now[p] in teams]
+#   with: on_now = [p for p in cands if now[p] is not None]
+#
+# @vacuity [2026-10-27, review 2] §13c: ...his team this season BEFORE the card's day, never a later game
+#   file: card_fb.py
+#   find: now = {p: team_of(cur, p, day) for p in cands}
+#   with: now = {p: team_of(cur, p, None) for p in cands}
+#
+# @vacuity [2026-10-27, review 2] §13c: ...else a holder with no game this season, by last season's team
+#   file: card_fb.py
+#   find: return [p for p in cands if now[p] is None and team_of(last, p, None) in teams] or cands
+#   with: return cands
+#
+# @vacuity [2026-10-27, review 2] §13c: ...and when the teams decide nothing, nobody: ambiguous, never a guess
+#   file: card_fb.py
+#   find: team_of(last, p, None) in teams] or cands
+#   with: team_of(last, p, None) in teams] or cands[:1]
+#
+# @vacuity [2026-10-27, review 2] §13c: a college lone holder who played this season elsewhere is someone else
+#   file: card_fb.py
+#   find: and now[cands[0]] not in teams):
+#   with: and False):
+#
+# @vacuity [2026-10-27, review 2] §13c: ...in college only: an NFL lone holder elsewhere is kept (a trade)
+#   file: card_fb.py
+#   find: if (cands and LEAGUE == "ncaaf" and teams and now[cands[0]] is not None
+#   with: if (cands and teams and now[cands[0]] is not None
 #
 # @vacuity [review, 2026-10-26] §13c: a rookie's this-season log is his row's, never his G25
 #   file: card_fb.py

@@ -731,15 +731,17 @@ def index_by_name(P):
     return idx
 
 
-def match_player(who, idx, cur=None, cur_idx=None):
-    """`[Sam, 2026-10-26]` T73: which player a board name is, LAST season's log (`idx`) and
-    THIS season's (`cur`, its `cur_idx`; None when one log is both) -> [pid]: one is a match,
-    more is ambiguous, none is unmatched. ⛔ Never a guess (`index_by_name`).
+def match_player(who, idx, cur=None, cur_idx=None, teams=frozenset(), day=None, last=None):
+    """`[Sam, 2026-10-26]` T73: which player a board name is, LAST season's log (`idx`, the
+    log `last`) and THIS season's (`cur`, its `cur_idx`; None when one log is both), in the
+    board game whose two teams are `teams` (the logs' own team keys, `dossier_fb.team_codes`;
+    an unresolved side left out) -> [pid]: one is a match, more is ambiguous, none is
+    unmatched. ⛔ Never a guess (`index_by_name`).
 
     *"use games from last season and the ones played this season"*: ~~last season's log
     only~~ left a rookie, or a player new to FBS, unmatched all season, his games this
     season never read (found by review, 2026-10-26).
-    1. Last season's one match, when he has a game this season or this season's log does
+    ~~1. Last season's one match, when he has a game this season or this season's log does
        not hold the name: a name shared THIS season (the WR Justin Jefferson's with a
        Cleveland LB) stays his.
     2. Otherwise THIS season's holders of the name. One is the match: a rookie (G25 none,
@@ -747,13 +749,44 @@ def match_player(who, idx, cur=None, cur_idx=None):
        last-season holder has no game this season while one other player holds it now
        (Akron's Marcel Williams: 2025's id, 11 games, none in 2026; 2026's is another id,
        7 games), the one playing. Two or more are ambiguous.
-    3. A name this season does not hold: last season's holders (two or more: ambiguous)."""
+    3. A name this season does not hold: last season's holders (two or more: ambiguous).~~
+    `[2026-10-27, review 2]` ~~1-3~~ chose by WHICH LOG held the name and never asked his
+    team, so a namesake on neither team took the row: the Titans' RB Michael Carter's NFL
+    rows read the Eagles CB's record (2025 held the name twice, 2026 once); Kent State's
+    Brandon White's anytime TD read Kansas State's WR's 3 of 16, and on
+    picks/fb-ncaaf-2026-09-26.json his PROJ 33.2.
+    ✅ A NAME SHARED BY TWO OR MORE PLAYERS (either log) IS DECIDED BY THE GAME'S TWO TEAMS,
+    the source `fb_props_model.current_picks` and `resolve()` use, or by nobody:
+    1. the holders whose latest game THIS season before `day` was for a team in the game
+       (the Justin Jefferson WR, on Minnesota, over a Cleveland LB of the same name);
+    2. else the holders with no game this season whose latest game LAST season was;
+    3. else nobody decides: ambiguous. Two holders on one side are ambiguous too.
+    A LONE holder keeps the name (a rookie, a player new to FBS, a veteran) wherever he
+    played, ⛔ except in college, where no player changes FBS teams during a season: one who
+    played THIS season for a team not in the game is someone else, and the name is unmatched
+    (NC State's Darius Johnson on Syracuse's rows). An NFL lone holder elsewhere is kept: a
+    trade (Marvin Harrison Jr., ARI 2025, HOU 2026, at JAX on 10-18).
+    `test_card_fb.py` §13c."""
     k = norm(who)
     a = idx.get(k) or []
     b = (cur_idx.get(k) or []) if cur_idx is not None else []
-    if len(a) == 1 and (not b or a[0] in (cur or {})):
-        return a
-    return b or a
+    cands = list(dict.fromkeys(list(a) + list(b)))
+
+    def team_of(log_, pid, before):
+        gs = (((log_ or {}).get(pid) or {}).get("g")) or []
+        gs = sorted(games_before(gs, before) if before else gs, key=lambda g: g.get("d") or "")
+        return gs[-1].get("team") if gs else None
+
+    now = {p: team_of(cur, p, day) for p in cands}
+    if len(cands) <= 1:
+        if (cands and LEAGUE == "ncaaf" and teams and now[cands[0]] is not None
+                and now[cands[0]] not in teams):
+            return []
+        return cands
+    on_now = [p for p in cands if now[p] is not None and now[p] in teams]
+    if on_now:
+        return on_now
+    return [p for p in cands if now[p] is None and team_of(last, p, None) in teams] or cands
 
 
 def qualifying(games):
@@ -2172,6 +2205,9 @@ def main():
     # `[review, 2026-10-26]` and this season's log too (`match_player`): a rookie's games count.
     _cur = CUR_P if (CUR_P and CUR_SEASON != season) else None
     _cur_idx = index_by_name(_cur) if _cur else None
+    # `[2026-10-27, review 2]` a shared name is decided by the game's two teams (`match_player`)
+    import dossier_fb
+    _team = dossier_fb.team_codes(LEAGUE)
     _opp9 = signal9.load(LEAGUE, CUR_SEASON) if (S9_CARD.get(LEAGUE) and CUR_SEASON) else None
     _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
               if CARD_METHOD == METHOD_FIXED else None)
@@ -2195,7 +2231,9 @@ def main():
             unit = bool(TEAM_UNIT.search(who))
             if not unit:
                 seen_players.add(who)
-            pids = [] if unit else match_player(who, idx, _cur, _cur_idx)
+            pids = [] if unit else match_player(
+                who, idx, _cur, _cur_idx, teams={_team(g.get("home")), _team(g.get("away"))} - {None},
+                day=_card_day, last=P)
             plog, plog_season = None, season
             if RATES_OK and not unit:
                 if len(pids) > 1:
