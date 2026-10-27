@@ -186,6 +186,7 @@ print("\n═══ 2. THE GRADER RUNS, AND THE PAGE READS WHAT IT WRITES ══�
 os.environ["LEAGUE"] = "ncaaf"
 sys.path.insert(0, ROOT)
 import record_fb  # noqa: E402
+import fb_why  # noqa: E402  (season_of: the season a card's date belongs to, as the grader reads it)
 
 # 🔴 IN A THROWAWAY COPY, NOT THE REPO. `[fixed 2026-09-06]`
 # ⛔ THIS USED TO RUN THE GRADER IN THE REPO ROOT, so every CI run
@@ -277,7 +278,8 @@ def carded_files(root, lg, floor):
                     continue
         except Exception:
             pass                # unreadable -> count it, never hide it
-        s = h[len(pre):len(pre) + 4]
+        # `[2026-10-27]` ~~the card's calendar year~~: its football season, the grader's rule
+        s = fb_why.season_of(h[len(pre):-len(".json")])
         if s not in logs:
             lp = os.path.join(root, "data", lg, "latest", "players-%s.json.gz" % s)
             logs[s] = os.path.exists(lp) and bool(load(lp).get("players"))
@@ -383,7 +385,7 @@ def hand_control(days, players_of):
     mismatch = []
     unverifiable = []
     for date, rows in days.items():
-        P = players_of(int(date[:4]))
+        P = players_of(fb_why.season_of(date))      # `[2026-10-27]` ~~int(date[:4])~~
         byname = {}
         for pl in P.values():
             byname.setdefault(hand_norm(pl.get("name")), []).append(pl)
@@ -982,7 +984,7 @@ for _lg in ("ncaaf", "nfl"):
                   if str(d) >= record_fb.RECORD_FROM and (c.get("league") or "") == _lg
                   and c.get("picks")
                   and os.path.exists("%s/data/%s/latest/players-%s.json.gz"
-                                     % (ROOT, _lg, str(d)[:4]))]
+                                     % (ROOT, _lg, fb_why.season_of(str(d))))]
     if _gradeable:
         ck("⚠️ %s has graded rows to check at all" % _lg, bool(_rows),
            "⛔ a check over an empty set passes and proves nothing — rule 67. "

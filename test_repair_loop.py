@@ -49,6 +49,21 @@ tested by the files that own it.
 #   file: collect.py
 #   find: return log("card-fb is football only; under mlb its card, T54, dossier and shadow record are skipped. Nothing done.")
 #   with: log("the card-fb guard is gone")
+#
+# @vacuity 🔴 a finding that names a repair which does nothing in its league is caught (§4)
+#   file: watchdog.py
+#   find:         if repair and lg in REBUILDS and repair not in REBUILDS[lg]:
+#   with:         if False:
+#
+# @vacuity 🔴 the watchdog's league table must agree with each league's contract (§4)
+#   file: watchdog.py
+#   find: REBUILDS = {"mlb": ("card", "record"), "nfl": ("card-fb",), "ncaaf": ("card-fb",)}
+#   with: REBUILDS = {"mlb": ("card", "record"), "nfl": ("card-fb", "record"), "ncaaf": ("card-fb",)}
+#
+# @vacuity 🔴 a football Track Record finding names football's grader (§4)
+#   file: watchdog.py
+#   find: grader = "record" if lg == "mlb" else "card-fb"
+#   with: grader = "record"
 """
 import datetime
 import hashlib
@@ -284,3 +299,44 @@ for _m in watchdog.SAFE_REPAIRS if STEP else ():
            "byte-identical" % (_m, _lg, len(_held), _lg),
            "rc %r changed %r %s" % ((_by.get(_lg) or [None, None, None])[2], _mine,
                                     shown(_r["log"][-400:])))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴 EVERY FINDING NAMES A REPAIR THAT ACTS IN ITS OWN LEAGUE")
+# ══════════════════════════════════════════════════════════════════════
+# `[review, 2026-10-27]` The football record findings named `record`, which §3 proves
+#    does nothing under nfl or ncaaf: the loop ran a no-op until the repair was withdrawn,
+#    and the issue said "Automatic repair attempted". ✅ THE CLASS: `watchdog.REBUILDS`
+#    is checked against each league's contract (above, OWNS), and `Report` drops any
+#    repair outside its finding's league, whatever check raised it.
+for _lg in watchdog.LEAGUES:
+    eq(sorted(watchdog.REBUILDS.get(_lg, ())),
+       sorted(m for m in watchdog.SAFE_REPAIRS if m in OWNS[_lg]),
+       "🔴 watchdog.REBUILDS[%s] is exactly the free repairs %s's contract owns" % (_lg, _lg))
+_rep = watchdog.Report()
+_rep.bad("record:nfl:ungraded", "w", "why", repair="record")
+_rep.warn("card:ncaaf", "w", "why", repair="card")
+_rep.bad("record:mlb", "w", "why", repair="record")
+_rep.bad("landing:zz-learn", "w", "why", repair="record")
+eq([i["repair"] for i in _rep.items], [None, None, "record", "record"],
+   "🔴 Report drops a repair that does nothing in its finding's league (BROKEN or DEGRADED), "
+   "keeps one that acts, and leaves a key that names no league alone")
+ck("`record` does nothing under nfl" in _rep.items[0]["why"],
+   "   ...and the finding says why no repair is named", _rep.items[0]["why"])
+_wt = tempfile.mkdtemp(prefix="repair-league-")
+try:
+    os.makedirs(os.path.join(_wt, "picks"))
+    for _lg in ("nfl", "ncaaf"):
+        json.dump({"date": "2026-10-04", "league": _lg, "picks": []},
+                  open(os.path.join(_wt, "picks", "fb-%s-2026-10-04.json" % _lg), "w"))
+    _root, watchdog.ROOT = watchdog.ROOT, _wt
+    try:
+        _rep = watchdog.Report()
+        watchdog.check_record_written(_rep, _now)
+    finally:
+        watchdog.ROOT = _root
+finally:
+    shutil.rmtree(_wt, ignore_errors=True)
+eq(sorted((i["key"], i["repair"]) for i in _rep.items),
+   [("record:ncaaf", "card-fb"), ("record:nfl", "card-fb")],
+   "🔴 a football Track Record that is gone names `card-fb`, football's grader (driven)")

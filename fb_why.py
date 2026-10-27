@@ -95,6 +95,31 @@ def season_of(when):
     return d.year if d.month >= 3 else d.year - 1
 
 
+def games_in(sched, home, away, when, key):
+    """The schedule rows of THIS game (its codes, kickoff within a day) that carry `key`,
+    in schedule order. Within a day, so a UTC kickoff finds its Eastern-dated row."""
+    d = _day(when)
+    out = []
+    for g in sched or []:
+        gd = _day(g.get("start"))
+        if (g.get("home") == home and g.get("away") == away and g.get(key) is not None
+                and d is not None and gd is not None and abs((gd - d).days) <= 1):
+            out.append(g)
+    return out
+
+
+def game_week(latest, home, away, when):
+    """The schedule week of THIS game, read from schedule-<season_of(when)> in `latest`,
+    or None. `[2026-10-27]` news_flags_fb asked `signal9.week_of`, which opens the file of
+    the kickoff's CALENDAR year (a January game found no file: weeks 17-18 and the playoffs
+    lost every injury flag) and takes the first week whose last ET date is on or after the
+    UTC day (a Monday-night game, 00:15Z Tuesday, read as next week: 16 of 2026's 272 games,
+    7 of them played by 10-27; with the 32 January games that found no file, 48 wrong)."""
+    sched = (_jz(os.path.join(latest, "schedule-%s.json.gz" % season_of(when))) or {}).get("games")
+    hits = games_in(sched, home, away, when, "week")
+    return hits[0]["week"] if hits else None
+
+
 class Context:
     """The files one card's whys read, loaded once, for ONE season."""
 
@@ -144,14 +169,7 @@ class Context:
     def games_of(self, home, away, when, key):
         """The stored schedule rows of THIS game (its codes, kickoff within a day)
         that carry `key`, in schedule order."""
-        d = _day(when)
-        out = []
-        for g in self.sched:
-            gd = _day(g.get("start"))
-            if (g.get("home") == home and g.get("away") == away and g.get(key) is not None
-                    and d is not None and gd is not None and abs((gd - d).days) <= 1):
-                out.append(g)
-        return out
+        return games_in(self.sched, home, away, when, key)
 
     def week_of(self, home, away, when):
         """The schedule week of THIS game (its codes, kickoff within a day), or None."""

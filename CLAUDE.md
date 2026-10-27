@@ -1069,6 +1069,28 @@ note boxes, tags and the stale bar now require their absence.
   table, or a job running the image's Python. ➡️ Move a pin only after
   `pr-tests`' `ubuntu-26.04` rows are green — they run on every PR.
   Details: `docs/HANDOFF-2026-09-24-runner-image.md`.
+- 🔴 **A SEASON COMES FROM THE GAMES, NEVER FROM THE CALENDAR YEAR.** `[2026-10-27]` R6:
+  everything was written inside one season, where the two agree. A football DATE's season
+  is `fb_why.season_of` (January and February are the season before: the Track Record
+  skipped every January card), the season in progress NOW is
+  `freshness.current_football_season`, and an NFL game's week is its own schedule row
+  (`fb_why.game_week`). The MLB pulls ask for the newest season with a stored final of a
+  game the product cards (`collect.mlb_pull_season`; ~~`now().year`~~ turned every MLB run
+  red from 01-01 to mid-April); while that season is older than the calendar's, statsapi
+  is asked whether the calendar's is under way (a scores store that stopped adding
+  finals). For 45 days after a season's first final, a CLEAN pool nobody has cleared
+  pulls the season before, with a `::warning::`; a broken pool (a domain violation, the
+  bar's field missing) still raises, and the pull's own stored file is a floor on every
+  path, so a season never steps backwards (`collect.season_pool`). Every MLB game owes a card except a code in
+  `mlb_game_model.NOT_CARDED` (spring training, exhibition, All-Star, intrasquad; parsed,
+  and an exclusion list, so a code nobody has seen still owes one). `test_year_turn.py` §1
+  fails on a year sliced off a date (under int(), of str(), in a %-format of one value or
+  a tuple, a `+` or an f-string), a `.year` outside a date constructor, or a
+  `strftime("%Y")`, unless it is named with its reason. ⚠️ It does not see a slice handed
+  straight to a call or a variable, `.format()`, or a LITERAL year: of those only the
+  `data/2026-*` odds glob is guarded (§7); `players-2026`, `(2025, 2026)` and the like are
+  the season lists in Sam's decisions or the August 2027 follow-up. ⚠️ Left, with the
+  decisions that are Sam's: the handoff's R6.
 - 🔴 **AN MLB RUN THAT REACHES THE END OF ITS HOLD STARTS ITS SUCCESSOR (THE
   RELAY).** `[Sam, 2026-10-06]` *"a card is on time even when GitHub starts a
   scheduled run hours late"*: on 10-06 the card due 14:00Z was built 16:02Z,
@@ -1118,7 +1140,14 @@ note boxes, tags and the stale bar now require their absence.
   `watchdog.check_odds_refused` is BROKEN until a paid pull lands after it, and its alert
   gives Sam the steps in `docs/FIX-ODDS-KEY.md` (`SAM_DOES`), never a prompt for Claude
   and never the self-repair list. ⛔ The run's own colour is unchanged (Sam's 09-26
-  rule). `test_odds_refused.py`.
+  rule). `test_odds_refused.py`. ✅ `[2026-10-27]` A finding names only a repair that acts
+  in its own league (`watchdog.REBUILDS`: MLB `card`/`record`, football `card-fb`, checked
+  against each league's contract by `test_repair_loop.py` §4; `Report` drops any other and
+  says so): football's Track Record findings had named `record`, a no-op under football.
+  The football ungraded-card alarm fires only while a row is still OWED a grade
+  (record_fb's `owed`: every unresolved state but `SETTLED_UNRESOLVED`, the player-side
+  ones, an exclusion list), never on a card whose rows are graded as they will stay; a
+  final game the log does not hold stays owed.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -1283,6 +1312,8 @@ nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
 record_fb.py      the football grader -> data/<lg>/latest/record.json
                   `[Sam, 2026-10-17]` also the game lines every card showed
                   (`grade_game_lines`) and the Board (props + game lines).
+                  `[2026-10-27]` A card's log is its football season's
+                  (`fb_why.season_of`), never its calendar year's.
 dossier_fb.py     Sam's eight per-game checks, every board game.
                   ⛔ Combines nothing, ranks nothing, scores nothing.
 fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
@@ -1410,6 +1441,8 @@ fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   (nflverse, free; OAK stored as LV) and college 2023-2024 schedules
                   + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
                   `nfl-logs` / `cfb-probe`. ⛔ Never in latest/; never raises.
+                  `[2026-10-27]` Every file is stamped (`written_at`); an unstamped
+                  stored one is stamped in place once, its games untouched.
 fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   and FBS-vs-FBS college games within 7 days at outdoor US
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
@@ -1443,6 +1476,8 @@ fb_why.py         THE WHY UNDER EACH FOOTBALL GIZMO'S PICKS PICK (Sam,
                   opponent tables, injury reports, schedule and
                   fb-model.json, on the liked lists only. ⛔ Changes no
                   pick, chance, rank or price; never raises.
+                  `[2026-10-27]` Also the ONE date-to-season rule (`season_of`)
+                  and THIS game's week (`game_week`, read by the news flags).
 game_lines_fb.py  THE ALT LADDERS (~~THE GAME LINES TAB~~: `[Sam, 2026-10-01]`
                   no longer drawn; the tab is winners.py, and the card's
                   alternate spreads still read this file) (Sam, 2026-09-24): every alt spread
@@ -1479,6 +1514,9 @@ news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a
                   College is headlines only (~~no injury reports~~ `[Sam, 2026-10-17]` the conference reports are read by cfb_injuries, not here).
                   `[Sam, 2026-10-01]` Not printed on board rows or
                   parlay legs; the file and its record are still kept.
+                  `[2026-10-27]` A game's week is its own schedule row
+                  (`fb_why.game_week`): ~~`signal9.week_of`~~ lost January
+                  and read Monday night as the next week.
 fb_alt_lines.py   the pre-registered check (research/fb_alt_lines_spec.md,
                   frozen): is the game model calibrated 3/7/10 points off
                   the main line? ⛔ Decides the tab's LABEL (stored in

@@ -133,29 +133,41 @@ RATED = [{"game_id": "g1", "player": "Model Guy", "market": MK, "line": 3.5, "si
          {"game_id": "g1", "player": "Low Guy", "market": MK, "line": 3.5, "side": "over", "p": 41.6}]
 
 
-def games(season, hits, n):
-    d0 = datetime.date(2025, 9, 7) if season == 2025 else (NOW - datetime.timedelta(days=40)).date()
+# ⛔ `[2026-10-27]` THE TREE IS PINNED TO THE KICKOFF IT PLANTS: ~~players-2025 / players-2026~~ were
+#    literal years beside a kickoff from the real clock, so from 2027-02-27 (the kickoff's season
+#    turned to 2027 on 03-01) the card read players-2026 alone and six checks went red on correct
+#    code. S is the kickoff's own season (fb_why.season_of of its ET day): players-<S-1>, players-<S>.
+import card_fb as _CF0  # noqa: E402  (et_date only; card() imports its own fresh copy)
+import fb_why  # noqa: E402
+S = fb_why.season_of(_CF0.et_date(BOARD["games"][0]["commence"]))
+
+
+def games(season, hits, n, this):
+    """`n` games of `season`: last season's from its 7 September, this season's (`this`) from
+    40 days ago, a week apart."""
+    d0 = datetime.date(season, 9, 7) if season != this else (NOW - datetime.timedelta(days=40)).date()
     return [{"d": (d0 + datetime.timedelta(days=7 * i)).isoformat(), "snap_pct": 0.9, "team": "H",
              "rec": 5 if i < hits else 1, "rec_yds": 0, "rush_yds": 0, "rec_td": 0, "rush_td": 0,
              "pass_yds": 0, "pass_td": 0} for i in range(n)]
 
 
-def card(model_board_at, board=BOARD, last_two=False):
-    """card_fb.main() on a planted tree whose props model priced `model_board_at`; `last_two`:
-    the league's props model switched to last season plus this one (§3i)."""
+def card(model_board_at, board=BOARD, s=S, last_two=False):
+    """card_fb.main() on a planted tree whose props model priced `model_board_at`, its logs
+    those of the board's season `s` and the one before; `last_two`: the league's props model
+    switched to last season plus this one (§3i)."""
     t = tempfile.mkdtemp(prefix="pmconf-")
     TREES.append(t)
     lat = os.path.join(t, "data", "nfl", "latest")
     os.makedirs(lat)
     for name, doc in (("props.json.gz", board),
-                      ("players-2025.json.gz", {"season": 2025, "players": {
-                          "1": {"name": "Model Guy", "pos": "WR", "g": games(2025, 10, 10)},
-                          "2": {"name": "Record Guy", "pos": "WR", "g": games(2025, 6, 10)},
-                          "3": {"name": "Low Guy", "pos": "WR", "g": games(2025, 8, 10)}}}),
-                      ("players-2026.json.gz", {"season": 2026, "players": {
-                          "1": {"name": "Model Guy", "pos": "WR", "g": games(2026, 4, 4)},
-                          "2": {"name": "Record Guy", "pos": "WR", "g": games(2026, 2, 4)},
-                          "3": {"name": "Low Guy", "pos": "WR", "g": games(2026, 3, 4)}}})):
+                      ("players-%d.json.gz" % (s - 1), {"season": s - 1, "players": {
+                          "1": {"name": "Model Guy", "pos": "WR", "g": games(s - 1, 10, 10, s)},
+                          "2": {"name": "Record Guy", "pos": "WR", "g": games(s - 1, 6, 10, s)},
+                          "3": {"name": "Low Guy", "pos": "WR", "g": games(s - 1, 8, 10, s)}}}),
+                      ("players-%d.json.gz" % s, {"season": s, "players": {
+                          "1": {"name": "Model Guy", "pos": "WR", "g": games(s, 4, 4, s)},
+                          "2": {"name": "Record Guy", "pos": "WR", "g": games(s, 2, 4, s)},
+                          "3": {"name": "Low Guy", "pos": "WR", "g": games(s, 3, 4, s)}}})):
         with gzip.open(os.path.join(lat, name), "wt", encoding="utf-8") as fh:
             json.dump(doc, fh)
     with open(os.path.join(lat, "fb-props-model.json"), "w", encoding="utf-8") as fh:
@@ -179,6 +191,13 @@ DOC, CF = card(PULLED)
 STALE, _ = card(ISO(NOW - datetime.timedelta(hours=4)))
 P = {r["player"]: r for r in DOC.get("picks") or []}
 M_, R_ = P.get("Model Guy") or {}, P.get("Record Guy") or {}
+# `[2026-10-27]` THE SAME BOARD A FEW DAYS INTO A NEW SEASON: a kickoff on the next 5 March, which
+#    fb_why.season_of puts in a season with no game yet; the tree follows it (s = that season).
+_Y = NOW.year if NOW + datetime.timedelta(days=2) < datetime.datetime(NOW.year, 3, 5, 18, tzinfo=UTC) \
+    else NOW.year + 1
+_B2 = dict(BOARD, games=[dict(BOARD["games"][0], commence="%d-03-05T18:00:00Z" % _Y)])
+MARCH, _ = card(PULLED, _B2, fb_why.season_of(_CF0.et_date(_B2["games"][0]["commence"])))
+P2 = {r["player"]: r for r in MARCH.get("picks") or []}
 
 section("1. 🔴 A PRICED PROP TAKES THE MODEL'S %, RANKED BY IT; AN UNPRICED ONE THE RECORD")
 eq((M_.get("confidence"), M_.get("model_p"), M_.get("confidence_basis")), (51, 51.0, "MODEL"),
@@ -189,6 +208,9 @@ eq((M_.get("rate"), M_.get("record"), M_.get("break_even"), M_.get("edge")), (71
    "   ...his own record stays in the data, and the edge is the model's % less the break-even")
 eq((R_.get("confidence"), R_.get("confidence_basis"), "model_p" in R_), (52, "RECORD", False),
    "🔴 Record Guy's 3.5 is not priced by the model (only his 4.5 is): his own rate, labelled RECORD")
+eq([(P2.get(w) or {}).get(k) for w in ("Model Guy", "Record Guy") for k in ("confidence", "confidence_basis")],
+   [51, "MODEL", 52, "RECORD"],
+   "🔴 ...and the same on a %d-03-05 kickoff, the first days of a season: the tree follows its kickoff" % _Y)
 eq([r["player"] for r in DOC.get("picks") or []], ["Record Guy", "Model Guy"],
    "🔴 the card ranks by it: the model's 51 sits under the record's 52")
 
@@ -202,8 +224,8 @@ eq((DOC.get("props_model_used"), STALE.get("props_model_used")), (True, False),
 
 section("3. 🔴 NO FOOTBALL ROW PRINTS A CAVEAT SENTENCE")
 _snaps = ", when he played at least half the snaps."
-eq(M_.get("why"), ["<b>Model Guy</b> went over 3.5 rec in <b>4 of 4 games</b> in 2026 and 10 of 10 in 2025"
-                   + _snaps], "🔴 the row's one sentence is his record at the line, this season first")
+eq(M_.get("why"), ["<b>Model Guy</b> went over 3.5 rec in <b>4 of 4 games</b> in %d and 10 of 10 in %d"
+                   % (S, S - 1) + _snaps], "🔴 the row's one sentence is his record at the line, this season first")
 _rows = (DOC.get("picks") or []) + (STALE.get("picks") or [])
 _bad = [(r["player"], s) for r in _rows for s in r.get("why") or []
         if len(r.get("why") or []) != 1 or any(w in s for w in (

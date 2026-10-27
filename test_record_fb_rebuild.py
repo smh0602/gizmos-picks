@@ -51,6 +51,11 @@ the stored data was not in when the PR was tested:
                  methods BOTH hold graded rows and a pool would show
 ⛔ The re-stamped cards are FIXTURES in a temp directory. Nothing under
 `data/` or `picks/` is written.
+
+# @vacuity the YEAR TURN probe (01-02) is graded from the season before
+#   file: record_fb.py
+#   find: season = fb_why.season_of(date)
+#   with: season = int(str(date)[:4])
 """
 import glob
 import gzip
@@ -67,6 +72,7 @@ from tcheck import ck, copy_module, eq, note, section
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from jsblock import js_block  # noqa: E402
+import fb_why  # noqa: E402  (season_of: the season the grader reads a card's log by)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 IDX = os.path.join(ROOT, "index.html")
@@ -298,14 +304,16 @@ def probe_blocked(root, lg):
     probe borrows the newest card with rows and is dated two days after the newest
     card. Two correct trees leave it nothing the grader can grade: no stored card
     with rows in the list it is graded on, and a probe dated in a season whose log
-    is not stored (record_fb reads the log of the card's calendar year, so from
-    12-30 the probe lands in a 2027 nobody has a log for until August). The
-    planted tree asks the question every run either way."""
+    is not stored. ~~(record_fb reads the log of the card's calendar year, so from
+    12-30 the probe lands in a 2027 nobody has a log for until August)~~ `[2026-10-27]`
+    record_fb reads the log of the card's FOOTBALL season (fb_why.season_of), so a
+    probe dated 01-02 is graded from the season before. The planted tree asks the
+    question every run either way."""
     fs = dated_cards(os.path.join(root, "picks"), lg)
     if not fs or not any(graded_list(json.load(open(f, encoding="utf-8"))) for f in fs):
         return "no stored card carries rows in the list it is graded on"
     last = datetime.strptime(os.path.basename(fs[-1])[len("fb-%s-" % lg):-5], "%Y-%m-%d")
-    season = (last + timedelta(days=2)).year
+    season = fb_why.season_of((last + timedelta(days=2)).strftime("%Y-%m-%d"))
     lp = os.path.join(root, "data", lg, "latest", "players-%d.json.gz" % season)
     if not (os.path.exists(lp) and json.load(gzip.open(lp, "rt")).get("players")):
         return ("the probe would be dated %s, and no %d log is stored to grade it"
@@ -591,10 +599,16 @@ for lg in ("nfl", "ncaaf"):
 section("THE STORED-DATA PROBE ON TWO CORRECT TREES IT ONCE FAILED")
 # `[2026-10-18]` The guards for `probe_blocked` and the probe's source, built here
 # rather than waited for from picks/: the planted tree run as STORED DATA, plus one
-# card. (1) A newest card dated 12-31 puts the probe in 2027, with no 2027 log: the
-# stored path must note and add no failure. (2) A newest card with 25-style picks and
+# card. (1) A newest card dated 12-31 puts the probe on 01-02: ~~in 2027, with no 2027
+# log: the stored path must note and add no failure~~ `[2026-10-27]` the grader reads
+# that probe's log by its football season, 2026, so NEXT METHOD runs and passes (read
+# by the calendar year it was skipped, and this is red). (2) A newest card with 25-style picks and
 # an EMPTY liked list: the probe must take the last card with rows in its graded list,
 # so NEXT METHOD runs and passes (taken by `picks`, it graded nothing and went red).
+# (3) `[2026-10-27]` A newest card on a season's opening week (2027-09-09) puts the probe
+# in 2027 with no 2027 log, as a week-1 card can come before its log (fb_why.season_of):
+# the stored path must note and add no failure. Since (1) changed, this is the only case
+# that reaches probe_blocked's "no log stored" answer `[review]`.
 import tcheck as _TC  # noqa: E402
 
 
@@ -613,8 +627,9 @@ def _guard_tree(lg, date, liked_empty):
     return g
 
 
-for _tag, _date, _empty, _want_note in (("YEAR TURN", "2026-12-31", False, True),
-                                         ("LIKED EMPTY", "2026-09-27", True, False)):
+for _tag, _date, _empty, _want_note in (("YEAR TURN", "2026-12-31", False, False),
+                                         ("LIKED EMPTY", "2026-09-27", True, False),
+                                         ("NEW SEASON, NO LOG YET", "2027-09-09", False, True)):
     _g = _guard_tree("nfl", _date, _empty)
     _nf0, _nn0 = len(_TC.FAILURES), len(_TC._NOTES)
     try:
