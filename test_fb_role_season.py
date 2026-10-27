@@ -34,10 +34,15 @@ a planted card build; ⛔ reads nothing live.
 #   find:     return {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0} if plog is not None else None
 #   with:     return role_of(plog)
 #
+# ~~@vacuity 🔴 the card sets a role for a player with no rated-season log~~ (its mutation: a role only
+#   when `plog is not None`). `[review, 2026-10-26]` VACUOUS since T73's review fix: card_fb.match_player
+#   finds a rookie in this season's log, so his `plog` is that log and the old mutation left his role in
+#   place (the vacuity sweep caught it). The same defect, a role only for a player with a LAST-season
+#   log, in the new code's terms:
 # @vacuity 🔴 the card sets a role for a player with no rated-season log
 #   file: card_fb.py
 #   find:                 if LEAGUE == "nfl" and not TEAM_UNIT.search(who):        # never a team defense
-#   with:                 if LEAGUE == "nfl" and plog is not None:        # never a team defense
+#   with:                 if LEAGUE == "nfl" and plog is not None and plog_season == season:        # never a team defense
 """
 import datetime
 import gzip
