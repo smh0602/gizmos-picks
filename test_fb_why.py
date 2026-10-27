@@ -259,8 +259,8 @@ with and without it: every other field byte for byte the same.
 #
 # @vacuity 🔴 build writes the list from that handed-over solve
 #   file: fb_model.py
-#   find: rows = build_rows(lg, root, extra_top, extra_players, ratings=own)
-#   with: rows = build_rows(lg, root, extra_top, extra_players)
+#   find: rows = build_rows(lg, root, extra_top, extra_players, ratings=own, inj_now=now)
+#   with: rows = build_rows(lg, root, extra_top, extra_players, inj_now=now)
 #
 # @vacuity 🔴 the list changes no other field of fb-model.json
 #   file: fb_model.py
