@@ -45,6 +45,10 @@ because a different-role appearance was being counted as evidence.
 its price and its book and loses its rate, and the card SAYS WHY with
 the current season's own numbers.
 """
+# @vacuity [2026-10-27, review 2] §5: the role-change note reads the row's matched id, never a namesake's season by name
+#   file: card_fb.py
+#   find: if len(pids or ()) != 1 or pids[0] not in CUR_P:
+#   with: if len(pids := [q for q in CUR_P if norm(CUR_P[q].get("name")) == norm(who)]) != 1:
 import os
 import sys
 
@@ -157,8 +161,8 @@ C.CUR_SEASON = 2026
 C.CUR_P = {"x1": {"name": "A Player", "pos": "QB",
                   "g": [gm(att=19, cmp=12, pass_yds=246, car=7,
                            rush_yds=49, usage=26)]}}
-C._CUR_IDX = None
-_role = C.role_change_note("A Player", "player_pass_yds", 2025)
+# `[2026-10-27, review 2]` found by the row's matched id (card_fb.match_player), ~~by his name~~
+_role = C.role_change_note("A Player", "player_pass_yds", 2025, ["x1"])
 ck("🔴 it reports what he is doing NOW, in his own numbers",
    _role and "26 touches a game" in _role and "246 pass yds a game" in _role,
    "⛔ THE ANSWER TO SAM'S QUESTION IS A MEASUREMENT, NOT A SHRUG. "
@@ -171,21 +175,32 @@ ck("⛔ ...and it carries no percentage and no projection",
    "record describes a different job")
 ck("✅ ...and the no-rate sentence carries it through to the reader",
    "In 2026 so far" in C.no_rate_reason(True, {"g": BACKUP_QB}, "A Player",
-                                        "player_pass_yds", 2025),
+                                        "player_pass_yds", 2025, pids=["x1"]),
    "a reason the reader cannot check is a reason they will not believe")
 ck("⛔ it says NOTHING when the current season IS the rated one",
-   C.role_change_note("A Player", "player_pass_yds", 2026) is None,
+   C.role_change_note("A Player", "player_pass_yds", 2026, ["x1"]) is None,
    "🔴 there is no comparison to make, and inventing one would fold two "
    "seasons into a claim about one")
 C.CUR_P = {"x1": {"name": "A Player", "g": [gm(usage=26)]},
            "x2": {"name": "A Player", "g": [gm(usage=1)]}}
-C._CUR_IDX = None
-ck("⛔ ...and NOTHING when two players share the name",
-   C.role_change_note("A Player", "player_pass_yds", 2025) is None,
+# `[2026-10-27, review 2]` ~~two players share the name in this season's log~~: the row's match decides
+#    that now (card_fb.match_player, by the game's two teams); an ambiguous match is two ids
+ck("⛔ ...and NOTHING when the row's match is ambiguous",
+   C.role_change_note("A Player", "player_pass_yds", 2025, ["x1", "x2"]) is None,
    "🔴 `index_by_name` keeps duplicates as a LIST on purpose, for the "
    "same reason the MLB collector's `resolve()` refuses a first match: "
    "attaching one player's season to another player's price is worse "
    "than saying nothing")
+
+# `[2026-10-27, review 2]` the class of the role fallback that gave the Titans' RB Michael Carter the
+#    Eagles CB's snaps: a this-season fact read by NAME, with no team check
+C.CUR_P = {"x2": {"name": "A Player", "g": [gm(att=30, pass_yds=300, usage=40)]}}
+ck("⛔ ...and NOTHING from a namesake: the matched player has no game this season, and another 'A Player' "
+   "has played (on another team) -- his 40 touches a game are never this row's",
+   C.role_change_note("A Player", "player_pass_yds", 2025, ["x1"]) is None
+   and "In 2026 so far" not in C.no_rate_reason(True, {"g": BACKUP_QB}, "A Player", "player_pass_yds", 2025,
+                                                 pids=["x1"]),
+   C.role_change_note("A Player", "player_pass_yds", 2025, ["x1"]))
 
 note("⛔ WHAT THIS DOES NOT DO: predict what the new role is worth. "
      "There is no football model — T46, T47, T50 and T57 all lost to a "

@@ -602,7 +602,6 @@ def norm(n):
 SCOPES = {}
 FLOORS = {}
 CUR_SEASON, CUR_P = None, None
-_CUR_IDX = None
 LOG_SCOPE = None
 
 
@@ -685,10 +684,9 @@ def load_logs(this_season=None):
     #    2026-09-24 (~~"IT IS NEVER A RATE AND NEVER A PROJECTION"~~): `rate_blend`'s g26.
     #    LAST season is the next file back; with no game this season, or one stored season,
     #    that one file is both, and nothing is blended.
-    global CUR_SEASON, CUR_P, _CUR_IDX
+    global CUR_SEASON, CUR_P
     cur = seen[0]
     CUR_SEASON, CUR_P = cur[0], cur[1]
-    _CUR_IDX = None                          # the name index is CUR_P's own, rebuilt on first use
     season, P, fn, med, _fs = seen[1] if len(seen) > 1 else cur
     global LOG_SCOPE, USAGE_FLOOR
     LOG_SCOPE = SCOPES.get(fn)
@@ -1891,22 +1889,21 @@ def current_role(who, pids, plog, rated_season):
     prints. ~~His rated-season log when this season has none~~ (Tanner McKee, no 2026 snap,
     printed 2025's 44% of snaps) ~~and none at all for a rookie~~ (no 2025 log: 4 of 25
     liked NFL props had no role on 10-16, so an over on a rookie skipped the role check).
-    By his id in this season's log, else by a unique name there (never a guess). A player
+    By his id in this season's log, ~~else by a unique name there (never a guess)~~
+    `[2026-10-27, review 2]` and ONLY by the id `match_player` chose for the row's game: the
+    unique-name fallback had no team check, so the Titans' RB Michael Carter's TD row (his
+    name ambiguous) carried the Eagles CB's 0% of offensive snaps, and the role check uses
+    it. A rookie is matched in this season's log now, so his id finds him. An ambiguous or
+    unmatched name has NO role (None), never a namesake's. A player
     with a rated-season log and no game this season has NO role this season: every share
     0, n 0, so an over on him fails the check and no role sentence prints. Same season as
     the rated one: his rated log."""
-    global _CUR_IDX
     if not CUR_P or CUR_SEASON == rated_season:
         return role_of(plog)
-    if len(pids) == 1 and pids[0] in CUR_P:
+    if len(pids) != 1:
+        return None                          # ⛔ ambiguous or unmatched: never a namesake's role
+    if pids[0] in CUR_P:
         return role_of(CUR_P[pids[0]])
-    if _CUR_IDX is None:
-        _CUR_IDX = index_by_name(CUR_P)
-    cur = _CUR_IDX.get(norm(who)) or []
-    if len(cur) == 1:
-        return role_of(CUR_P[cur[0]])
-    if len(cur) > 1:
-        return None                          # ⛔ ambiguous: never guessed
     return {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0} if plog is not None else None
 
 
@@ -2387,7 +2384,7 @@ def main():
                     row["why"] = [gate_why] if (plog is not None
                                                  and not gate_ok) else [
                         no_rate_reason(RATES_OK, plog, who, mk, plog_season,
-                                       CUR_SEASON if _cur else None)]
+                                       CUR_SEASON if _cur else None, pids)]
                 # 🔴 `[Sam, 2026-10-09]` "Where fb_props_model prices a prop on the
                 #    card ... the row's confidence is the model's probability and the
                 #    card ranks by it. A prop it does not price keeps the player's own
@@ -2946,8 +2943,12 @@ COLLEGE_NOTE = (
     "record at all.")
 
 
-def role_change_note(who, market, rated_season):
+def role_change_note(who, market, rated_season, pids=()):
     """What he is doing THIS season, when last season describes another job.
+    `[2026-10-27, review 2]` His this-season log is found by `pids`, the id `match_player`
+    chose for the row's game, ~~by his name in this season's log~~: a namesake there, on
+    another team, would have lent HIS season to the sentence (the class of the role
+    fallback that gave the Titans' RB Michael Carter the Eagles CB's snaps).
 
     🔴 THE POINT SAM MADE, ANSWERED WITH NUMBERS RATHER THAN A SHRUG.
     `[2026-09-11]` *"he was not starting last year"* -- and the current
@@ -2964,16 +2965,13 @@ def role_change_note(who, market, rated_season):
     """
     if not CUR_P or CUR_SEASON == rated_season:
         return None
-    global _CUR_IDX
-    if _CUR_IDX is None:
-        _CUR_IDX = index_by_name(CUR_P)
-    pids = _CUR_IDX.get(norm(who)) or []
     # ⛔ AMBIGUOUS NAMES ARE NOT GUESSED AT. `index_by_name` keeps them as
     #    a LIST on purpose, for the same reason the MLB collector's
     #    `resolve()` refuses to pick a first match: attaching one player's
     #    season to another player's price is the worse error, and this
-    #    sentence is optional.
-    if len(pids) != 1:
+    #    sentence is optional. `[2026-10-27, review 2]` ⛔ Nor is a NAME read
+    #    here at all: only the row's own matched id (`pids`).
+    if len(pids or ()) != 1 or pids[0] not in CUR_P:
         return None
     p = CUR_P.get(pids[0]) or {}
     g = p.get("g") or []
@@ -3007,7 +3005,7 @@ def role_change_note(who, market, rated_season):
               f"one built on the wrong job.")
 
 
-def no_rate_reason(rates_ok, plog, who, market=None, season=None, this_season=None):
+def no_rate_reason(rates_ok, plog, who, market=None, season=None, this_season=None, pids=()):
     """Why this row carries a price and no rate. ⛔ Never a gate — rule 53.
 
     🔴 ~~ONE SENTENCE FOR EVERY CAUSE.~~ The old form said "appears in too
@@ -3029,7 +3027,7 @@ def no_rate_reason(rates_ok, plog, who, market=None, season=None, this_season=No
                 f"a rate from. Fewer than {MIN_GAMES} is not a rate.")
     g = plog.get("g") or []
     parts = PARTICIPATED.get(market) or ()
-    role = role_change_note(who, market, season) if market else None
+    role = role_change_note(who, market, season, pids) if market else None
     # ⛔ NAME THE ACTUAL CAUSE. Participation first, because it is the one
     #    that produced a 94%-confidence number on a player who had not
     #    played the position.

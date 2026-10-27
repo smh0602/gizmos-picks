@@ -19,15 +19,21 @@ a planted card build; ⛔ reads nothing live.
 #   find:         return role_of(CUR_P[pids[0]])
 #   with:         return role_of(plog)
 #
-# @vacuity 🔴 a rookie's role is found by a unique name in this season's log
+# ~~@vacuity 🔴 a rookie's role is found by a unique name in this season's log~~ (find `if len(cur) == 1:`)
+#   and ~~@vacuity 🔴 an ambiguous name gets no role, never a guess~~ (find `if len(cur) > 1:`):
+#   `[2026-10-27, review 2]` the unique-name fallback is gone. It had no team check, so the Titans' RB
+#   Michael Carter's TD row (his name ambiguous) carried the Eagles CB's 0% of offensive snaps. A rookie
+#   is matched in this season's log now (card_fb.match_player) and found by his id, the veteran's line
+#   above; an ambiguous or unmatched match has no role:
+# @vacuity 🔴 an ambiguous match gets no role, never the first holder's
 #   file: card_fb.py
-#   find:     if len(cur) == 1:
-#   with:     if False:
+#   find:     if len(pids) != 1:
+#   with:     if not pids:
 #
-# @vacuity 🔴 an ambiguous name gets no role, never a guess
+# @vacuity 🔴 ...and no namesake lends his role by name (the removed fallback, put back)
 #   file: card_fb.py
-#   find:     if len(cur) > 1:
-#   with:     if False:
+#   find:         return None                          # ⛔ ambiguous or unmatched: never a namesake's role
+#   with:         return (lambda c: role_of(CUR_P[c[0]]) if len(c) == 1 else None)([q for q in CUR_P if norm(CUR_P[q].get("name")) == norm(who)])
 #
 # @vacuity 🔴 a player with no game this season has no role this season (his over fails the check)
 #   file: card_fb.py
@@ -86,27 +92,44 @@ CUR = {"v1": {"name": "Vet Receiver", "pos": "WR", "g": [g("2026-10-%02d" % d, 0
        "r1": {"name": "Rook Receiver", "pos": "WR", "g": [g("2026-10-%02d" % d, s, t) for d, s, t in
                                                          ((4, 0.10, 0.03), (11, 0.20, 0.05))]},
        "t1": {"name": "Same Name", "pos": "WR", "g": [g("2026-10-04", 0.5, 0.1)]},
-       "t2": {"name": "Same Name", "pos": "RB", "g": [g("2026-10-04", 0.6, 0.0, 9.0)]}}
-_old = (CF.CUR_P, CF.CUR_SEASON, CF._CUR_IDX)
+       "t2": {"name": "Same Name", "pos": "RB", "g": [g("2026-10-04", 0.6, 0.0, 9.0)]},
+       # `[2026-10-27, review 2]` an Eagles CB: 2025 held his name twice (him and a Titans RB), 2026 once
+       "cb": {"name": "Twin Back", "pos": "CB", "g": [g("2026-10-%02d" % d, 0.0, 0.0, team="PHI") for d in (4, 11)]}}
+_old = (CF.CUR_P, CF.CUR_SEASON)
 try:
-    CF.CUR_P, CF.CUR_SEASON, CF._CUR_IDX = CUR, 2026, None
+    CF.CUR_P, CF.CUR_SEASON = CUR, 2026
     R = {"vet": CF.current_role("Vet Receiver", ["v1"], VET, 2025),
-         "rookie": CF.current_role("Rook Receiver", [], None, 2025),
+         # ~~"rookie": CF.current_role("Rook Receiver", [], None, 2025)~~ (found by his unique name):
+         #    `[2026-10-27, review 2]` card_fb.match_player matches a rookie in this season's log, so the
+         #    card hands his id and his this-season log
+         "rookie": CF.current_role("Rook Receiver", ["r1"], CUR["r1"], 2025),
          "gone": CF.current_role("Backup Quarterback", ["q9"], GONE, 2025),
-         "twin": CF.current_role("Same Name", ["z9"], TWIN25, 2025),
-         "nobody": CF.current_role("Never Logged", [], None, 2025)}
-    CF.CUR_P, CF.CUR_SEASON, CF._CUR_IDX = {"v1": VET}, 2025, None
+         # ~~"twin": CF.current_role("Same Name", ["z9"], TWIN25, 2025)~~ (ambiguous by the name index):
+         #    the match decides ambiguity now; two ids are ambiguous
+         "twin": CF.current_role("Same Name", ["t1", "t2"], None, 2025),
+         "nobody": CF.current_role("Never Logged", [], None, 2025),
+         # `[2026-10-27, review 2]` no namesake lends his role: an unmatched name one 2026 player holds, and
+         # Michael Carter's shape (ambiguous; the CB the one who has played)
+         "unmatched": CF.current_role("Rook Receiver", [], None, 2025),
+         "namesake": CF.current_role("Twin Back", ["cb", "rb"], None, 2025),
+         # ...and the matched player with no game this season keeps HIS zero role while two namesakes play
+         "z9": CF.current_role("Same Name", ["z9"], TWIN25, 2025)}
+    CF.CUR_P, CF.CUR_SEASON = {"v1": VET}, 2025
     R["same"] = CF.current_role("Vet Receiver", ["v1"], VET, 2025)
 finally:
-    CF.CUR_P, CF.CUR_SEASON, CF._CUR_IDX = _old
+    CF.CUR_P, CF.CUR_SEASON = _old
 eq(R["vet"], {"snap": 0.4, "tgt_share": 0.1, "car": 0.0, "n": 2},
    "🔴 a veteran: THIS season's 40% of snaps (his id in this season's log), never 2025's 95%")
 eq(R["rookie"], {"snap": 0.15, "tgt_share": 0.04, "car": 0.0, "n": 2},
-   "🔴 a rookie (no 2025 log): his own 2026 role, found by his unique name")
+   "🔴 a rookie (no 2025 log): his own 2026 role, found by ~~his unique name~~ his matched id")
 eq(R["gone"], {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0},
    "🔴 a player with no game this season: no role this season (Tanner McKee's 2025 starts never stand in)")
 eq((R["twin"], R["nobody"]), (None, None),
-   "🔴 an ambiguous name in this season's log gets no role (never a guess); a player logged nowhere, none")
+   "🔴 an ambiguous match gets no role (never a guess); a player logged nowhere, none")
+eq((R["unmatched"], R["namesake"], R["z9"]), (None, None, {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0}),
+   "🔴 no namesake lends his role: an unmatched name one 2026 player holds gets none, and so does Michael "
+   "Carter's shape (the Titans RB's TD row carried the Eagles CB's 0% of offensive snaps); the matched player "
+   "with no 2026 game keeps his own zero role, never his namesakes'")
 eq(R["same"], CF.role_of(VET), "   the rated season IS this season: his rated log")
 _over = lambda role, mk="player_reception_yds": {"side": "over", "market": mk, "role": role}  # noqa: E731
 eq([CF.role_ok(_over(R["gone"])), CF.role_ok(dict(_over(R["gone"]), side="under")), CF.role_ok(_over(R["rookie"]))],
@@ -137,19 +160,25 @@ try:
     put(os.path.join(_L, "props.json.gz"), {"pulled_at": (_n - datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "games": [{"id": "ev1", "away": "Seattle Seahawks", "home": "Denver Broncos", "commence": _K, "props": [
             {"player": w, "market": "player_receptions", "line": 3.5,
-             "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 3}}} for w in _vets + ["Rook Receiver"]]}]})
-    put(os.path.join(_L, "players-2025.json.gz"), {"season": 2025, "players": {
+             "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 3}}}
+            for w in _vets + ["Rook Receiver", "Twin Back"]]}]})
+    # `[2026-10-27, review 2]` Twin Back is Michael Carter's shape: 2025 held the name twice (an Eagles CB
+    #    and a Cardinals RB), 2026 once (the CB); neither plays for Seattle or Denver
+    put(os.path.join(_L, "players-2025.json.gz"), {"season": 2025, "players": dict({
         "p%d" % i: {"name": w, "pos": "WR", "g": [g("2025-09-%02d" % (j + 7), 0.9, 0.25, rec=5) for j in range(10)]}
-        for i, w in enumerate(_vets)}})
+        for i, w in enumerate(_vets)},
+        tb1={"name": "Twin Back", "pos": "CB", "g": [g("2025-09-%02d" % (j + 7), 0.0, team="PHI") for j in range(10)]},
+        tb2={"name": "Twin Back", "pos": "RB", "g": [g("2025-09-%02d" % (j + 7), 0.6, 0.1, 9.0, team="ARI", rec=2)
+                                                    for j in range(10)]})})
     # this season: the three veterans and the rookie have played; the backup has not
     put(os.path.join(_L, "players-2026.json.gz"), {"season": 2026, "players": dict(
         {"p%d" % i: {"name": w, "pos": "WR", "g": [g("2026-10-%02d" % d, 0.7, 0.2, rec=4) for d in (4, 11)]}
          for i, w in enumerate(_vets[:3])},
-        r1={"name": "Rook Receiver", "pos": "WR", "g": [g("2026-10-%02d" % d, 0.12, 0.04, rec=1) for d in (4, 11)]})})
+        r1={"name": "Rook Receiver", "pos": "WR", "g": [g("2026-10-%02d" % d, 0.12, 0.04, rec=1) for d in (4, 11)]},
+        tb1={"name": "Twin Back", "pos": "CB", "g": [g("2026-10-%02d" % d, 0.0, team="PHI") for d in (4, 11)]})})
     _cwd = os.getcwd()
     try:
         os.chdir(_T)
-        CF._CUR_IDX = None
         CF.main()
         CARD = json.load(open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8"))
     finally:
@@ -166,3 +195,7 @@ eq((_role.get("Vet One"), _role.get("Rook Receiver"), _role.get("Backup Quarterb
    "backup who has not played this season has a zero role")
 ck(not any(r["player"] in ("Rook Receiver", "Backup Quarterback") for r in CARD.get("liked") or []),
    "🔴 ...so neither the rookie's nor the backup's over is ever a liked pick")
+ck("Twin Back" in _role and _role["Twin Back"] is None,
+   "🔴 a name the game's teams cannot settle (Michael Carter's shape) gets NO role on the real card, never the "
+   "Eagles CB's 0% of offensive snaps (`[2026-10-27, review 2]`: card_fb.match_player, current_role)",
+   _role.get("Twin Back", "not on the card"))
