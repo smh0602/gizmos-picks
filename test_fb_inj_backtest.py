@@ -114,8 +114,8 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #
 # @vacuity 🔴 [2026-10-26] a live build's moment reaches college's injury reading
 #   file: fb_model.py
-#   find:         return cfb_injuries.attach(rows, root, now=now)
-#   with:         return cfb_injuries.attach(rows, root)
+#   find:         return cfb_injuries.attach(rows, root, now=now, shown_at=shown)
+#   with:         return cfb_injuries.attach(rows, root, shown_at=shown)
 """
 import json
 import os
@@ -177,7 +177,10 @@ import fb_model as FM  # noqa: E402
 _calls = []
 _fake = types.ModuleType("cfb_injuries")
 # `[2026-10-26]` the stand-in takes the real signature's `now` (a live build's moment) and records it
-_fake.attach = lambda rows, root=None, now=None: _calls.append(("college", len(rows), now)) or rows
+# `[2026-10-26, review]` ...and `shown_at` (each played game's last pre-kickoff build, the record's)
+_fake.attach = lambda rows, root=None, now=None, shown_at=None: _calls.append(
+    ("college", len(rows), now, shown_at)) or rows
+_empty = tempfile.mkdtemp(prefix="injbt-")          # ⛔ no ledger of production's is read
 _saved_mod, _saved_in = sys.modules.get("cfb_injuries"), fb_challengers.attach
 sys.modules["cfb_injuries"] = _fake
 fb_challengers.attach = lambda name, lg, rows, root=None: _calls.append(("IN", lg)) or rows
@@ -185,7 +188,7 @@ try:
     FM.injury_readings("ncaaf", [{}, {}])
     _college = list(_calls)
     _calls.clear()
-    FM.injury_readings("ncaaf", [{}], now="BUILD")
+    FM.injury_readings("ncaaf", [{}], _empty, now="BUILD")
     _college_now = list(_calls)
     _calls.clear()
     FM.injury_readings("nfl", [{}])
@@ -196,11 +199,14 @@ finally:
         sys.modules.pop("cfb_injuries", None)
     else:
         sys.modules["cfb_injuries"] = _saved_mod
+    shutil.rmtree(_empty, ignore_errors=True)
 # `[2026-10-26]` ~~[("college", 2)]~~: the reading's moment is asked too (None: §3's tested 9:00 read)
-eq(_college, [("college", 2, None)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
-   "(which read data/nfl: every college team would read zero), at §3's tested reading by default")
-eq(_college_now, [("college", 1, "BUILD")],
-   "🔴 [2026-10-26] ...and a live build's moment reaches college's reading (Sam: \"do 9am, 12pm, 7pm\")")
+eq(_college, [("college", 2, None, None)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
+   "(which read data/nfl: every college team would read zero), at §3's tested reading by default, and no "
+   "ledger is read")
+eq(_college_now, [("college", 1, "BUILD", {})],
+   "🔴 [2026-10-26] ...and a live build's moment reaches college's reading (Sam: \"do 9am, 12pm, 7pm\"), with "
+   "the ledger's shown moments (none in an empty tree)")
 eq(_nfl, [("IN", "nfl")], "🔴 an NFL row gets T69 IN's readings")
 
 # ══════════════════════════════════════════════════════════════════════

@@ -88,7 +88,8 @@ SIM = {"nfl": False, "ncaaf": False}
 #    College's readings come from the conference reports (`cfb_injuries.attach`); its test
 #    PASSED 2026-10-19 (research/fb_sim_backtest.json injuries.ncaaf) and this line turns it on
 #    when Sam merges it. A college game still to start at a build reads the newest report as
-#    of that build (Sam: "do 9am, 12pm, 7pm"; `cfb_injuries.read_cut`). The NFL's FAILED
+#    of that build (Sam: "do 9am, 12pm, 7pm"; `cfb_injuries.read_cut`), and the record replays
+#    each played game with the report its last pre-kickoff build read (`as_shown`). The NFL's FAILED
 #    (10-17) and stays off. ⛔ Set only from the recorded backtest (~~test_fb_injuries.py~~
 #    test_fb_sim.py §3 reads it; that file never existed).
 INJURIES = {"nfl": False, "ncaaf": True}
@@ -477,8 +478,10 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ra
     rows read ({Monday: ratings}), so `build` reuses it; the rows are unchanged.
     `[Sam, 2026-10-26]` `inj_now`: the build moment, passed only by `build` (the live
     model). A college game still to start then reads the newest injury report as of
-    it ("do 9am, 12pm, 7pm"); None, as every training, record and backtest caller
-    passes, is the tested 9:00 reading for every game.
+    it ("do 9am, 12pm, 7pm"); None, as every training and backtest caller passes,
+    is the tested 9:00 reading for every game. `[2026-10-26, review]` With it, each
+    played game also carries `inj_shown`, its reading as of its last pre-kickoff build,
+    which only the record's replay reads (`as_shown`).
     """
     resolve = D.team_codes(lg)
     snaps = board_prices(lg, resolve, root) if board is None else board
@@ -823,10 +826,17 @@ def injury_readings(lg, rows, root=None, now=None):
     """`[Sam, 2026-10-17]` r["sig"]["inj"] for every row: the NFL's from T69 IN's measures
     (`fb_challengers.attach("IN")`, which reads data/nfl), college's from the conference reports
     (`cfb_injuries.attach`, research/cfb_injuries_design.md §3). ⛔ Never the other league's.
-    `[Sam, 2026-10-26]` `now` (the live build's moment) reaches college's reading only."""
+    `[Sam, 2026-10-26]` `now` (the live build's moment) reaches college's reading only.
+    `[2026-10-26, review]` With it (the live build only), each played college game is also read
+    as of its last pre-kickoff build (fb_ledger.looked_moments) into `inj_shown`, the reading
+    the record's replay uses (`as_shown`): the record grades what the site showed."""
     if lg == "ncaaf":
         import cfb_injuries
-        return cfb_injuries.attach(rows, root, now=now)
+        shown = None
+        if now is not None:
+            import fb_ledger
+            shown = fb_ledger.looked_moments(lg, root)
+        return cfb_injuries.attach(rows, root, now=now, shown_at=shown)
     import fb_challengers
     return fb_challengers.attach("IN", lg, rows, root)
 
@@ -958,6 +968,19 @@ RECORDS = (("books", book_quotes), ("closing", closing_quotes))
 RULES = ("shown", "fits")
 
 
+def as_shown(r):
+    """`[2026-10-26, review]` A played row as the site showed it: its injury reading as of its
+    last pre-kickoff build (`sig["inj_shown"]`, cfb_injuries.attach), where the live build
+    recorded one. A college game still to start reads the newest report at each build (Sam, "do
+    9am, 12pm, 7pm"), so the record's replay must read the same report ("THE MODEL PICKS RECORD
+    GRADES WHAT THE SITE SHOWS", Sam 2026-10-16). ⛔ Only the replay reads it: every fit, the
+    injury fit included, trains on `sig["inj"]`, §3's tested 9:00 cut."""
+    s = r.get("sig") or {}
+    if "inj_shown" not in s:
+        return r
+    return dict(r, sig=dict(s, inj=s["inj_shown"]))
+
+
 def walk_forward(rows, rule="shown"):
     """-> {"books": {market: [pick rows]}, "closing": {...}} graded week by
     week, trained only on games that kicked off before each week's Monday.
@@ -992,6 +1015,8 @@ def walk_forward(rows, rule="shown"):
             for r in weeks[wk]:
                 if not r["final"]:
                     continue
+                if rule == "shown":
+                    r = as_shown(r)                   # the report the site showed it with
                 for name, quotes in RECORDS:
                     pk = (best_pick(r, mk, models[mk], quotes) if rule == "fits"
                           else shown_pick(r, mk, models, sigma, sigma_t, quotes))

@@ -45,6 +45,16 @@ Planted rows, the real walk_forward, current_picks, build, predicted_score and s
 #   file: fb_signal9.py
 #   find:         wf = _with_flag(F, "S9_GAME", flag, lambda: F.walk_forward(rows, rule="fits"), lg)
 #   with:         wf = _with_flag(F, "S9_GAME", flag, lambda: F.walk_forward(rows), lg)
+#
+# @vacuity 🔴 [2026-10-26, review] a played college game is replayed with the injury report the site showed
+#   file: fb_model.py
+#   find:                     r = as_shown(r)                   # the report the site showed it with
+#   with:                     pass
+#
+# @vacuity ⛔ ...while every fit, the injury fit included, still trains on §3's 9:00 reading
+#   file: fb_model.py
+#   find:     return dict(r, sig=dict(s, inj=s["inj_shown"]))
+#   with:     r["sig"] = dict(s, inj=s["inj_shown"]); return r
 """
 import copy
 import os
@@ -191,3 +201,67 @@ _s9 = open(os.path.join(ROOT, "fb_signal9.py"), encoding="utf-8").read()
 ck('F.walk_forward(rows, rule="fits")' in _s9 and "F.walk_forward(rows)" not in _s9,
    "🔴 the pre-registered signal-9 report still scores the fits' own picks (rule \"fits\"), as when it was "
    "run: Sam switched the Model picks record, not that test")
+
+# ══════════════════════════════════════════════════════════════════════
+section("5. 🔴 COLLEGE INJURIES: THE RECORD READS THE REPORT THE SITE SHOWED `[2026-10-26, review]`")
+# ══════════════════════════════════════════════════════════════════════
+# Sam, "do 9am, 12pm, 7pm": a college game still to start reads the newest injury report at each
+# build. Purdue's QB was Out on the 7:30 am report and cleared at 12:30 pm, so the 1:00 pm build
+# (the last before kickoff) showed Purdue's picks with the QB playing. Once the game is played, its
+# row reads §3's 9:00 cut (QB Out) for TRAINING, and `inj_shown` (cleared) for the record's replay.
+CLEARED = {"qb": (0.0, 0.0), "off": (0.0, 0.0), "def": (0.0, 0.0)}
+QB_OUT = {"qb": (1.0, 0.0), "off": (0.0, 0.0), "def": (0.0, 0.0)}
+UP = copy.deepcopy(FIN + UPCOMING)
+for _r in UP:
+    _r["lg"] = "ncaaf"
+    if _r["id"] == "g1":
+        _r["sig"]["inj"] = dict(CLEARED)               # the 1:00 pm build: the 12:30 pm report
+PLAYED = finished(UP)
+for _r in PLAYED:
+    if _r["id"] == "g1":
+        _r["sig"].update(inj=dict(QB_OUT), inj_shown=dict(CLEARED))
+NINE = copy.deepcopy(PLAYED)
+for _r in NINE:
+    _r["sig"].pop("inj_shown", None)
+TRAINED = []
+_injf, _on = FM.injury_fit, dict(FM.INJURIES)
+
+
+def fixed_fit(train):
+    TRAINED.extend((r["id"], (r["sig"].get("inj") or {}).get("qb")) for r in train if r["id"] == "g1")
+    return [-10.0, 0.0, 0.0]                          # a starting QB out: 10 points
+
+
+try:
+    FM.injury_fit, FM.INJURIES["ncaaf"] = fixed_fit, True
+    CUR5 = patched(lambda: FM.current_picks("ncaaf", UP, now=NOW))
+    WF5 = patched(lambda: FM.walk_forward(PLAYED))
+    WF9 = patched(lambda: FM.walk_forward(NINE))
+    LATE5 = [{"id": "z9", "day": "2026-10-26", "final": True, "hs": 20, "as": 17, "T": None, "M": None, "lg": "ncaaf",
+              "home": "ZH", "away": "ZA", "sig": {"own_m": 0.0, "own_t": 40.0}, "snap": None}]
+    del TRAINED[:]
+    patched(lambda: FM.walk_forward(PLAYED + LATE5))
+finally:
+    FM.injury_fit = _injf
+    FM.INJURIES.clear()
+    FM.INJURIES.update(_on)
+
+
+def g1(picks):
+    return sorted(k for k in picks if k[0] == "g1")
+
+
+_cur5 = g1(key(p) for p in CUR5)
+_rec5 = g1(key(dict(p, market=mk)) for mk in FM.MARKETS for p in WF5["books"][mk])
+_nine5 = g1(key(dict(p, market=mk)) for mk in FM.MARKETS for p in WF9["books"][mk])
+ck(_cur5 and _nine5 != _cur5,
+   "⚠️ the case exists: replayed at §3's 9:00 reading (QB Out), the record would grade a Purdue pick the site "
+   "never showed", (_cur5, _nine5))
+eq(_rec5, _cur5,
+   "🔴🔴 the record replays g1 with the report its last pre-kickoff build read (`inj_shown`): the same side, "
+   "line and chance as the live list showed. The record grades what the site showed")
+ck(TRAINED and all(qb == (1.0, 0.0) for _g, qb in TRAINED),
+   "⛔ ...and the injury fit of a later week TRAINS on g1's 9:00 reading (QB Out), §3's tested cut, never "
+   "the shown one", TRAINED)
+eq([(r["sig"]["inj"], r["sig"]["inj_shown"]) for r in PLAYED if r["id"] == "g1"], [(QB_OUT, CLEARED)],
+   "   (the replay never edits the row: g1 still carries both readings, 9:00's and the shown one)")

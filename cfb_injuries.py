@@ -243,9 +243,13 @@ def pick_cutoff(kickoff):
 #    the build. Everything else about the reading is §3's tested rule, unchanged (`_eligible`,
 #    `_judge` with live=False, the 36-hour published rule, the archive's night-before column,
 #    both teams needed, None never zero). Before 9:00 ET it IS §3's reading.
-#    ⛔ A game that has kicked off, or `now` None (training rows, the walk-forward record,
-#    fb_inj_backtest, which never pass it), keeps §3's 9:00 cut exactly: what was tested
-#    and what is graded do not move.
+#    ⛔ A game that has kicked off, or `now` None (training rows, fb_inj_backtest, which never
+#    pass it), keeps §3's 9:00 cut exactly: what was tested does not move.
+#    🔴 `[2026-10-26, review]` AND THE RECORD READS WHAT THE SITE SHOWED ("THE MODEL PICKS RECORD
+#    GRADES WHAT THE SITE SHOWS", Sam 2026-10-16): a played game is ALSO read at the moment of
+#    the last build before its kickoff (`attach(shown_at=)`, from the ledger's last snapshot
+#    that looked at it, fb_ledger.looked_moments) into `inj_shown`, which only the record's
+#    replay reads (fb_model.as_shown). Training still reads `inj`, §3's 9:00 cut.
 def read_cut(kickoff, now=None):
     """The moment a game's report is read at: §3's `pick_cutoff`, or, for a game that has
     not kicked off at the build moment `now`, the later of that and `now` (always before
@@ -1028,7 +1032,7 @@ def _column_known(col, kickoff):
     return WEEKDAYS.index(col) < _eastern(k).weekday()
 
 
-def pick_time_outs(season, root=None, now=None):
+def pick_time_outs(season, root=None, now=None, at=None):
     """§3: {game_id: {team: [Out / Out for Season / Doubtful players]}} as
     known at pick time. From the archive: its night-before column, when that
     column was posted before the game's ET day (`_column_known`). From the
@@ -1038,12 +1042,20 @@ def pick_time_outs(season, root=None, now=None):
     reading is absent, ⛔ never an empty list. ⛔ Never raises.
     `[Sam, 2026-10-26]` `now`: the build moment. A game not kicked off by then
     reads at `read_cut` (the newest report as of the build); None, every game at
-    §3's 9:00 cut, as tested."""
+    §3's 9:00 cut, as tested. `[2026-10-26, review]` `at`: {game_id: moment}, a
+    game read as of ITS moment instead (the record's replay of what was shown)."""
     out = {}
     try:
         now = _utc(now) if now is not None else None
     except Exception:
         now = None
+    when = {}
+    for gid, t in (at or {}).items():
+        try:
+            if _utc(t) is not None:
+                when[str(gid)] = _utc(t)
+        except Exception:
+            pass
     try:
         doc = _jz(archive_path(season, root)) or {}
         for conf, c in sorted((doc.get("conferences") or {}).items()):
@@ -1073,7 +1085,7 @@ def pick_time_outs(season, root=None, now=None):
                 continue
             for r in snap.get("reports") or []:
                 gid = str(r.get("game_id"))
-                cut = read_cut(r.get("kickoff"), now)      # ~~pick_cutoff(r.get("kickoff"))~~ [Sam, 2026-10-26]
+                cut = read_cut(r.get("kickoff"), when.get(gid, now))   # ~~pick_cutoff(r.get("kickoff"))~~ [Sam, 2026-10-26]
                 if gid not in best and cut and _eligible(r, cut):
                     best[gid] = (r, cut)
         for gid, (r, cut) in best.items():
@@ -1375,26 +1387,40 @@ class Roles:
         return qb, round(o, 4), round(d, 4)
 
 
-def attach(rows, root=None, now=None):
+def _reading(outs, r, roles):
+    """One row's {"qb", "off", "def"} from `pick_time_outs`' outs, or None (no report for BOTH
+    teams, or no defence log)."""
+    rep = outs.get(str(r.get("id"))) or {}
+    if r["home"] not in rep or r["away"] not in rep:
+        return None
+    h = roles.team_out(r["home"], rep[r["home"]], r["day"])
+    a = roles.team_out(r["away"], rep[r["away"]], r["day"])
+    return (None if h is None or a is None else
+            {"qb": (h[0], a[0]), "off": (h[1], a[1]), "def": (h[2], a[2])})
+
+
+def attach(rows, root=None, now=None, shown_at=None):
     """`fb_model.build_rows`' college rows -> r["sig"]["inj"] = {"qb": (h, a), "off": (h, a),
     "def": (h, a)}, or None when the game has no pick-time report for BOTH teams (design §3: no
     report is no reading, never zero) or the season's defence log is not stored.
     `[Sam, 2026-10-26]` `now`, the build moment, reaches `pick_time_outs`: a game still to start
-    reads the newest report as of the build ("do 9am, 12pm, 7pm"); None is §3's 9:00 reading."""
+    reads the newest report as of the build ("do 9am, 12pm, 7pm"); None is §3's 9:00 reading.
+    `[2026-10-26, review]` `shown_at` ({game_id: moment of its last pre-kickoff build}, the live
+    build's only): each PLAYED game in it also gets r["sig"]["inj_shown"], its reading as of that
+    moment, so the record replays the pick the site showed (fb_model.as_shown). ⛔ `inj` is
+    untouched by it: training reads §3's cut."""
     seasons = {}
     for r in rows:
         seasons.setdefault(r["season"], []).append(r)
     for season, rs in seasons.items():
         outs, roles = pick_time_outs(season, root, now), Roles(season, root)
+        played = {str(r.get("id")) for r in rs if r.get("final")} & {str(g) for g in (shown_at or {})}
+        shown = pick_time_outs(season, root, None, at={g: shown_at[g] for g in shown_at
+                                                      if str(g) in played}) if played else {}
         for r in rs:
-            rep = outs.get(str(r.get("id"))) or {}
-            if r["home"] not in rep or r["away"] not in rep:
-                r["sig"]["inj"] = None
-                continue
-            h = roles.team_out(r["home"], rep[r["home"]], r["day"])
-            a = roles.team_out(r["away"], rep[r["away"]], r["day"])
-            r["sig"]["inj"] = (None if h is None or a is None else
-                               {"qb": (h[0], a[0]), "off": (h[1], a[1]), "def": (h[2], a[2])})
+            r["sig"]["inj"] = _reading(outs, r, roles)
+            if str(r.get("id")) in played:
+                r["sig"]["inj_shown"] = _reading(shown, r, roles)
     return rows
 
 
