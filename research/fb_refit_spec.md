@@ -495,6 +495,16 @@ The six rules, as Sam approved them:
   The registration Monday is read from git (`props_registration`: the day `def props_contest(`
   first reached main). A WINS calls `push_props_branch` (§3's one-branch rule, its own prefix).
   About 8-10 seconds per league on the stored data.
+- `[review, 2026-10-27]` Readings of §3i that its text leaves to the build:
+  - NO DATA when a season the challenger needs has no stored player log, and when the season in
+    progress is not in `fb_props_model.SEASONS` (the champion reads no log of it, so no line can
+    be paired). ⚠️ From the 2027 season that is the case until SEASONS gains 2027 (a decision in
+    the handoff's R6), so the contest measures the 2026 season only until then.
+  - A WINS whose branch could not be pushed stays a WINS (`branch_error` beside it).
+  - `card_fb.PROPS_SEASONS` holds one league per line with a line between them, so each league's
+    branch changes only its own line and both can be merged in either order.
+  - The email stops asking Sam to merge a switch once main's card_fb.py holds it, and a week the
+    contest fails keeps the win it had stored.
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
   each league's rows once (`fb_model.build_rows`), attaches every challenger's

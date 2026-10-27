@@ -573,6 +573,11 @@ def props_contest(lg, root=ROOT, now=None, added=None, wf=None):
         return dict(out, champion_seasons=list(chal), verdict="SWITCHED")
     if not out["registered"] or out["registered"] > today:
         return dict(out, verdict="NOT YET REGISTERED")
+    if season not in PM.SEASONS:
+        # `[review, 2026-10-27]` the champion reads no log of the season in progress (SEASONS ends
+        #    at %d), so no line of it can be paired: said, never shown as "0 of the 500"
+        return dict(out, verdict="NO DATA", why="the champion's seasons (fb_props_model.SEASONS) stop at %d"
+                    % max(PM.SEASONS))
     if wf is None:
         logs = PM.load_logs(lg, root, chal)
         if set(logs) != set(chal):
@@ -585,8 +590,8 @@ def props_contest(lg, root=ROOT, now=None, added=None, wf=None):
 
 
 def set_props_seasons(src, lg):
-    """card_fb.py's text with ONE change: that league's PROPS_SEASONS entry, "all" -> LAST_TWO."""
-    out, n = re.subn(r'(?m)^(PROPS_SEASONS = \{.*"%s": )"all"' % lg, r"\g<1>LAST_TWO", src)
+    """card_fb.py's text with ONE change: that league's PROPS_SEASONS line, "all" -> LAST_TWO."""
+    out, n = re.subn(r'(?m)^(    "%s": )"all",(?=\r?$)' % lg, r"\g<1>LAST_TWO,", src)
     if n != 1:
         raise RuntimeError("the %s PROPS_SEASONS entry was not found once in card_fb.py" % lg)
     return out
@@ -659,7 +664,11 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
         try:
             ps = props_contest(lg, root, now, added)
             if ps["verdict"] == "WINS":
-                ps["branch"], ps["branch_pushed"] = push_props_branch(lg, now.strftime("%Y-%m-%d"), root, run)
+                try:
+                    ps["branch"], ps["branch_pushed"] = push_props_branch(lg, now.strftime("%Y-%m-%d"), root, run)
+                except Exception as e:           # the WIN stands; only its branch is missing
+                    ps["branch"], ps["branch_pushed"] = None, False
+                    ps["branch_error"] = "%s: %s" % (type(e).__name__, e)
             doc["props_seasons"] = ps
         except Exception as e:
             doc["props_seasons"] = dict((prev or {}).get("props_seasons") or {},

@@ -951,9 +951,9 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
     return out
 
 
-def build(lg=None, root=None, out=None, logs=None):
+def build(lg=None, root=None, out=None, logs=None, now=None):
     lg = (lg or LEAGUE).lower()
-    logs = train_logs(lg, root) if logs is None else logs
+    logs = train_logs(lg, root, now) if logs is None else logs
     wf = walk_forward(lg, root, logs)
     rec = {}
     for mk in markets_for(lg):

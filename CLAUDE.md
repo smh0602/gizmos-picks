@@ -760,8 +760,10 @@ note boxes, tags and the stale bar now require their absence.
   before, rolling) WINS at 500+ paired predictions with lower log loss at one-sided p < 0.01, and
   pushes ONE branch `fb/props-seasons-<lg>-*` that flips that league in `card_fb.PROPS_SEASONS`
   (the one switch: `fb_props_model.train_logs` reads it, and the card's method gains
-  `-last2`). ⛔ Merging is Sam's; once switched the contest reports SWITCHED.
-  `test_fb_props_seasons.py`.
+  `-last2`). ⛔ Merging is Sam's; once switched the contest reports SWITCHED. ⚠️ From the 2027
+  season it reports NO DATA until `fb_props_model.SEASONS` gains 2027 (Sam's call). The tests SET
+  the switch, never read it, and `test_props_switch_branch.py` runs them on each league's switched
+  branch: the branch a WINS pushes must pass its own checks. `test_fb_props_seasons.py`.
 - 🔴 **A LIKED NFL OVER NEEDS A REAL ROLE THIS SEASON.** `[Sam, 2026-10-15]` *"we can't be
   betting on guys like tory horton because he's had 2 good games ... he's a wr4"*: an over or
   anytime TD is liked only at 40%+ of snaps over his last 3 games, 12%+ of targets on a

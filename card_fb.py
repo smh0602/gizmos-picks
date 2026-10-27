@@ -970,7 +970,13 @@ METHOD_PROPS_MODEL = "+props-own"
 #    progress and the one before (fb_props_model.last_two). ⛔ Moved only by Sam's merge of the
 #    branch a §3i WINS pushes (fb_refit.push_props_branch); read by fb_props_model and the label.
 LAST_TWO = "last two"
-PROPS_SEASONS = {"nfl": "all", "ncaaf": "all"}
+#    ⚠️ One league per line, with a line between them: each league's branch edits its own line,
+#    so both can be merged, in either order, without a conflict `[review, 2026-10-27]`.
+PROPS_SEASONS = {
+    "nfl": "all",
+    # (the line between)
+    "ncaaf": "all",
+}
 
 
 def props_suffix(lg=None):

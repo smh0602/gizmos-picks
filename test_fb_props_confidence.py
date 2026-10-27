@@ -165,8 +165,8 @@ def card(model_board_at, board=BOARD, last_two=False):
         os.chdir(t)
         sys.modules.pop("card_fb", None)
         cf = importlib.import_module("card_fb")
-        if last_two:
-            cf.PROPS_SEASONS["nfl"] = cf.LAST_TWO
+        # ⛔ SET, never read: this file runs on the branch a §3i WINS pushes too
+        cf.PROPS_SEASONS["nfl"] = cf.LAST_TWO if last_two else "all"
         cf.main()
         with open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8") as fh:
             return json.load(fh), cf
