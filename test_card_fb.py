@@ -458,6 +458,96 @@ eq((_out13b.get("logs_season"), {k: _d13b.get(k) for k in ("h25", "n25", "h26", 
    (2026, {"h25": 5, "n25": 7, "h26": 0, "n26": 0, "w25": 1.0}),
    "🔴 a 2027 slate with no 2027 game yet: the card reads 2026 alone, each game at 4 / (4 + 0) = 1")
 
+print("\n13c. 🔴 A PLAYER WITH NO LOG LAST SEASON IS FOUND IN THIS SEASON'S (review, 2026-10-26)")
+print("    The card looked names up in last season's log only, so a rookie (or a player new to FBS)")
+print("    was unmatched all season and his games this season were never read; the median switch")
+print("    that would have looked this season up was gone. card_fb.match_player, never a guess.")
+import gzip as _gz13c    # noqa: E402
+import shutil as _sh13c  # noqa: E402
+
+
+def _plant13c():
+    """One planted college league, card_fb.main() on it -> (card, {player: row}, the name-join log, module)."""
+    def _runs(season, start, vals, pid):
+        d0 = _dt13.date.fromisoformat(start)
+        return [{"d": (d0 + _dt13.timedelta(weeks=i)).isoformat(), "rush_yds": v, "car": 4 if v else 0,
+                 "rec": 0, "rec_yds": 0, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0, "team": "T",
+                 "game_id": "%d-%d-%s" % (season, i, pid)} for i, v in enumerate(vals)]
+
+    _l25, _l26 = [10, 20, 15, 12, 18, 14, 16, 11, 13, 45], [40, 20, 15, 45, 12, 30, 18]
+    logs = {2025: {"1": ("Runner One", "RB", _l25),
+                   "50": ("Old Name", "RB", [10] * 11),        # no 2026 game; 51 holds the name now
+                   "60": ("Two Face", "RB", _l25),             # no 2026 game; 61 and 62 hold it now
+                   "70": ("Shared Back", "RB", _l25),          # plays 2026 too; an LB shares it in 2026
+                   "80": ("Twin Name", "RB", [10] * 10), "81": ("Twin Name", "RB", _l25)},
+            2026: {"1": ("Runner One", "RB", _l26),
+                   "99": ("Rookie Two", "RB", [10, 22, 15, 40, 12, 18, 25]),
+                   "51": ("Old Name", "RB", [30, 50, 20, 45, 10, 33, 60]),
+                   "61": ("Two Face", "RB", [10] * 7), "62": ("Two Face", "RB", [10] * 7),
+                   "70": ("Shared Back", "RB", _l26), "71": ("Shared Back", "LB", [0] * 7),
+                   "81": ("Twin Name", "RB", _l26),
+                   "98": ("Thin Rookie", "RB", [10, 12, 14])}}
+    for _s, _start in ((2025, "2025-09-06"), (2026, "2026-09-05")):
+        with _gz13c.open(f"data/ncaaf/latest/players-{_s}.json.gz", "wt") as fh:
+            json.dump({"season": _s, "scope": "all FBS conferences", "players": {
+                pid: {"name": n, "pos": pos, "g": _runs(_s, _start, v, pid)}
+                for pid, (n, pos, v) in logs[_s].items()}}, fh)
+    _who = ("Runner One", "Rookie Two", "Old Name", "Two Face", "Shared Back", "Twin Name", "Thin Rookie")
+    with _gz13c.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
+        json.dump({"pulled_at": "2026-10-30T12:00:00Z", "n_games": 1, "books_seen": ["fd"],
+                   "games": [{"id": "g1", "away": "A", "home": "H", "commence": "2026-10-31T16:00:00Z",
+                              "props": [{"player": n, "market": "player_rush_yds", "line": 34.5,
+                                         "sides": {"under": {"price": -115, "book": "fd", "n_books": 3,
+                                                             "link": "x"}}} for n in _who]}]}, fh)
+    C = load("ncaaf")
+    said = []
+    C.log = lambda m, *a, **k: said.append(str(m))
+    C.main()
+    out = json.load(open("picks/fb-ncaaf-latest.json"))
+    rows = {}
+    for r in (out.get("picks") or []) + (out.get("below_floor") or []):
+        rows.setdefault(r.get("player"), r)
+    return out, rows, [m for m in said if "name join" in m], C
+
+
+_tmp13c, _cwd13c = tempfile.mkdtemp(), os.getcwd()
+try:
+    os.chdir(_tmp13c)
+    os.makedirs("data/ncaaf/latest", exist_ok=True)
+    _out13c, _rows13c, _join13c, _C13c = _plant13c()
+finally:
+    os.chdir(_cwd13c)
+    _sh13c.rmtree(_tmp13c, ignore_errors=True)
+_det = {n: {k: (_rows13c.get(n, {}).get("season_detail") or {}).get(k) for k in ("h25", "n25", "h26", "n26")}
+        for n in ("Rookie Two", "Old Name", "Shared Back", "Twin Name", "Runner One")}
+eq(_det["Rookie Two"], {"h25": 0, "n25": 0, "h26": 6, "n26": 7},
+   "🔴 a rookie (no 2025 log) is found in 2026's and rated on his 7 games this season, G25 none")
+ck("with no 2025 game of his counted" in (_rows13c.get("Rookie Two", {}).get("confidence_note") or ""),
+   "   ...and his note says no last-season game counted (not \"his 2025 record (0 of 0)\")",
+   _rows13c.get("Rookie Two", {}).get("confidence_note"))
+eq(_det["Old Name"], {"h25": 0, "n25": 0, "h26": 4, "n26": 7},
+   "🔴 a namesake: 2025's holder has no 2026 game and one other player holds the name now -> rated on "
+   "THAT player's 7 games, never on 2025's 11")
+eq(_det["Shared Back"], {"h25": 9, "n25": 10, "h26": 5, "n26": 7},
+   "🔴 a name shared THIS season (an LB) stays last season's one holder, who plays this season: blended")
+eq(_det["Twin Name"], {"h25": 9, "n25": 10, "h26": 5, "n26": 7},
+   "🔴 a name 2025 held twice and 2026 once: that one, with his own 2025 games (by id)")
+eq(_det["Runner One"], {"h25": 9, "n25": 10, "h26": 5, "n26": 7}, "   ...and a plain veteran is unchanged")
+ck("Two Face" not in _rows13c or _rows13c["Two Face"].get("rate") is None,
+   "🔴 2025's holder has no 2026 game and two others hold the name now: ambiguous, no record (never a guess)",
+   _rows13c.get("Two Face"))
+eq((_out13c.get("name_match_rate"), bool(_join13c) and "(0 unmatched, 1 ambiguous)" in _join13c[-1]),
+   (round(6 / 7, 3), True),
+   "🔴 the 60% name join counts a match in either season's log: 6 of 7, Two Face the 1 ambiguous")
+_why13c = " ".join(_rows13c.get("Two Face", {}).get("why") or [])
+ck(_why13c.startswith("No 2025 or 2026 game log matched Two Face"),
+   "   ...and his row says it looked in both seasons' logs", _why13c)
+_thin13c = _rows13c.get("Thin Rookie", {})
+ck(_thin13c.get("rate") is None and "took part in this market in only 3 of his 3 2026 games"
+   in " ".join(_thin13c.get("why") or []),
+   "🔴 a rookie with 3 games is matched, not rated (6 is the floor), and his row names HIS season, 2026",
+   _thin13c.get("why"))
+
 
 print("\n14. 🔴 THE ROW SAYS ITS RECORD AT THE LINE, THIS SEASON FIRST")
 print("    `[Sam, 2026-10-09]` \"The football prop rows say what the pick is,")
@@ -736,6 +826,56 @@ ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
 # ⛔ NO VALUE MAY BEGIN WITH A SPACE. `vacuity.py`'s field regex ends
 #    `:\s*(.*)$`, so leading whitespace is eaten and the mutation would
 #    silently become a different string than the one written here.
+#
+# @vacuity [review, 2026-10-26] §13c: a board name is looked up in this season's log too
+#   file: card_fb.py
+#   find: pids = [] if unit else match_player(who, idx, _cur, _cur_idx)
+#   with: pids = [] if unit else idx.get(norm(who), [])
+#
+# @vacuity [review, 2026-10-26] §13c: ...which main() hands match_player whenever the seasons differ
+#   file: card_fb.py
+#   find: _cur = CUR_P if (CUR_P and CUR_SEASON != season) else None
+#   with: _cur = None
+#
+# @vacuity [review, 2026-10-26] §13c: a name last season does not settle goes to this season's holders
+#   file: card_fb.py
+#   find: return b or a
+#   with: return a
+#
+# @vacuity [review, 2026-10-26] §13c: last season's holder with no game this season yields the name
+#   file: card_fb.py
+#   find: if len(a) == 1 and (not b or a[0] in (cur or {})):
+#   with: if len(a) == 1:
+#
+# @vacuity [review, 2026-10-26] §13c: ...but one who plays this season keeps a name shared now
+#   file: card_fb.py
+#   find: if len(a) == 1 and (not b or a[0] in (cur or {})):
+#   with: if len(a) == 1 and not b:
+#
+# @vacuity [review, 2026-10-26] §13c: a rookie's this-season log is his row's, never his G25
+#   file: card_fb.py
+#   find: r = rate_blend((P.get(pids[0]) or {}).get("g") or [], _g26, mk, pr.get("line"), side,
+#   with: r = rate_blend(plog.get("g") or [], _g26, mk, pr.get("line"), side,
+#
+# @vacuity [review, 2026-10-26] §13c: ...and a rookie gets a log at all
+#   file: card_fb.py
+#   find: plog, plog_season = _cur[pids[0]], CUR_SEASON
+#   with: plog, plog_season = None, season
+#
+# @vacuity [review, 2026-10-26] §13c: a rookie with no rate is told about HIS season
+#   file: card_fb.py
+#   find: no_rate_reason(RATES_OK, plog, who, mk, plog_season,
+#   with: no_rate_reason(RATES_OK, plog, who, mk, season,
+#
+# @vacuity [review, 2026-10-26] §13c: no counted last-season game is said, never "(0 of 0)"
+#   file: card_fb.py
+#   find: f"{_d['w25']:g} per game, " if _d['n25'] else
+#   with: f"{_d['w25']:g} per game, " if True else
+#
+# @vacuity [review, 2026-10-26] §13c: an unmatched row names both logs it looked in
+#   file: card_fb.py
+#   find: _logs = (f"{season} or {this_season}" if this_season and this_season != season
+#   with: _logs = (f"{season} or {this_season}" if False
 #
 # @vacuity [Sam, 2026-10-26] §13b: the card passes its slate's season to load_logs
 #   file: card_fb.py
