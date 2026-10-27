@@ -178,9 +178,11 @@ season = cur.year - 1 if cur.month < 8 else cur.year
 #    check now says so with the numbers instead of by assuming.
 # ══════════════════════════════════════════════════════════════════════
 _cur_present = f"players-{season}.json.gz" in have
-note(f"players-{season}.json.gz present: {_cur_present} — "
-     f"the current season's log existing does NOT by itself retire the "
-     f"fallback; what matters is whether it is thick enough to use.")
+# `[Sam, 2026-10-26]` T73 (~~"the current season's log existing does NOT by itself retire the
+#    fallback; what matters is whether it is thick enough to use"~~): no file is "thick enough"
+#    any more; this season is read first and last season beside it, every week.
+note(f"players-{season}.json.gz present: {_cur_present} — this season's log is read first "
+     f"whenever it holds a game, last season's beside it.")
 usable = []
 for f in glob.glob(f"{ROOT}/data/nfl/latest/players-*.json.gz"):
     try:
@@ -191,22 +193,26 @@ for f in glob.glob(f"{ROOT}/data/nfl/latest/players-*.json.gz"):
     counts = sorted(len(p.get("g") or []) for p in P.values())
     if counts and counts[len(counts) // 2] >= 6:
         usable.append((d.get("season"), counts[len(counts) // 2]))
-ck("🔴 at least one season has enough games to read a rate from",
-   bool(usable), str(sorted(usable, reverse=True)[:2])
-   + " — MIN_GAMES is 6; below it the board ships prices and no records")
-# ⛔ AND THE THIN CURRENT SEASON MUST NOT DISPLACE THE FALLBACK. A
+# ~~ck("🔴 at least one season has enough games to read a rate from", bool(usable), ...)~~
+#    `[review, 2026-10-26]` STRUCK to a note: it asserted a fact about the STORED files (a test asks
+#    the code, never production, CLAUDE.md 2026-09-28), and its premise, a season median of 6, is
+#    the gate T73 removed (the 6-game floor is each row's, over both seasons). What the card does
+#    with these files is asked of the code below (`_chosen`, planted) and in test_card_fb §13-§13c.
+note("seasons whose median player has 6+ games (a measurement, no longer a gate): "
+     + str(sorted(usable, reverse=True)[:2]))
+# ~~⛔ AND THE THIN CURRENT SEASON MUST NOT DISPLACE THE FALLBACK. A
 #    `players-2026` holding one game per player is WORSE than useless if
-#    it is preferred over a full 2025 — every rate would be n=1.
+#    it is preferred over a full 2025 — every rate would be n=1.~~
+#    `[Sam, 2026-10-26]` It never displaces it now: a thin this season is read FIRST and last
+#    season stays beside it at 4 / (4 + n26) (fb_card_fix_spec §3); `_chosen` below pins that.
 _cur_usable = [s for s, _ in usable if s == season]
 if _cur_present and not _cur_usable:
-    note(f"✅ players-{season} EXISTS but is below the 6-game bar, so the "
-         f"fallback is still the path under test — which is the state "
-         f"the section header describes. This is the correct reading of "
-         f"a season that has just started.")
+    note(f"players-{season} holds games, its median under 6: read first, last season beside it "
+         f"(~~\"below the 6-game bar, so the fallback is still the path under test\"~~)")
 elif _cur_usable:
-    note(f"⚠️ players-{season} is now THICK enough to use on its own "
-         f"(median {dict(usable).get(season)} games). The fallback is no "
-         f"longer the live path; this section is measuring history.")
+    note(f"players-{season}'s median is {dict(usable).get(season)} games: still read with last "
+         f"season beside it (~~\"THICK enough to use on its own ... The fallback is no longer the "
+         f"live path\"~~, T73)")
 # 🔴 `[2026-09-28]` ~~`all(m >= 6 for _s, m in usable)`~~ — IT COULD NOT
 #    FAIL: `usable` is built three lines up from medians of 6 or more, so
 #    it asserted its own filter (rule 202). ✅ The question it named is now

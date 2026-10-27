@@ -658,7 +658,13 @@ note boxes, tags and the stale bar now require their absence.
   season"*): ~~once this season's median player reached 6 games, `card_fb.load_logs` took
   that season alone and dropped last season~~ (not reached by either league before the fix:
   NFL median 5, college 4). A slate whose season has no game yet reads last season alone
-  (its weight is then 1). `test_card_fb.py` §13, `test_nfl_opener.py` §2.
+  (its weight is then 1). `test_card_fb.py` §13, `test_nfl_opener.py` §2. `[review,
+  2026-10-26]` A board name is looked up in BOTH seasons' logs (`card_fb.match_player`;
+  ~~last season's only~~, which left a rookie or a player new to FBS unrated all season): a
+  rookie is rated on his games this season (G25 none); last season's one holder keeps a name
+  he still plays under (a name shared this season stays his); a holder with no game this
+  season yields it to this season's one holder; anything else is ambiguous, never a guess. The
+  60% name join counts a match in either log. `test_card_fb.py` §13c.
   `collect.build_card_fb` builds the props model first on BOTH card paths (the props
   pull and `card-fb`); it prices the props board itself and stamps `board_pulled_at`,
   and a model that priced another board leaves the whole build on the record
