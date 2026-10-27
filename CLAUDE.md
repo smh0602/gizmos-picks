@@ -668,7 +668,7 @@ note boxes, tags and the stale bar now require their absence.
   `[2026-10-27, review 2]` (that chose by which LOG held a name and never asked his team: the
   Titans' RB Michael Carter read the Eagles CB's record, Kent State's Brandon White Kansas
   State's WR's) a name two players hold is decided by the BOARD GAME'S TWO TEAMS
-  (`dossier_fb.team_codes`): the holder whose latest game this season was for one of them,
+  (`teamkeys.team_codes`): the holder whose latest game this season was for one of them,
   else a holder with no game this season whose last-season team is one, else nobody
   (ambiguous, never a guess). A lone holder keeps his name, except in college, where one who
   has played this season for another team is someone else; an NFL lone holder elsewhere is
@@ -1448,6 +1448,12 @@ tcheck.py         the one check harness every test file uses.
                   output through `shown()`; annotate on purpose only
                   with `annotate()` (test_workflow_commands.py).
 ranking.py        the one tie-aware ranker, both leagues
+teamkeys.py       THE ONE TEAM-NAME RESOLVER `[2026-10-27, review 2]`: a book's team
+                  name -> the key the league's files use (NFL_TEAMS parsed out of
+                  collect.py; college teams.json, folded, longest prefix, three
+                  aliases), moved unchanged out of dossier_fb.py, which re-exports
+                  it. The card reads it (`card_fb.match_player`) and so never
+                  reaches the dossier (`test_dossier_fb.py` §3). ⛔ Never a guess.
 one_side.py       ONE TEAM PER GAME (Sam, 2026-10-16): the expected winner
                   (the Game Lines tab's rule, read by winners.py), the filter
                   every list of side picks runs, and the guard verify_card.py

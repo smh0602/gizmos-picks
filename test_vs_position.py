@@ -58,13 +58,14 @@ confidence, a rank or a pick, and `audit()` must stay empty.
 #   with:         dropped |= set()
 #
 # ── [2026-09-28] section 7's PLANTED boards — each has its case every run.
+# `[2026-10-27, review 2]` the resolver moved, unchanged, to teamkeys.py (dossier_fb re-exports it):
 # @vacuity the PLANTED NFL board is read through the builder's own resolver
-#   file: dossier_fb.py
+#   file: teamkeys.py
 #   find: return nfl_table().get
 #   with: return {}.get
 #
 # @vacuity the PLANTED college board is read through the builder's own resolver
-#   file: dossier_fb.py
+#   file: teamkeys.py
 #   find: return idx[k]
 #   with: return None
 #

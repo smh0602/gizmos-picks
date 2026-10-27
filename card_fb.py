@@ -121,6 +121,7 @@ from calibration import MIN_N, band_flags
 import signal9                          # the ONE expected-share formula (signal 9)
 import fb_why                           # the why under each liked pick (Sam, 2026-10-15)
 import one_side                         # one team per game: the expected winner (Sam, 2026-10-16)
+import teamkeys                         # board team name -> the logs' team key (review 2, 2026-10-27)
 
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
@@ -732,7 +733,7 @@ def index_by_name(P):
 def match_player(who, idx, cur=None, cur_idx=None, teams=frozenset(), day=None, last=None):
     """`[Sam, 2026-10-26]` T73: which player a board name is, LAST season's log (`idx`, the
     log `last`) and THIS season's (`cur`, its `cur_idx`; None when one log is both), in the
-    board game whose two teams are `teams` (the logs' own team keys, `dossier_fb.team_codes`;
+    board game whose two teams are `teams` (the logs' own team keys, `teamkeys.team_codes`;
     an unresolved side left out) -> [pid]: one is a match, more is ambiguous, none is
     unmatched. ⛔ Never a guess (`index_by_name`).
 
@@ -2202,9 +2203,16 @@ def main():
     # `[review, 2026-10-26]` and this season's log too (`match_player`): a rookie's games count.
     _cur = CUR_P if (CUR_P and CUR_SEASON != season) else None
     _cur_idx = index_by_name(_cur) if _cur else None
-    # `[2026-10-27, review 2]` a shared name is decided by the game's two teams (`match_player`)
-    import dossier_fb
-    _team = dossier_fb.team_codes(LEAGUE)
+    # `[2026-10-27, review 2]` a shared name is decided by the game's two teams (`match_player`),
+    #    read through the one resolver (`teamkeys`). ⛔ A resolver that cannot load never kills the
+    #    card: every side is then unresolved, so a shared name is ambiguous (never a guess) and a
+    #    college lone holder is kept as before; the log says so.
+    try:
+        _team = teamkeys.team_codes(LEAGUE)
+    except Exception as e:                   # ⛔ a missing table never kills the card
+        log(f"  ⚠️ no team resolver ({type(e).__name__}: {e}): a name two players share is "
+            f"ambiguous on this build")
+        _team = lambda name: None  # noqa: E731
     _opp9 = signal9.load(LEAGUE, CUR_SEASON) if (S9_CARD.get(LEAGUE) and CUR_SEASON) else None
     _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
               if CARD_METHOD == METHOD_FIXED else None)

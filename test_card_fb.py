@@ -466,18 +466,19 @@ print("    `[2026-10-27, review 2]` AND A SHARED NAME IS DECIDED BY THE GAME'S T
 print("    form chose by which log held the name, so the Titans' RB Michael Carter read the Eagles")
 print("    CB's record and Kent State's Brandon White read Kansas State's WR's. ~~Every planted player")
 print("    on team 'T', board A @ H~~ (no case could ask the team question): real school names, a")
-print("    planted teams.json, the real dossier_fb resolver, the right player on a game team and his")
+print("    planted teams.json, the real resolver (teamkeys), the right player on a game team and his")
 print("    namesake on another.")
 import gzip as _gz13c    # noqa: E402
 import shutil as _sh13c  # noqa: E402
-import dossier_fb as _D13c  # noqa: E402
+import teamkeys as _TK13c  # noqa: E402
 
 # the game: UAB @ Illinois. X (San José State) and R (Rice) are in neither side.
 _SCH13c = {"H": "Illinois", "A": "UAB", "X": "San José State", "R": "Rice"}
 
 
-def _plant13c():
-    """One planted college league, card_fb.main() on it -> (card, {player: row}, the name-join log, module)."""
+def _plant13c(broken=False):
+    """One planted college league, card_fb.main() on it -> (card, {player: row}, every log line, module).
+    `broken`: the team resolver raises (a tree without its table)."""
     def _runs(season, start, vals, pid, team, on=None):
         d0 = _dt13.date.fromisoformat(start)
         return [{"d": on or (d0 + _dt13.timedelta(weeks=i)).isoformat(), "rush_yds": v, "car": 4 if v else 0,
@@ -531,26 +532,36 @@ def _plant13c():
     C = load("ncaaf")
     said = []
     C.log = lambda m, *a, **k: said.append(str(m))
-    _root, _D13c.ROOT = _D13c.ROOT, os.getcwd()        # the REAL resolver, on the planted teams.json
+    _root, _TK13c.ROOT = _TK13c.ROOT, os.getcwd()      # the REAL resolver, on the planted teams.json
+    _codes = _TK13c.team_codes
+    if broken:
+        def _raise(lg=None):
+            raise FileNotFoundError("collect.py")
+        _TK13c.team_codes = _raise
     try:
         C.main()
     finally:
-        _D13c.ROOT = _root
+        _TK13c.ROOT, _TK13c.team_codes = _root, _codes
     out = json.load(open("picks/fb-ncaaf-latest.json"))
     rows = {}
     for r in (out.get("picks") or []) + (out.get("below_floor") or []):
         rows.setdefault(r.get("player"), r)
-    return out, rows, [m for m in said if "name join" in m], C
+    return out, rows, said, C
 
 
-_tmp13c, _cwd13c = tempfile.mkdtemp(), os.getcwd()
-try:
-    os.chdir(_tmp13c)
-    os.makedirs("data/ncaaf/latest", exist_ok=True)
-    _out13c, _rows13c, _join13c, _C13c = _plant13c()
-finally:
-    os.chdir(_cwd13c)
-    _sh13c.rmtree(_tmp13c, ignore_errors=True)
+def _run13c(broken=False):
+    _tmp13c, _cwd13c = tempfile.mkdtemp(), os.getcwd()
+    try:
+        os.chdir(_tmp13c)
+        os.makedirs("data/ncaaf/latest", exist_ok=True)
+        return _plant13c(broken)
+    finally:
+        os.chdir(_cwd13c)
+        _sh13c.rmtree(_tmp13c, ignore_errors=True)
+
+
+_out13c, _rows13c, _said13c, _C13c = _run13c()
+_join13c = [m for m in _said13c if "name join" in m]
 _det = {n: {k: (_rows13c.get(n, {}).get("season_detail") or {}).get(k) for k in ("h25", "n25", "h26", "n26")}
         for n in ("Rookie Two", "Old Name", "Shared Back", "Twin Name", "Runner One", "Wrong Back", "Hurt Back",
                   "Twin Two")}
@@ -604,6 +615,15 @@ ck(_thin13c.get("rate") is None and "took part in this market in only 3 of his 3
    in " ".join(_thin13c.get("why") or []),
    "🔴 a rookie with 3 games is matched, not rated (6 is the floor), and his row names HIS season, 2026",
    _thin13c.get("why"))
+# `[2026-10-27, review 2]` a resolver that cannot load (a tree without collect.py, as test_board_cap
+#    builds) never kills the card: every side unresolved, so a shared name is ambiguous, and the log says so
+_out13x, _rows13x, _said13x, _ = _run13c(broken=True)
+ck(_out13x.get("picks") is not None and (_rows13x.get("Wrong Back") or {}).get("rate") is None
+   and (_rows13x.get("Runner One") or {}).get("rate") is not None
+   and any("no team resolver" in m for m in _said13x),
+   "🔴 with no team resolver the card still builds: a name two players share is ambiguous (Wrong Back, no "
+   "record), a lone name is still rated (Runner One), and the log says why",
+   ([m for m in _said13x if "resolver" in m], (_rows13x.get("Wrong Back") or {}).get("why")))
 # `[2026-10-27, review 2]` the NFL: a lone holder elsewhere is KEPT (a trade), a shared name still needs a team
 _C13n = load("nfl")
 
@@ -923,6 +943,11 @@ ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
 #   file: card_fb.py
 #   find: teams={_team(g.get("home")), _team(g.get("away"))} - {None},
 #   with: teams=set(),
+#
+# @vacuity [2026-10-27, review 2] §13c: ...and a resolver that cannot load never kills the card
+#   file: card_fb.py
+#   find: except Exception as e:                   # ⛔ a missing table never kills the card
+#   with: except ImportError as e:                   # ⛔ a missing table never kills the card
 #
 # @vacuity [2026-10-27, review 2] §13c: a shared name goes to the holder playing for a team in the game
 #   file: card_fb.py
