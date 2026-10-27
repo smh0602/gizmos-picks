@@ -54,6 +54,7 @@ import sys
 
 import card_fb
 import daystore
+import fb_why
 import record_fb
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -558,7 +559,9 @@ def grade_day(day, data=None, bk=None, log=log):
     w = wagers(day, data, bk, log)
     if not w:
         return [], "no pre-kickoff snapshot"
-    season = int(day[:4])
+    # `[2026-10-27]` ~~int(day[:4])~~: a January day asked for the next season's log,
+    #    and each fell out of LOOKBACK_DAYS ungraded. The football season of the day.
+    season = fb_why.season_of(day)
     doc, P = record_fb.load_log(season)
     if not P:
         return [], "no %d player log stored yet" % season

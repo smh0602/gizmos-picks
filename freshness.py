@@ -278,6 +278,8 @@ def no_games_day(day, data="data"):
     `[2026-10-23]` ~~any reading listing a game~~: 10-20's first 12 readings
     listed ALCS Game 7 (if necessary) until Game 6 ended the series, and the
     day owed a card and results through 10-22 (test_dropped_game.py).
+    `[2026-10-27]` ~~any game~~: every game but the codes that owe no card
+    (`_mlb_not_carded`), so a spring-training or All-Star day owes nothing.
     """
     nxt = (datetime.date.fromisoformat(day)
            + datetime.timedelta(days=1)).isoformat()
@@ -305,6 +307,46 @@ def no_games_day(day, data="data"):
 #    odd reading never drops a game. 10-20 had 74.
 DROPPED_AFTER = 2
 
+# 🔴 `[2026-10-27]` A SPRING-TRAINING DAY OWES NO CARD. statsapi's sportId=1 schedule
+#    also lists spring training (S), exhibitions (E) and the All-Star Game (A):
+#    scores.json.gz holds 311 S and 29 E games in 2026-03 and an A-only 2026-07-14.
+#    Counted, each spring day from about 2027-02-19 owed a card no board can price: every
+#    MLB pass red from the 14:00Z deadline and the watchdog BROKEN, for five weeks.
+#    ✅ Every game counts except a code in `mlb_game_model.NOT_CARDED` (⛔ one copy,
+#    PARSED, never imported: the `_literal` rule). ⛔ Fails closed: a game with no
+#    gameType or a code nobody has seen counts, and every game counts when the list
+#    cannot be read. ~~Only `GAME_TYPES` counted~~ (an allow-list): an unknown code read
+#    as "no games" and silenced the card, results, relay and watchdog `[review]`.
+#    `_mlb_game_types` (the carded set) is collect.mlb_seasons' (a season's first final).
+_MLB_SETS = {}
+
+
+def _mlb_set(name):
+    """frozenset `name` from mlb_game_model.py, or None when it cannot be read."""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mlb_game_model.py")
+    try:
+        st = os.stat(p)
+    except OSError:
+        return None
+    key = (st.st_mtime_ns, st.st_size)
+    if _MLB_SETS.get(name, (None,))[0] != key:
+        try:
+            vals = frozenset(_literal("mlb_game_model.py", name)) or None
+        except Exception:
+            vals = None
+        _MLB_SETS[name] = (key, vals)
+    return _MLB_SETS[name][1]
+
+
+def _mlb_game_types():
+    """frozenset of the gameTypes the product cards, or None."""
+    return _mlb_set("GAME_TYPES")
+
+
+def _mlb_not_carded():
+    """frozenset of the gameTypes that owe no card, or None (count every game)."""
+    return _mlb_set("NOT_CARDED")
+
 
 def _games(sc):
     """A schedule body's games, or None when `dates` does not hold exactly
@@ -326,7 +368,8 @@ def _still_listed(reads):
     Game") and DROPPED_AFTER readings pulled after the last one that lists
     it leave it out: the series ended without it.
     ⛔ Fails closed (each reading keeps its `totalGames`): a reading with no
-    pulled_at time, or one whose count names no games, drops nothing."""
+    pulled_at time, or one whose count names no games, drops nothing.
+    `[2026-10-27]` A game whose code owes no card is not counted (`_mlb_not_carded`)."""
     times = [_parse(ts) for ts, _ in reads]
     lists = [_games(sc) for _, sc in reads]
     if None in times or None in lists:
@@ -339,7 +382,9 @@ def _still_listed(reads):
             flagged[pk] = flagged.get(pk, True) and g.get("ifNecessary") == "Y"
     gone = {pk for pk, t in last.items()
             if flagged[pk] and sum(u > t for u in times) >= DROPPED_AFTER}
-    return [sum(g["gamePk"] not in gone for g in games) for games in lists]
+    skip = _mlb_not_carded() or frozenset()
+    carded = lambda g: not (isinstance(g.get("gameType"), str) and g["gameType"] in skip)  # noqa: E731
+    return [sum(g["gamePk"] not in gone and carded(g) for g in games) for games in lists]
 
 
 # ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE (verify_record keeps

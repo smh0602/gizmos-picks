@@ -23,10 +23,12 @@ if-necessary (wild card, ALDS, NLCS, ALCS), and 10-20 is the only day that
 lost its last game. Planted trees, the clocks of the two red runs; the
 real 10-20 is printed as a note, never asserted.
 
+# `[2026-10-27]` the first find moved with R6's gameType filter; the mutation still drops only
+# the dropped-game test and keeps the filter.
 # @vacuity 🔴 a dropped if-necessary game leaves its day with no games
 #   file: freshness.py
-#   find:     return [sum(g["gamePk"] not in gone for g in games) for games in lists]
-#   with:     return [len(games) for games in lists]
+#   find:     return [sum(g["gamePk"] not in gone and carded(g) for g in games) for games in lists]
+#   with:     return [sum(carded(g) for g in games) for games in lists]
 #
 # @vacuity ⛔ a regular game that vanished still counts (only if-necessary drops)
 #   file: freshness.py

@@ -129,7 +129,12 @@ def week_of(lg, day, root=None):
     """The league week a card dated `day` is for: the first week whose last
     game is on or after that day (schedule file). None when unknown.
     ⛔ Point in time: a week-1 card must read week-1 roster status, never a
-    later week's."""
+    later week's.
+    ⚠️ `[2026-10-27]` It opens the file of `day`'s CALENDAR year, so a January day
+    finds no week, and a UTC day after a Monday-night game reads as the next week.
+    The news flags read `fb_why.game_week` (THIS game's own row) instead. Its one
+    other caller, `fb_signal9`'s pre-registered scoring, is left as it scored: a
+    change there is Sam's (research/fb_signal9_spec.md)."""
     try:
         d = _read_gz(os.path.join(root or ROOT, "data", lg, "latest", "schedule-%s.json.gz" % str(day)[:4]))
     except (OSError, ValueError):

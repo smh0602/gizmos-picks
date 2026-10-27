@@ -93,6 +93,17 @@ LG_NAME = {"nfl": "NFL", "ncaaf": "College Football"}[LEAGUE]
 # days would start to reach a Thursday game from a Saturday card.
 JOIN_WINDOW_DAYS = 1
 
+# 🔴 `[review, 2026-10-27]` THE UNRESOLVED STATES THAT ARE CORRECT AND STAY: the PLAYER is the
+#    reason, not the game (no log row of his, a name two players share, a college player who
+#    did not dress, an NFL inactive). ⛔ An EXCLUSION list: every other unresolved state (the
+#    game past the log's coverage, a final game the log does not hold, a pick with no kickoff,
+#    an unknown market, two games in the window, no value, any new one) is OWED a grade, and
+#    the watchdog's ungraded-card alarm counts only owed rows (`owed` per day).
+SETTLED_UNRESOLVED = frozenset({"no log for this player", "ambiguous name",
+                                "played nothing recorded, or did not dress",
+                                "not in the log for that week"})
+NOT_LOGGED = "the game is final but not in the log"
+
 # 🔴🔴 THE RECORD STARTS HERE. Sam, 2026-09-06: *"wipe the track record,
 # dont get rid of the tab completley"* — and *"only football"*, so MLB's
 # own record is untouched.
@@ -124,6 +135,7 @@ RECORD_FROM = os.environ.get("FB_RECORD_FROM", "2026-09-07")
 # from the card (ledger rule 66).
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import card_fb  # noqa: E402
+import fb_why  # noqa: E402  (season_of: the season a football date belongs to)
 
 
 def log(m):
@@ -193,6 +205,56 @@ def load_log(season):
     return d, d.get("players") or {}
 
 
+def load_schedule(season):
+    """{team: [its games]} from schedule-<season> in this tree, or {} when it cannot be read."""
+    try:
+        doc = json.load(gzip.open(f"{LATEST}/schedule-{season}.json.gz", "rt"))
+    except (OSError, ValueError, EOFError):
+        return {}
+    games = doc.get("games") if isinstance(doc, dict) else None
+    if not isinstance(games, list):
+        return {}         # ⛔ never raises: a bad schedule must not stop the props record
+    out = {}
+    for g in games:
+        if isinstance(g, dict):
+            for k in ("home", "away"):
+                out.setdefault(g.get(k), []).append(g)
+    return out
+
+
+def game_not_logged(pl, day, sched, logged):
+    """True when the schedule's game for the player's team nearest `day` (the LOG's calendar
+    date, the schedule's too: NFL ET, college UTC; within the join window) is FINAL with both
+    scores and the log holds no row of it: the source is missing a played game, which a player
+    who sat out never is (his teammates' rows are there). ⛔ Unknown team, no schedule, or a
+    game not final (postponed, cancelled, in progress): False, so a game nobody can show was
+    played is never claimed missing. `[review, 2026-10-27]`"""
+    try:
+        t = datetime.strptime(day, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        return False
+    dated = []
+    for g in pl.get("g") or []:
+        try:
+            dated.append((abs((datetime.strptime(g["d"], "%Y-%m-%d") - t).days), g.get("team") or ""))
+        except Exception:
+            continue
+    team = (min(dated)[1] if dated else None) or pl.get("team")
+    near = []
+    for g in (sched or {}).get(team) or []:
+        try:
+            k = abs((datetime.strptime(str(g.get("start") or "")[:10], "%Y-%m-%d") - t).days)
+        except ValueError:
+            continue
+        if k <= JOIN_WINDOW_DAYS:
+            near.append((k, str(g.get("start")), g))
+    if not near:
+        return False
+    g = min(near, key=lambda x: (x[0], x[1]))[2]
+    return bool(g.get("final") and g.get("home_score") is not None and g.get("away_score") is not None
+                and str(g.get("id")) not in logged)
+
+
 # 🔴 THE CARD WRITES ITS DENOMINATOR AS PROSE: `raw` is "8 of 8".
 #    `[measured 2026-09-15 across every stored football card, both
 #     leagues: 364 of 364 rated rows carry a present, parseable `raw` —
@@ -231,8 +293,9 @@ def calibration_by_method(rows, current):
     return out.get(current, []), out
 
 
-def grade_card(card, P, idx, covers_through):
-    """One card -> a list of graded rows, each carrying its own verdict."""
+def grade_card(card, P, idx, covers_through, sched=None, logged=frozenset()):
+    """One card -> a list of graded rows, each carrying its own verdict. `sched` (team ->
+    games) and `logged` (the log's game ids) tell a missing game from a player who sat out."""
     rows = []
     # `[Sam, 2026-10-15]` a card that carries `liked` is graded on what it shows.
     for p in card["liked"] if "liked" in card else card.get("picks", []):
@@ -345,8 +408,14 @@ def grade_card(card, P, idx, covers_through):
             # SAME FACT. Beyond the log's coverage = the game is not in the
             # file yet. Inside it = he played and recorded nothing, or did
             # not dress, and college cannot tell those apart.
-            if covers_through and day > covers_through:
+            # `[review, 2026-10-27]` compared in the LOG's own calendar: nflverse dates a
+            #    game by its ET gameday (a Monday-night kickoff is 00:15Z Tuesday), CFBD by its
+            #    UTC startDate; and a log with no dated row covers nothing.
+            log_day = (card_fb.et_date(p.get("commence")) or day) if LEAGUE == "nfl" else day
+            if not covers_through or log_day > covers_through:
                 st = "not in the log yet"
+            elif game_not_logged(P[pids[0]], log_day, sched, logged):
+                st = NOT_LOGGED
             else:
                 st = ("played nothing recorded, or did not dress"
                       if LEAGUE != "nfl" else "not in the log for that week")
@@ -562,14 +631,21 @@ def main():
             f"untouched in picks/.")
     cards = _kept
 
-    logs, days, skipped = {}, [], []
+    logs, days, skipped, scheds, ids = {}, [], [], {}, {}
     for f, card in cards:
         date = card.get("date") or os.path.basename(f)[:-5]
         # ⚠️ Keyed on the card's OWN league, never the filename -- the same
         # guard MLB's grader needed after football cards landed in picks/.
         if (card.get("league") or "").lower() != LEAGUE:
             continue
-        season = int(str(date)[:4])
+        # 🔴 `[2026-10-27]` ~~int(str(date)[:4])~~: the CALENDAR year, so every card dated
+        #    January or February (NFL weeks 17-18, the playoffs, the bowls) asked for a
+        #    log of the next season, was skipped, and never reached the Track Record.
+        #    ✅ The football season of the card's day, the one rule (fb_why.season_of).
+        season = fb_why.season_of(date)
+        if season is None:
+            skipped.append((date, "the card's date is not a date"))
+            continue
         if season not in logs:
             logs[season] = load_log(season)
         doc, P = logs[season]
@@ -579,18 +655,35 @@ def main():
         idx = card_fb.index_by_name(P)
         allrows = [g for pl in P.values() for g in (pl.get("g") or [])]
         covers = max((g.get("d") or "" for g in allrows), default="")
+        if season not in scheds:
+            scheds[season] = load_schedule(season)
+            ids[season] = {str(g.get("game_id")) for g in allrows if g.get("game_id") is not None}
 
-        rows = grade_card(card, P, idx, covers)
+        rows = grade_card(card, P, idx, covers, scheds[season], ids[season])
         graded = [r for r in rows if r["won"] is not None]
         if not graded:
-            skipped.append((date, "nothing settled yet — the log does not "
-                                  "reach this slate"))
+            # `[review, 2026-10-27]` the reason is the day's own: "the log does not reach
+            #    this slate" only when that is what every owed row says (the watchdog's
+            #    alarm quotes it to Sam)
+            _owed = sorted({str(r["state"]) for r in rows if r["won"] is None
+                            and not str(r["state"]).startswith("void")
+                            and r["state"] not in SETTLED_UNRESOLVED})
+            skipped.append((date, "nothing settled yet — " + (
+                "its list is empty, nothing to grade" if not rows
+                else "the log does not reach this slate" if _owed == ["not in the log yet"]
+                else "; ".join(_owed) if _owed
+                else "every row is unresolved for good (%s)" % "; ".join(
+                    sorted({str(r["state"]) for r in rows if r["won"] is None})))))
         days.append({
             "date": date, "rows": rows, "graded": graded,
             "n": len(graded), "w": sum(1 for r in graded if r["won"]),
             "voids": sum(1 for r in rows if str(r["state"]).startswith("void")),
             "unresolved": sum(1 for r in rows if r["won"] is None
                               and not str(r["state"]).startswith("void")),
+            # `[2026-10-27]` the rows still OWED a grade (SETTLED_UNRESOLVED excluded); the
+            # watchdog's ungraded check fires only on these.
+            "owed": sum(1 for r in rows if r["won"] is None and not str(r["state"]).startswith("void")
+                        and r["state"] not in SETTLED_UNRESOLVED),
             "carded": len(rows),
             "log_covers_through": covers,
         })
@@ -667,7 +760,7 @@ def main():
                       for m in sorted({r.get("card_method") or METHOD_BEFORE for r in A})},
         "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
                     "carded": d["carded"], "voids": d["voids"],
-                    "unresolved": d["unresolved"]} for d in days],
+                    "unresolved": d["unresolved"], "owed": d["owed"]} for d in days],
         "days_graded": sum(1 for d in days if d["n"]),
         "cards_seen": len(days),
         # 🔴 THE RESET, ON THE FILE, SO THE PAGE DOES NOT HAVE TO GUESS.
