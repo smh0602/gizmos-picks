@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_agreement_spec.md",
- "built_at": "2026-10-28T14:25:14Z",
+ "built_at": "2026-10-28T16:24:15Z",
  "bases": {
   "label": "DESCRIPTIVE",
   "model_p": "MODEL",
@@ -318,21 +318,38 @@
    "label": "AGREE"
   },
   {
-   "key": "ab2865e9f2d4b012de8bc6fb6de11a7c|Josh Jacobs|player_rush_yds|under|58.5",
+   "key": "ab2865e9f2d4b012de8bc6fb6de11a7c|Josh Jacobs|player_rush_yds|under|59.5",
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "game": "Carolina Panthers @ Green Bay Packers",
    "commence": "2026-10-30T00:15:00Z",
    "player": "Josh Jacobs",
    "market": "player_rush_yds",
    "side": "under",
-   "line": 58.5,
-   "price": -110,
-   "break_even": 52.4,
-   "card_p": 42,
+   "line": 59.5,
+   "price": -115,
+   "break_even": 53.5,
+   "card_p": 43,
    "card_basis": "RECORD",
-   "model_p": 56.5,
+   "model_p": 56.9,
    "on_card": true,
    "label": "SPLIT"
+  },
+  {
+   "key": "ab2865e9f2d4b012de8bc6fb6de11a7c|Josh Jacobs|player_rush_yds|under|58.5",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "game": "Carolina Panthers at Green Bay Packers",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Josh Jacobs",
+   "market": "player_rush_yds",
+   "side": "under",
+   "line": 58.5,
+   "price": -113,
+   "break_even": 53.1,
+   "card_p": null,
+   "card_basis": null,
+   "model_p": 56.5,
+   "on_card": false,
+   "label": "ONE SOURCE"
   },
   {
    "key": "ab2865e9f2d4b012de8bc6fb6de11a7c|MarShawn Lloyd|player_reception_yds|over|4.5",
@@ -508,7 +525,7 @@
  "counts": {
   "AGREE": 10,
   "SPLIT": 12,
-  "ONE SOURCE": 7
+  "ONE SOURCE": 8
  },
  "not_frozen": 0,
  "record": {
@@ -627,11 +644,11 @@
  "question": {
   "basis": "DESCRIPTIVE",
   "state": "FAILS",
-  "agree_graded": 306,
-  "split_graded": 568,
+  "agree_graded": 316,
+  "split_graded": 573,
   "weeks": 6,
-  "delta_points": -2.7,
-  "p": 0.7485,
+  "delta_points": -4.1,
+  "p": 0.8435,
   "min": {
    "agree": 300,
    "split": 100,
@@ -646,10 +663,10 @@
     "p": 0.5618
    },
    "ncaaf": {
-    "agree": 167,
-    "split": 306,
-    "delta_points": -4.2,
-    "p": 0.7924
+    "agree": 177,
+    "split": 311,
+    "delta_points": -6.6,
+    "p": 0.8957
    }
   },
   "consequence": "Nothing changes on its own. Whether the label may ever touch a pick, a ranking or a price is Sam's decision, in a separate PR he asks for."
