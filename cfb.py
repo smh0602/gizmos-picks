@@ -1640,8 +1640,8 @@ def write_if_changed(f, o, log=log):
     except Exception:
         stored = None
     if isinstance(stored, dict) and stored:
-        same = {k: v for k, v in stored.items() if k != "written_at"} == \
-               {k: v for k, v in o.items() if k != "written_at"}
+        import freshness as _fr          # `[2026-10-28]` the one stamp-aside compare
+        same = _fr.same_but_stamps(stored, o, fields=("written_at",))
         if same:
             log(f"    unchanged {OUT}/{f} (not rewritten)")
             return "unchanged"

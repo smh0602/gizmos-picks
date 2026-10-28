@@ -908,12 +908,10 @@ INJURY_FIELDS = ("gsis_id", "full_name", "position", "report_status", "practice_
 
 
 def _same_but_stamp(old, doc, stamp="built_at"):
-    """Is `doc`, as it would be stored, `old` with only `stamp` different?"""
-    if not isinstance(old, dict):
-        return False
-    new = json.loads(json.dumps(doc))
-    return ({k: v for k, v in old.items() if k != stamp}
-            == {k: v for k, v in new.items() if k != stamp})
+    """Is `doc`, as it would be stored, `old` with only `stamp` different?
+    `[2026-10-28]` The one stamp-aside compare is freshness.same_but_stamps."""
+    import freshness as _F
+    return _F.same_but_stamps(old, doc, fields=(stamp,))
 
 
 def injuries_doc(season, inj_rows, players_doc, built_at):

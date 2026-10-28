@@ -44,6 +44,7 @@ longer owners; they are hints.
 """
 
 import glob
+import hashlib
 import json
 import gzip
 import os
@@ -107,13 +108,142 @@ def stamp_of(path):
         except ValueError:
             pass
 
-    doc = _load(path)
+    doc = with_heartbeat(path, _load(path))
     if isinstance(doc, dict):
         for f in STAMP_FIELDS:
             got = _parse(doc.get(f))
             if got:
                 return got
     return None
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE HEARTBEAT: A STAMP-ONLY REWRITE OF A GZIP, KEPT AS A FEW BYTES OF TEXT.
+# ══════════════════════════════════════════════════════════════════════
+# Git cannot delta a gzip, so a pull whose content did not change still
+# stored the whole file again because its stamps moved (pitchers + hitters:
+# ~590 KB a day since 2026-10-02, the same content every day). ⛔ But the
+# stamp IS the outage alarm (nfl.py's 10-day lesson): it is moved, never
+# dropped. `collect.write(..., heartbeat=True)` leaves the gzip as it is and
+# writes `<file>.beat.json` with the stamps the full write would have
+# stored; `with_heartbeat` puts them back on the document for every reader
+# (`stamp_of`, so the survey, lateness, the watchdog and the landing check;
+# and the readers of the file's own stamps). The logical document is
+# therefore EXACTLY what the full write would have stored.
+# ⛔ BOUND TO THE EXACT BYTES: a heartbeat whose sha256 is not the file's
+#    current bytes vouches for nothing and is ignored, so any other write,
+#    revert or replay falls back to the file's own (older) stamp: stale,
+#    never falsely fresh.
+HEARTBEAT_SUFFIX = ".beat.json"
+
+
+def heartbeat_path(path):
+    return path + HEARTBEAT_SUFFIX
+
+
+def _stamps(doc):
+    return {k: doc[k] for k in STAMP_FIELDS if k in doc}
+
+
+def same_but_stamps(stored, doc, fields=STAMP_FIELDS):
+    """Is `doc`, as JSON would store it, `stored` with only `fields` changed?
+    ⛔ ONE COPY of the stamp-aside compare (rule 117): `nfl._same_but_stamp`
+    (fields: its one stamp) and `cfb.write_if_changed` (fields: written_at)
+    call it too. An unreadable `stored` is never "the same". Which stamp
+    keys are present is `keep_with_heartbeat`'s question, not this one's."""
+    if not isinstance(stored, dict) or not isinstance(doc, dict):
+        return False
+    try:
+        new = json.loads(json.dumps(doc))          # int keys -> str, as stored
+    except (TypeError, ValueError):
+        return False
+    bare = lambda d: {k: v for k, v in d.items() if k not in fields}  # noqa: E731
+    return bare(stored) == bare(new)
+
+
+def _bytes(path):
+    try:
+        with open(path, "rb") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+def _bound_stamps(path, keys):
+    """The stamps the heartbeat beside `path` vouches for, or None unless it
+    names this file, these exact bytes, and exactly `keys`."""
+    b = _load(heartbeat_path(path))
+    buf = _bytes(path)
+    if not isinstance(b, dict) or buf is None or b.get("file") != os.path.basename(path):
+        return None
+    if b.get("sha256") != hashlib.sha256(buf).hexdigest():
+        return None
+    st = b.get("stamps")
+    if not isinstance(st, dict) or not st or set(st) != set(keys) \
+            or any(_parse(v) is None for v in st.values()):
+        return None
+    return st
+
+
+def with_heartbeat(path, doc):
+    """`doc` (as loaded from `path`) with a bound heartbeat's stamps on it:
+    the document the last write would have stored. Unchanged otherwise.
+    ⚠️ A reader of a file's OWN stamps calls this (test_heartbeat.py §3)."""
+    if not isinstance(doc, dict) or not os.path.exists(heartbeat_path(path)):
+        return doc
+    st = _bound_stamps(path, _stamps(doc))
+    return dict(doc, **st) if st else doc
+
+
+def keep_with_heartbeat(path, doc):
+    """When `doc` is the stored gzip at `path` with only its stamps changed,
+    write the heartbeat INSTEAD of the file and return True. Otherwise (no
+    file, unreadable, any content change, the heartbeat cannot be written)
+    return False and the caller writes the file. ⛔ Never raises."""
+    buf = _bytes(path)
+    if buf is None or not path.endswith(".gz"):
+        return False
+    try:
+        stored = json.loads(gzip.decompress(buf).decode("utf-8"))
+    except Exception:
+        return False
+    st = _stamps(doc) if isinstance(doc, dict) else {}
+    if not st or any(_parse(v) is None for v in st.values()):
+        return False
+    if not isinstance(stored, dict) or set(_stamps(stored)) != set(st):
+        return False                     # gaining or losing a stamp field is a content change
+    if not same_but_stamps(stored, doc):
+        return False
+    hp = heartbeat_path(path)
+    tmp = f"{hp}.tmp.{os.getpid()}"
+    beat = {"kind": "HEARTBEAT", "file": os.path.basename(path),
+            "sha256": hashlib.sha256(buf).hexdigest(), "bytes": len(buf),
+            "file_stamps": _stamps(stored), "stamps": st,
+            "note": ("The file beside this one is unchanged apart from its stamps; "
+                     "`stamps` are the ones its last write would have stored "
+                     "(freshness.with_heartbeat). Void once the file's bytes change."),
+            "written_at": st.get("written_at") or max(st.values())}
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="\n") as fh:   # LF on every runner
+            json.dump(beat, fh, indent=1)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, hp)
+        return True
+    except OSError:
+        return False
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def drop_heartbeat(path):
+    """A full write of `path` supersedes its heartbeat. (An unbound one is
+    ignored anyway; this keeps the tree honest to read.)"""
+    try:
+        os.remove(heartbeat_path(path))
+    except OSError:
+        pass
 
 
 def age_minutes(path, now=None):

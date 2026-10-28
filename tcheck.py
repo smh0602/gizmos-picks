@@ -134,6 +134,39 @@ def copy_module(name, dst, root=None):
 _IMPORTS = {}
 
 
+def copy_latest(src, dst):
+    """Copy a `latest/` directory into a test tree WITH ITS HEARTBEATS SETTLED:
+    each gzip a heartbeat vouches for is rewritten with the stamps the
+    heartbeat carries, and every heartbeat is dropped. -> files settled.
+
+    🔴 `[2026-10-28]` A tree that REWRITES one copied file (a salted pull, a
+    pinned pull) and compares the outputs must start from files that carry
+    their OWN stamps: the rewritten copy voids its heartbeat while the files
+    beside it keep theirs, and every stamp a builder copies (the card's
+    `logs_pulled_at`, the board's `pitchers_pulled_at`) then differs on
+    correct code (test_heartbeat.py §4d)."""
+    import glob
+    import gzip
+    import json
+    import shutil
+    import freshness as F
+    shutil.copytree(src, dst)
+    done = []
+    for hb in sorted(glob.glob(os.path.join(dst, "**", "*" + F.HEARTBEAT_SUFFIX), recursive=True)):
+        path = hb[:-len(F.HEARTBEAT_SUFFIX)]
+        try:
+            doc = json.load(gzip.open(path, "rt", encoding="utf-8"))
+        except (OSError, ValueError):
+            doc = None
+        live = F.with_heartbeat(path, doc)
+        os.remove(hb)
+        if isinstance(doc, dict) and live != doc:
+            with gzip.open(path, "wt", encoding="utf-8") as fh:
+                json.dump(live, fh, separators=(",", ":"))
+            done.append(os.path.basename(path))
+    return done
+
+
 def _imports_of(src):
     """Every module name `src` imports, absolute imports only, in AST order."""
     import ast

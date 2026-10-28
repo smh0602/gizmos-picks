@@ -106,9 +106,10 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from tcheck import ck, copy_module, eq, note, section, shown  # noqa: E402
+from tcheck import ck, copy_latest, copy_module, eq, note, section, shown  # noqa: E402
 
 import mlb_tables as M  # noqa: E402
+import freshness as F  # noqa: E402
 
 REAL = os.path.join(ROOT, "data", "latest", "pitchers.json.gz")
 FIXTURE = os.path.join(ROOT, "research", "mlb_pitcher_table_0820.psv")
@@ -121,7 +122,9 @@ def _dump(path, D):
 
 
 def _real():
-    return json.load(gzip.open(REAL, "rt", encoding="utf-8"))
+    # the live pull AS LAST WRITTEN: a stamp-only pull keeps its stamps in
+    # the heartbeat beside it (freshness.with_heartbeat), as M.build reads it
+    return F.with_heartbeat(REAL, json.load(gzip.open(REAL, "rt", encoding="utf-8")))
 
 
 def _psv_rows(md):
@@ -285,7 +288,7 @@ def c_tree(tag, day_dirs=()):
     tree = os.path.join(TMP, tag)
     os.makedirs(os.path.join(tree, "data"))
     copy_module("card", tree)
-    shutil.copytree(os.path.join(ROOT, "data", "latest"), os.path.join(tree, "data", "latest"))
+    copy_latest(os.path.join(ROOT, "data", "latest"), os.path.join(tree, "data", "latest"))
     for day, sub in day_dirs:
         src = os.path.join(ROOT, "data", day, sub)
         if os.path.isdir(src):

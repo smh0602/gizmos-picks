@@ -47,6 +47,8 @@ import os
 import statistics as st
 import sys
 
+import freshness as _F   # with_heartbeat: the pull's own stamps, as last written
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
@@ -88,7 +90,7 @@ def load(path, allow_incomplete=False):
     test ONLY (the n >= 8 pitcher rows do not depend on the low-IP starters).
     ⛔ The collector never passes it, and a doc built with it says so in
     `population_complete: false` and in its markdown headline."""
-    D = json.load(gzip.open(path, "rt", encoding="utf-8"))
+    D = _F.with_heartbeat(path, json.load(gzip.open(path, "rt", encoding="utf-8")))
     pool = D.get("starter_pool")
     if pool != "complete" and not allow_incomplete:
         raise RuntimeError(

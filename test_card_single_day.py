@@ -68,7 +68,7 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from tcheck import ck, copy_module, note, section, shown  # noqa: E402
+from tcheck import ck, copy_latest, copy_module, note, section, shown  # noqa: E402
 
 import collect as CM  # noqa: E402
 import watchdog as W  # noqa: E402
@@ -108,7 +108,7 @@ def _mkt(key, who, line, over, under):
 tree = os.path.join(TMP, "tree")
 os.makedirs(os.path.join(tree, "data"))
 copy_module("card", tree)
-shutil.copytree(os.path.join(ROOT, "data", "latest"), os.path.join(tree, "data", "latest"))
+copy_latest(os.path.join(ROOT, "data", "latest"), os.path.join(tree, "data", "latest"))
 # 🔴 `[2026-10-18]` THE PULL IS PINNED: the complete 2026 season, as pulled 2026-10-17
 #    (`research/mlb_pitchers_20261017.json.gz`, written once). ~~The live pull~~ is
 #    rewritten for `now().year`: the first 2027 pull lands once ONE pitcher passes 20 IP

@@ -1091,6 +1091,19 @@ note boxes, tags and the stale bar now require their absence.
   `data/2026-*` odds glob is guarded (§7); `players-2026`, `(2025, 2026)` and the like are
   the season lists in Sam's decisions or the August 2027 follow-up. ⚠️ Left, with the
   decisions that are Sam's: the handoff's R6.
+- 🔴 **A STAMP-ONLY REWRITE OF A GZIP IS A HEARTBEAT, NOT A COPY.** `[2026-10-28]` Git cannot
+  delta a gzip, so a file rewritten with only its stamps changed was a whole copy kept for ever:
+  pitchers.json.gz and hitters.json.gz were the same content from 10-01 and stored ~590 KB a day.
+  ✅ `collect.write(..., heartbeat=True)` keeps an unchanged gzip and writes `<file>.beat.json`
+  (plain JSON, bound to the gzip's sha256) with the stamps the full write would have stored;
+  `freshness.stamp_of` and `freshness.with_heartbeat` read it, so every row ages exactly as a
+  full write would have made it, and a failed pull writes nothing: stale at the same deadline
+  (nfl.py:900-906's lesson: the heartbeat is MOVED, never dropped). A heartbeat that does not
+  match the bytes is void (stale, never falsely fresh). ⛔ Opt a file in only when every reader
+  of its stamps goes through `with_heartbeat` (test_heartbeat §4c, the page §4e); copy a
+  latest/ tree in a test only with `tcheck.copy_latest`. `freshness.same_but_stamps` is the ONE
+  stamp-aside compare (nfl, cfb call it). Opted in: the MLB pitchers, hitters, scores, lineups,
+  weather and record-detail files; football next. `test_heartbeat.py`.
 - 🔴 **AN MLB RUN THAT REACHES THE END OF ITS HOLD STARTS ITS SUCCESSOR (THE
   RELAY).** `[Sam, 2026-10-06]` *"a card is on time even when GitHub starts a
   scheduled run hours late"*: on 10-06 the card due 14:00Z was built 16:02Z,
@@ -1527,6 +1540,9 @@ verify_nfl.py     the football data-layer verifier
 
 CONTRACT AND SPEND
 freshness.py      THE FRESHNESS CONTRACT — what must be how current.
+                  `[2026-10-28]` also the heartbeat: `with_heartbeat`,
+                  `keep_with_heartbeat`, `same_but_stamps` (the one
+                  stamp-aside compare), read by `stamp_of`.
                   `converge` plans its work from this, not from crons.
                   `[2026-09-26]` `classify` is the gate's one hard/soft
                   verdict; `judge_failures` decides whether a failed
@@ -1627,6 +1643,9 @@ t60r.py           the played-games backtest of signals 1-8, run to the
 SHARED HELPERS — ⛔ ONE COPY EACH. Rule 117: a helper duplicated breaks
 in the file you did not edit.
 tcheck.py         the one check harness every test file uses.
+                  `[2026-10-28]` also `copy_latest`: a latest/ tree copied for a
+                  test with its heartbeats settled (each gzip carries its own
+                  current stamps).
                   `[2026-09-26]` It watches every line a test prints:
                   one GitHub reads as a workflow command (`::error::`)
                   is written defused and FAILS the file. Print captured

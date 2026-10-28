@@ -71,8 +71,8 @@ nothing read from production.
 #
 # @vacuity 🔴 ...judged with the stored file's written_at set aside
 #   file: cfb.py
-#   find: same = {k: v for k, v in stored.items() if k != "written_at"} == \
-#   with: same = dict(stored) == \
+#   find: same = _fr.same_but_stamps(stored, o, fields=("written_at",))
+#   with: same = _fr.same_but_stamps(stored, o, fields=())
 #
 # @vacuity 🔴 a season with any failed CFBD call builds no defense doc
 #   file: cfb.py
