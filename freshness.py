@@ -120,9 +120,10 @@ def stamp_of(path):
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE HEARTBEAT: A STAMP-ONLY REWRITE OF A GZIP, KEPT AS A FEW BYTES OF TEXT.
 # ══════════════════════════════════════════════════════════════════════
-# Git cannot delta a gzip, so a pull whose content did not change still
-# stored the whole file again because its stamps moved (pitchers + hitters:
-# ~590 KB a day since 2026-10-02, the same content every day). ⛔ But the
+# Git deltas a gzip only when its compressed bytes happen to survive the
+# change, so a pull whose content did not change was often stored whole
+# again because its stamps moved (pitchers + hitters: ~590 KB a day of raw
+# gzip since 2026-10-02, the same content every day). ⛔ But the
 # stamp IS the outage alarm (nfl.py's 10-day lesson): it is moved, never
 # dropped. `collect.write(..., heartbeat=True)` leaves the gzip as it is and
 # writes `<file>.beat.json` with the stamps the full write would have
@@ -133,7 +134,11 @@ def stamp_of(path):
 # ⛔ BOUND TO THE EXACT BYTES: a heartbeat whose sha256 is not the file's
 #    current bytes vouches for nothing and is ignored, so any other write,
 #    revert or replay falls back to the file's own (older) stamp: stale,
-#    never falsely fresh.
+#    never falsely fresh. `[2026-10-28, review]` It is ONE line of JSON, so
+#    a merge of two runs' heartbeats conflicts whole and keeps one side
+#    (indented, git took one run's sha256 and the other's stamps: a splice
+#    that bound), and `push_retry.sh` lands none that vouches for nothing
+#    (`settle_beats`).
 HEARTBEAT_SUFFIX = ".beat.json"
 
 
@@ -147,7 +152,9 @@ def _stamps(doc):
 
 def same_but_stamps(stored, doc, fields=STAMP_FIELDS):
     """Is `doc`, as JSON would store it, `stored` with only `fields` changed?
-    ⛔ ONE COPY of the stamp-aside compare (rule 117): `nfl._same_but_stamp`
+    ⛔ ONE COPY of the WHOLE-DOCUMENT stamp-aside compare (rule 117; a
+    per-row compare such as cfb_injuries' `fetched_at` is another question):
+    `nfl._same_but_stamp`
     (fields: its one stamp) and `cfb.write_if_changed` (fields: written_at)
     call it too. An unreadable `stored` is never "the same". Which stamp
     keys are present is `keep_with_heartbeat`'s question, not this one's."""
@@ -169,20 +176,24 @@ def _bytes(path):
         return None
 
 
-def _bound_stamps(path, keys):
-    """The stamps the heartbeat beside `path` vouches for, or None unless it
-    names this file, these exact bytes, and exactly `keys`."""
-    b = _load(heartbeat_path(path))
-    buf = _bytes(path)
-    if not isinstance(b, dict) or buf is None or b.get("file") != os.path.basename(path):
+def _vouched(beat, name, buf, keys):
+    """The stamps the heartbeat document `beat` vouches for on `buf` (the bytes
+    of the file called `name`, whose own stamp keys are `keys`), or None unless
+    it names that file, those exact bytes, and exactly those keys."""
+    if not isinstance(beat, dict) or buf is None or keys is None or beat.get("file") != name:
         return None
-    if b.get("sha256") != hashlib.sha256(buf).hexdigest():
+    if beat.get("sha256") != hashlib.sha256(buf).hexdigest():
         return None
-    st = b.get("stamps")
+    st = beat.get("stamps")
     if not isinstance(st, dict) or not st or set(st) != set(keys) \
             or any(_parse(v) is None for v in st.values()):
         return None
     return st
+
+
+def _bound_stamps(path, keys):
+    """The stamps the heartbeat beside `path` vouches for (`_vouched`)."""
+    return _vouched(_load(heartbeat_path(path)), os.path.basename(path), _bytes(path), keys)
 
 
 def with_heartbeat(path, doc):
@@ -225,7 +236,7 @@ def keep_with_heartbeat(path, doc):
             "written_at": st.get("written_at") or max(st.values())}
     try:
         with open(tmp, "w", encoding="utf-8", newline="\n") as fh:   # LF on every runner
-            json.dump(beat, fh, indent=1)
+            fh.write(json.dumps(beat, separators=(",", ":")) + "\n")   # ONE line: a merge keeps one side
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, hp)
@@ -235,6 +246,80 @@ def keep_with_heartbeat(path, doc):
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
+
+
+def _gz_keys(buf):
+    """The stamp keys of the gzipped JSON object in `buf`, or None."""
+    try:
+        doc = json.loads(gzip.decompress(buf).decode("utf-8"))
+    except Exception:
+        return None
+    return _stamps(doc) if isinstance(doc, dict) else None
+
+
+def settle_beats(tip, cwd=None):
+    """🔴 A LANDING NEVER PUTS A HEARTBEAT BESIDE BYTES IT DOES NOT VOUCH FOR.
+
+    `[2026-10-28, review; measured with two real clones]` A football run's
+    MLB `record` repair writes the heartbeat for the record-detail ITS older
+    checkout holds. `push_retry.sh`'s rebase keeps this run's heartbeat over
+    the tip's, beside the tip's newer gzip: it vouches for nothing, the gzip's
+    own older stamp is read, and the next MLB pass goes red on a healthy day.
+    ✅ Before every push, each heartbeat HEAD holds that HEAD changes on `tip`
+    (or whose file HEAD changes) must vouch for HEAD's file. If it does not,
+    `tip`'s heartbeat is kept when IT vouches for HEAD's file (the run that
+    wrote those bytes said when it last saw them unchanged); otherwise the
+    heartbeat is removed and the file's own stamp stands. Folded into HEAD's
+    commit, as `credits.keep_both` is. -> [(path, "tip" | "removed")].
+    ⛔ Only ever a heartbeat path: never a gzip, never another file."""
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(("git",) + args, cwd=cwd, capture_output=True)
+
+    def blob(rev, rel):
+        p = git("cat-file", "blob", f"{rev}:{rel}")
+        return p.stdout if p.returncode == 0 else None
+
+    def doc(b):
+        try:
+            return json.loads(b.decode("utf-8"))
+        except Exception:
+            return None
+
+    top = git("rev-parse", "--show-toplevel").stdout.decode("utf-8").strip()
+    held = {p for p in git("ls-tree", "-r", "-z", "--name-only", "HEAD").stdout.decode("utf-8").split("\0")
+            if p.endswith(HEARTBEAT_SUFFIX)}
+    changed = [p for p in git("diff", "--name-only", "--no-renames", "-z", tip, "HEAD")
+               .stdout.decode("utf-8").split("\0") if p]
+    cands = sorted(held & ({p for p in changed if p.endswith(HEARTBEAT_SUFFIX)}
+                           | {p + HEARTBEAT_SUFFIX for p in changed}))
+    done = []
+    for rel in cands:
+        f = rel[:-len(HEARTBEAT_SUFFIX)]
+        buf = blob("HEAD", f)
+        name, keys = f.rsplit("/", 1)[-1], (_gz_keys(buf) if buf is not None else None)
+        if _vouched(doc(blob("HEAD", rel) or b""), name, buf, keys):
+            continue
+        theirs = blob(tip, rel)
+        if theirs is not None and _vouched(doc(theirs), name, buf, keys):
+            with open(os.path.join(top, rel), "wb") as fh:
+                fh.write(theirs)
+            git("add", "--", rel)
+            done.append((rel, "tip"))
+        else:
+            git("rm", "-q", "--", rel)
+            done.append((rel, "removed"))
+    if done:
+        parent = git("rev-parse", "HEAD^^{tree}").stdout.decode("utf-8").strip()
+        if parent and git("write-tree").stdout.decode("utf-8").strip() == parent:
+            # the heartbeat was all this run changed: nothing of its own lands
+            git("reset", "-q", "--soft", "HEAD^")
+            return done
+        p = git("commit", "-q", "--amend", "--no-edit", "--only", "--", *[r for r, _ in done])
+        if p.returncode:
+            raise RuntimeError("settle_beats: the amend failed: " + p.stderr.decode("utf-8", "replace")[:300])
+    return done
 
 
 def drop_heartbeat(path):
@@ -2680,3 +2765,16 @@ def current_football_season(now=None):
     import datetime as _dt
     n = now or _dt.datetime.now(_dt.timezone.utc)
     return n.year - 1 if n.month < 8 else n.year
+
+
+if __name__ == "__main__":
+    # `python freshness.py settle-beats <tip>`: push_retry.sh's landing step (settle_beats).
+    import sys as _sys
+    if len(_sys.argv) == 3 and _sys.argv[1] == "settle-beats":
+        for _p, _how in settle_beats(_sys.argv[2]):
+            print(f"{_p} vouched for bytes this run does not land: "
+                  + ("the remote's heartbeat is kept" if _how == "tip"
+                     else "removed, so the file's own stamp stands"))
+        _sys.exit(0)
+    print("usage: freshness.py settle-beats <tip>")
+    _sys.exit(2)

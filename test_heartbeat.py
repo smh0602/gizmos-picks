@@ -3,9 +3,10 @@
 HEARTBEAT IS MOVED, NEVER DROPPED. `[2026-10-28]`
 
 The defect: `collect.write` rewrote a gzip whose content had not changed,
-because its stamps moved. Git cannot delta a gzip, so every such rewrite
-was a whole copy kept for ever: pitchers.json.gz + hitters.json.gz were the
-same content from 2026-10-01 to 10-27 and stored ~590 KB a day.
+because its stamps moved. Git deltas a gzip only when its compressed bytes
+happen to survive the change, so such a rewrite was often a whole copy kept
+for ever: pitchers.json.gz + hitters.json.gz were the same content from
+2026-10-01 to 10-27 and wrote ~590 KB a day of raw gzip.
 
 The trap beside it (nfl.py, 2026-10-26): the rewrite IS the outage alarm.
 A skip that drops the stamp leaves the row stale on a healthy day (a red
@@ -14,11 +15,16 @@ run), and the first fix of that kind hid a 10-day nflverse outage. So:
   §1  write(heartbeat=True) keeps the gzip's bytes and writes the heartbeat;
       the document every reader sees is EXACTLY the full write's.
   §2  the heartbeat is bound to the file's exact bytes: anything else that
-      touches the file voids it (stale, never falsely fresh).
+      touches the file voids it (stale, never falsely fresh); it is one line,
+      so git's merge of two runs' heartbeats keeps one whole (test_push_retry
+      §5: a landing never puts one beside bytes it does not vouch for).
   §3  the contract: a stamp-only pull keeps the row fresh, a failed pull
       leaves it stale at the same deadline as before.
   §4  the CLASS: every scope that names a heartbeat file and reads a stamp
-      reads it through freshness; every gzip `write` in collect.py decides.
+      reads it through freshness; every gzip `write` in collect.py decides
+      (⚠️ collect.py only: the other modules' gzip writers are the football
+      follow-up); only collect.write makes a heartbeat; no test copies one
+      out of latest/ unsettled; the page reads no heartbeat file's stamp.
   §5  the real chain: two identical pitcher pulls, then the tables.
 
 ⛔ A TEST ASKS THE CODE: every tree here is planted, every clock pinned.
@@ -30,8 +36,13 @@ run), and the first fix of that kind hid a 10-day nflverse outage. So:
 #
 # @vacuity 🔴 a heartbeat that is not bound to the file's bytes is caught
 #   file: freshness.py
-#   find:     if b.get("sha256") != hashlib.sha256(buf).hexdigest():
+#   find:     if beat.get("sha256") != hashlib.sha256(buf).hexdigest():
 #   with:     if False:
+#
+# @vacuity 🔴 [2026-10-28] a heartbeat is ONE line, so git's merge of two keeps one side whole
+#   file: freshness.py
+#   find:             fh.write(json.dumps(beat, separators=(",", ":"))
+#   with:             fh.write(json.dumps(beat, indent=1)
 #
 # @vacuity 🔴 a doc that gains or loses a stamp field is a content change
 #   file: freshness.py
@@ -52,6 +63,11 @@ run), and the first fix of that kind hid a 10-day nflverse outage. So:
 #   file: card.py
 #   find:     return _F.with_heartbeat(path, doc)   # a stamp-only pull's stamps (freshness)
 #   with:     return doc
+#
+# @vacuity 🔴 [2026-10-28] a raw read beside an overlay of ANOTHER heartbeat file is caught (card.main)
+#   file: card.py
+#   find:     P = load(f"{LATEST}/pitchers.json.gz", gz=True)
+#   with:     P = json.load(gzip.open(f"{LATEST}/pitchers.json.gz", "rt"))
 #
 # @vacuity 🔴 a page read of a heartbeat file's stamp is caught
 #   file: index.html
@@ -97,6 +113,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -165,6 +182,7 @@ eq(sha(pa), first, "🔴 a stamp-only pull leaves the gzip's BYTES as they were"
 ck(os.path.exists(F.heartbeat_path(pa)), "   ...and writes the heartbeat beside it")
 ck(F.heartbeat_path(pa).endswith(".json.gz.beat.json") and not F.heartbeat_path(pa).endswith(".gz"),
    "   the heartbeat is plain JSON and never matches a `*.json.gz` glob")
+# (2b: it is one line, so a merge keeps one side whole)
 eq(F.with_heartbeat(pa, raw(pa)), raw(pb),
    "🔴🔴 the document a reader sees IS the one the full write stored, stamps included")
 eq(F.stamp_of(pa), at("2026-11-10T10:16:30Z"), "🔴 stamp_of reads the new pull's pulled_at")
@@ -259,6 +277,40 @@ eq(planted(stamps={"pulled_at": "yesterday", "written_at": "2026-11-10T10:16:00Z
    at("2026-11-09T10:16:00Z"), "   one with an unreadable stamp is void")
 os.remove(p2)
 eq(F.stamp_of(p2), None, "🔴 a heartbeat beside a MISSING file vouches for nothing (MISSING)")
+
+# 2b. `[2026-10-28, review; measured]` TWO RUNS' HEARTBEATS MERGED BY GIT KEEP ONE SIDE
+#     WHOLE. push_retry.sh rebases with `-X theirs`. Indented, git took the lines only
+#     the tip changed (sha256) from the tip and the conflicting ones (stamps) from this
+#     run: a SPLICE that bound, vouching this run's time for bytes it never compared.
+#     One line conflicts whole, so the merge keeps one run's heartbeat as it wrote it.
+import subprocess  # noqa: E402
+M2 = os.path.join(TMP, "merge")
+_mp = {t: os.path.join(M2, t, "logs.json.gz") for t in ("base", "tip", "mine")}
+for _t in _mp:
+    os.makedirs(os.path.dirname(_mp[_t]))
+with clock("2026-11-09T08:00:00Z"):
+    C.write(_mp["base"], dict(DOC, pulled_at=C.stamp()), compress=True, heartbeat=True)
+with clock("2026-11-09T10:16:00Z"):
+    C.write(_mp["base"], dict(DOC, pulled_at=C.stamp()), compress=True, heartbeat=True)
+shutil.copy(_mp["base"], _mp["mine"])                       # this run: the base's bytes...
+with clock("2026-11-11T10:16:00Z"):                         # ...seen unchanged later
+    C.write(_mp["mine"], dict(DOC, pulled_at=C.stamp()), compress=True, heartbeat=True)
+with clock("2026-11-10T08:00:00Z"):                         # the tip: new content...
+    C.write(_mp["tip"], dict(DOC, season=2027, pulled_at=C.stamp()), compress=True, heartbeat=True)
+with clock("2026-11-10T10:16:00Z"):                         # ...then seen unchanged
+    C.write(_mp["tip"], dict(DOC, season=2027, pulled_at=C.stamp()), compress=True, heartbeat=True)
+_hp = {t: F.heartbeat_path(p) for t, p in _mp.items()}
+ck(all(os.path.exists(p) for p in _hp.values()) and sha(_mp["base"]) == sha(_mp["mine"]) != sha(_mp["tip"]),
+   "(planted: three heartbeats, the base's and this run's on the same bytes, the tip's on new ones)")
+ck(all(open(p, encoding="utf-8").read().count("\n") == 1 for p in _hp.values()),
+   "   a heartbeat is ONE line of JSON")
+_mg = subprocess.run(["git", "merge-file", "-p", "--theirs", _hp["tip"], _hp["base"], _hp["mine"]],
+                     capture_output=True)
+with open(_hp["tip"], "wb") as fh:                          # the rebase's result, beside the tip's gzip
+    fh.write(_mg.stdout)
+eq(F.stamp_of(_mp["tip"]) in (at("2026-11-10T10:16:00Z"), at("2026-11-10T08:00:00Z")), True,
+   "🔴 git's merge of two runs' heartbeats never vouches one run's time for the other's bytes "
+   "(%s)" % F.stamp_of(_mp["tip"]))
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. THE CONTRACT: FRESH ON A STAMP-ONLY DAY, STALE ON AN OUTAGE — SAME DEADLINE")
@@ -420,6 +472,10 @@ ALLOWED = {   # (module, scope): why its stamp read is not a heartbeat file's ow
     ("test_record_scope.py", "run_verifier"): "plants a record-detail from its own record doc",
     ("test_card_single_day.py", "<module>"): "reads the PINNED pull it copied over the tree's "
                                              "file (any copied heartbeat is void on those bytes)",
+    ("test_mlb_tables.py", "<module>"): "reads the PINNED pull it copied over the planted tree's file "
+                                        "(copy_latest left no heartbeat beside it)",
+    ("test_heartbeat.py", "<module>"): "this test reads gzips' OWN stamps on purpose, to show what the "
+                                       "heartbeat changes and what it does not",
     ("research/mlb_calibration_audit.py", "main"): "its stamp reads are the published cards' "
                                                    "(generated_at, logs_pulled_at); of the pulls it "
                                                    "reads only `season`",
@@ -437,6 +493,72 @@ def _scope(fn):
     return out
 
 
+def _consts(node):
+    return [c.value for c in ast.walk(node) if isinstance(c, ast.Constant) and isinstance(c.value, str)]
+
+
+def _overlay(n, local_ov, names):
+    """Is call `n` a read through freshness? `[2026-10-28, review]` ⛔ `json.load` is not
+    the module's own `load()`: a same-module overlay counts only as a BARE call, and
+    freshness's own only by name. And an overlay whose path is a literal naming
+    ANOTHER file (`F.stamp_of('.../board.json')`) covers nothing."""
+    f = n.func
+    if isinstance(f, ast.Name):
+        ok = f.id in local_ov or f.id in OVERLAY
+    else:
+        ok = isinstance(f, ast.Attribute) and f.attr in OVERLAY
+    if not ok or not n.args:
+        return ok
+    lits = _consts(n.args[0])
+    return (any(m in c for c in lits for m in names)
+            or not any(re.search(r"\.json(\.gz)?$", c) for c in lits))
+
+
+def _assigns(nodes):
+    """{name: [values]} bound in a scope: assignments and `with ... as name`."""
+    out = {}
+    for n in nodes:
+        if isinstance(n, ast.Assign):
+            for t in n.targets:
+                if isinstance(t, ast.Name):
+                    out.setdefault(t.id, []).append(n.value)
+        elif isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name) and n.value is not None:
+            out.setdefault(n.target.id, []).append(n.value)
+        elif isinstance(n, (ast.With, ast.AsyncWith)):
+            for it in n.items:
+                if isinstance(it.optional_vars, ast.Name):
+                    out.setdefault(it.optional_vars.id, []).append(it.context_expr)
+    return out
+
+
+def _names_hb(e, env, held, names, depth=0):
+    """Does expression `e` name a heartbeat file (a literal, a module-level path,
+    or a name this scope bound to one)?"""
+    for n in ast.walk(e):
+        if isinstance(n, ast.Constant) and isinstance(n.value, str) and any(m in n.value for m in names):
+            return True
+        if isinstance(n, ast.Name) and (n.id in held or (depth < 3 and any(
+                _names_hb(v, env, held, names, depth + 1) for v in env.get(n.id, ()) if v is not e))):
+            return True
+    return False
+
+
+def _judge(r, env, held, local_ov, names, depth=0):
+    """What the document a stamp is read off is: "ok" (it came through an overlay),
+    "raw" (a heartbeat file loaded around one) or "unknown". `[2026-10-28, review]`
+    Each read is judged by ITS value: one overlay of another file in the same scope
+    covered card.main's raw read of pitchers.json.gz."""
+    while isinstance(r, (ast.Subscript, ast.Attribute)):
+        r = r.value
+    if isinstance(r, ast.Name):
+        js = [_judge(v, env, held, local_ov, names, depth + 1) for v in env.get(r.id, ())
+              if depth < 4] if r.id in env else []
+        return "ok" if "ok" in js else "raw" if "raw" in js else "unknown"
+    if any(isinstance(n, ast.Call) and _overlay(n, local_ov, names) for n in ast.walk(r)):
+        return "ok"
+    return "raw" if _names_hb(r, env, held, names) else "unknown"
+
+
 def census(root, names):
     flagged, seen = [], 0
     for f in sorted(glob.glob(os.path.join(root, "*.py")) + glob.glob(os.path.join(root, "research", "*.py"))):
@@ -450,17 +572,23 @@ def census(root, names):
                 if isinstance(b, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
                 and b.body and isinstance(b.body[0], ast.Expr)
                 and isinstance(b.body[0].value, ast.Constant)}
+        # a module-level name bound to a path that names a heartbeat file
+        held = {t.id for st in tree.body if isinstance(st, ast.Assign)
+                for t in st.targets if isinstance(t, ast.Name)
+                and any(m in c for c in _consts(st.value) for m in names)}
         fns = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
-        ov = set(OVERLAY) | {fn.name for fn in fns
-                             if any(isinstance(n, ast.Call) and getattr(n.func, "attr",
-                                    getattr(n.func, "id", None)) == "with_heartbeat"
-                                    for n in _scope(fn))}
+        local_ov = {fn.name for fn in fns
+                    if any(isinstance(n, ast.Call) and (getattr(n.func, "attr", None)
+                                                        or getattr(n.func, "id", None)) == "with_heartbeat"
+                           for n in _scope(fn))}
         for sc in [tree] + fns:
             nodes = _scope(sc)
-            if not any(isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in docs
-                       and any(m in n.value for m in names) for n in nodes):
+            if not any((isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in docs
+                        and any(m in n.value for m in names))
+                       or (isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id in held)
+                       for n in nodes):
                 continue
-            reads = [n.lineno for n in nodes
+            reads = [(n.lineno, n.value if isinstance(n, ast.Subscript) else n.func.value) for n in nodes
                      if (isinstance(n, ast.Subscript) and isinstance(n.ctx, ast.Load)
                          and isinstance(n.slice, ast.Constant) and n.slice.value in FIELDS)
                      or (isinstance(n, ast.Call) and getattr(n.func, "attr", None) == "get"
@@ -469,11 +597,13 @@ def census(root, names):
             if not reads:
                 continue
             seen += 1
-            calls = {getattr(n.func, "attr", None) or getattr(n.func, "id", None)
-                     for n in nodes if isinstance(n, ast.Call)}
+            env = _assigns(nodes)
+            got = [(ln, _judge(r, env, held, local_ov, names)) for ln, r in reads]
+            covered = any(isinstance(n, ast.Call) and _overlay(n, local_ov, names) for n in nodes)
+            bad = [ln for ln, j in got if j == "raw"] or ([] if covered else [ln for ln, j in got if j != "ok"])
             key = (os.path.relpath(f, root).replace(os.sep, "/"), getattr(sc, "name", "<module>"))
-            if not calls & ov and key not in ALLOWED:
-                flagged.append("%s:%s line %s" % (key[0], key[1], reads[0]))
+            if bad and key not in ALLOWED:
+                flagged.append("%s:%s line %s" % (key[0], key[1], bad[0]))
     return flagged, seen
 
 
@@ -496,8 +626,79 @@ os.makedirs(os.path.join(_pl, "research"))
 with open(os.path.join(_pl, "research", "audit.py"), "w", encoding="utf-8") as fh:
     fh.write("import json, gzip\n\ndef lag():\n"
              "    return json.load(gzip.open('data/latest/pitchers.json.gz', 'rt'))['pulled_at']\n")
-eq(census(_pl, HEARTBEAT)[0], ["reader.py:when line 5", "research/audit.py:lag line 4"],
-   "   (planted) a raw read is flagged, in research/ too; the same read through with_heartbeat is not")
+# `[2026-10-28, review]` the three shapes the first census passed: json.load beside the
+#    module's own load() overlay, an overlay of ANOTHER file in the same scope, and a
+#    path held in a module-level constant
+with open(os.path.join(_pl, "collide.py"), "w", encoding="utf-8") as fh:
+    fh.write("import json, gzip, freshness as F\n\ndef load(p):\n"
+             "    return F.with_heartbeat(p, json.load(gzip.open(p, 'rt')))\n\ndef when():\n"
+             "    D = json.load(gzip.open('data/latest/hitters.json.gz', 'rt'))\n"
+             "    return D['pulled_at']\n")
+with open(os.path.join(_pl, "mixed.py"), "w", encoding="utf-8") as fh:
+    fh.write("import json, gzip, freshness as F\n\ndef when():\n"
+             "    F.stamp_of('data/latest/board.json')\n"
+             "    D = json.load(gzip.open('data/latest/hitters.json.gz', 'rt'))\n"
+             "    return D.get('pulled_at')\n")
+with open(os.path.join(_pl, "constpath.py"), "w", encoding="utf-8") as fh:
+    fh.write("import json, gzip\nP = 'data/latest/pitchers.json.gz'\n\ndef lag():\n"
+             "    return json.load(gzip.open(P, 'rt'))['pulled_at']\n")
+with open(os.path.join(_pl, "same.py"), "w", encoding="utf-8") as fh:   # card.main's shape
+    fh.write("import json, gzip, freshness as F\n\ndef load(p):\n"
+             "    return F.with_heartbeat(p, json.load(gzip.open(p, 'rt')))\n\ndef main():\n"
+             "    H = load('data/latest/hitters.json.gz')\n"
+             "    P = json.load(gzip.open('data/latest/pitchers.json.gz', 'rt'))\n"
+             "    return H.get('pulled_at'), P.get('pulled_at')\n")
+with open(os.path.join(_pl, "fine2.py"), "w", encoding="utf-8") as fh:   # ...and its fixed form
+    fh.write("import json, gzip, freshness as F\n\ndef load(p):\n"
+             "    return F.with_heartbeat(p, json.load(gzip.open(p, 'rt')))\n\ndef main():\n"
+             "    path = 'data/latest/pitchers.json.gz'\n"
+             "    with gzip.open(path, 'rt') as fh:\n        P = json.load(fh)\n"
+             "    P = F.with_heartbeat(path, P)\n"
+             "    H = load('data/latest/hitters.json.gz')\n"
+             "    return H.get('pulled_at'), P['pulled_at']\n")
+eq(census(_pl, HEARTBEAT)[0], ["collide.py:when line 8", "constpath.py:lag line 5", "mixed.py:when line 6",
+                               "reader.py:when line 5", "research/audit.py:lag line 4", "same.py:main line 9"],
+   "   (planted) a raw read is flagged, in research/ too, beside the module's own load(), beside "
+   "an overlay of another file or of ANOTHER heartbeat file (card.main's shape), and through a "
+   "module-level path; the same reads through with_heartbeat are not")
+
+
+# 4c'. `[2026-10-28, review]` ...AND ONLY collect.write MAKES A HEARTBEAT, so the files the
+#      censuses judge are every heartbeat file there is. A module that kept a gzip through
+#      keep_with_heartbeat itself, or passed `heartbeat=` to a write of its own, would
+#      carry one no census here ever judged.
+def keepers(root):
+    out = []
+    for f in sorted(glob.glob(os.path.join(root, "*.py")) + glob.glob(os.path.join(root, "research", "*.py"))):
+        rel = os.path.relpath(f, root).replace(os.sep, "/")
+        src = open(f, encoding="utf-8").read()
+        if os.path.basename(f).startswith("test_") or ("keep_with_heartbeat" not in src and "heartbeat=" not in src):
+            continue
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tree = ast.parse(src)
+        for sc in [tree] + [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+            for n in _scope(sc):
+                if not isinstance(n, ast.Call):
+                    continue
+                if (getattr(n.func, "attr", None) or getattr(n.func, "id", None)) == "keep_with_heartbeat":
+                    out.append((rel, getattr(sc, "name", "<module>"), "keep_with_heartbeat"))
+                if rel != "collect.py" and any(
+                        k.arg == "heartbeat" and not (isinstance(k.value, ast.Constant) and k.value.value is False)
+                        for k in n.keywords):
+                    out.append((rel, getattr(sc, "name", "<module>"), "heartbeat="))
+    return out
+
+
+eq(keepers(ROOT), [("collect.py", "write", "keep_with_heartbeat")],
+   "🔴 only collect.write makes a heartbeat (so §4a's list is every heartbeat file there is)")
+_kp = os.path.join(TMP, "keepers")
+os.makedirs(_kp)
+with open(os.path.join(_kp, "other.py"), "w", encoding="utf-8") as fh:
+    fh.write("import collect, freshness as F\n\ndef save(p, d):\n    return F.keep_with_heartbeat(p, d)\n\n"
+             "def put(p, d):\n    collect.write(p, d, compress=True, heartbeat=True)\n")
+eq(sorted(keepers(_kp)), [("other.py", "put", "heartbeat="), ("other.py", "save", "keep_with_heartbeat")],
+   "   (planted) a module keeping its own gzip, either way, is flagged")
 
 # 4d. A TEST TREE COPIED FROM latest/ STARTS WITH ITS HEARTBEATS SETTLED.
 #     Measured on a planted post-merge tree (live heartbeats beside the six
@@ -525,64 +726,143 @@ shutil.copy(F.heartbeat_path(_sp), _nest)
 eq(copy_latest(os.path.join(TMP, "settle-nest"), os.path.join(TMP, "settle-nest-dst")), ["pitchers.json.gz"],
    "   ...in a folder below the one copied too (a league's data/<lg>/latest)")
 
-_bare_copies = []
-for _t in sorted(glob.glob(os.path.join(ROOT, "test_*.py"))):
-    for _n in ast.walk(ast.parse(open(_t, encoding="utf-8").read())):
-        if isinstance(_n, ast.Call) and getattr(_n.func, "attr", getattr(_n.func, "id", None)) == "copytree" \
-                and any(isinstance(c, ast.Constant) and isinstance(c.value, str)
-                        and c.value.rstrip("/").split("/")[-1] == "latest"
-                        for a in _n.args[:1] for c in ast.walk(a)):
-            _bare_copies.append("%s:%d" % (os.path.basename(_t), _n.lineno))
-eq(_bare_copies, [], "🔴 no test copies a latest/ directory around tcheck.copy_latest")
-
-
-def single_copies(paths):
-    """`shutil.copy*` / `copyfile` of a heartbeat file OUT of a latest/ path: its heartbeat would be left behind."""
-    out = []
-    for _t in paths:
-        for _n in ast.walk(ast.parse(open(_t, encoding="utf-8").read())):
-            if isinstance(_n, ast.Call) and getattr(_n.func, "attr", None) in ("copy", "copy2", "copyfile") \
-                    and _n.args:
-                parts = [c.value for c in ast.walk(_n.args[0]) if isinstance(c, ast.Constant) and isinstance(c.value, str)]
-                if "latest" in parts and any(p in HEARTBEAT for p in parts):
-                    out.append("%s:%d" % (os.path.basename(_t), _n.lineno))
+def _envs(tree):
+    """{id(call): {name: value}}: the module's assignments, then the innermost
+    enclosing function's on top (as `_tail` resolves a local)."""
+    mod = {t.id: st.value for st in tree.body if isinstance(st, ast.Assign)
+           for t in st.targets if isinstance(t, ast.Name)}
+    out = {id(n): mod for n in ast.walk(tree) if isinstance(n, ast.Call)}
+    for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+        env = dict(mod, **{t.id: n.value for n in ast.walk(fn) if isinstance(n, ast.Assign)
+                           for t in n.targets if isinstance(t, ast.Name)})
+        out.update({id(n): env for n in ast.walk(fn) if isinstance(n, ast.Call)})
     return out
 
 
-eq(single_copies(sorted(glob.glob(os.path.join(ROOT, "test_*.py")))), [],
-   "🔴 no test copies one heartbeat file out of latest/ without its heartbeat")
+def path_of(node, env, depth=0):
+    """The path an expression spells, '*' for any part it cannot know: literals,
+    f-strings, os.path.join, `+`, `%` and names (module, then function)."""
+    if depth > 8:
+        return "*"
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        out = node.value
+    elif isinstance(node, ast.JoinedStr):
+        out = "".join(path_of(v.value if isinstance(v, ast.FormattedValue) else v, env, depth + 1)
+                      for v in node.values)
+    elif isinstance(node, ast.Call) and getattr(node.func, "attr", None) == "join":
+        out = "/".join(path_of(a, env, depth + 1) for a in node.args)
+    elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        out = path_of(node.left, env, depth + 1) + path_of(node.right, env, depth + 1)
+    elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mod) \
+            and isinstance(node.left, ast.Constant) and isinstance(node.left.value, str):
+        out = re.sub(r"%[sd]", "*", node.left.value)
+    elif isinstance(node, ast.Name) and node.id in env and env[node.id] is not node:
+        out = path_of(env[node.id], env, depth + 1)
+    else:
+        out = "*"
+    return re.sub(r"/+", "/", out.replace("\\", "/"))
+
+
+_HB_RX = re.compile(r"(^|/)latest/(%s)$" % "|".join(re.escape(h) for h in HEARTBEAT))
+_TREE_RX = re.compile(r"(^|/)data(/latest)?/?$")     # data/latest, or data/ (which carries it)
+
+
+def copies(paths):
+    """-> (copytree calls whose source carries MLB's data/latest, single copies of a
+    heartbeat file out of a latest/ path), each "file:line". `[2026-10-28, review]`
+    Paths are RESOLVED (literal, f-string, join, a name): the first form saw only
+    `os.path.join(..., 'latest', '<file>')`. ⚠️ A football data/<lg> copy carries no
+    heartbeat file yet: widening is the football follow-up."""
+    trees, singles = [], []
+    for _t in paths:
+        tree = ast.parse(open(_t, encoding="utf-8").read())
+        envs = _envs(tree)
+        for _n in ast.walk(tree):
+            if not (isinstance(_n, ast.Call) and _n.args):
+                continue
+            name = getattr(_n.func, "attr", None) or getattr(_n.func, "id", None)
+            src = path_of(_n.args[0], envs.get(id(_n), {}))
+            if name == "copytree" and _TREE_RX.search(src):
+                trees.append("%s:%d" % (os.path.basename(_t), _n.lineno))
+            if name in ("copy", "copy2", "copyfile") and _HB_RX.search(src):
+                singles.append("%s:%d" % (os.path.basename(_t), _n.lineno))
+    return trees, singles
+
+
+_trees, _singles = copies(sorted(glob.glob(os.path.join(ROOT, "test_*.py"))))
+eq(_trees, [], "🔴 no test copies a latest/ directory around tcheck.copy_latest")
+eq(_singles, [], "🔴 no test copies one heartbeat file out of latest/ without its heartbeat")
 with open(os.path.join(_pl, "test_bad.py"), "w", encoding="utf-8") as fh:
-    fh.write("import os, shutil\nshutil.copy(os.path.join('data', 'latest', 'hitters.json.gz'), 'x')\n")
-eq(single_copies([os.path.join(_pl, "test_bad.py")]), ["test_bad.py:2"], "   (planted) one is flagged")
+    fh.write("import os, shutil\n"
+             "ROOT = os.path.dirname(os.path.abspath(__file__))\n"
+             "LATEST = os.path.join(ROOT, 'data', 'latest')\n"
+             "shutil.copy(os.path.join('data', 'latest', 'hitters.json.gz'), 'x')\n"
+             "shutil.copy('data/latest/hitters.json.gz', 'x')\n"
+             "shutil.copy2(f'{ROOT}/data/latest/pitchers.json.gz', 'x')\n"
+             "shutil.copy(os.path.join(LATEST, 'scores.json.gz'), 'y')\n"
+             "shutil.copytree(LATEST, 'z')\n"
+             "shutil.copytree('data', 'w')\n"
+             "shutil.copytree(os.path.join(ROOT, 'data', 'nfl'), 'v')\n"
+             "shutil.copy(os.path.join(ROOT, 'tmp', 'hitters.json.gz'), 'u')\n")
+eq(copies([os.path.join(_pl, "test_bad.py")]),
+   (["test_bad.py:8", "test_bad.py:9"], ["test_bad.py:4", "test_bad.py:5", "test_bad.py:6", "test_bad.py:7"]),
+   "   (planted) every spelling is flagged: a join, a literal, an f-string, a LATEST name, a copy of "
+   "data/; a football data/<lg> tree and a file outside latest/ are not")
 
 # ══════════════════════════════════════════════════════════════════════
 section("4e. THE PAGE NEVER READS A HEARTBEAT FILE'S STAMP")
 # ══════════════════════════════════════════════════════════════════════
-# The page fetches record-detail (the Track Record's days) and reads only its rows. A
-# page that printed a heartbeat file's own stamp would show the last CHANGE, not the
+# A page that printed a heartbeat file's own stamp would show the last CHANGE, not the
 # last pull; it must read the time from a plain file (freshness.json) instead.
-import re  # noqa: E402
+# `[2026-10-28, review]` EVERY stamp read on the page, by (top-level function,
+# receiver), is named here with the file it reads; a new one is red until it is
+# reasoned. (The first census saw only a variable filled straight from a literal
+# fetch, so `D.built_at` after `const D = await loadRecordDetail()` passed.)
+import jsblock as J  # noqa: E402
+
+PAGE_STAMP_READS = {
+    ("renderScores", "BOARD"): "data/latest/board.json (gamelines)",
+    ("renderOdds", "BOARD"): "data/latest/board.json",
+    ("<top>", "BOARD"): "data/latest/board.json (the refresh loop and the board's key)",
+    ("<top>", "FRESH"): "data/latest/freshness.json (the refresh loop)",
+    ("renderRecord", "R"): "data/latest/record.json (RECORD)",
+    ("renderNews", "N"): "data/latest/news.json",
+    ("fbOdds", "B"): "data/<lg>/latest/board.json (fbBoardLoad)",
+    ("fbScores", "doc"): "data/<lg>/latest/schedule-<season>.json.gz (fbSchedLoad)",
+    ("fbProps", "B"): "data/<lg>/latest/props.json.gz (fbPropsLoad)",
+    ("fbRecord", "R"): "data/<lg>/latest/record.json (fbRecordLoad)",
+    ("fbNews", "N"): "data/<lg>/latest/news.json (fbNewsLoad)",
+    ("renderFootball", "doc"): "the football Trends file (fbLoad, fbPath)",
+}
+_PAGE_DIR = tempfile.mkdtemp(dir=TMP)
 
 
 def page_reads(text):
-    """-> (the variables the page fills from a heartbeat file, those it reads a stamp off,
-    whether it ever fetches a .beat.json)."""
-    code = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
-    code = "\n".join(re.sub(r"(^|\s)//.*$", "", ln) for ln in code.split("\n"))
-    held = {m.group(1) for m in re.finditer(
-        r"\b([A-Za-z_$][\w$]*)\s*=\s*await\s+jget(?:Gz)?\(\s*['\"`]([^'\"`]+)['\"`]", code)
-        if m.group(2).rsplit("/", 1)[-1] in HEARTBEAT}
-    stamped = {m.group(1) for m in re.finditer(
-        r"\b([A-Za-z_$][\w$]*)\s*(?:\.(?:%s)\b|\[\s*['\"](?:%s)['\"]\s*\])"
-        % ("|".join(F.STAMP_FIELDS), "|".join(F.STAMP_FIELDS)), code)}
-    return held, held & stamped, ".beat.json" in code
+    """-> ({(top-level function, receiver)} of every stamp read in the page's code,
+    whether it ever fetches a .beat.json). Comments do not count."""
+    code = J.strip_js(text)
+    p = os.path.join(_PAGE_DIR, "page-%d.html" % len(os.listdir(_PAGE_DIR)))
+    with open(p, "w", encoding="utf-8") as fh:
+        fh.write(code)
+    spans = [(code.find(b), code.find(b) + len(b), n) for n, b in J.top_level_blocks(p).items()]
+    rx = re.compile(r"(\)|[A-Za-z_$][\w$]*)\s*\??\.\s*(?:%s)\b|([A-Za-z_$][\w$]*)\s*\[\s*['\"](?:%s)['\"]\s*\]"
+                    % ("|".join(F.STAMP_FIELDS), "|".join(F.STAMP_FIELDS)))
+    reads = {(next((n for a, b, n in spans if a <= m.start() < b), "<top>"), m.group(1) or m.group(2))
+             for m in rx.finditer(code)}
+    return reads, ".beat.json" in code
+
+
 _page = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
-_held, _bad_reads, _beat = page_reads(_page)
-ck("RECDETAIL" in _held, "(the census sees the page's record-detail fetch)", sorted(_held))
-eq((sorted(_bad_reads), _beat), ([], False),
-   "🔴 the page reads no stamp of a heartbeat file, and never fetches a .beat.json")
-eq(sorted(page_reads(_page + "\nconst x = `${RECDETAIL.built_at}`;\n")[1]), ["RECDETAIL"],
-   "   (planted) a page read of record-detail's built_at is flagged")
+_reads, _beat = page_reads(_page)
+eq(sorted(_reads), sorted(PAGE_STAMP_READS),
+   "🔴 every stamp read on the page is named, with the file it reads (a new one is red until it is)")
+eq([v for v in PAGE_STAMP_READS.values() if any(h in v for h in HEARTBEAT)], [],
+   "🔴 ...and none of them is a heartbeat file's")
+eq(_beat, False, "   the page never fetches a .beat.json")
+_planted = page_reads(_page + "\nasync function zzPlant(){\n  const D = await loadRecordDetail();\n"
+                      "  return D.built_at + (await jgetGz('data/latest/hitters.json.gz')).pulled_at;\n}\n")[0]
+eq(sorted(_planted - set(PAGE_STAMP_READS)), [("zzPlant", ")"), ("zzPlant", "D")],
+   "   (planted) a stamp read through a loader, and one off an inline fetch, are flagged")
 
 # ══════════════════════════════════════════════════════════════════════
 section("5. THE REAL CHAIN: TWO IDENTICAL PITCHER PULLS, THEN THE TABLES")

@@ -909,7 +909,7 @@ INJURY_FIELDS = ("gsis_id", "full_name", "position", "report_status", "practice_
 
 def _same_but_stamp(old, doc, stamp="built_at"):
     """Is `doc`, as it would be stored, `old` with only `stamp` different?
-    `[2026-10-28]` The one stamp-aside compare is freshness.same_but_stamps."""
+    `[2026-10-28]` The one whole-document stamp-aside compare is freshness.same_but_stamps."""
     import freshness as _F
     return _F.same_but_stamps(old, doc, fields=(stamp,))
 

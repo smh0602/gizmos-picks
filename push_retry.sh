@@ -33,6 +33,11 @@
 #      17:28Z lost 150 paid credits' receipt). Before every push, a PAID
 #      snapshot the remote already holds keeps its name and this run's copy
 #      lands beside it as `HHMM-n` (`credits.keep_both`).
+#   5. `[2026-10-28]` A heartbeat (`<file>.beat.json`) this run lands must
+#      vouch for the file beside it on the tip it lands on; one that no
+#      longer does gives way to the tip's, or is removed
+#      (`freshness.settle_beats`). A football run's MLB record repair once
+#      landed one bound to its own older record-detail: a red MLB pass.
 # ══════════════════════════════════════════════════════════════════════
 set -u
 label="${1:-push}"
@@ -57,9 +62,24 @@ keep_both() {
   [ -z "$out" ] || while IFS= read -r line; do echo "$label: $line"; done <<< "$out"
 }
 
+# settle <tip>: step 5, against the exact commit this push lands on.
+# ⚠️ Like keep_both: no freshness.py beside the script (a fixture) means no
+#    heartbeats to settle, and a failure warns and lands anyway.
+settle() {
+  [ -f "$here/freshness.py" ] || return 0
+  local py out
+  py="$(command -v python || command -v python3)"
+  if [ -z "$py" ] || ! out="$("$py" "$here/freshness.py" settle-beats "$1" 2>&1)"; then
+    echo "::warning::$label: could not check this run's heartbeats against the remote: ${out:-no python}"
+    return 0
+  fi
+  [ -z "$out" ] || while IFS= read -r line; do echo "$label: $line"; done <<< "$out"
+}
+
 for i in 1 2 3 4 5; do
   if git pull -q --rebase -X theirs --autostash "$remote" "$branch" >/dev/null 2>&1; then
     keep_both "$(git rev-parse FETCH_HEAD)"
+    settle "$(git rev-parse FETCH_HEAD)"
     if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then
       echo "$label: pushed on attempt $i"
       exit 0
@@ -83,6 +103,7 @@ for i in 1 2 3 4 5; do
         git commit -q -m "$msg"
       fi
       keep_both "$tip"
+      settle "$tip"
       mine="$(git rev-parse HEAD)"
       if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then
         echo "$label: pushed on attempt $i (replayed onto the new tip)"
