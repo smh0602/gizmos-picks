@@ -414,8 +414,16 @@ def odds_get(path, params):
     return body, used, left
 
 
-def write(path, obj, compress=False):
+def write(path, obj, compress=False, *, heartbeat=False):
     """Write JSON so a reader NEVER sees a half-written file — and STAMP IT.
+
+    🔴 `heartbeat=True` `[2026-10-28]` (a gzip only): when the new document is
+    the stored one with only its stamps changed, the gzip is NOT rewritten
+    (git cannot delta it); `<file>.beat.json` carries the stamps instead and
+    `freshness.with_heartbeat` puts them back for every reader, so the row
+    is exactly as fresh as the full write would have made it. ⛔ It is set at
+    a call site only where every reader of that file's stamps goes through
+    `with_heartbeat` (test_heartbeat.py §4c finds them).
 
     🔴 EVERY ARTIFACT IS STAMPED HERE, NOT AT THE CALL SITE. `freshness.py`
     can only age an artifact that carries its own timestamp, and three of
@@ -466,6 +474,15 @@ def write(path, obj, compress=False):
     # is from", which is a different question and must not be overwritten.
     if isinstance(obj, dict):
         obj = dict(obj, written_at=stamp())
+    # ⚠️ The refreshed `written_at` (and the caller's `pulled_at`) still
+    #    reach the reader on a heartbeat: they are its `stamps`.
+    if heartbeat:
+        if not (compress and isinstance(obj, dict)):
+            raise ValueError(f"write({path}): heartbeat=True is for a gzipped JSON object")
+        if _fresh.keep_with_heartbeat(path, obj):
+            log(f"unchanged {path} -- only its stamps moved: not rewritten, "
+                f"{os.path.basename(_fresh.heartbeat_path(path))} carries them")
+            return
 
     try:
         if compress:
@@ -480,6 +497,7 @@ def write(path, obj, compress=False):
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
+    _fresh.drop_heartbeat(path)            # the file now carries its own stamps
     log(f"wrote {path} ({os.path.getsize(path)} bytes)")
 
 
@@ -2154,7 +2172,7 @@ def collect_props_board():
         if not os.path.exists(path):
             log(f"  {label}: {path} missing — those markets will be skipped")
             return None, {}
-        D = json.load(gzip.open(path, "rt"))
+        D = _fresh.with_heartbeat(path, json.load(gzip.open(path, "rt")))
         by = {}
         # 🔴 `model_pitchers`, not `D["players"]`: the low-IP starters the
         # pull now carries for the tables must not join a prop (see it).
@@ -2671,7 +2689,7 @@ def collect_pitchers():
         "n_below_min_ip": sum(1 for v in logs.values() if v.get("below_min_ip")),
         "starter_pool": starter_pool,
         "n_failed": bad, "domain_violations": viol,
-        "players": logs}, compress=True)
+        "players": logs}, compress=True, heartbeat=True)
     log(f"pitchers: {len(logs)} arms, {sum(len(v['g']) for v in logs.values())} rows, "
         f"{bad} failed, {viol} domain violations")
     return None
@@ -3620,7 +3638,7 @@ def collect_hitters():
         "n_failed": bad,
         "n_empty": empty,
         "players": logs,
-    }, compress=True)
+    }, compress=True, heartbeat=True)
     total = sum(len(v["g"]) for v in logs.values())
     log(f"hitters: {len(logs)} players, {total} game rows, {bad} failed, {empty} empty")
     return None
@@ -4164,7 +4182,7 @@ def collect_record():
                     "record.json."),
            "days": {d["date"]: d["rows"] for d in days},
            "game_lines": {d["date"]: d["lines"] for d in days if d["lines"]}},
-          compress=True)
+          compress=True, heartbeat=True)
     log(f"record: {len(days)} card(s) graded, {doc['overall']['w']}/{doc['overall']['n']} plays")
     for a, b in skipped:
         log(f"  skipped {a}: {b}")
@@ -4382,7 +4400,7 @@ def collect_weather():
                       for d in dates if d not in store["venues"].get(str(vid), {}))
     outstanding += sum(1 for v in coords if str(v) not in store["elevations"])
     store["complete"] = (outstanding == 0)
-    write(path, store, compress=True)
+    write(path, store, compress=True, heartbeat=True)
     nd = sum(len(v) for v in store["venues"].values())
     log(f"weather: {len(store['venues'])} venues, {nd} venue-days, {fetched} API calls")
     log(f"weather: complete={store['complete']}"
@@ -4493,7 +4511,7 @@ def collect_scores():
             write(path, store, compress=True)
             log(f"  ... {done}/{len(todo)} dates")
 
-    write(path, store, compress=True)
+    write(path, store, compress=True, heartbeat=True)
     tot = sum(len(v) for v in days.values())
     runs = sum(r["away_r"] + r["home_r"] for v in days.values() for r in v)
     log(f"scores: {len(days)} dates, {tot} games, {runs} total runs stored")
@@ -4569,7 +4587,7 @@ def collect_lineups():
             write(path, store, compress=True)
             log(f"  ...{done}/{len(todo)} dates, {fetched} boxscores")
 
-    write(path, store, compress=True)
+    write(path, store, compress=True, heartbeat=True)
     n = sum(len(v) for v in days.values())
     withslot = sum(1 for v in days.values() for r in v if r["slot"])
     log(f"lineups: {len(days)} dates, {n} batter-games, {withslot} with a slot")

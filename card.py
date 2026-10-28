@@ -48,6 +48,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (C2)
 import calibration as _calib  # noqa: E402  the ONE per-band "runs hot" rule
 import one_side  # noqa: E402  one team per game: the expected winner (Sam, 2026-10-16)
+import freshness as _F  # noqa: E402  with_heartbeat: a file's stamps as last written
 
 MODEL_VERSION = "v5.0"
 
@@ -2056,7 +2057,8 @@ def build_pairs(plays, limit=8):
 def load(path, gz=False):
     if not os.path.exists(path):
         raise RuntimeError(f"{path} missing -- the collector has not run")
-    return json.load(gzip.open(path, "rt")) if gz else json.load(open(path))
+    doc = json.load(gzip.open(path, "rt")) if gz else json.load(open(path))
+    return _F.with_heartbeat(path, doc)   # a stamp-only pull's stamps (freshness)
 
 
 TEAM_IDS = {

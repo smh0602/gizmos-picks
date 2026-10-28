@@ -42,6 +42,26 @@ again). This drives two real clones against one bare remote.
 #   file: credits.py
 #   find: for _path, _free in keep_both(sys.argv[2], _kinds):
 #   with: for _path, _free in keep_both(sys.argv[2], _kinds + ("news",)):
+#
+# @vacuity 🔴🔴 [2026-10-28] a rebased pass never lands a heartbeat that vouches for nothing
+#   file: push_retry.sh
+#   find:     settle "$(git rev-parse FETCH_HEAD)"
+#   with:     true
+#
+# @vacuity 🔴🔴 ...nor does a replayed pass
+#   file: push_retry.sh
+#   find:       settle "$tip"
+#   with:       true
+#
+# @vacuity 🔴 the tip's heartbeat is kept when IT vouches for the file that lands
+#   file: freshness.py
+#   find:         if theirs is not None and _vouched(doc(theirs), name, buf, keys):
+#   with:         if False:
+#
+# @vacuity 🔴 one that vouches for nothing, with none on the tip, is removed
+#   file: freshness.py
+#   find:             git("rm", "-q", "--", rel)
+#   with:             pass
 """
 import gzip
 import io
@@ -53,6 +73,7 @@ import subprocess
 import tempfile
 
 import credits as K
+import freshness as F
 from tcheck import ck, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -300,5 +321,127 @@ try:
        "🔴🔴 the REPLAY path keeps both receipts too",
        "⛔ a replay re-applies this run's files over the tip. rc %s/%s, "
        "gamelines %s, out %r" % (re_.returncode, rf.returncode, g2, rf.stdout[-300:]))
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+
+section("5. 🔴🔴 A HEARTBEAT LANDS ONLY BESIDE THE BYTES IT VOUCHES FOR")
+# `[2026-10-28, review; measured with two real clones]` A football run's MLB
+#    `record` repair (watchdog) writes the heartbeat for the record-detail ITS
+#    older checkout holds. Step 1's `-X theirs` kept that heartbeat over the
+#    MLB run's, beside the MLB run's newer gzip: it vouched for nothing, the
+#    gzip's own 09:55 stamp was read, and the next MLB pass went red at 10:00Z.
+#    Step 5 (`freshness.settle_beats`): the tip's heartbeat stays when IT
+#    vouches for the file that lands, else the stale one is removed.
+REC = "data/latest/record-detail.json.gz"
+
+
+def gzdoc(built, rows):
+    return gz(json.dumps({"built_at": built, "rows": rows}))
+
+
+def beat(repo, built, rows):
+    """A stamp-only write of record-detail in `repo`: the heartbeat, as collect.write makes it."""
+    return F.keep_with_heartbeat(os.path.join(repo, REC), {"built_at": built, "rows": rows})
+
+
+def landed(tag):
+    chk = clone(bare, os.path.join(tmp, "check-" + tag))
+    beats = sorted(os.path.relpath(os.path.join(d, n), chk).replace(os.sep, "/")
+                   for d, _s, fs in os.walk(chk) if ".git" not in d
+                   for n in fs if n.endswith(F.HEARTBEAT_SUFFIX))
+    void = [b for b in beats if not F._bound_stamps(os.path.join(chk, b[:-len(F.HEARTBEAT_SUFFIX)]),
+                                                     {"built_at": None})]
+    return F.stamp_of(os.path.join(chk, REC)), beats, void
+
+
+def seed_repo(tag, extra=None):
+    global bare
+    bare = os.path.join(tmp, tag + ".git")
+    sh(tmp, "git", "init", "-q", "--bare", "-b", "main", bare)
+    sd = clone(bare, os.path.join(tmp, tag + "-seed"))
+    write(sd, REC, gzdoc("2026-11-10T10:05:00Z", "v0"))
+    write(sd, "data/latest/record.json", '{"v": 0}\n')
+    for rel, data in (extra or {}).items():
+        write(sd, rel, data)
+    sh(sd, "git", "add", "-A"); sh(sd, "git", "commit", "-qm", "seed")
+    sh(sd, "git", "push", "-q", "origin", "HEAD:main")
+
+
+def commit(repo, msg):
+    sh(repo, "git", "add", "-A")
+    sh(repo, "git", "commit", "-qm", msg)
+
+
+tmp = tempfile.mkdtemp(prefix="pr5-")
+try:
+    # 5a. THE REBASE PATH: the MLB run changes record-detail at 09:55Z and sees it
+    #     unchanged at 10:05Z (a heartbeat); the football repair, on the older
+    #     base, heartbeats the OLD bytes at 10:06Z and lands last.
+    seed_repo("a")
+    u = clone(bare, os.path.join(tmp, "a-mlb"))
+    fb = clone(bare, os.path.join(tmp, "a-fb"))
+    write(u, REC, gzdoc("2026-11-11T09:55:00Z", "v1"))
+    commit(u, "collect[mlb]: record 09:55")
+    run_helper(u, "mlb 1")
+    ck(beat(u, "2026-11-11T10:05:00Z", "v1"), "(the MLB run's 10:05Z pull is stamp-only: a heartbeat)")
+    commit(u, "collect[mlb]: record 10:05")
+    ru = run_helper(u, "mlb 2")
+    ck(beat(fb, "2026-11-11T10:06:00Z", "v0"), "(the football repair's pull is stamp-only on ITS older bytes)")
+    write(fb, "data/latest/record.json", '{"v": "fb"}\n')
+    commit(fb, "collect[ncaaf]: repair record")
+    rf = run_helper(fb, "fb repair")
+    st, beats, void = landed("a")
+    ck(ru.returncode == 0 and rf.returncode == 0 and "replayed" not in rf.stdout
+       and st == F._parse("2026-11-11T10:05:00Z") and beats == [REC + F.HEARTBEAT_SUFFIX] and not void,
+       "🔴🔴 a rebased pass keeps the tip's heartbeat when its own vouches for older bytes: "
+       "record-detail is aged 10:05Z (the MLB run's pull), never 09:55Z (stale at 10:00Z)",
+       "⛔ -X theirs kept the repair's heartbeat beside the MLB run's gzip. stamp_of %s, "
+       "beats %s, void %s, rc %s/%s, out %r" % (st, beats, void, ru.returncode, rf.returncode,
+                                                 rf.stdout[-300:]))
+    ck("the remote's heartbeat is kept" in rf.stdout,
+       "   ...and the run's log says which heartbeat it gave way to", repr(rf.stdout[-300:]))
+
+    # 5b. THE REPLAY PATH (step 2): the same race, with a modify/delete conflict
+    #     on another file, so the rebase aborts and this run's files are replayed.
+    seed_repo("b", {"data/latest/odds.json": '{"v": 0}\n'})
+    u = clone(bare, os.path.join(tmp, "b-mlb"))
+    fb = clone(bare, os.path.join(tmp, "b-fb"))
+    write(u, REC, gzdoc("2026-11-11T09:55:00Z", "v1"))
+    commit(u, "collect[mlb]: record 09:55")
+    run_helper(u, "mlb 1")
+    beat(u, "2026-11-11T10:05:00Z", "v1")
+    sh(u, "git", "rm", "-q", "data/latest/odds.json")
+    commit(u, "collect[mlb]: record 10:05")
+    ru = run_helper(u, "mlb 2")
+    beat(fb, "2026-11-11T10:06:00Z", "v0")
+    write(fb, "data/latest/odds.json", '{"v": "fb"}\n')
+    commit(fb, "collect[ncaaf]: repair record")
+    rf = run_helper(fb, "fb repair")
+    st, beats, void = landed("b")
+    ck(ru.returncode == 0 and rf.returncode == 0 and "replayed" in rf.stdout
+       and st == F._parse("2026-11-11T10:05:00Z") and not void,
+       "🔴🔴 ...and so does a REPLAYED pass",
+       "stamp_of %s, beats %s, void %s, rc %s/%s, out %r"
+       % (st, beats, void, ru.returncode, rf.returncode, rf.stdout[-300:]))
+
+    # 5c. NO HEARTBEAT ON THE TIP: the MLB run's 09:55Z write was a full one and
+    #     nothing vouched since; the repair's heartbeat for the old bytes is
+    #     removed, so the file's own stamp stands and no void file lands.
+    seed_repo("c")
+    u = clone(bare, os.path.join(tmp, "c-mlb"))
+    fb = clone(bare, os.path.join(tmp, "c-fb"))
+    write(u, REC, gzdoc("2026-11-11T09:55:00Z", "v1"))
+    commit(u, "collect[mlb]: record 09:55")
+    run_helper(u, "mlb 1")
+    beat(fb, "2026-11-11T10:06:00Z", "v0")
+    commit(fb, "collect[ncaaf]: repair record")
+    rf = run_helper(fb, "fb repair")
+    st, beats, void = landed("c")
+    ck(rf.returncode == 0 and st == F._parse("2026-11-11T09:55:00Z") and beats == []
+       and sh(fb, "git", "status", "--porcelain").stdout == "",
+       "🔴 a heartbeat that vouches for nothing, with none on the tip, is removed before it lands "
+       "(the file's own stamp stands) and the run's tree is clean",
+       "stamp_of %s, beats %s, void %s, status %r, out %r"
+       % (st, beats, void, sh(fb, "git", "status", "--porcelain").stdout, rf.stdout[-300:]))
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
