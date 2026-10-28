@@ -103,15 +103,65 @@
    }
   }
  },
- "built_at": "2026-10-28T02:47:54Z",
+ "built_at": "2026-10-28T08:49:21Z",
  "calls": 7,
  "duplicates": 0,
  "error": null,
  "kind": "DIAGNOSTIC",
  "note": "College injury reports (SEC, ACC, Big Ten, Big 12, MAC through HD Intelligence; Sun Belt; Pac-12). A refused report is named with its reason; nothing refused is stored. research/cfb_injuries_design.md.",
- "ok": false,
+ "ok": true,
  "posted_after_fetch": [],
  "refused": [
+  {
+   "id": "2925",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "SEC",
+   "teams": [
+    "Auburn",
+    "Ole Miss"
+   ]
+  },
+  {
+   "id": "3441",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "SEC",
+   "teams": [
+    "Florida",
+    "Georgia"
+   ]
+  },
+  {
+   "id": "3478",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "SEC",
+   "teams": [
+    "South Carolina",
+    "Oklahoma"
+   ]
+  },
+  {
+   "id": "3502",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "SEC",
+   "teams": [
+    "Mississippi St.",
+    "Texas"
+   ]
+  },
+  {
+   "id": "3510",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "SEC",
+   "teams": [
+    "Missouri",
+    "Arkansas"
+   ]
+  },
   {
    "id": "3415",
    "label": "Report Pending",
@@ -355,59 +405,60 @@
  ],
  "season": 2026,
  "snapshot": {
-  "age_h": 0.0,
+  "age_h": 6.02,
   "fetched_at": "2026-10-28T02:47:54Z",
   "path": "data/ncaaf/2026-10-28/injury-reports/0247.json.gz",
-  "wrote": true
+  "wrote": false
  },
  "sources": {
   "ACC": {
-   "fetched_at": "2026-10-28T02:47:54Z",
-   "last_ok_at": "2026-10-28T02:47:54Z",
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
    "n_refused": 8,
    "n_reports": 0,
    "ok": true
   },
   "B10": {
-   "fetched_at": "2026-10-28T02:47:54Z",
-   "last_ok_at": "2026-10-28T02:47:54Z",
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
    "n_refused": 8,
    "n_reports": 0,
    "ok": true
   },
   "B12": {
-   "fetched_at": "2026-10-28T02:47:54Z",
-   "last_ok_at": "2026-10-28T02:47:54Z",
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
    "n_refused": 6,
    "n_reports": 1,
    "ok": true
   },
   "MAC": {
-   "fetched_at": "2026-10-28T02:47:54Z",
-   "last_ok_at": "2026-10-28T02:47:54Z",
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
    "n_refused": 2,
    "n_reports": 0,
    "ok": true
   },
   "PAC12": {
-   "fetched_at": "2026-10-28T02:47:54Z",
-   "last_ok_at": "2026-10-28T02:47:54Z",
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
    "n_refused": 0,
    "n_reports": 0,
    "ok": true
   },
   "SBC": {
-   "fetched_at": "2026-10-28T02:47:54Z",
-   "last_ok_at": "2026-10-28T02:47:54Z",
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
    "n_refused": 0,
    "n_reports": 1,
    "ok": true
   },
   "SEC": {
-   "error": "TimeoutError: The read operation timed out",
-   "fetched_at": null,
-   "last_ok_at": "2026-10-28T01:44:00Z",
-   "ok": false
+   "fetched_at": "2026-10-28T08:49:21Z",
+   "last_ok_at": "2026-10-28T08:49:21Z",
+   "n_refused": 5,
+   "n_reports": 0,
+   "ok": true
   }
  },
  "unknown": {
