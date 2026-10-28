@@ -1,23 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-28T07:58:58Z",
+ "checked_at": "2026-10-28T08:51:06Z",
  "et_date": "2026-10-28",
  "healthy": false,
  "broken": 0,
- "degraded": 7,
+ "degraded": 6,
  "findings": [
   {
-   "key": "nostamp:nfl",
+   "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
-   "what": "7 nfl file(s) are readable but carry no time the freshness contract reads",
-   "why": "data/nfl/history/schedule-2018.json.gz, data/nfl/history/schedule-2019.json.gz, data/nfl/history/schedule-2020.json.gz, data/nfl/history/schedule-2021.json.gz, data/nfl/history/schedule-2022.json.gz, data/nfl/history/schedule-2023.json.gz, .... \u26d4 Each reads MISSING until it is rewritten with a stamp (pulled_at, built_at, generated_at or written_at): while its writer writes none, every rebuild is the same, and only a code change clears it.",
-   "repair": null
-  },
-  {
-   "key": "late:fb-scores:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf fb-scores was built 179 minutes after it was due",
-   "why": "due 2026-10-27T08:00Z, built 2026-10-27T10:59Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "what": "ncaaf cfb-probe was built 110 minutes after it was due",
+   "why": "due 2026-10-28T07:00Z, built 2026-10-28T08:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -35,10 +28,10 @@
    "repair": null
   },
   {
-   "key": "late:fb-scores:nfl",
+   "key": "late:nfl-logs:nfl",
    "severity": "DEGRADED",
-   "what": "nfl fb-scores was built 180 minutes after it was due",
-   "why": "due 2026-10-27T08:00Z, built 2026-10-27T10:59Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "what": "nfl nfl-logs was built 111 minutes after it was due",
+   "why": "due 2026-10-28T07:00Z, built 2026-10-28T08:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -65,7 +58,7 @@
   "pulled_at": "2026-10-27T23:16:22Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 8.7,
+  "reading_age_hours": 9.6,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-27T23:16:22Z",
   "source": "data/ncaaf/2026-10-27/gamelines/2316.json.gz",
