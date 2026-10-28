@@ -439,7 +439,72 @@ weekly reports (fb-refit.json) were not read in writing it.
   champion's when the two predicted probabilities are not equal, by any amount. There is no
   minimum size.
 
+## 3i. T74 — the props model on last season plus this one (frozen)
+
+Sam, 2026-10-27, asked that the model use "last years games and what we have with this years
+game as a sample size". The football game model already trains on 2025-2026 (§3g). The props
+model trains stage 1 on every stored player log, 2021-2026 (`fb_props_model.SEASONS`). He chose
+*"set up the monday contest to train it on 25-26"*. Shown the six rules below, he answered
+*"build as written"*. This section adds a contest for the PROPS model beside §2's game-model
+contest. Nothing above it is edited, and none of its challengers, k or bars change. Written
+before any result under it was computed. Neither model's walk-forward, record, log loss or
+verdict, nor the stored weekly reports (fb-refit.json), was read in writing it.
+
+The six rules, as Sam approved them:
+
+1. **Champion:** today's props model, unchanged: stage 1 trained on every season in
+   `fb_props_model.SEASONS` (2021-2026 today), stage 2 on its own past misses, as it runs live.
+2. **Challenger (P2526):** the identical model, every setting the same, whose stage 1 trains
+   only on last season plus this one: the season in progress (`freshness.current_football_season`
+   on the run's day) and the one before. 2025-2026 now, 2026-2027 next season, rolling forward on
+   its own. It is built from those two seasons' player logs only, so its inputs (a player's last
+   games, last season's mean) come from them too. Stage 2 is trained on the challenger's own past
+   misses, as the champion's is on its own. For college the change is larger than it looks: the
+   stored 2021-2024 college logs cover the Power 4 conferences only, 2025-2026 all of FBS.
+3. **How it is scored:** every Monday both models replay the season in progress week by week.
+   Each week's prediction uses only games before that week's Monday (`fb_props_model.walk_forward`).
+   They are compared on the same prop lines at Hard Rock, FanDuel and DraftKings. A prediction is one
+   graded line: a (game, player, market, line) both models price, and the probability is P(over), or
+   P(yes) for an anytime touchdown. Its loss is log loss (clipped at 1e-12). d = champion loss −
+   challenger loss, tested by the clustered paired test (`mlb_refit.paired_test_clustered`, CR1 by
+   game), so one big game cannot dominate. Only graded lines of the season in progress count. A line
+   one model does not price, or that has no result (void, push, no log row), is not counted.
+4. **What counts as a win:** scored separately for the NFL and for college. The challenger WINS in a
+   league when it has at least 500 paired predictions there, its mean d is above 0 (lower log loss),
+   and the one-sided p is under 0.01. Under 500, NOT YET MEASURABLE. Otherwise NOT YET (not better yet).
+5. **What a win does:** it switches nothing by itself. It pushes ONE branch,
+   `fb/props-seasons-<lg>-<date>` (none while any `fb/props-seasons-<lg>-*` branch is on GitHub),
+   which switches that league's props model to train on last season plus this one
+   (`card_fb.PROPS_SEASONS`), and the Monday email tells Sam. The switch happens only if Sam merges
+   it. From a switch, that league's card records a new method (`+props-own-last2`), so the Track
+   Record keeps old and new results apart. Once a league has switched, the champion IS the
+   challenger: the contest reports SWITCHED there and tests nothing.
+6. **When it starts:** the first Monday after the day this section merges to main. Before that Monday
+   the contest is NOT YET REGISTERED and counts nothing. From it, every graded line of the season in
+   progress counts, the earlier weeks of the season included: the walk-forward never sees a game
+   before predicting it.
+
 ## 4. How it is built (not frozen)
+
+- `[2026-10-27]` §3i T74 rides the same Monday job: `fb_refit.props_contest` runs
+  `fb_props_model.walk_forward` twice per league (the champion on `load_logs(lg)`, P2526 on
+  `load_logs(lg, seasons=last_two(now))`), pairs their graded lines (`props_pairs`), and scores
+  them with §2's own paired test (`test`, CR1 by game). The report is `props_seasons` in the
+  league's fb-refit.json (so the staged workflow, which commits only that file, is unchanged).
+  ⛔ It never raises: a failure keeps last week's report beside the error, and the email says so.
+  The registration Monday is read from git (`props_registration`: the day `def props_contest(`
+  first reached main). A WINS calls `push_props_branch` (§3's one-branch rule, its own prefix).
+  About 8-10 seconds per league on the stored data.
+- `[review, 2026-10-27]` Readings of §3i that its text leaves to the build:
+  - NO DATA when a season the challenger needs has no stored player log, and when the season in
+    progress is not in `fb_props_model.SEASONS` (the champion reads no log of it, so no line can
+    be paired). ⚠️ From the 2027 season that is the case until SEASONS gains 2027 (a decision in
+    the handoff's R6), so the contest measures the 2026 season only until then.
+  - A WINS whose branch could not be pushed stays a WINS (`branch_error` beside it).
+  - `card_fb.PROPS_SEASONS` holds one league per line with a line between them, so each league's
+    branch changes only its own line and both can be merged in either order.
+  - The email stops asking Sam to merge a switch once main's card_fb.py holds it, and a week the
+    contest fails keeps the win it had stored.
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
   each league's rows once (`fb_model.build_rows`), attaches every challenger's
@@ -565,3 +630,4 @@ weekly reports (fb-refit.json) were not read in writing it.
 - 2026-10-26 — §4: §3g's build readings recorded after a review (nothing counted before a challenger's registration Monday; "differs" is exact; the floor counts the eight's scored predictions only; P and T's withdrawal window fixed; the tie-break on the printed numbers; one branch or none). §2 to §3g unchanged and pinned.
 - 2026-10-27 — §4 after a second review: the tie-break reading on the printed 6 decimals struck (it could give the branch to the smaller mean d; the order now reads the unrounded numbers, §3g's own rule); the email's no-branch and tie sentences corrected; two readings flagged for Sam ("differs" once any training row has an input; a withdrawal recomputed after a switch), code unchanged for both. §2 to §3g unchanged and pinned.
 - 2026-10-27 — §3h added at Sam's instruction (*"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*), answering the two readings flagged above: a withdrawal is permanent (carried by the weekly report, `withdrawn_since`), and "differs" stays exact. Written before any result under it; §2 to §3g unchanged and pinned. §4 records how it is built.
+- 2026-10-27 — §3i T74 added at Sam's instruction (*"set up the monday contest to train it on 25-26"*, then *"build as written"*): a weekly contest for the PROPS model, the champion (every stored season) against P2526 (last season plus this one, rolling), per league, 500 paired predictions, lower log loss at one-sided p < 0.01; a win pushes one branch for Sam. Written before any result under it; §2 to §3h unchanged and pinned.

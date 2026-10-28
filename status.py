@@ -142,7 +142,81 @@ def refit_summary(doc, name, now, due=None):
                           if x.get("withdrawn_since") else "withdrawn, it was worse on past games"),
             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
                               "to decide)"}.get(v, "%s, %s" % (counted_words(x, doc), said))))
+    ps = props_summary(doc)
+    if ps:
+        out.append(ps)
     return " ".join(out)
+
+
+def _span(seasons):
+    s = sorted(seasons or [])
+    return "%s-%s" % (s[0], s[-1]) if len(s) > 1 else (str(s[0]) if s else "?")
+
+
+def props_summary(doc):
+    """`[Sam, 2026-10-27]` §3i T74: the props model's contest in one sentence, or None before it
+    has a report. ⛔ Its numbers as the report holds them; a week it failed says so."""
+    ps = (doc or {}).get("props_seasons")
+    if not ps:
+        return None
+    lead = "Props model trained on last season plus this one (%s) against today's (%s): " % (
+        _span(ps.get("challenger_seasons")), _span(ps.get("champion_seasons")))
+    if ps.get("error"):
+        return lead + "the contest could not be run this week (%s)%s." % (ps["error"], (
+            "; it won before, and its switch still waits for you (Needs you)" if ps.get("verdict") == "WINS" else ""))
+    c, v = ps.get("counted") or {}, ps.get("verdict")
+    if v in ("WINS", "NOT YET") and c.get("predictions"):
+        nums = "log loss %.4f against %.4f over %d predictions in %d games, one-sided p = %.3g (it needs under %g)" % (
+            c["challenger_log_loss"], c["champion_log_loss"], c["predictions"], c["games"], c["p"], ps["alpha"])
+    else:
+        nums = ""
+    return lead + {
+        "NOT YET REGISTERED": "it enters the contest on %s" % ps.get("registered") if ps.get("registered")
+                              else "it has not entered the contest yet",
+        "NO DATA": "its data is not stored yet (%s)" % ps.get("why", ""),
+        "SWITCHED": "switched: this league's props model trains on last season plus this one",
+        "NOT YET MEASURABLE": "not yet measurable (%d of the %d paired predictions it needs)" % (
+            c.get("predictions") or 0, ps.get("floor") or 0),
+        "NOT YET": "not better yet: " + nums,
+        "WINS": "it WINS: " + nums + "; the switch waits for you (Needs you)"
+                if ps.get("branch") else "it WINS: " + nums + "; no branch was pushed (%s)" % (
+                    ps.get("branch_error") or "see the weekly report")}.get(v, str(v)) + "."
+
+
+def props_switched(root, lg):
+    """`[review, 2026-10-27]` Does THIS tree's card_fb.py already switch `lg`'s props model (Sam
+    merged its branch)? Read from the text: status.py imports no model."""
+    try:
+        src = open(os.path.join(root, "card_fb.py"), encoding="utf-8").read()
+    except OSError:
+        return False
+    return bool(re.search(r'(?m)^    "%s": LAST_TWO,' % re.escape(lg), src))
+
+
+def props_wins(doc, name, switched=False):
+    """`[Sam, 2026-10-27]` §3i T74: [(the "Needs you" item, its clicks)] when P2526 WINS. The
+    branch switches only that league's props model; nothing changes until Sam merges it.
+    `[review, 2026-10-27]` ⛔ Not once `switched` (main holds the switch: the branch was merged,
+    and the report says WINS until the next Monday's run); a week the contest failed keeps the
+    win it stored (its branch still waits)."""
+    ps = (doc or {}).get("props_seasons") or {}
+    if ps.get("verdict") != "WINS" or switched:
+        return []
+    c = ps.get("counted") or {}
+    what = ("%s props model trained on last season plus this one (%s) beat today's (%s): log loss %.4f against "
+            "%.4f over %d predictions in %d games, one-sided p = %.4g (it needed under %g)" % (
+                name, _span(ps.get("challenger_seasons")), _span(ps.get("champion_seasons")),
+                c["challenger_log_loss"], c["champion_log_loss"], c["predictions"], c["games"], c["p"], ps["alpha"]))
+    br = ps.get("branch")
+    if not br:
+        return [(what + ". NEEDS SAM: no branch was pushed for it (%s)" % (ps.get("branch_error") or "see the weekly report"),
+                 ["Nothing to merge: no branch was pushed, so the site keeps today's props model."])]
+    return [(what, ["1. Open %s/compare/main...%s?expand=1" % (REPO, br),
+                    "2. Click the green \"Create pull request\" button (twice: once on the page, once under "
+                    "the title box).",
+                    "3. Wait until the box at the bottom says \"All checks have passed\".",
+                    "4. Click \"Merge pull request\", then \"Confirm merge\" (or \"Close pull request\" to "
+                    "keep today's props model)."])]
 
 
 def counted_kind(x):
@@ -343,7 +417,8 @@ def build(root=ROOT, now=None):
     broken = ([{"key": "watchdog:health", "severity": "BROKEN", "what": old}] if old else []) + [
         f for f in findings if f.get("severity") == "BROKEN"]
     refit = [(name, d, _read(os.path.join(root, d, "latest", "fb-refit.json"))) for name, d in FB]
-    won = [w for name, d, doc in refit for w in refit_wins(doc, name) + injury_branch(
+    won = [w for name, d, doc in refit for w in refit_wins(doc, name) + props_wins(
+        doc, name, props_switched(root, d.split("/")[-1])) + injury_branch(
         doc, name, injury_recorded(root, d.split("/")[-1]))]
     needs = [f["what"] for f in broken] + [w[0] for w in won]
     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]

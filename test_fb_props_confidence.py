@@ -54,6 +54,11 @@ and Low Guy's over at 41.6% must never reach the card (test_one_side_props.py ho
 #   find:                         else CARD_METHOD) + METHOD_PROPS_MODEL
 #   with:                         else CARD_METHOD)
 #
+# @vacuity 🔴 a switch to last season plus this one opens a new method (§3i rule 5)
+#   file: card_fb.py
+#   find:                        + props_suffix() + game_method(_model),
+#   with:                        + game_method(_model),
+#
 # @vacuity 🔴 the props model is built before the card
 #   file: collect.py
 #   find:         _fpm.build(LEAGUE)
@@ -146,9 +151,10 @@ def games(season, hits, n, this):
              "pass_yds": 0, "pass_td": 0} for i in range(n)]
 
 
-def card(model_board_at, board=BOARD, s=S):
+def card(model_board_at, board=BOARD, s=S, last_two=False):
     """card_fb.main() on a planted tree whose props model priced `model_board_at`, its logs
-    those of the board's season `s` and the one before."""
+    those of the board's season `s` and the one before; `last_two`: the league's props model
+    switched to last season plus this one (§3i)."""
     t = tempfile.mkdtemp(prefix="pmconf-")
     TREES.append(t)
     lat = os.path.join(t, "data", "nfl", "latest")
@@ -171,6 +177,8 @@ def card(model_board_at, board=BOARD, s=S):
         os.chdir(t)
         sys.modules.pop("card_fb", None)
         cf = importlib.import_module("card_fb")
+        # ⛔ SET, never read: this file runs on the branch a §3i WINS pushes too
+        cf.PROPS_SEASONS["nfl"] = cf.LAST_TWO if last_two else "all"
         cf.main()
         with open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8") as fh:
             return json.load(fh), cf
@@ -232,6 +240,10 @@ section("4. 🔴 THE TRACK RECORD STARTS A NEW METHOD FROM THE SWITCH")
 eq((DOC.get("card_method"), STALE.get("card_method")), (CF.METHOD_FIXED + "+props-own",) * 2,
    "🔴 every card from the switch carries the new method, a record-only build included, so the "
    "old bands stay as they were graded")
+# `[Sam, 2026-10-27]` §3i rule 5: a league switched to last season plus this one opens its own.
+_L2, _ = card(PULLED, last_two=True)
+eq(_L2.get("card_method"), CF.METHOD_FIXED + "+props-own-last2",
+   "🔴 a card whose props model trains on last season plus this one opens a new method too")
 
 section("5. 🔴 THE PROPS MODEL IS BUILT BEFORE THE CARD, FROM THE BOARD THE CARD READS")
 import collect as C  # noqa: E402

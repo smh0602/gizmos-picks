@@ -753,7 +753,17 @@ note boxes, tags and the stale bar now require their absence.
   its record at the line, this season first (~~the average, the far-line warning, the
   small sample, the college note, "not a forecast", "no football model"~~).
   `fb_agreement` still compares the RECORD with the model (Sam's choice).
-  `test_fb_props_confidence.py`.
+  `test_fb_props_confidence.py`. `[Sam, 2026-10-27]` Its stage 1 trains on every season in
+  `fb_props_model.SEASONS` (2021-26), and a weekly contest asks whether last season plus this
+  one does better (*"set up the monday contest to train it on 25-26"*, then *"build as written"*:
+  research/fb_refit_spec.md §3i, T74). Per league: P2526 (the season in progress and the one
+  before, rolling) WINS at 500+ paired predictions with lower log loss at one-sided p < 0.01, and
+  pushes ONE branch `fb/props-seasons-<lg>-*` that flips that league in `card_fb.PROPS_SEASONS`
+  (the one switch: `fb_props_model.train_logs` reads it, and the card's method gains
+  `-last2`). ⛔ Merging is Sam's; once switched the contest reports SWITCHED. ⚠️ From the 2027
+  season it reports NO DATA until `fb_props_model.SEASONS` gains 2027 (Sam's call). The tests SET
+  the switch, never read it, and `test_props_switch_branch.py` runs them on each league's switched
+  branch: the branch a WINS pushes must pass its own checks. `test_fb_props_seasons.py`.
 - 🔴 **A LIKED NFL OVER NEEDS A REAL ROLE THIS SEASON.** `[Sam, 2026-10-15]` *"we can't be
   betting on guys like tory horton because he's had 2 good games ... he's a wr4"*: an over or
   anytime TD is liked only at 40%+ of snaps over his last 3 games, 12%+ of targets on a
@@ -1336,7 +1346,9 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   injury reports (the build's `now`); the ledger dates the
                   replay by it.
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
-                  stat distribution from the stored logs 2021-26, the
+                  stat distribution from the stored logs 2021-26 (`[Sam,
+                  2026-10-27]` or last season plus this one once a §3i switch
+                  is merged: `train_logs`, `card_fb.PROPS_SEASONS`), the
                   market line folded in from EARLIER priced weeks only,
                   walk-forward at the three books' prices, and scored
                   against the props card's OWN recomputed probabilities.
@@ -1419,6 +1431,9 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   through the one branch pusher, `push_change`.
                   `[R1, 2026-10-18]` while CHAMPION is set, a WINS pushes no
                   branch (NEEDS SAM); each league's `elapsed_seconds` is stored.
+                  `[Sam, 2026-10-27]` T74 (§3i): the PROPS model's contest too
+                  (`props_contest`, report `props_seasons`); a WINS pushes one
+                  fb/props-seasons-<lg>-* branch (`push_props_branch`).
                   `[Sam, 2026-10-26]` T73 (§3g): the verdict reads `counted`
                   (every 2025-2026 week, or only scored weeks for SCORED_ONLY);
                   several WINS -> one branch, `branch_order`; `floor` stored.

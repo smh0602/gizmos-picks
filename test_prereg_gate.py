@@ -219,7 +219,11 @@ FROZEN = {
     # [Sam, 2026-10-27] "Yes: keep 'differs' exact, and make P and T's withdrawal permanent.":
     # section 3h, written before any result under it, adds to sections 2 and 3g by name and
     # edits neither; everything before it is pinned below. ⛔ Sam's answer, not a result seen.
-    "fb_refit_spec.md": "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd",
+    # ~~"f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd"~~
+    # [Sam, 2026-10-27] "set up the monday contest to train it on 25-26", then "build as
+    # written": section 3i (T74), a contest for the PROPS model, written before any result
+    # under it; it edits nothing above it, and everything before it is pinned below.
+    "fb_refit_spec.md": "ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -232,6 +236,7 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3f. ", "0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21"),
                  ("fb_refit_spec.md", "\n## 3g. ", "97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c"),
                  ("fb_refit_spec.md", "\n## 3h. ", "f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3"),
+                 ("fb_refit_spec.md", "\n## 3i. ", "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd"),
                  ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 

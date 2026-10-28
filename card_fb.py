@@ -965,6 +965,24 @@ TEAM_UNIT = re.compile(r" (?:D/ST|Defense)$")    # a team's defense, never a pla
 # `[Sam, 2026-10-09]` appended to the record's method: ~~"+props-model"~~ (stage 2 with the
 #    price) -> `[Sam, 2026-10-11]` "+props-own", the props model's own chance, no price.
 METHOD_PROPS_MODEL = "+props-own"
+# `[Sam, 2026-10-27]` §3i T74 (research/fb_refit_spec.md): the seasons the props model's stage 1
+#    trains on, per league: "all" = fb_props_model.SEASONS (design §1); LAST_TWO = the season in
+#    progress and the one before (fb_props_model.last_two). ⛔ Moved only by Sam's merge of the
+#    branch a §3i WINS pushes (fb_refit.push_props_branch); read by fb_props_model and the label.
+LAST_TWO = "last two"
+#    ⚠️ One league per line, with a line between them: each league's branch edits its own line,
+#    so both can be merged, in either order, without a conflict `[review, 2026-10-27]`.
+PROPS_SEASONS = {
+    "nfl": "all",
+    # (the line between)
+    "ncaaf": "all",
+}
+
+
+def props_suffix(lg=None):
+    """§3i rule 5: "-last2" once the league's props model trains on last season plus this one,
+    so the Track Record opens a new method from the switch and keeps the old bands as graded."""
+    return "-last2" if PROPS_SEASONS.get(lg or LEAGUE) == LAST_TWO else ""
 
 
 def game_method(model):
@@ -2712,7 +2730,7 @@ def main():
         # old bands stay as they were graded.
         "card_method": (METHOD_FIXED_S9 if (CARD_METHOD == METHOD_FIXED and S9_CARD.get(LEAGUE))
                         else CARD_METHOD) + METHOD_PROPS_MODEL
-                       + game_method(_model),
+                       + props_suffix() + game_method(_model),
         "props_model_used": _pm is not None,
         "rates_available": RATES_OK,
         # ⚠️ THE SNAP FLOOR IS AN NFL FACT. ⛔ Reporting it on a college
