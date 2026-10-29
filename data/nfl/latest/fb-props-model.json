@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "MODEL",
- "built_at": "2026-10-28T20:57:19Z",
+ "built_at": "2026-10-29T14:45:21Z",
  "design": "research/fb_props_design.md",
  "train_seasons": [
   2021,
@@ -26163,11 +26163,11 @@
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 7220,
-  "mean_d": 0.037720143278450656,
-  "t": 5.098665478563687,
-  "p": 2.6475724069058283e-07,
-  "clusters": 400,
+  "n": 7228,
+  "mean_d": 0.03750274057211413,
+  "t": 5.073813728409849,
+  "p": 2.9878795023407853e-07,
+  "clusters": 402,
   "verdict": "QUALIFIES",
   "leagues": [
    "ncaaf",
@@ -26179,32 +26179,94 @@
    "game": "Carolina Panthers at Green Bay Packers",
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "commence": "2026-10-30T00:15:00Z",
+   "player": "Jonnu Smith",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -125,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 57.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 55.6,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 3.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
    "player": "Josh Jacobs",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
    "side": "under",
    "line": {
-    "value": 58.5,
+    "value": 59.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -113,
+    "value": -110,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 56.5,
+    "value": 56.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 53.1,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 6.5,
+    "value": 8.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Brycen Tremayne",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -130,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 56.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.1,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
@@ -26219,54 +26281,116 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -111,
+    "value": -113,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
     "value": 56.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.6,
+    "value": 53.1,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 6.7,
+    "value": 5.8,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "commence": "2026-10-30T00:15:00Z",
-   "player": "Josh Jacobs",
+   "player": "Jonnu Smith",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "over",
    "line": {
-    "value": 15.5,
+    "value": 3.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -113,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 54.2,
+    "value": 55.8,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 53.1,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 3.5,
+    "value": 5.2,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Bo Melton",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 55.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 3.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Savion Williams",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
@@ -26281,12 +26405,74 @@
     "basis": "MARKET"
    },
    "price": {
+    "value": -109,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 3.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Josh Jacobs",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": {
+    "value": 17.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Savion Williams",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 24.5,
+    "basis": "MARKET"
+   },
+   "price": {
     "value": -110,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 53.7,
+    "value": 53.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -26294,72 +26480,41 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 2.6,
+    "value": 1.4,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "commence": "2026-10-30T00:15:00Z",
-   "player": "Bryce Young",
+   "player": "Trevor Etienne",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
    "side": "under",
    "line": {
-    "value": 10.5,
+    "value": 8.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -112,
+    "value": -106,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.4,
+    "value": 52.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.8,
+    "value": 51.5,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.1,
-    "basis": "MODEL"
-   },
-   "priced_at": "2026-10-28T15:24:06Z"
-  },
-  {
-   "game": "Carolina Panthers at Green Bay Packers",
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "commence": "2026-10-30T00:15:00Z",
-   "player": "Josh Jacobs",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "over",
-   "line": {
     "value": 2.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": 101,
-    "basis": "MARKET"
-   },
-   "book": "DraftKings",
-   "model_probability": {
-    "value": 53.2,
     "basis": "MODEL"
    },
-   "break_even": {
-    "value": 49.8,
-    "basis": "MARKET"
-   },
-   "edge": {
-    "value": 6.9,
-    "basis": "MODEL"
-   },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
@@ -26390,18 +26545,18 @@
     "value": 15.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "commence": "2026-10-30T00:15:00Z",
-   "player": "MarShawn Lloyd",
+   "player": "Tommy Tremble",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "over",
    "line": {
-    "value": 5.5,
+    "value": 14.5,
     "basis": "MARKET"
    },
    "price": {
@@ -26410,7 +26565,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 52.0,
+    "value": 51.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -26418,10 +26573,41 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 0.7,
+    "value": 0.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
+  },
+  {
+   "game": "Carolina Panthers at Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "commence": "2026-10-30T00:15:00Z",
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": {
+    "value": 5.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 51.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.4,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:44:41Z"
   },
   {
    "game": "Carolina Panthers at Green Bay Packers",
@@ -26436,23 +26622,23 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 118,
+    "value": 115,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
     "value": 50.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 45.9,
+    "value": 46.5,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 10.0,
+    "value": 8.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T15:24:06Z"
+   "priced_at": "2026-10-29T14:44:41Z"
   }
  ],
  "rated": [
@@ -26716,33 +26902,49 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Bryce Young",
    "market": "player_pass_yds",
-   "line": 254.5,
+   "line": 252.5,
    "side": "over",
-   "p": 49.1
+   "p": 49.3
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Bryce Young",
    "market": "player_pass_yds",
-   "line": 254.5,
+   "line": 252.5,
    "side": "under",
-   "p": 50.9
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jordan Love",
-   "market": "player_pass_yds",
-   "line": 257.5,
-   "side": "over",
    "p": 50.7
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Jordan Love",
    "market": "player_pass_yds",
-   "line": 257.5,
+   "line": 262.5,
+   "side": "over",
+   "p": 50.4
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jordan Love",
+   "market": "player_pass_yds",
+   "line": 262.5,
    "side": "under",
-   "p": 49.3
+   "p": 49.6
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "line": 3.5,
+   "side": "over",
+   "p": 52.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "line": 3.5,
+   "side": "under",
+   "p": 47.1
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -26764,81 +26966,81 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Chuba Hubbard",
    "market": "player_reception_yds",
-   "line": 15.5,
-   "side": "over",
-   "p": 51.6
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Chuba Hubbard",
-   "market": "player_reception_yds",
-   "line": 15.5,
-   "side": "under",
-   "p": 48.4
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Darren Waller",
-   "market": "player_reception_yds",
-   "line": 19.5,
-   "side": "over",
-   "p": 49.9
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Darren Waller",
-   "market": "player_reception_yds",
-   "line": 19.5,
-   "side": "under",
-   "p": 50.1
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jalen Coker",
-   "market": "player_reception_yds",
-   "line": 62.5,
-   "side": "over",
-   "p": 43.9
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jalen Coker",
-   "market": "player_reception_yds",
-   "line": 62.5,
-   "side": "under",
-   "p": 56.1
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "John Metchie III",
-   "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 16.5,
    "side": "over",
    "p": 51.2
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "John Metchie III",
+   "player": "Chuba Hubbard",
    "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 16.5,
    "side": "under",
    "p": 48.8
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Josh Jacobs",
+   "player": "Darren Waller",
    "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 20.5,
    "side": "over",
-   "p": 54.2
+   "p": 49.5
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Darren Waller",
+   "market": "player_reception_yds",
+   "line": 20.5,
+   "side": "under",
+   "p": 50.5
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jalen Coker",
+   "market": "player_reception_yds",
+   "line": 61.5,
+   "side": "over",
+   "p": 44.1
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jalen Coker",
+   "market": "player_reception_yds",
+   "line": 61.5,
+   "side": "under",
+   "p": 55.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "John Metchie III",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "over",
+   "p": 51.7
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "John Metchie III",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "under",
+   "p": 48.3
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Josh Jacobs",
    "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 18.5,
+   "side": "over",
+   "p": 52.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Josh Jacobs",
+   "market": "player_reception_yds",
+   "line": 18.5,
    "side": "under",
-   "p": 45.8
+   "p": 47.1
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -26860,65 +27062,113 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Matthew Golden",
    "market": "player_reception_yds",
-   "line": 59.5,
+   "line": 58.5,
    "side": "over",
-   "p": 50.3
+   "p": 50.6
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Matthew Golden",
    "market": "player_reception_yds",
-   "line": 59.5,
+   "line": 58.5,
    "side": "under",
-   "p": 49.7
+   "p": 49.4
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Mitchell Evans",
+   "market": "player_reception_yds",
+   "line": 6.5,
+   "side": "over",
+   "p": 52.5
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Mitchell Evans",
+   "market": "player_reception_yds",
+   "line": 6.5,
+   "side": "under",
+   "p": 47.5
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_reception_yds",
+   "line": 24.5,
+   "side": "over",
+   "p": 46.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_reception_yds",
+   "line": 24.5,
+   "side": "under",
+   "p": 53.1
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tetairoa McMillan",
    "market": "player_reception_yds",
-   "line": 71.5,
+   "line": 70.5,
    "side": "over",
-   "p": 48.0
+   "p": 48.2
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tetairoa McMillan",
    "market": "player_reception_yds",
-   "line": 71.5,
+   "line": 70.5,
    "side": "under",
-   "p": 52.0
+   "p": 51.8
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tommy Tremble",
    "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 14.5,
    "side": "over",
-   "p": 51.3
+   "p": 51.7
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tommy Tremble",
    "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 14.5,
    "side": "under",
-   "p": 48.7
+   "p": 48.3
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tucker Kraft",
    "market": "player_reception_yds",
-   "line": 46.5,
+   "line": 47.5,
    "side": "over",
-   "p": 49.2
+   "p": 48.9
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tucker Kraft",
    "market": "player_reception_yds",
-   "line": 46.5,
+   "line": 47.5,
    "side": "under",
-   "p": 50.8
+   "p": 51.1
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 56.6
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 43.4
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27018,6 +27268,22 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "MarShawn Lloyd",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 57.1
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "MarShawn Lloyd",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 42.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Matthew Golden",
    "market": "player_receptions",
    "line": 4.5,
@@ -27031,6 +27297,38 @@
    "line": 4.5,
    "side": "under",
    "p": 47.6
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Mitchell Evans",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 56.7
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Mitchell Evans",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 43.3
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_receptions",
+   "line": 2.5,
+   "side": "over",
+   "p": 48.0
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_receptions",
+   "line": 2.5,
+   "side": "under",
+   "p": 52.0
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27084,33 +27382,33 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Bryce Young",
    "market": "player_rush_yds",
-   "line": 10.5,
+   "line": 9.5,
    "side": "over",
-   "p": 46.6
+   "p": 47.4
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Bryce Young",
    "market": "player_rush_yds",
-   "line": 10.5,
+   "line": 9.5,
    "side": "under",
-   "p": 53.4
+   "p": 52.6
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Chuba Hubbard",
    "market": "player_rush_yds",
-   "line": 67.5,
+   "line": 66.5,
    "side": "over",
-   "p": 49.7
+   "p": 50.0
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Chuba Hubbard",
    "market": "player_rush_yds",
-   "line": 67.5,
+   "line": 66.5,
    "side": "under",
-   "p": 50.3
+   "p": 50.0
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27132,17 +27430,17 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Josh Jacobs",
    "market": "player_rush_yds",
-   "line": 58.5,
+   "line": 59.5,
    "side": "over",
-   "p": 43.5
+   "p": 43.1
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Josh Jacobs",
    "market": "player_rush_yds",
-   "line": 58.5,
+   "line": 59.5,
    "side": "under",
-   "p": 56.5
+   "p": 56.9
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27162,6 +27460,38 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_rush_yds",
+   "line": 2.5,
+   "side": "over",
+   "p": 55.4
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_rush_yds",
+   "line": 2.5,
+   "side": "under",
+   "p": 44.6
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Trevor Etienne",
+   "market": "player_rush_yds",
+   "line": 8.5,
+   "side": "over",
+   "p": 47.3
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Trevor Etienne",
+   "market": "player_rush_yds",
+   "line": 8.5,
+   "side": "under",
+   "p": 52.7
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "J. Michael Sturdivant",
    "market": "player_anytime_td",
    "line": null,
@@ -27170,35 +27500,51 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Bryce Young",
+   "player": "Jordan Love",
    "market": "player_pass_yds",
-   "line": 256.5,
+   "line": 264.5,
    "side": "over",
-   "p": 49.0
+   "p": 50.2
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Bryce Young",
+   "player": "Jordan Love",
    "market": "player_pass_yds",
-   "line": 256.5,
+   "line": 264.5,
    "side": "under",
+   "p": 49.8
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Bo Melton",
+   "market": "player_reception_yds",
+   "line": 4.5,
+   "side": "over",
    "p": 51.0
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jordan Love",
-   "market": "player_pass_yds",
-   "line": 260.5,
-   "side": "over",
-   "p": 50.5
+   "player": "Bo Melton",
+   "market": "player_reception_yds",
+   "line": 4.5,
+   "side": "under",
+   "p": 49.0
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jordan Love",
-   "market": "player_pass_yds",
-   "line": 260.5,
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "line": 5.5,
+   "side": "over",
+   "p": 51.2
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "line": 5.5,
    "side": "under",
-   "p": 49.5
+   "p": 48.8
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27220,33 +27566,97 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Chuba Hubbard",
    "market": "player_reception_yds",
-   "line": 14.5,
+   "line": 17.5,
    "side": "over",
-   "p": 52.1
+   "p": 50.7
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Chuba Hubbard",
    "market": "player_reception_yds",
-   "line": 14.5,
+   "line": 17.5,
    "side": "under",
-   "p": 47.9
+   "p": 49.3
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Josh Jacobs",
+   "player": "Darren Waller",
    "market": "player_reception_yds",
-   "line": 14.5,
+   "line": 21.5,
    "side": "over",
-   "p": 54.7
+   "p": 49.1
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Darren Waller",
+   "market": "player_reception_yds",
+   "line": 21.5,
+   "side": "under",
+   "p": 50.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jalen Coker",
+   "market": "player_reception_yds",
+   "line": 62.5,
+   "side": "over",
+   "p": 43.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jalen Coker",
+   "market": "player_reception_yds",
+   "line": 62.5,
+   "side": "under",
+   "p": 56.1
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "John Metchie III",
+   "market": "player_reception_yds",
+   "line": 15.5,
+   "side": "over",
+   "p": 51.2
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "John Metchie III",
+   "market": "player_reception_yds",
+   "line": 15.5,
+   "side": "under",
+   "p": 48.8
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jonnu Smith",
+   "market": "player_reception_yds",
+   "line": 3.5,
+   "side": "over",
+   "p": 55.8
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jonnu Smith",
+   "market": "player_reception_yds",
+   "line": 3.5,
+   "side": "under",
+   "p": 44.2
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Josh Jacobs",
    "market": "player_reception_yds",
-   "line": 14.5,
+   "line": 17.5,
+   "side": "over",
+   "p": 53.3
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Josh Jacobs",
+   "market": "player_reception_yds",
+   "line": 17.5,
    "side": "under",
-   "p": 45.3
+   "p": 46.7
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27266,19 +27676,115 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Tetairoa McMillan",
+   "player": "Matthew Golden",
    "market": "player_reception_yds",
-   "line": 74.5,
+   "line": 59.5,
    "side": "over",
-   "p": 47.4
+   "p": 50.3
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Matthew Golden",
+   "market": "player_reception_yds",
+   "line": 59.5,
+   "side": "under",
+   "p": 49.7
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_reception_yds",
+   "line": 23.5,
+   "side": "over",
+   "p": 47.2
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Savion Williams",
+   "market": "player_reception_yds",
+   "line": 23.5,
+   "side": "under",
+   "p": 52.8
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Tetairoa McMillan",
    "market": "player_reception_yds",
-   "line": 74.5,
+   "line": 71.5,
+   "side": "over",
+   "p": 48.0
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Tetairoa McMillan",
+   "market": "player_reception_yds",
+   "line": 71.5,
    "side": "under",
-   "p": 52.6
+   "p": 52.0
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Tommy Tremble",
+   "market": "player_reception_yds",
+   "line": 15.5,
+   "side": "over",
+   "p": 51.3
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Tommy Tremble",
+   "market": "player_reception_yds",
+   "line": 15.5,
+   "side": "under",
+   "p": 48.7
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Tucker Kraft",
+   "market": "player_reception_yds",
+   "line": 43.5,
+   "side": "over",
+   "p": 50.0
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Tucker Kraft",
+   "market": "player_reception_yds",
+   "line": 43.5,
+   "side": "under",
+   "p": 50.0
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Bo Melton",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 55.2
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Bo Melton",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 44.8
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jonnu Smith",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 57.2
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Jonnu Smith",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 42.8
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27298,35 +27804,19 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Bryce Young",
+   "player": "Chuba Hubbard",
    "market": "player_rush_yds",
-   "line": 9.5,
+   "line": 67.5,
    "side": "over",
-   "p": 47.4
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Bryce Young",
-   "market": "player_rush_yds",
-   "line": 9.5,
-   "side": "under",
-   "p": 52.6
+   "p": 49.7
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Chuba Hubbard",
    "market": "player_rush_yds",
-   "line": 68.5,
-   "side": "over",
-   "p": 49.4
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Chuba Hubbard",
-   "market": "player_rush_yds",
-   "line": 68.5,
+   "line": 67.5,
    "side": "under",
-   "p": 50.6
+   "p": 50.3
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27346,6 +27836,22 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Josh Jacobs",
+   "market": "player_rush_yds",
+   "line": 58.5,
+   "side": "over",
+   "p": 43.5
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Josh Jacobs",
+   "market": "player_rush_yds",
+   "line": 58.5,
+   "side": "under",
+   "p": 56.5
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "MarShawn Lloyd",
    "market": "player_rush_yds",
    "line": 16.5,
@@ -27362,35 +27868,51 @@
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jordan Love",
-   "market": "player_pass_yds",
-   "line": 259.5,
+   "player": "Savion Williams",
+   "market": "player_rush_yds",
+   "line": 3.5,
    "side": "over",
-   "p": 50.6
+   "p": 53.9
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Jordan Love",
+   "player": "Savion Williams",
+   "market": "player_rush_yds",
+   "line": 3.5,
+   "side": "under",
+   "p": 46.1
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Bryce Young",
    "market": "player_pass_yds",
-   "line": 259.5,
-   "side": "under",
-   "p": 49.4
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Christian Watson",
-   "market": "player_reception_yds",
-   "line": 70.5,
+   "line": 255.5,
    "side": "over",
-   "p": 47.7
+   "p": 49.1
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Christian Watson",
-   "market": "player_reception_yds",
-   "line": 70.5,
+   "player": "Bryce Young",
+   "market": "player_pass_yds",
+   "line": 255.5,
    "side": "under",
-   "p": 52.3
+   "p": 50.9
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "line": 4.5,
+   "side": "over",
+   "p": 52.0
+  },
+  {
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "player": "Brycen Tremayne",
+   "market": "player_reception_yds",
+   "line": 4.5,
+   "side": "under",
+   "p": 48.0
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27407,22 +27929,6 @@
    "line": 16.5,
    "side": "under",
    "p": 49.2
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Tetairoa McMillan",
-   "market": "player_reception_yds",
-   "line": 73.5,
-   "side": "over",
-   "p": 47.6
-  },
-  {
-   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
-   "player": "Tetairoa McMillan",
-   "market": "player_reception_yds",
-   "line": 73.5,
-   "side": "under",
-   "p": 52.4
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
@@ -27444,19 +27950,19 @@
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Josh Jacobs",
    "market": "player_rush_yds",
-   "line": 59.5,
+   "line": 60.5,
    "side": "over",
-   "p": 43.1
+   "p": 42.8
   },
   {
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "player": "Josh Jacobs",
    "market": "player_rush_yds",
-   "line": 59.5,
+   "line": 60.5,
    "side": "under",
-   "p": 56.9
+   "p": 57.2
   }
  ],
- "board_pulled_at": "2026-10-28T15:24:06Z",
- "picks_total": 9
+ "board_pulled_at": "2026-10-29T14:44:41Z",
+ "picks_total": 15
 }
