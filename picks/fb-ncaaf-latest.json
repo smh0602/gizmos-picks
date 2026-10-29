@@ -1,9 +1,9 @@
 {
  "date": "2026-10-29",
  "league": "ncaaf",
- "generated_at": "2026-10-29T20:55:27Z",
+ "generated_at": "2026-10-29T23:36:54Z",
  "generated_by": "card_fb.py",
- "kind": "MODEL + RECORD + MARKET",
+ "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-29T19:14:46Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
@@ -12,7 +12,7 @@
  "snap_floor": null,
  "denominator": "every game he appears in (union denominator)",
  "min_games": 6,
- "n_gated_by_measurement": 2,
+ "n_gated_by_measurement": 0,
  "rate_gates": {
   "min_reception_line": 3.5,
   "measured_markets": [
@@ -251,7 +251,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-29T20:55:04Z",
-  "ladder_built_at": "2026-10-29T20:55:13Z",
+  "ladder_built_at": "2026-10-29T23:36:44Z",
   "alt_spreads": 2
  },
  "scores_shown": [
@@ -805,25 +805,25 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 4,
-  "same_game_already_listed": 30,
+  "same_player_already_listed": 0,
+  "same_game_already_listed": 0,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 36,
+  "pool_after_price_gate": 0,
   "cap": 10,
-  "distinct_games": 2,
-  "shared_with_board_head": 2,
-  "board_head_size": 10
+  "distinct_games": 0,
+  "shared_with_board_head": 0,
+  "board_head_size": 0
  },
- "top_plays_rule": "The 2 most likely to hit for 2026-10-29 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 10, over 2 game(s). 30 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "No top plays for 2026-10-29. Nothing is priced for this day yet, so there was nothing to rank. \u26a0\ufe0f When rows do arrive, only those carrying a record are ranked \u2014 ranking by price would be ranking by which bet pays worst while calling it 'most likely to hit'.",
  "parlays": {
   "2": [],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 13,
-  "rated_legs": 36,
+  "pool": 0,
+  "rated_legs": 0,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -837,13 +837,13 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 35,
-    "taken": 12
+    "available": 0,
+    "taken": 0
    },
    {
     "decimal": "2-3",
-    "available": 1,
-    "taken": 1
+    "available": 0,
+    "taken": 0
    },
    {
     "decimal": "3-99",
@@ -852,12 +852,12 @@
    }
   ],
   "rejected": {
-   "same_game": 1079,
+   "same_game": 0,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "36 rated legs, 13 in the stratified pool. Rejected: 1079 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "0 rated legs, 0 in the stratified pool. Rejected: 0 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -1134,13 +1134,13 @@
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 2,
+  "games_with_rated_legs": 0,
   "games_with_a_line_row": 0,
-  "games_used": 2,
+  "games_used": 0,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 95,
-   "mixed_book": 164,
+   "same_player": 0,
+   "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -1148,524 +1148,25 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "2 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "0 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
- "projections": {
-  "Brady Tillman III|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Brendon Haygood|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Caden Veltkamp|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Easton Messer|player_anytime_td|yes|None": {
-   "v": 0.8,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.8 TD a game."
-  },
-  "Ethan Ervin|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Jahiem White|player_anytime_td|yes|None": {
-   "v": 1.8,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 1.8 TD a game."
-  },
-  "Josiah Martin|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.0 TD a game."
-  },
-  "Justin Stevenson|player_anytime_td|yes|None": {
-   "v": 1.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 1.0 TD a game."
-  },
-  "Kelby Valsin|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Kyle Koch|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.7 TD a game."
-  },
-  "Leonard Farrow|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Max Reese|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Tayven Jackson|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Caden Veltkamp|player_pass_yds|over|319.5": {
-   "v": 301.8,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 301.8 pass yds a game."
-  },
-  "Caden Veltkamp|player_pass_yds|under|319.5": {
-   "v": 301.8,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 301.8 pass yds a game."
-  },
-  "Caden Veltkamp|player_pass_yds|over|333.5": {
-   "v": 301.8,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 301.8 pass yds a game."
-  },
-  "Caden Veltkamp|player_pass_yds|under|333.5": {
-   "v": 301.8,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 301.8 pass yds a game."
-  },
-  "Tayven Jackson|player_pass_yds|over|317.5": {
-   "v": 239.7,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 239.7 pass yds a game."
-  },
-  "Tayven Jackson|player_pass_yds|under|317.5": {
-   "v": 239.7,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 239.7 pass yds a game."
-  },
-  "Easton Messer|player_reception_yds|over|106.5": {
-   "v": 91.1,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 91.1 rec yds a game."
-  },
-  "Easton Messer|player_reception_yds|under|106.5": {
-   "v": 91.1,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 91.1 rec yds a game."
-  },
-  "Easton Messer|player_reception_yds|over|107.5": {
-   "v": 91.1,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 91.1 rec yds a game."
-  },
-  "Easton Messer|player_reception_yds|under|107.5": {
-   "v": 91.1,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 91.1 rec yds a game."
-  },
-  "Jahiem White|player_reception_yds|over|31.5": {
-   "v": 29.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 29.4 rec yds a game."
-  },
-  "Jahiem White|player_reception_yds|under|31.5": {
-   "v": 29.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 29.4 rec yds a game."
-  },
-  "Jahiem White|player_reception_yds|over|35.5": {
-   "v": 29.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 29.4 rec yds a game."
-  },
-  "Jahiem White|player_reception_yds|under|35.5": {
-   "v": 29.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 29.4 rec yds a game."
-  },
-  "Justin Stevenson|player_reception_yds|over|102.5": {
-   "v": 94.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 94.6 rec yds a game."
-  },
-  "Justin Stevenson|player_reception_yds|under|102.5": {
-   "v": 94.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 94.6 rec yds a game."
-  },
-  "Justin Stevenson|player_reception_yds|over|103.5": {
-   "v": 94.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 94.6 rec yds a game."
-  },
-  "Justin Stevenson|player_reception_yds|under|103.5": {
-   "v": 94.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 94.6 rec yds a game."
-  },
-  "Kelby Valsin|player_reception_yds|over|82.5": {
-   "v": 71.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 71.4 rec yds a game."
-  },
-  "Kelby Valsin|player_reception_yds|under|82.5": {
-   "v": 71.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 71.4 rec yds a game."
-  },
-  "Kelby Valsin|player_reception_yds|over|89.5": {
-   "v": 71.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 71.4 rec yds a game."
-  },
-  "Kelby Valsin|player_reception_yds|under|89.5": {
-   "v": 71.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 71.4 rec yds a game."
-  },
-  "Kyle Koch|player_reception_yds|over|44.5": {
-   "v": 43.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 43.8 rec yds a game."
-  },
-  "Kyle Koch|player_reception_yds|under|44.5": {
-   "v": 43.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 43.8 rec yds a game."
-  },
-  "Max Reese|player_reception_yds|over|29.5": {
-   "v": 35.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 35.9 rec yds a game."
-  },
-  "Max Reese|player_reception_yds|under|29.5": {
-   "v": 35.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 35.9 rec yds a game."
-  },
-  "Max Reese|player_reception_yds|over|32.5": {
-   "v": 35.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 35.9 rec yds a game."
-  },
-  "Max Reese|player_reception_yds|under|32.5": {
-   "v": 35.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 35.9 rec yds a game."
-  },
-  "Easton Messer|player_receptions|over|8.5": {
-   "v": 8.2,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 8.2 rec a game."
-  },
-  "Easton Messer|player_receptions|under|8.5": {
-   "v": 8.2,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 8.2 rec a game."
-  },
-  "Jahiem White|player_receptions|over|3.5": {
-   "v": 3.3,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 3.3 rec a game."
-  },
-  "Jahiem White|player_receptions|under|3.5": {
-   "v": 3.3,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 3.3 rec a game."
-  },
-  "Justin Stevenson|player_receptions|over|6.5": {
-   "v": 5.9,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 5.9 rec a game."
-  },
-  "Justin Stevenson|player_receptions|under|6.5": {
-   "v": 5.9,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 5.9 rec a game."
-  },
-  "Kelby Valsin|player_receptions|over|7.5": {
-   "v": 5.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 5.7 rec a game."
-  },
-  "Kelby Valsin|player_receptions|under|7.5": {
-   "v": 5.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 5.7 rec a game."
-  },
-  "Kyle Koch|player_receptions|over|3.5": {
-   "v": 3.5,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 3.5 rec a game."
-  },
-  "Kyle Koch|player_receptions|under|3.5": {
-   "v": 3.5,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 3.5 rec a game."
-  },
-  "Ethan Ervin|player_rush_yds|over|36.5": {
-   "v": 35.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 35.7 rush yds a game."
-  },
-  "Ethan Ervin|player_rush_yds|under|36.5": {
-   "v": 35.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 35.7 rush yds a game."
-  },
-  "Ethan Ervin|player_rush_yds|over|37.5": {
-   "v": 35.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 35.7 rush yds a game."
-  },
-  "Ethan Ervin|player_rush_yds|under|37.5": {
-   "v": 35.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 35.7 rush yds a game."
-  },
-  "Jahiem White|player_rush_yds|over|134.5": {
-   "v": 109.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 109.2 rush yds a game."
-  },
-  "Jahiem White|player_rush_yds|under|134.5": {
-   "v": 109.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 109.2 rush yds a game."
-  },
-  "Jahiem White|player_rush_yds|over|138.5": {
-   "v": 109.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 109.2 rush yds a game."
-  },
-  "Jahiem White|player_rush_yds|under|138.5": {
-   "v": 109.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 109.2 rush yds a game."
-  },
-  "Braeden Wisloski|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Camden Coleman|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Corey Scott|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Gavin Griffin|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.4 TD a game."
-  },
-  "JC Evans|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Jaheim Merriweather|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Jordan Lovett|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Michael Scott|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Nick Herman|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Seth Cromwell|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Camden Coleman|player_pass_yds|over|220.5": {
-   "v": 196.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 196.0 pass yds a game."
-  },
-  "Camden Coleman|player_pass_yds|under|220.5": {
-   "v": 196.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 196.0 pass yds a game."
-  },
-  "Camden Coleman|player_pass_yds|over|228.5": {
-   "v": 196.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 196.0 pass yds a game."
-  },
-  "Camden Coleman|player_pass_yds|under|228.5": {
-   "v": 196.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 196.0 pass yds a game."
-  },
-  "Corey Scott|player_reception_yds|over|42.5": {
-   "v": 53.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 53.0 rec yds a game."
-  },
-  "Corey Scott|player_reception_yds|under|42.5": {
-   "v": 53.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 53.0 rec yds a game."
-  },
-  "Corey Scott|player_reception_yds|over|44.5": {
-   "v": 53.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 53.0 rec yds a game."
-  },
-  "Corey Scott|player_reception_yds|under|44.5": {
-   "v": 53.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 53.0 rec yds a game."
-  },
-  "Michael Scott|player_reception_yds|over|39.5": {
-   "v": 33.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 33.9 rec yds a game."
-  },
-  "Michael Scott|player_reception_yds|under|39.5": {
-   "v": 33.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 33.9 rec yds a game."
-  },
-  "Camden Coleman|player_rush_yds|over|12.5": {
-   "v": 14.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 14.6 rush yds a game."
-  },
-  "Camden Coleman|player_rush_yds|under|12.5": {
-   "v": 14.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 14.6 rush yds a game."
-  },
-  "Jordan Lovett|player_rush_yds|over|50.5": {
-   "v": 35.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 35.6 rush yds a game."
-  },
-  "Jordan Lovett|player_rush_yds|under|50.5": {
-   "v": 35.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 35.6 rush yds a game."
-  }
- },
- "name_match_rate": 0.891,
- "n_priced": 43,
+ "projections": {},
+ "name_match_rate": null,
+ "n_priced": 0,
  "single_day": true,
  "slate_date": "2026-10-29",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 43,
+ "n_on_slate_day": 0,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-29 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
- "empty_reason": null,
+ "empty_reason": "No College Football picks for 2026-10-29. Nothing is priced for this day yet. An empty board on a day with no games is the correct result, not a failure \u2014 the card was built and it found nothing to show.",
  "short_reason": null,
- "coverage": "43 priced football rows for 2026-10-29 across 2 board games; 25 shown.",
+ "coverage": "0 priced football rows for 2026-10-29 across 0 board games; 0 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 55.9% against a claimed 53.9% (+2 pts, n=127). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 127 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -3276,10 +2777,10 @@
    "why_card": []
   }
  ],
- "n_longshots_excluded": 8,
+ "n_longshots_excluded": 0,
  "price_ceiling": 400,
- "market_max_share": null,
- "board_mixed": false,
+ "market_max_share": 0.34,
+ "board_mixed": true,
  "below_price_floor": [],
  "price_floor": -400,
  "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
