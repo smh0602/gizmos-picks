@@ -1,10 +1,10 @@
 {
  "date": "2026-10-29",
  "league": "nfl",
- "generated_at": "2026-10-29T14:47:02Z",
+ "generated_at": "2026-10-29T15:27:45Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-29T14:46:23Z",
+ "odds_pulled_at": "2026-10-29T15:27:32Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -46,6 +46,36 @@
   {
    "kind": "fb-line",
    "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Green Bay Packers",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": -4.0,
+   "game": "Carolina Panthers @ Green Bay Packers",
+   "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
+   "away": "Carolina Panthers",
+   "home": "Green Bay Packers",
+   "commence": "2026-10-30T00:15:00Z",
+   "book": "hardrockbet",
+   "price": 100,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 50.0,
+   "edge": 5.0,
+   "why": [
+    "The game model gives Green Bay Packers 55% to cover -4; the best price, +100 at Hard Rock, needs 50.0%."
+   ],
+   "priced_at": "2026-10-29T14:46:22Z",
+   "main_line": -3.5,
+   "sched_id": "2026_08_CAR_GB",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
    "basis": "MODEL \u2014 the game model's probability",
    "player": "Over",
    "market": "total",
@@ -69,7 +99,7 @@
     "The game model gives Over 55% at 46.5; the price -120 needs 54.5%."
    ],
    "priced_at": "2026-10-29T14:46:22Z",
-   "rank": 2
+   "rank": 3
   }
  ],
  "game_lines_liked": [
@@ -118,8 +148,8 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-29T14:46:47Z",
-  "ladder_built_at": "2026-10-29T14:46:50Z",
-  "alt_spreads": 0
+  "ladder_built_at": "2026-10-29T15:27:35Z",
+  "alt_spreads": 1
  },
  "scores_shown": [
   {
@@ -243,7 +273,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-29 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-29 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -303,24 +333,24 @@
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 5,
-  "same_game_already_listed": 60,
+  "same_game_already_listed": 64,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 66,
+  "pool_after_price_gate": 70,
   "cap": 10,
   "distinct_games": 1,
   "shared_with_board_head": 1,
   "board_head_size": 10
  },
- "top_plays_rule": "The 1 most likely to hit for 2026-10-29 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 60 row(s) were held back because their game was already represented and 5 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-10-29 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 64 row(s) were held back because their game was already represented and 5 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 19,
-  "rated_legs": 66,
+  "pool": 20,
+  "rated_legs": 70,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -329,12 +359,12 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 5,
-    "taken": 5
+    "available": 6,
+    "taken": 6
    },
    {
     "decimal": "1.6-2",
-    "available": 59,
+    "available": 62,
     "taken": 12
    },
    {
@@ -349,12 +379,12 @@
    }
   ],
   "rejected": {
-   "same_game": 5016,
+   "same_game": 6175,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "66 rated legs, 19 in the stratified pool. Rejected: 5016 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "70 rated legs, 20 in the stratified pool. Rejected: 6175 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -692,6 +722,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 71.4 rec yds a game."
   },
+  "Christian Watson|player_reception_yds|over|72.5": {
+   "v": 71.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 71.4 rec yds a game."
+  },
+  "Christian Watson|player_reception_yds|under|72.5": {
+   "v": 71.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 71.4 rec yds a game."
+  },
   "Chuba Hubbard|player_reception_yds|over|16.5": {
    "v": 20.3,
    "u": "rec yds",
@@ -848,6 +890,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 16.1 rec yds a game."
   },
+  "Mitchell Evans|player_reception_yds|over|7.5": {
+   "v": 16.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 16.1 rec yds a game."
+  },
+  "Mitchell Evans|player_reception_yds|under|7.5": {
+   "v": 16.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 16.1 rec yds a game."
+  },
   "Tetairoa McMillan|player_reception_yds|over|70.5": {
    "v": 66.9,
    "u": "rec yds",
@@ -867,6 +921,18 @@
    "n": "His own average over the 24 games this record is built from \u2014 66.9 rec yds a game."
   },
   "Tetairoa McMillan|player_reception_yds|under|71.5": {
+   "v": 66.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 66.9 rec yds a game."
+  },
+  "Tetairoa McMillan|player_reception_yds|over|72.5": {
+   "v": 66.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 66.9 rec yds a game."
+  },
+  "Tetairoa McMillan|player_reception_yds|under|72.5": {
    "v": 66.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -1028,6 +1094,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 1.5 rec a game."
   },
+  "Mitchell Evans|player_receptions|over|1.5": {
+   "v": 1.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 1.5 rec a game."
+  },
+  "Mitchell Evans|player_receptions|under|1.5": {
+   "v": 1.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 1.5 rec a game."
+  },
   "Tetairoa McMillan|player_receptions|over|5.5": {
    "v": 4.6,
    "u": "rec",
@@ -1162,19 +1240,19 @@
   }
  },
  "name_match_rate": 1.0,
- "n_priced": 66,
+ "n_priced": 70,
  "single_day": true,
  "slate_date": "2026-10-29",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 66,
+ "n_on_slate_day": 70,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-29 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "66 priced football rows for 2026-10-29 across 1 board games; 25 shown.",
+ "coverage": "70 priced football rows for 2026-10-29 across 1 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 55.6% against a claimed 53.6% (+2 pts, n=81). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 81 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -1850,7 +1928,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.619722628&selectionId=48400052",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 53,
@@ -2184,31 +2262,31 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "over",
-   "line": 6.5,
+   "line": 7.5,
    "game": "Carolina Panthers @ Green Bay Packers",
    "game_id": "ab2865e9f2d4b012de8bc6fb6de11a7c",
    "away": "Carolina Panthers",
    "home": "Green Bay Packers",
    "commence": "2026-10-30T00:15:00Z",
-   "book": "draftkings",
-   "price": -111,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA382675247%232336437502_13L88808Q1-291429181Q20",
-   "n_books": 3,
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4999918460092940700",
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 52,
    "raw": "6 of 8",
    "record": "6 of 8",
-   "rate": 85,
-   "break_even": 52.6,
-   "edge": -0.6,
+   "rate": 83,
+   "break_even": 52.4,
+   "edge": -0.4,
    "season_detail": {
     "h25": 3,
     "n25": 4,
     "h26": 3,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.896,
+    "p0": 0.877,
     "weighted_n": 6.0,
     "mean_all": 16.125
    },
@@ -2219,9 +2297,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 8 games this record is built from \u2014 16.1 rec yds a game.",
    "why": [
-    "<b>Mitchell Evans</b> went over 6.5 rec yds in <b>3 of 4 games</b> in 2026 and 3 of 4 in 2025, when he played at least half the snaps."
+    "<b>Mitchell Evans</b> went over 7.5 rec yds in <b>3 of 4 games</b> in 2026 and 3 of 4 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 52.5,
+   "model_p": 51.9,
    "role": {
     "snap": 0.55,
     "tgt_share": 0.0411,
