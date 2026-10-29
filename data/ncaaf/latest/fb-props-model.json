@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "MODEL",
- "built_at": "2026-10-28T23:40:27Z",
+ "built_at": "2026-10-29T14:22:05Z",
  "design": "research/fb_props_design.md",
  "train_seasons": [
   2021,
@@ -22,15 +22,15 @@
  "record": {
   "player_pass_yds": {
    "picks": {
-    "value": 103,
+    "value": 104,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 45,
+    "value": 46,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 43.7,
+    "value": 44.2,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -43,13 +43,13 @@
    },
    "interval_95": {
     "value": [
-     34.1,
-     53.3
+     34.7,
+     53.8
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 103.0,
+    "value": 104.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -58,24 +58,24 @@
    },
    "market_label": "Passing yards",
    "first_graded": "2026-09-04",
-   "last_graded": "2026-10-28",
+   "last_graded": "2026-10-29",
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT YET MEASURABLE",
-    "picks": 103,
+    "picks": 104,
     "min_picks": 300,
-    "p": 0.9754,
-    "games": 89,
-    "edge_points": -9.6
+    "p": 0.9687,
+    "games": 90,
+    "edge_points": -9.1
    }
   },
   "player_rush_yds": {
    "picks": {
-    "value": 312,
+    "value": 314,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 170,
+    "value": 171,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
@@ -98,7 +98,7 @@
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 308.0,
+    "value": 310.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -107,28 +107,28 @@
    },
    "market_label": "Rushing yards",
    "first_graded": "2026-09-03",
-   "last_graded": "2026-10-28",
+   "last_graded": "2026-10-29",
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT PROVEN",
-    "picks": 312,
+    "picks": 314,
     "min_picks": 300,
-    "p": 0.3156,
-    "games": 172,
-    "edge_points": 1.3
+    "p": 0.3193,
+    "games": 174,
+    "edge_points": 1.2
    }
   },
   "player_reception_yds": {
    "picks": {
-    "value": 329,
+    "value": 330,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 156,
+    "value": 157,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 47.4,
+    "value": 47.6,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -141,13 +141,13 @@
    },
    "interval_95": {
     "value": [
-     41.9,
-     52.9
+     42.1,
+     53.0
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 319.0,
+    "value": 320.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -160,11 +160,11 @@
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "LOSING",
-    "picks": 329,
+    "picks": 330,
     "min_picks": 300,
-    "p": 0.9782,
-    "games": 152,
-    "edge_points": -5.7
+    "p": 0.9753,
+    "games": 153,
+    "edge_points": -5.5
    }
   },
   "player_receptions": {
@@ -218,11 +218,11 @@
   },
   "player_anytime_td": {
    "picks": {
-    "value": 895,
+    "value": 903,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 197,
+    "value": 199,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
@@ -245,7 +245,7 @@
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 895.0,
+    "value": 903.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -254,15 +254,15 @@
    },
    "market_label": "Anytime TD",
    "first_graded": "2026-09-03",
-   "last_graded": "2026-10-28",
+   "last_graded": "2026-10-29",
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "LOSING",
-    "picks": 895,
+    "picks": 903,
     "min_picks": 300,
-    "p": 0.9784,
-    "games": 260,
-    "edge_points": -2.8
+    "p": 0.9776,
+    "games": 262,
+    "edge_points": -2.7
    }
   }
  },
@@ -288,7 +288,7 @@
   "2026-10-19": true,
   "2026-10-26": true
  },
- "graded_rungs": 7444,
+ "graded_rungs": 7480,
  "calibration": {
   "model": [
    {
@@ -324,7 +324,7 @@
    {
     "bucket": "20-30%",
     "n": {
-     "value": 1984,
+     "value": 1997,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -339,7 +339,7 @@
    {
     "bucket": "30-40%",
     "n": {
-     "value": 1766,
+     "value": 1774,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -347,14 +347,14 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 37.4,
+     "value": 37.5,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "40-50%",
     "n": {
-     "value": 1979,
+     "value": 1988,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -369,7 +369,7 @@
    {
     "bucket": "50-60%",
     "n": {
-     "value": 1506,
+     "value": 1512,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -446,7 +446,7 @@
    {
     "bucket": "0-10%",
     "n": {
-     "value": 163,
+     "value": 164,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -454,14 +454,14 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 39.3,
+     "value": 39.0,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "10-20%",
     "n": {
-     "value": 369,
+     "value": 370,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -469,14 +469,14 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 30.9,
+     "value": 30.8,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "20-30%",
     "n": {
-     "value": 551,
+     "value": 553,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -484,7 +484,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 37.0,
+     "value": 36.9,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -506,7 +506,7 @@
    {
     "bucket": "40-50%",
     "n": {
-     "value": 493,
+     "value": 495,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -521,7 +521,7 @@
    {
     "bucket": "50-60%",
     "n": {
-     "value": 618,
+     "value": 620,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -529,7 +529,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 45.1,
+     "value": 45.3,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -597,19 +597,19 @@
  },
  "log_loss": {
   "player_pass_yds": {
-   "n": 358,
-   "card": 0.8251654100020175,
-   "model": 0.7311119531254163
+   "n": 359,
+   "card": 0.8229517436997408,
+   "model": 0.7309322405671413
   },
   "player_rush_yds": {
-   "n": 712,
-   "card": 0.7891073517502247,
-   "model": 0.6972488442940343
+   "n": 713,
+   "card": 0.7889727652548667,
+   "model": 0.6972214254207012
   },
   "player_reception_yds": {
-   "n": 685,
-   "card": 0.7716882903320785,
-   "model": 0.7209983948586782
+   "n": 687,
+   "card": 0.771347616007944,
+   "model": 0.7209809364144093
   },
   "player_receptions": {
    "n": 209,
@@ -617,9 +617,9 @@
    "model": 0.7498622323347232
   },
   "player_anytime_td": {
-   "n": 1620,
-   "card": 0.6592546900228555,
-   "model": 0.6409748200437908
+   "n": 1624,
+   "card": 0.6585864384459922,
+   "model": 0.6406768810094605
   }
  },
  "card_logs_season": 2025,
@@ -640,6 +640,7 @@
   "2026-10-06": 2025,
   "2026-10-01": 2025,
   "2026-10-09": 2025,
+  "2026-10-29": 2025,
   "2026-10-20": 2025,
   "2026-09-03": 2025,
   "2026-10-03": 2025,
@@ -659,11 +660,11 @@
   "2026-09-12": 2025
  },
  "league_only": {
-  "n": 3584,
-  "mean_d": 0.050031158931812446,
-  "t": 4.6695705298836385,
-  "p": 2.3043623937095466e-06,
-  "clusters": 293
+  "n": 3592,
+  "mean_d": 0.049566271731534065,
+  "t": 4.633313192972895,
+  "p": 2.7069256414477776e-06,
+  "clusters": 295
  },
  "paired_rows": [
   [
@@ -25753,15 +25754,71 @@
    0,
    0.25,
    0.485692
+  ],
+  [
+   "ncaaf:66c2794f789b9c2c028297eff4838e81",
+   "player_anytime_td",
+   0,
+   0.23,
+   0.302102
+  ],
+  [
+   "ncaaf:66c2794f789b9c2c028297eff4838e81",
+   "player_anytime_td",
+   0,
+   0.19,
+   0.322864
+  ],
+  [
+   "ncaaf:66c2794f789b9c2c028297eff4838e81",
+   "player_reception_yds",
+   1,
+   0.5,
+   0.483441
+  ],
+  [
+   "ncaaf:cf6c89492427cb54521b70e7c5dc5993",
+   "player_anytime_td",
+   1,
+   0.43,
+   0.340961
+  ],
+  [
+   "ncaaf:cf6c89492427cb54521b70e7c5dc5993",
+   "player_anytime_td",
+   0,
+   0.21,
+   0.224691
+  ],
+  [
+   "ncaaf:cf6c89492427cb54521b70e7c5dc5993",
+   "player_pass_yds",
+   0,
+   0.03,
+   0.486546
+  ],
+  [
+   "ncaaf:cf6c89492427cb54521b70e7c5dc5993",
+   "player_reception_yds",
+   0,
+   0.46,
+   0.50499
+  ],
+  [
+   "ncaaf:cf6c89492427cb54521b70e7c5dc5993",
+   "player_rush_yds",
+   1,
+   0.5,
+   0.507784
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 7220,
-  "mean_d": 0.037720143278450656,
-  "t": 5.098665478563687,
-  "p": 2.6475724069058283e-07,
-  "clusters": 400,
+  "n": 7228,
+  "mean_d": 0.03750274057211413,
+  "t": 5.073813728409849,
+  "p": 2.9878795023407853e-07,
+  "clusters": 402,
   "verdict": "QUALIFIES",
   "leagues": [
    "ncaaf",
@@ -25770,46 +25827,15 @@
  },
  "picks": [
   {
-   "game": "Jacksonville State Gamecocks at New Mexico State Aggies",
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "commence": "2026-10-29T00:00:00Z",
-   "player": "Adam Damante",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": {
-    "value": 201.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": -110,
-    "basis": "MARKET"
-   },
-   "book": "Hard Rock",
-   "model_probability": {
-    "value": 55.4,
-    "basis": "MODEL"
-   },
-   "break_even": {
-    "value": 52.4,
-    "basis": "MARKET"
-   },
-   "edge": {
-    "value": 5.8,
-    "basis": "MODEL"
-   },
-   "priced_at": "2026-10-28T19:10:39Z"
-  },
-  {
-   "game": "Jacksonville State Gamecocks at New Mexico State Aggies",
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "commence": "2026-10-29T00:00:00Z",
-   "player": "AJ Williams",
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Justin Stevenson",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
    "line": {
-    "value": 39.5,
+    "value": 103.5,
     "basis": "MARKET"
    },
    "price": {
@@ -25818,7 +25844,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 55.0,
+    "value": 58.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -25826,21 +25852,238 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 3.3,
+    "value": 10.6,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T19:10:39Z"
+   "priced_at": "2026-10-29T14:20:36Z"
   },
   {
-   "game": "Jacksonville State Gamecocks at New Mexico State Aggies",
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "commence": "2026-10-29T00:00:00Z",
-   "player": "Josiah Thomas",
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Kelby Valsin",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 57.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Jahiem White",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": {
+    "value": 138.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Caden Veltkamp",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": {
+    "value": 319.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 55.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 4.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Ethan Ervin",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": {
+    "value": 36.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Kelby Valsin",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
    "line": {
-    "value": 29.5,
+    "value": 89.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Tayven Jackson",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": {
+    "value": 317.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Troy Trojans at James Madison Dukes",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Camden Coleman",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": {
+    "value": 233.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Troy Trojans at James Madison Dukes",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Jace Petty",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 30.5,
     "basis": "MARKET"
    },
    "price": {
@@ -25849,7 +26092,7 @@
    },
    "book": "Hard Rock",
    "model_probability": {
-    "value": 53.7,
+    "value": 54.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -25857,21 +26100,21 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 0.4,
+    "value": 1.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T19:10:39Z"
+   "priced_at": "2026-10-29T14:20:36Z"
   },
   {
-   "game": "Jacksonville State Gamecocks at New Mexico State Aggies",
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "commence": "2026-10-29T00:00:00Z",
-   "player": "James Jones",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Easton Messer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
    "side": "under",
    "line": {
-    "value": 102.5,
+    "value": 106.5,
     "basis": "MARKET"
    },
    "price": {
@@ -25880,7 +26123,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 53.7,
+    "value": 53.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -25888,470 +26131,1058 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 0.8,
+    "value": 1.2,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-28T19:10:39Z"
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Troy Trojans at James Madison Dukes",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Corey Scott",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 53.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Jahiem White",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.1,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Max Reese",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 49.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.7,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
+  },
+  {
+   "game": "Florida Atlantic Owls at North Texas Mean Green",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "commence": "2026-10-29T23:30:00Z",
+   "player": "Kyle Koch",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 51.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-29T14:20:36Z"
   }
  ],
  "rated": [
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "AJ Williams",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Baron Tipton",
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 28.2
+   "p": 27.6
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Adam Damante",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 28.4
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 34.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Darius Cannon",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 23.4
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Deondre Johnson",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 27.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jalen Likely",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 31.5
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "James Jones",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 35.4
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jamill Williams",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 26.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Josiah Thomas",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 25.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Justus Savage",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 30.3
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Lucas Farrington",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 28.7
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Luke Gilbert",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 26.3
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Lyndon Ravare",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 25.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Myles Libman",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 27.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Ronnel Johnson",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 22.5
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "TJ Pride",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 26.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
-   "market": "player_pass_yds",
-   "line": 227.5,
-   "side": "over",
-   "p": 49.8
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
-   "market": "player_pass_yds",
-   "line": 227.5,
-   "side": "under",
-   "p": 50.2
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "AJ Williams",
-   "market": "player_reception_yds",
-   "line": 39.5,
-   "side": "over",
-   "p": 45.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "AJ Williams",
-   "market": "player_reception_yds",
-   "line": 39.5,
-   "side": "under",
-   "p": 55.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Darius Cannon",
-   "market": "player_reception_yds",
-   "line": 28.5,
-   "side": "over",
-   "p": 49.1
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Darius Cannon",
-   "market": "player_reception_yds",
-   "line": 28.5,
-   "side": "under",
-   "p": 50.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Deondre Johnson",
-   "market": "player_reception_yds",
-   "line": 55.5,
-   "side": "over",
-   "p": 50.1
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Deondre Johnson",
-   "market": "player_reception_yds",
-   "line": 55.5,
-   "side": "under",
-   "p": 49.9
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jamill Williams",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "over",
-   "p": 47.6
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jamill Williams",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "under",
-   "p": 52.4
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Josiah Thomas",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "over",
-   "p": 46.3
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Josiah Thomas",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "under",
-   "p": 53.7
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Luke Gilbert",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "over",
-   "p": 49.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Luke Gilbert",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "under",
-   "p": 51.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
-   "market": "player_rush_yds",
-   "line": 60.5,
-   "side": "over",
-   "p": 50.4
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
-   "market": "player_rush_yds",
-   "line": 60.5,
-   "side": "under",
-   "p": 49.6
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "James Jones",
-   "market": "player_rush_yds",
-   "line": 102.5,
-   "side": "over",
-   "p": 46.3
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "James Jones",
-   "market": "player_rush_yds",
-   "line": 102.5,
-   "side": "under",
-   "p": 53.7
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Cedric Kouemi",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 25.7
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Dijon Stanley",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 25.0
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Dylan Gentry",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 19.2
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jameson Scissum",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 22.6
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Khristian Lando",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Branden Hoch",
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
    "p": 26.5
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Adam Damante",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Brec Long",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.4
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Brendon Haygood",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.6
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Caden Veltkamp",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.4
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 34.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Ethan Ervin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.2
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 40.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Josiah Martin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 27.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 32.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 31.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kyle Koch",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Leonard Farrow",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.8
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Owen Pollock",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 21.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Tayven Jackson",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 31.6
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Caden Veltkamp",
    "market": "player_pass_yds",
-   "line": 201.5,
+   "line": 319.5,
    "side": "over",
-   "p": 44.6
+   "p": 44.5
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Adam Damante",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Caden Veltkamp",
    "market": "player_pass_yds",
-   "line": 201.5,
+   "line": 319.5,
    "side": "under",
-   "p": 55.4
+   "p": 55.5
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Tayven Jackson",
    "market": "player_pass_yds",
-   "line": 240.5,
+   "line": 317.5,
    "side": "over",
-   "p": 48.7
+   "p": 45.4
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Tayven Jackson",
    "market": "player_pass_yds",
-   "line": 240.5,
+   "line": 317.5,
    "side": "under",
-   "p": 51.3
+   "p": 54.6
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Darius Cannon",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 106.5,
+   "side": "over",
+   "p": 46.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
+   "market": "player_reception_yds",
+   "line": 106.5,
+   "side": "under",
+   "p": 53.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_reception_yds",
+   "line": 31.5,
+   "side": "over",
+   "p": 49.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_reception_yds",
+   "line": 31.5,
+   "side": "under",
+   "p": 50.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_reception_yds",
+   "line": 103.5,
+   "side": "over",
+   "p": 41.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_reception_yds",
+   "line": 103.5,
+   "side": "under",
+   "p": 58.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "line": 89.5,
+   "side": "over",
+   "p": 45.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "line": 89.5,
+   "side": "under",
+   "p": 54.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kyle Koch",
+   "market": "player_reception_yds",
+   "line": 44.5,
+   "side": "over",
+   "p": 48.5
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kyle Koch",
+   "market": "player_reception_yds",
+   "line": 44.5,
+   "side": "under",
+   "p": 51.5
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_reception_yds",
+   "line": 29.5,
+   "side": "over",
+   "p": 52.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_reception_yds",
+   "line": 29.5,
+   "side": "under",
+   "p": 47.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
+   "market": "player_receptions",
+   "line": 8.5,
+   "side": "over",
+   "p": 47.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
+   "market": "player_receptions",
+   "line": 8.5,
+   "side": "under",
+   "p": 52.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "over",
+   "p": 46.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "under",
+   "p": 53.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_receptions",
+   "line": 6.5,
+   "side": "over",
+   "p": 43.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_receptions",
+   "line": 6.5,
+   "side": "under",
+   "p": 56.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_receptions",
+   "line": 7.5,
+   "side": "over",
+   "p": 42.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_receptions",
+   "line": 7.5,
+   "side": "under",
+   "p": 57.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kyle Koch",
+   "market": "player_receptions",
+   "line": 3.5,
    "side": "over",
    "p": 48.3
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Darius Cannon",
-   "market": "player_reception_yds",
-   "line": 30.5,
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kyle Koch",
+   "market": "player_receptions",
+   "line": 3.5,
    "side": "under",
    "p": 51.7
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Deondre Johnson",
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_receptions",
+   "line": 2.5,
+   "side": "over",
+   "p": 52.8
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_receptions",
+   "line": 2.5,
+   "side": "under",
+   "p": 47.2
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Ethan Ervin",
+   "market": "player_rush_yds",
+   "line": 36.5,
+   "side": "over",
+   "p": 45.2
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Ethan Ervin",
+   "market": "player_rush_yds",
+   "line": 36.5,
+   "side": "under",
+   "p": 54.8
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_rush_yds",
+   "line": 138.5,
+   "side": "over",
+   "p": 43.2
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_rush_yds",
+   "line": 138.5,
+   "side": "under",
+   "p": 56.8
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Brady Tillman III",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 27.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Nick Osho",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 27.0
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "RJ Garcia II",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 24.5
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "TJ Chukwurah",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.8
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Tucker Holloway",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.2
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Caden Veltkamp",
+   "market": "player_pass_yds",
+   "line": 334.5,
+   "side": "over",
+   "p": 43.4
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Caden Veltkamp",
+   "market": "player_pass_yds",
+   "line": 334.5,
+   "side": "under",
+   "p": 56.6
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Tayven Jackson",
+   "market": "player_pass_yds",
+   "line": 316.5,
+   "side": "over",
+   "p": 45.4
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Tayven Jackson",
+   "market": "player_pass_yds",
+   "line": 316.5,
+   "side": "under",
+   "p": 54.6
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
    "market": "player_reception_yds",
-   "line": 59.5,
+   "line": 108.5,
+   "side": "over",
+   "p": 45.7
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Easton Messer",
+   "market": "player_reception_yds",
+   "line": 108.5,
+   "side": "under",
+   "p": 54.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_reception_yds",
+   "line": 35.5,
+   "side": "over",
+   "p": 47.8
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_reception_yds",
+   "line": 35.5,
+   "side": "under",
+   "p": 52.2
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_reception_yds",
+   "line": 101.5,
+   "side": "over",
+   "p": 41.6
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Justin Stevenson",
+   "market": "player_reception_yds",
+   "line": 101.5,
+   "side": "under",
+   "p": 58.4
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "line": 82.5,
+   "side": "over",
+   "p": 47.0
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "line": 82.5,
+   "side": "under",
+   "p": 53.0
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_reception_yds",
+   "line": 31.5,
+   "side": "over",
+   "p": 51.9
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Max Reese",
+   "market": "player_reception_yds",
+   "line": 31.5,
+   "side": "under",
+   "p": 48.1
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_rush_yds",
+   "line": 133.5,
+   "side": "over",
+   "p": 44.3
+  },
+  {
+   "game_id": "c35bb6023b4b5005a38e7cec3ebe4d0b",
+   "player": "Jahiem White",
+   "market": "player_rush_yds",
+   "line": 133.5,
+   "side": "under",
+   "p": 55.7
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Braeden Wisloski",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.6
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.1
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Cole Keller",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.0
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Corey Scott",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.0
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Gavin Griffin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 31.4
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Howard Kinchen",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.8
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "JC Evans",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.8
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jace Petty",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 23.8
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jaheim Merriweather",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.6
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jeremiah Harrison",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.4
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jordan Lovett",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 32.0
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Michael Scott",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.4
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Nick Hampton",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.9
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Nick Herman",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.3
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Noah Grevious",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.7
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Noreel White",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 22.5
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Seth Cromwell",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.8
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "TJ Lott",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.7
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "TK Keyes",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.5
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
+   "market": "player_pass_yds",
+   "line": 228.5,
+   "side": "over",
+   "p": 45.9
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
+   "market": "player_pass_yds",
+   "line": 228.5,
+   "side": "under",
+   "p": 54.1
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Cole Keller",
+   "market": "player_reception_yds",
+   "line": 33.5,
    "side": "over",
    "p": 49.0
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Deondre Johnson",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Cole Keller",
    "market": "player_reception_yds",
-   "line": 59.5,
+   "line": 33.5,
    "side": "under",
    "p": 51.0
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jamill Williams",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Corey Scott",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 44.5,
    "side": "over",
-   "p": 47.2
+   "p": 46.9
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jamill Williams",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Corey Scott",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 44.5,
    "side": "under",
-   "p": 52.8
+   "p": 53.1
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Luke Gilbert",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jeremiah Harrison",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 32.5,
    "side": "over",
-   "p": 48.6
+   "p": 47.5
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Luke Gilbert",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jeremiah Harrison",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 32.5,
    "side": "under",
-   "p": 51.4
+   "p": 52.5
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Ronnel Johnson",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Michael Scott",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 39.5,
    "side": "over",
-   "p": 50.5
+   "p": 50.2
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Ronnel Johnson",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Michael Scott",
    "market": "player_reception_yds",
-   "line": 30.5,
+   "line": 39.5,
    "side": "under",
-   "p": 49.5
+   "p": 49.8
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
    "market": "player_rush_yds",
-   "line": 59.5,
+   "line": 12.5,
    "side": "over",
-   "p": 50.8
-  },
-  {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Caden Creel",
-   "market": "player_rush_yds",
-   "line": 59.5,
-   "side": "under",
    "p": 49.2
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jalen Likely",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
    "market": "player_rush_yds",
-   "line": 32.5,
-   "side": "over",
-   "p": 48.0
+   "line": 12.5,
+   "side": "under",
+   "p": 50.8
   },
   {
-   "game_id": "cf6c89492427cb54521b70e7c5dc5993",
-   "player": "Jalen Likely",
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jordan Lovett",
    "market": "player_rush_yds",
-   "line": 32.5,
+   "line": 50.5,
+   "side": "over",
+   "p": 50.4
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jordan Lovett",
+   "market": "player_rush_yds",
+   "line": 50.5,
    "side": "under",
-   "p": 52.0
+   "p": 49.6
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Fabian Rogosch",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.9
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
+   "market": "player_pass_yds",
+   "line": 233.5,
+   "side": "over",
+   "p": 45.5
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Camden Coleman",
+   "market": "player_pass_yds",
+   "line": 233.5,
+   "side": "under",
+   "p": 54.5
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Cole Keller",
+   "market": "player_reception_yds",
+   "line": 30.5,
+   "side": "over",
+   "p": 50.2
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Cole Keller",
+   "market": "player_reception_yds",
+   "line": 30.5,
+   "side": "under",
+   "p": 49.8
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Corey Scott",
+   "market": "player_reception_yds",
+   "line": 45.5,
+   "side": "over",
+   "p": 46.6
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Corey Scott",
+   "market": "player_reception_yds",
+   "line": 45.5,
+   "side": "under",
+   "p": 53.4
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jace Petty",
+   "market": "player_reception_yds",
+   "line": 30.5,
+   "side": "over",
+   "p": 45.7
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Jace Petty",
+   "market": "player_reception_yds",
+   "line": 30.5,
+   "side": "under",
+   "p": 54.3
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Michael Scott",
+   "market": "player_reception_yds",
+   "line": 42.5,
+   "side": "over",
+   "p": 49.2
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "Michael Scott",
+   "market": "player_reception_yds",
+   "line": 42.5,
+   "side": "under",
+   "p": 50.8
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "TJ Lott",
+   "market": "player_reception_yds",
+   "line": 17.5,
+   "side": "over",
+   "p": 54.3
+  },
+  {
+   "game_id": "0540f5758ac50f3bb60beb36755f7a1e",
+   "player": "TJ Lott",
+   "market": "player_reception_yds",
+   "line": 17.5,
+   "side": "under",
+   "p": 45.7
   }
  ],
- "board_pulled_at": "2026-10-28T19:10:39Z",
- "picks_total": 4
+ "board_pulled_at": "2026-10-29T14:20:36Z",
+ "picks_total": 14
 }
