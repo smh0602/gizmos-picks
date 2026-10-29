@@ -5,7 +5,16 @@ const html=fs.readFileSync('index.html','utf8');
 // etDate(), so that is lifted too -- a stand-in would be a second copy.
 const src=html.match(/const BOARD_MATCH_WINDOW_MS[\s\S]*?\n}/)[0];
 const etSrc=html.match(/const etDate = [\s\S]*?\n};/)[0];
-const BOARD=JSON.parse(fs.readFileSync('data/latest/board.json','utf8'));
+// `[2026-10-29]` ⛔ A TEST ASKS THE CODE, NEVER PRODUCTION: off-season the live board
+// holds no games (season over 10-28), and every probe below crashed on BOARD.games[0].
+// An empty live board is replaced by a PLANTED one with the same traps: one pair twice
+// (a 9:40pm ET night game at 01:40Z, then today's 17:05Z game) and another pair once.
+const LIVE=JSON.parse(fs.readFileSync('data/latest/board.json','utf8'));
+const BOARD=(LIVE.games||[]).length ? LIVE : {games:[
+  {id:'planted-night', away:'Away Club', home:'Home Club', commence:'2026-09-15T01:40:00Z', total:8.5},
+  {id:'planted-today', away:'Away Club', home:'Home Club', commence:'2026-09-15T17:05:00Z', total:7.5},
+  {id:'planted-other', away:'Road Nine', home:'Park Nine', commence:'2026-09-15T23:10:00Z', total:9.0}]};
+if(BOARD!==LIVE) console.log('the live board has no games (off-season): the matcher is driven on a planted board');
 const [boardFor, etDate]=new Function('BOARD', etSrc+'\n'+src+'; return [boardFor, etDate];')(BOARD);
 
 const dupes={};
