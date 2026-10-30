@@ -1,7 +1,7 @@
 {
  "date": "2026-10-30",
  "league": "ncaaf",
- "generated_at": "2026-10-30T20:29:40Z",
+ "generated_at": "2026-10-30T23:15:13Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-10-30T19:06:25Z",
@@ -431,19 +431,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-30T20:29:16Z",
-  "ladder_built_at": "2026-10-30T20:29:26Z",
-  "alt_spreads": 3
+  "model_built_at": "2026-10-30T23:14:55Z",
+  "ladder_built_at": "2026-10-30T23:15:02Z",
+  "alt_spreads": 2
  },
  "scores_shown": [
-  {
-   "away": "Tulane Green Wave",
-   "home": "Charlotte 49ers",
-   "score": {
-    "home": 21,
-    "away": 31
-   }
-  },
   {
    "away": "Baylor Bears",
    "home": "UCF Knights",
@@ -923,9 +915,17 @@
     "home": 28,
     "away": 16
    }
+  },
+  {
+   "away": "Alabama Crimson Tide",
+   "home": "LSU Tigers",
+   "score": {
+    "home": 30,
+    "away": 25
+   }
   }
  ],
- "game_lines_rule": "The game model's own 7 pick(s) for 2026-10-30 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (3 listed).",
+ "game_lines_rule": "The game model's own 5 pick(s) for 2026-10-30 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (2 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -973,7 +973,7 @@
     "<b>Isaiah Ene</b> went under 53.5 rush yds in <b>6 of 8 games</b> in 2026, in the games he appears in."
    ],
    "model_p": 55.6,
-   "rank": 1
+   "rank": 9
   },
   {
    "kind": "fb",
@@ -1069,22 +1069,22 @@
     "<b>Keyone Jenkins</b> went over 10.5 rush yds in <b>3 of 7 games</b> in 2026 and 2 of 10 in 2025, in the games he appears in."
    ],
    "model_p": 54.6,
-   "rank": 4
+   "rank": 10
   }
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 3,
-  "same_game_already_listed": 39,
+  "same_game_already_listed": 24,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 45,
+  "pool_after_price_gate": 29,
   "cap": 10,
-  "distinct_games": 3,
-  "shared_with_board_head": 3,
+  "distinct_games": 2,
+  "shared_with_board_head": 2,
   "board_head_size": 10
  },
- "top_plays_rule": "The 3 most likely to hit for 2026-10-30 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 3 game(s). 39 row(s) were held back because their game was already represented and 3 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 2 most likely to hit for 2026-10-30 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 10, over 2 game(s). 24 row(s) were held back because their game was already represented and 3 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -1121,38 +1121,6 @@
    },
    {
     "legs": [
-     "Isaiah Ene u53.5 rush yds",
-     "Keyone Jenkins o10.5 rush yds"
-    ],
-    "games": [
-     "Kent State Golden Flashes @ Sacramento State Hornets",
-     "Baylor Bears @ UCF Knights"
-    ],
-    "game_ids": [
-     "8916ba5e623a0a1d97dd0e7f50e4a205",
-     "44ee19d31b9288ad402868d6df737595"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.8,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     56,
-     55
-    ],
-    "break_even": 28.4,
-    "edge": 2.4,
-    "ev_30": 2.56
-   },
-   {
-    "legs": [
      "Wayne Harris u6.5 rec",
      "Jaylen Hampton o27.5 rec yds"
     ],
@@ -1185,38 +1153,6 @@
    },
    {
     "legs": [
-     "Wayne Harris u6.5 rec",
-     "Keyone Jenkins o10.5 rush yds"
-    ],
-    "games": [
-     "Kent State Golden Flashes @ Sacramento State Hornets",
-     "Baylor Bears @ UCF Knights"
-    ],
-    "game_ids": [
-     "8916ba5e623a0a1d97dd0e7f50e4a205",
-     "44ee19d31b9288ad402868d6df737595"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -168,
-     -114
-    ],
-    "multiplier": 2.995,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.3,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     55,
-     55
-    ],
-    "break_even": 33.4,
-    "edge": -3.1,
-    "ev_30": -2.82
-   },
-   {
-    "legs": [
      "Jaylen Hampton o27.5 rec yds",
      "Keyone Jenkins o10.5 rush yds"
     ],
@@ -1258,38 +1194,6 @@
     ],
     "game_ids": [
      "78b3d38cdfa28649fdd2ca92829569ce",
-     "8916ba5e623a0a1d97dd0e7f50e4a205"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.3,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     55,
-     55
-    ],
-    "break_even": 28.4,
-    "edge": 1.9,
-    "ev_30": 1.98
-   },
-   {
-    "legs": [
-     "Keyone Jenkins o10.5 rush yds",
-     "Da'Realyst Clark u28.5 rec yds"
-    ],
-    "games": [
-     "Baylor Bears @ UCF Knights",
-     "Kent State Golden Flashes @ Sacramento State Hornets"
-    ],
-    "game_ids": [
-     "44ee19d31b9288ad402868d6df737595",
      "8916ba5e623a0a1d97dd0e7f50e4a205"
     ],
     "book": "fanduel",
@@ -1342,6 +1246,102 @@
     "break_even": 28.4,
     "edge": 1.9,
     "ev_30": 1.97
+   },
+   {
+    "legs": [
+     "Isaiah Ene u53.5 rush yds",
+     "Keyone Jenkins o10.5 rush yds"
+    ],
+    "games": [
+     "Kent State Golden Flashes @ Sacramento State Hornets",
+     "Baylor Bears @ UCF Knights"
+    ],
+    "game_ids": [
+     "8916ba5e623a0a1d97dd0e7f50e4a205",
+     "44ee19d31b9288ad402868d6df737595"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 30.8,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     56,
+     55
+    ],
+    "break_even": 28.4,
+    "edge": 2.4,
+    "ev_30": 2.56
+   },
+   {
+    "legs": [
+     "Wayne Harris u6.5 rec",
+     "Keyone Jenkins o10.5 rush yds"
+    ],
+    "games": [
+     "Kent State Golden Flashes @ Sacramento State Hornets",
+     "Baylor Bears @ UCF Knights"
+    ],
+    "game_ids": [
+     "8916ba5e623a0a1d97dd0e7f50e4a205",
+     "44ee19d31b9288ad402868d6df737595"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -168,
+     -114
+    ],
+    "multiplier": 2.995,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 30.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     55,
+     55
+    ],
+    "break_even": 33.4,
+    "edge": -3.1,
+    "ev_30": -2.82
+   },
+   {
+    "legs": [
+     "Keyone Jenkins o10.5 rush yds",
+     "Da'Realyst Clark u28.5 rec yds"
+    ],
+    "games": [
+     "Baylor Bears @ UCF Knights",
+     "Kent State Golden Flashes @ Sacramento State Hornets"
+    ],
+    "game_ids": [
+     "44ee19d31b9288ad402868d6df737595",
+     "8916ba5e623a0a1d97dd0e7f50e4a205"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 30.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     55,
+     55
+    ],
+    "break_even": 28.4,
+    "edge": 1.9,
+    "ev_30": 1.98
    }
   ],
   "3": [
@@ -1646,7 +1646,7 @@
  },
  "parlay_meta": {
   "pool": 15,
-  "rated_legs": 45,
+  "rated_legs": 29,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -1660,7 +1660,7 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 42,
+    "available": 26,
     "taken": 12
    },
    {
@@ -1675,12 +1675,12 @@
    }
   ],
   "rejected": {
-   "same_game": 1731,
+   "same_game": 1869,
    "same_player": 0,
-   "mixed_book": 143,
+   "mixed_book": 24,
    "out_of_band": 0
   },
-  "note": "45 rated legs, 15 in the stratified pool. Rejected: 1731 same game, 0 same player, 143 would need two books, 0 outside Sam's bands."
+  "note": "29 rated legs, 15 in the stratified pool. Rejected: 1869 same game, 0 same player, 24 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -1878,41 +1878,6 @@
   "3": [
    {
     "legs": [
-     "Isaiah Ene u53.5 rush yds",
-     "Da'Realyst Clark u28.5 rec yds",
-     "Wayne Harris u6.5 rec"
-    ],
-    "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-    "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -168
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 5.621,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 55,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     56,
-     55,
-     55
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
      "Johnnie Daniels u59.5 rush yds",
      "Maurice Turner u60.5 rush yds",
      "Tulane Green Wave -8.5 spread"
@@ -1976,6 +1941,41 @@
     "leg_confidences": [
      55,
      54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Isaiah Ene u53.5 rush yds",
+     "Da'Realyst Clark u28.5 rec yds",
+     "Wayne Harris u6.5 rec"
+    ],
+    "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+    "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -168
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 5.621,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     55,
+     55
     ],
     "band_floor": 3.0
    },
@@ -2087,13 +2087,13 @@
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 3,
-  "games_with_a_line_row": 1,
-  "games_used": 3,
+  "games_with_rated_legs": 2,
+  "games_with_a_line_row": 0,
+  "games_used": 2,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 99,
-   "mixed_book": 189,
+   "same_player": 89,
+   "mixed_book": 66,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -2101,7 +2101,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "3 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "2 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -2702,71 +2702,23 @@
   }
  },
  "name_match_rate": 0.932,
- "n_priced": 64,
+ "n_priced": 43,
  "single_day": true,
  "slate_date": "2026-10-30",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 64,
+ "n_on_slate_day": 43,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-30 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "64 priced football rows for 2026-10-30 across 3 board games; 25 shown.",
+ "coverage": "43 priced football rows for 2026-10-30 across 3 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 54.7% against a claimed 54% (+0.7 pts, n=137). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 137 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
  "picks": [
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Isaiah Ene",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 53.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620925152&selectionId=104441994",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 56,
-   "raw": "6 of 8",
-   "record": "6 of 8",
-   "rate": 73,
-   "break_even": 53.3,
-   "edge": 2.7,
-   "season_detail": {
-    "h25": 0,
-    "n25": 0,
-    "h26": 6,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.724,
-    "weighted_n": 8.0,
-    "mean_all": 37.875
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 37.88,
-   "projection": 37.9,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 8 games this record is built from \u2014 37.9 rush yds a game.",
-   "why": [
-    "<b>Isaiah Ene</b> went under 53.5 rush yds in <b>6 of 8 games</b> in 2026, in the games he appears in."
-   ],
-   "model_p": 55.6,
-   "rank": 1
-  },
   {
    "kind": "fb",
    "league": "ncaaf",
@@ -2813,7 +2765,7 @@
     "<b>Johnnie Daniels</b> went under 59.5 rush yds in <b>4 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
    ],
    "model_p": 54.7,
-   "rank": 2
+   "rank": 1
   },
   {
    "kind": "fb",
@@ -2861,152 +2813,7 @@
     "<b>Jaylen Hampton</b> went over 27.5 rec yds in <b>3 of 5 games</b> in 2026 and 0 of 3 in 2025, in the games he appears in."
    ],
    "model_p": 54.7,
-   "rank": 3
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Keyone Jenkins",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 10.5,
-   "game": "Baylor Bears @ UCF Knights",
-   "game_id": "44ee19d31b9288ad402868d6df737595",
-   "away": "Baylor Bears",
-   "home": "UCF Knights",
-   "commence": "2026-10-30T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620116419&selectionId=103209058",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "5 of 17",
-   "record": "5 of 17",
-   "rate": 44,
-   "break_even": 53.3,
-   "edge": 1.7,
-   "season_detail": {
-    "h25": 2,
-    "n25": 10,
-    "h26": 3,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.515,
-    "weighted_n": 10.64,
-    "mean_all": 11.176
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 11.4,
-   "projection": 11.2,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 17 games this record is built from \u2014 11.2 rush yds a game.",
-   "why": [
-    "<b>Keyone Jenkins</b> went over 10.5 rush yds in <b>3 of 7 games</b> in 2026 and 2 of 10 in 2025, in the games he appears in."
-   ],
-   "model_p": 54.6,
-   "rank": 4
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Da'Realyst Clark",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 28.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620926175&selectionId=104442067",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "10 of 14",
-   "record": "10 of 14",
-   "rate": 57,
-   "break_even": 53.3,
-   "edge": 1.7,
-   "season_detail": {
-    "h25": 5,
-    "n25": 6,
-    "h26": 5,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.496,
-    "weighted_n": 10.0,
-    "mean_all": 27.286
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 18.0,
-   "projection": 27.3,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 14 games this record is built from \u2014 27.3 rec yds a game.",
-   "why": [
-    "<b>Da'Realyst Clark</b> went under 28.5 rec yds in <b>5 of 8 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in."
-   ],
-   "model_p": 54.7,
-   "rank": 5
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Wayne Harris",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 6.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -168,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621134103&selectionId=104442013",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "18 of 20",
-   "record": "18 of 20",
-   "rate": 88,
-   "break_even": 62.7,
-   "edge": -7.7,
-   "season_detail": {
-    "h25": 12,
-    "n25": 12,
-    "h26": 6,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.923,
-    "weighted_n": 12.0,
-    "mean_all": 3.65
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 2.92,
-   "projection": 3.6,
-   "projection_unit": "rec",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 20 games this record is built from \u2014 3.6 rec a game.",
-   "why": [
-    "<b>Wayne Harris</b> went under 6.5 rec in <b>6 of 8 games</b> in 2026 and 12 of 12 in 2025, in the games he appears in."
-   ],
-   "model_p": 55.4,
-   "rank": 6,
-   "below_price": true
+   "rank": 2
   },
   {
    "kind": "fb",
@@ -3054,7 +2861,7 @@
     "<b>Maurice Turner</b> went under 60.5 rush yds in <b>3 of 5 games</b> in 2026 and 6 of 7 in 2025, in the games he appears in."
    ],
    "model_p": 54.4,
-   "rank": 7
+   "rank": 3
   },
   {
    "kind": "fb",
@@ -3102,7 +2909,7 @@
     "<b>Conner Harrell</b> went under 202.5 pass yds in <b>2 of 4 games</b> in 2026 and 3 of 4 in 2025, in the games he appears in."
    ],
    "model_p": 54.3,
-   "rank": 8
+   "rank": 4
   },
   {
    "kind": "fb",
@@ -3130,133 +2937,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 0.7,
-   "rank": 9
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Raiden Brown",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 20.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620928333&selectionId=104442303",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 54,
-   "model_p": 54.3,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": 0.7,
-   "rank": 10
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Dru DeShields",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 239.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620924314&selectionId=102889293",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 53,
-   "raw": "15 of 19",
-   "record": "15 of 19",
-   "rate": 75,
-   "break_even": 53.3,
-   "edge": -0.3,
-   "season_detail": {
-    "h25": 9,
-    "n25": 11,
-    "h26": 6,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.739,
-    "weighted_n": 11.67,
-    "mean_all": 182.316
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 184.55,
-   "projection": 182.3,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 182.3 pass yds a game.",
-   "why": [
-    "<b>Dru DeShields</b> went under 239.5 pass yds in <b>6 of 8 games</b> in 2026 and 9 of 11 in 2025, in the games he appears in."
-   ],
-   "model_p": 53.0,
-   "rank": 11,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Onterrio Smith Jr.",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 41.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620928093&selectionId=104442244",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 53,
-   "raw": "6 of 8",
-   "record": "6 of 8",
-   "rate": 68,
-   "break_even": 53.3,
-   "edge": -0.3,
-   "season_detail": {
-    "h25": 0,
-    "n25": 0,
-    "h26": 6,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.638,
-    "weighted_n": 8.0,
-    "mean_all": 43.75
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 43.75,
-   "projection": 43.8,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 8 games this record is built from \u2014 43.8 rec yds a game.",
-   "why": [
-    "<b>Onterrio Smith Jr.</b> went under 41.5 rec yds in <b>6 of 8 games</b> in 2026, in the games he appears in."
-   ],
-   "model_p": 52.8,
-   "rank": 12,
-   "below_price": true
+   "rank": 5
   },
   {
    "kind": "fb",
@@ -3304,230 +2985,7 @@
     "<b>Destyn Hill</b> went over 3.5 rec in <b>5 of 6 games</b> in 2026 and 0 of 2 in 2025, in the games he appears in."
    ],
    "model_p": 52.7,
-   "rank": 13,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Gavin Freeman",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 7.5,
-   "game": "Baylor Bears @ UCF Knights",
-   "game_id": "44ee19d31b9288ad402868d6df737595",
-   "away": "Baylor Bears",
-   "home": "UCF Knights",
-   "commence": "2026-10-30T23:30:00Z",
-   "book": "fanduel",
-   "price": -122,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621026593&selectionId=102317514",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 53,
-   "raw": "16 of 19",
-   "record": "16 of 19",
-   "rate": 85,
-   "break_even": 55.0,
-   "edge": -2.0,
-   "season_detail": {
-    "h25": 12,
-    "n25": 12,
-    "h26": 4,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.957,
-    "weighted_n": 11.36,
-    "mean_all": 5.842
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 4.42,
-   "projection": 5.8,
-   "projection_unit": "rec",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 5.8 rec a game.",
-   "why": [
-    "<b>Gavin Freeman</b> went under 7.5 rec in <b>4 of 7 games</b> in 2026 and 12 of 12 in 2025, in the games he appears in."
-   ],
-   "model_p": 53.1,
-   "rank": 14,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Ardell Banks",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 2.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -160,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621134105&selectionId=104442394",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 53,
-   "model_p": 52.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 61.5,
-   "edge": -8.5,
-   "rank": 15,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Keyone Jenkins",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 234.5,
-   "game": "Baylor Bears @ UCF Knights",
-   "game_id": "44ee19d31b9288ad402868d6df737595",
-   "away": "Baylor Bears",
-   "home": "UCF Knights",
-   "commence": "2026-10-30T23:30:00Z",
-   "book": "hardrockbet",
-   "price": 100,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6561066227396116867",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "12 of 17",
-   "record": "12 of 17",
-   "rate": 69,
-   "break_even": 50.0,
-   "edge": 2.0,
-   "season_detail": {
-    "h25": 8,
-    "n25": 10,
-    "h26": 4,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.726,
-    "weighted_n": 10.64,
-    "mean_all": 167.118
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 174.2,
-   "projection": 167.1,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 17 games this record is built from \u2014 167.1 pass yds a game.",
-   "why": [
-    "<b>Keyone Jenkins</b> went under 234.5 pass yds in <b>4 of 7 games</b> in 2026 and 8 of 10 in 2025, in the games he appears in."
-   ],
-   "model_p": 51.9,
-   "rank": 16
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Gavin Freeman",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 88.5,
-   "game": "Baylor Bears @ UCF Knights",
-   "game_id": "44ee19d31b9288ad402868d6df737595",
-   "away": "Baylor Bears",
-   "home": "UCF Knights",
-   "commence": "2026-10-30T23:30:00Z",
-   "book": "hardrockbet",
-   "price": 100,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4000928139919360409",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "15 of 19",
-   "record": "15 of 19",
-   "rate": 78,
-   "break_even": 50.0,
-   "edge": 2.0,
-   "season_detail": {
-    "h25": 12,
-    "n25": 12,
-    "h26": 3,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.903,
-    "weighted_n": 11.36,
-    "mean_all": 61.0
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 40.08,
-   "projection": 61.0,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 61.0 rec yds a game.",
-   "why": [
-    "<b>Gavin Freeman</b> went under 88.5 rec yds in <b>3 of 7 games</b> in 2026 and 12 of 12 in 2025, in the games he appears in."
-   ],
-   "model_p": 52.3,
-   "rank": 17
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Dru DeShields",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 24.5,
-   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
-   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
-   "away": "Kent State Golden Flashes",
-   "home": "Sacramento State Hornets",
-   "commence": "2026-10-31T02:30:00Z",
-   "book": "fanduel",
-   "price": -112,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620928782&selectionId=102889293",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "14 of 19",
-   "record": "14 of 19",
-   "rate": 65,
-   "break_even": 52.8,
-   "edge": -0.8,
-   "season_detail": {
-    "h25": 10,
-    "n25": 11,
-    "h26": 4,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.677,
-    "weighted_n": 11.67,
-    "mean_all": 13.421
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 3.45,
-   "projection": 13.4,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 13.4 rush yds a game.",
-   "why": [
-    "<b>Dru DeShields</b> went under 24.5 rush yds in <b>4 of 8 games</b> in 2026 and 10 of 11 in 2025, in the games he appears in."
-   ],
-   "model_p": 51.6,
-   "rank": 18,
+   "rank": 6,
    "below_price": true
   },
   {
@@ -3576,7 +3034,578 @@
     "<b>Henry Rutledge</b> went over 47.5 rush yds in <b>2 of 7 games</b> in 2026 and 0 of 1 in 2025, in the games he appears in."
    ],
    "model_p": 51.8,
-   "rank": 19,
+   "rank": 7,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Garrett Mmahat",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 25.5,
+   "game": "Tulane Green Wave @ Charlotte 49ers",
+   "game_id": "78b3d38cdfa28649fdd2ca92829569ce",
+   "away": "Tulane Green Wave",
+   "home": "Charlotte 49ers",
+   "commence": "2026-10-30T23:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2806736070153208238",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 51.8,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": -2.5,
+   "rank": 8,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Isaiah Ene",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 53.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620925152&selectionId=104441994",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 8",
+   "record": "6 of 8",
+   "rate": 73,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.724,
+    "weighted_n": 8.0,
+    "mean_all": 37.875
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 37.88,
+   "projection": 37.9,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 37.9 rush yds a game.",
+   "why": [
+    "<b>Isaiah Ene</b> went under 53.5 rush yds in <b>6 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 55.6,
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Keyone Jenkins",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 10.5,
+   "game": "Baylor Bears @ UCF Knights",
+   "game_id": "44ee19d31b9288ad402868d6df737595",
+   "away": "Baylor Bears",
+   "home": "UCF Knights",
+   "commence": "2026-10-30T23:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620116419&selectionId=103209058",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "5 of 17",
+   "record": "5 of 17",
+   "rate": 44,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 10,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.515,
+    "weighted_n": 10.64,
+    "mean_all": 11.176
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 11.4,
+   "projection": 11.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 11.2 rush yds a game.",
+   "why": [
+    "<b>Keyone Jenkins</b> went over 10.5 rush yds in <b>3 of 7 games</b> in 2026 and 2 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.6,
+   "rank": 10
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Da'Realyst Clark",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 28.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620926175&selectionId=104442067",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "10 of 14",
+   "record": "10 of 14",
+   "rate": 57,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 6,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.496,
+    "weighted_n": 10.0,
+    "mean_all": 27.286
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.0,
+   "projection": 27.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 27.3 rec yds a game.",
+   "why": [
+    "<b>Da'Realyst Clark</b> went under 28.5 rec yds in <b>5 of 8 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.7,
+   "rank": 11
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Wayne Harris",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 6.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -168,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621134103&selectionId=104442013",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "18 of 20",
+   "record": "18 of 20",
+   "rate": 88,
+   "break_even": 62.7,
+   "edge": -7.7,
+   "season_detail": {
+    "h25": 12,
+    "n25": 12,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.923,
+    "weighted_n": 12.0,
+    "mean_all": 3.65
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.92,
+   "projection": 3.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 3.6 rec a game.",
+   "why": [
+    "<b>Wayne Harris</b> went under 6.5 rec in <b>6 of 8 games</b> in 2026 and 12 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.4,
+   "rank": 12,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Raiden Brown",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 20.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620928333&selectionId=104442303",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 54,
+   "model_p": 54.3,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 0.7,
+   "rank": 13
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Dru DeShields",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 239.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620924314&selectionId=102889293",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "15 of 19",
+   "record": "15 of 19",
+   "rate": 75,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 9,
+    "n25": 11,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.739,
+    "weighted_n": 11.67,
+    "mean_all": 182.316
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 184.55,
+   "projection": 182.3,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 182.3 pass yds a game.",
+   "why": [
+    "<b>Dru DeShields</b> went under 239.5 pass yds in <b>6 of 8 games</b> in 2026 and 9 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.0,
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Onterrio Smith Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 41.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620928093&selectionId=104442244",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "6 of 8",
+   "record": "6 of 8",
+   "rate": 68,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.638,
+    "weighted_n": 8.0,
+    "mean_all": 43.75
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 43.75,
+   "projection": 43.8,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 43.8 rec yds a game.",
+   "why": [
+    "<b>Onterrio Smith Jr.</b> went under 41.5 rec yds in <b>6 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 52.8,
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Gavin Freeman",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 7.5,
+   "game": "Baylor Bears @ UCF Knights",
+   "game_id": "44ee19d31b9288ad402868d6df737595",
+   "away": "Baylor Bears",
+   "home": "UCF Knights",
+   "commence": "2026-10-30T23:30:00Z",
+   "book": "fanduel",
+   "price": -122,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621026593&selectionId=102317514",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "16 of 19",
+   "record": "16 of 19",
+   "rate": 85,
+   "break_even": 55.0,
+   "edge": -2.0,
+   "season_detail": {
+    "h25": 12,
+    "n25": 12,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.957,
+    "weighted_n": 11.36,
+    "mean_all": 5.842
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.42,
+   "projection": 5.8,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 5.8 rec a game.",
+   "why": [
+    "<b>Gavin Freeman</b> went under 7.5 rec in <b>4 of 7 games</b> in 2026 and 12 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.1,
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ardell Banks",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -160,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621134105&selectionId=104442394",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 61.5,
+   "edge": -8.5,
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Keyone Jenkins",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 234.5,
+   "game": "Baylor Bears @ UCF Knights",
+   "game_id": "44ee19d31b9288ad402868d6df737595",
+   "away": "Baylor Bears",
+   "home": "UCF Knights",
+   "commence": "2026-10-30T23:30:00Z",
+   "book": "hardrockbet",
+   "price": 100,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6561066227396116867",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "12 of 17",
+   "record": "12 of 17",
+   "rate": 69,
+   "break_even": 50.0,
+   "edge": 2.0,
+   "season_detail": {
+    "h25": 8,
+    "n25": 10,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.726,
+    "weighted_n": 10.64,
+    "mean_all": 167.118
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 174.2,
+   "projection": 167.1,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 167.1 pass yds a game.",
+   "why": [
+    "<b>Keyone Jenkins</b> went under 234.5 pass yds in <b>4 of 7 games</b> in 2026 and 8 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.9,
+   "rank": 18
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Gavin Freeman",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 88.5,
+   "game": "Baylor Bears @ UCF Knights",
+   "game_id": "44ee19d31b9288ad402868d6df737595",
+   "away": "Baylor Bears",
+   "home": "UCF Knights",
+   "commence": "2026-10-30T23:30:00Z",
+   "book": "hardrockbet",
+   "price": 100,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4000928139919360409",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "15 of 19",
+   "record": "15 of 19",
+   "rate": 78,
+   "break_even": 50.0,
+   "edge": 2.0,
+   "season_detail": {
+    "h25": 12,
+    "n25": 12,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.903,
+    "weighted_n": 11.36,
+    "mean_all": 61.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 40.08,
+   "projection": 61.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 61.0 rec yds a game.",
+   "why": [
+    "<b>Gavin Freeman</b> went under 88.5 rec yds in <b>3 of 7 games</b> in 2026 and 12 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.3,
+   "rank": 19
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Dru DeShields",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 24.5,
+   "game": "Kent State Golden Flashes @ Sacramento State Hornets",
+   "game_id": "8916ba5e623a0a1d97dd0e7f50e4a205",
+   "away": "Kent State Golden Flashes",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-10-31T02:30:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.620928782&selectionId=102889293",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "14 of 19",
+   "record": "14 of 19",
+   "rate": 65,
+   "break_even": 52.8,
+   "edge": -0.8,
+   "season_detail": {
+    "h25": 10,
+    "n25": 11,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.677,
+    "weighted_n": 11.67,
+    "mean_all": 13.421
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.45,
+   "projection": 13.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 13.4 rush yds a game.",
+   "why": [
+    "<b>Dru DeShields</b> went under 24.5 rush yds in <b>4 of 8 games</b> in 2026 and 10 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.6,
+   "rank": 20,
    "below_price": true
   },
   {
@@ -3625,7 +3654,7 @@
     "<b>Duke Watson</b> went under 67.5 rush yds in <b>3 of 7 games</b> in 2026 and 7 of 7 in 2025, in the games he appears in."
    ],
    "model_p": 51.7,
-   "rank": 20,
+   "rank": 21,
    "below_price": true
   },
   {
@@ -3674,7 +3703,7 @@
     "<b>Jackson Sharman</b> went under 189.5 pass yds in <b>4 of 7 games</b> in 2026, in the games he appears in."
    ],
    "model_p": 51.5,
-   "rank": 21,
+   "rank": 22,
    "below_price": true
   },
   {
@@ -3723,7 +3752,7 @@
     "<b>Wayne Harris</b> went under 75.5 rec yds in <b>5 of 8 games</b> in 2026 and 11 of 12 in 2025, in the games he appears in."
    ],
    "model_p": 52.5,
-   "rank": 22,
+   "rank": 23,
    "below_price": true
   },
   {
@@ -3752,7 +3781,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 54.1,
    "edge": -2.1,
-   "rank": 23,
+   "rank": 24,
    "below_price": true
   },
   {
@@ -3781,35 +3810,6 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 54.1,
    "edge": -2.1,
-   "rank": 24,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Garrett Mmahat",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 25.5,
-   "game": "Tulane Green Wave @ Charlotte 49ers",
-   "game_id": "78b3d38cdfa28649fdd2ca92829569ce",
-   "away": "Tulane Green Wave",
-   "home": "Charlotte 49ers",
-   "commence": "2026-10-30T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -120,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2806736070153208238",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.8,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 54.5,
-   "edge": -2.5,
    "rank": 25,
    "below_price": true
   }
@@ -4306,7 +4306,7 @@
    ]
   }
  ],
- "n_longshots_excluded": 8,
+ "n_longshots_excluded": 5,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
