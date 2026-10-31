@@ -224,6 +224,13 @@ failed recurring runs, i would like to avoid that"*. So:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's
    runs.yml turned collect #1839 red on a row-count pin that every
    pr-tests job had passed (`test_pr_staged.py`).
+   `[Sam, 2026-10-30]` *"we need to fix it for the long term as well"*: one
+   more, `offseason`, empties every league's live boards on its own checkout
+   (`offseason.py`) and runs the `rest` shard, in every season: a test that
+   needs a game fails at its PR, not the day a league goes dark (#298, #301,
+   and #329's two red days, the MLB season's end). `test_offseason.py`.
+   ⛔ Tell Sam a PR is ready only after reading its checks green yourself:
+   #329 merged with 2 red ones (my fixed dates) and kept collect red.
 2. ⛔ **A workflow file with a `cron:` block is never changed in a PR.**
    Hand Sam the file; he uploads it with GitHub's "choose your files"
    button. (Dragging a folder put 37 files one level too deep, twice, on
@@ -1544,6 +1551,11 @@ fb_alt_lines.py   the pre-registered check (research/fb_alt_lines_spec.md,
                   the main line? ⛔ Decides the tab's LABEL (stored in
                   game-lines.json; no box or ⚠ on the page since
                   2026-10-01), never whether a number shows. Called by fb_model.build on its rows.
+offseason.py      THE TREE WITH NO GAME ANYWHERE (Sam, 2026-10-30): empties
+                  every league's live boards, game lines, dossiers and model
+                  pick lists, on pr-tests' throwaway `offseason` checkout.
+                  ⛔ Cards and graded records stay: nothing rewrites them when
+                  a season ends. Needs `--yes`; never on the real tree.
 liveprobe.py      can the football scores tab ever be live?
 verify_nfl.py     the football data-layer verifier
 
