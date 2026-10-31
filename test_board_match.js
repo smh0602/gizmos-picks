@@ -10,10 +10,14 @@ const etSrc=html.match(/const etDate = [\s\S]*?\n};/)[0];
 // An empty live board is replaced by a PLANTED one with the same traps: one pair twice
 // (a 9:40pm ET night game at 01:40Z, then today's 17:05Z game) and another pair once.
 const LIVE=JSON.parse(fs.readFileSync('data/latest/board.json','utf8'));
+// ⛔ Its times come from the artifact it replaces, never written down (rule 166,
+// test_frozen_dates.py: #329 wrote them down and that kept collect red a day longer).
+const DAY=new Date(Date.parse(LIVE.pulled_at)); DAY.setUTCHours(0,0,0,0);
+const at=(h,m)=>new Date(+DAY+h*3600000+m*60000).toISOString().replace('.000Z','Z');
 const BOARD=(LIVE.games||[]).length ? LIVE : {games:[
-  {id:'planted-night', away:'Away Club', home:'Home Club', commence:'2026-09-15T01:40:00Z', total:8.5},
-  {id:'planted-today', away:'Away Club', home:'Home Club', commence:'2026-09-15T17:05:00Z', total:7.5},
-  {id:'planted-other', away:'Road Nine', home:'Park Nine', commence:'2026-09-15T23:10:00Z', total:9.0}]};
+  {id:'planted-night', away:'Away Club', home:'Home Club', commence:at(1,40), total:8.5},
+  {id:'planted-today', away:'Away Club', home:'Home Club', commence:at(17,5), total:7.5},
+  {id:'planted-other', away:'Road Nine', home:'Park Nine', commence:at(23,10), total:9.0}]};
 if(BOARD!==LIVE) console.log('the live board has no games (off-season): the matcher is driven on a planted board');
 const [boardFor, etDate]=new Function('BOARD', etSrc+'\n'+src+'; return [boardFor, etDate];')(BOARD);
 
