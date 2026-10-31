@@ -334,11 +334,11 @@ jobs:
       - name: Tests, with no game anywhere
         run: |
           # Its own loop file, as in `staged` (test_step_tmp.py).
-          loop=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/loop.XXXXXX")
-          trap 'rm -f "$loop"' EXIT
-          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > "$loop"
-          grep -q "run_one" "$loop" || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
-          bash -e "$loop"
+          offloop=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/offseason-loop.XXXXXX")
+          trap 'rm -f "$offloop"' EXIT
+          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > "$offloop"
+          grep -q "run_one" "$offloop" || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
+          bash -e "$offloop"
 
       - name: The tests must not have modified the tree
         run: |

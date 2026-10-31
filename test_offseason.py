@@ -25,10 +25,15 @@ silently). An empty list is still the key, so §3 holds in any season.
 #   find:           python offseason.py --yes
 #   with:           python --version
 #
-# @vacuity ⛔ a published card is never emptied: it stays when a season ends
+# @vacuity 🔴🔴 the job really runs the suite on the emptied tree
+#   file: .github/workflows/pr-tests.yml
+#   find:           bash -e "$offloop"
+#   with:           true
+#
+# @vacuity ⛔ a graded record is never emptied: it stays when a season ends
 #   file: offseason.py
-#   find: LATEST = ("data/latest", "data/nfl/latest", "data/ncaaf/latest")
-#   with: LATEST = ("data/latest", "data/nfl/latest", "data/ncaaf/latest", "picks")
+#   find:     "board.json": ("games",),
+#   with:     "board.json": ("games",), "record.json": ("games",),
 """
 import gzip
 import json
