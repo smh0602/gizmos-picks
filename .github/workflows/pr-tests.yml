@@ -302,6 +302,53 @@ jobs:
           fi
 
   # ══════════════════════════════════════════════════════════════════════
+  # 🔴🔴 THE SUITE WITH NO GAME ANYWHERE. `[Sam, 2026-10-30]`
+  # A test that leans on today's live board passes all season and goes red
+  # the day a league goes dark: #298, #301, and #329's two red days. Football
+  # goes dark in February. So this job empties every league's live boards on
+  # its own throwaway checkout (`offseason.py`, committed locally, never
+  # pushed: this job cannot write) and runs the `rest` shard, whatever the
+  # season: a test that needs a game fails at its PR. `test_offseason.py`.
+  # ⛔ NOT A THIRD COPY OF THE LOOP (rule 117): the `tests` job's own Tests
+  # step, read out of this file by wfparse at run time, as `staged` does.
+  # ══════════════════════════════════════════════════════════════════════
+  offseason:
+    name: tests (off-season, no games)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      SUITE_SHARD: rest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Empty every league's live boards (locally, never pushed)
+        run: |
+          python offseason.py --yes
+          git add data
+          git -c user.name=pr-tests -c user.email=pr-tests@localhost commit -q -m "pr-tests: off-season tree (local only)"
+
+      - name: Tests, with no game anywhere
+        run: |
+          # Its own loop file, as in `staged` (test_step_tmp.py).
+          loop=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/loop.XXXXXX")
+          trap 'rm -f "$loop"' EXIT
+          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > "$loop"
+          grep -q "run_one" "$loop" || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
+          bash -e "$loop"
+
+      - name: The tests must not have modified the tree
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::the test step modified the working tree"
+            git status --porcelain
+            exit 1
+          fi
+
+  # ══════════════════════════════════════════════════════════════════════
   # 🔴 BROWSER.YML'S RENDER TESTS, ON BOTH IMAGES. `[added 2026-09-24]`
   # ⚠️ `playwright install --with-deps` installs Ubuntu PACKAGES by name,
   # and package names change between Ubuntu releases — it is the step most
