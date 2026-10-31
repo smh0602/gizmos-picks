@@ -1,7 +1,7 @@
 {
  "date": "2026-10-31",
  "league": "ncaaf",
- "generated_at": "2026-10-31T19:56:23Z",
+ "generated_at": "2026-10-31T22:46:42Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-10-31T19:01:28Z",
@@ -2044,7 +2044,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-31T19:55:58Z",
-  "ladder_built_at": "2026-10-31T19:56:04Z",
+  "ladder_built_at": "2026-10-31T22:46:31Z",
   "alt_spreads": 14
  },
  "scores_shown": [
@@ -2773,16 +2773,16 @@
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 2,
-  "same_game_already_listed": 3,
+  "same_game_already_listed": 5,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 217,
+  "pool_after_price_gate": 175,
   "cap": 10,
   "distinct_games": 10,
-  "shared_with_board_head": 8,
+  "shared_with_board_head": 7,
   "board_head_size": 10
  },
- "top_plays_rule": "The 10 most likely to hit for 2026-10-31 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 8 of 10, over 10 game(s). 3 row(s) were held back because their game was already represented and 2 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 10 most likely to hit for 2026-10-31 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 7 of 10, over 10 game(s). 5 row(s) were held back because their game was already represented and 2 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -3680,8 +3680,8 @@
   ]
  },
  "parlay_meta": {
-  "pool": 33,
-  "rated_legs": 217,
+  "pool": 28,
+  "rated_legs": 175,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -3690,18 +3690,18 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 11,
-    "taken": 11
+    "available": 7,
+    "taken": 7
    },
    {
     "decimal": "1.6-2",
-    "available": 196,
+    "available": 159,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 10,
-    "taken": 10
+    "available": 9,
+    "taken": 9
    },
    {
     "decimal": "3-99",
@@ -3710,12 +3710,12 @@
    }
   ],
   "rejected": {
-   "same_game": 16815,
+   "same_game": 9830,
    "same_player": 0,
-   "mixed_book": 9695,
+   "mixed_book": 3933,
    "out_of_band": 0
   },
-  "note": "217 rated legs, 33 in the stratified pool. Rejected: 16815 same game, 0 same player, 9695 would need two books, 0 outside Sam's bands."
+  "note": "175 rated legs, 28 in the stratified pool. Rejected: 9830 same game, 0 same player, 3933 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -4116,13 +4116,13 @@
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 14,
+  "games_with_rated_legs": 11,
   "games_with_a_line_row": 12,
-  "games_used": 14,
+  "games_used": 11,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 456,
-   "mixed_book": 520,
+   "same_player": 372,
+   "mixed_book": 400,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -4130,7 +4130,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "14 game(s) on this card carry a rated leg and 12 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "11 game(s) on this card carry a rated leg and 12 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -13083,19 +13083,19 @@
   }
  },
  "name_match_rate": 0.958,
- "n_priced": 251,
+ "n_priced": 200,
  "single_day": true,
  "slate_date": "2026-10-31",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 251,
+ "n_on_slate_day": 200,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-31 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "251 priced football rows for 2026-10-31 across 45 board games; 25 shown.",
+ "coverage": "200 priced football rows for 2026-10-31 across 45 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 53.4% against a claimed 54% (-0.6 pts, n=146). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 146 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -15449,7 +15449,7 @@
    "why_card": []
   }
  ],
- "n_longshots_excluded": 50,
+ "n_longshots_excluded": 38,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
