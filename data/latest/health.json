@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-01T15:12:58Z",
+ "checked_at": "2026-11-01T15:38:14Z",
  "et_date": "2026-11-01",
  "healthy": false,
  "broken": 0,
- "degraded": 6,
+ "degraded": 5,
  "findings": [
   {
    "key": "late:card-fb:ncaaf",
@@ -25,13 +25,6 @@
    "severity": "DEGRADED",
    "what": "ncaaf gamelines was built 216 minutes after it was due",
    "why": "due 2026-11-01T11:00Z, built 2026-11-01T14:35Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 99 minutes after it was due",
-   "why": "due 2026-11-01T13:00Z, built 2026-11-01T14:39Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -58,7 +51,7 @@
   "pulled_at": "2026-11-01T15:12:43Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.4,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-01T15:12:38Z",
   "source": "data/nfl/2026-11-01/alt-lines/1512.json.gz",
