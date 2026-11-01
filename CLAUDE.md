@@ -1724,6 +1724,22 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   `[2026-10-28]` A heartbeat it lands must vouch for the file
                   beside it on the tip, else the tip's is kept or it is
                   removed (`freshness.settle_beats`). test_push_retry.py §5.
+                  `[2026-11-01]` The watchdog's commit (label `health report`)
+                  gives way: every path it changed that another run also moved
+                  since this run's base keeps the remote's copy, so a repair
+                  built on an older tree cannot replace a newer file with a
+                  later built_at. health.json always lands. Reproduced on two
+                  clones; it has never fired. ✅ Guards that commit: every
+                  repair mode and league, and what its sweep of `data picks`
+                  carries. ⚠️ NOT the class: a new dated archive (`winner-picks`,
+                  `model-picks`) never counts as moved, so a stale repair's
+                  save still lands and can be the last before the start; and a
+                  converge pass still lands last-wins, so two overlapping
+                  football runs still roll a card back for minutes, which is a
+                  separate fix. It also gives a run with no git identity one
+                  (a run cancelled in Tests), and a replayed commit that fails
+                  is now exit 1: such runs printed "pushed" with nothing
+                  landed. test_push_retry.py §6.
 mlb_refit.py      MLB champion vs challenger, as Sam approved it on
                   2026-09-23 in `research/mlb_refit_spec.md`: v5.0
                   (READ from card.py) against the same model re-fitted

@@ -1855,8 +1855,7 @@ def render(out):
 if __name__ == "__main__":
     r = run()
     os.makedirs(os.path.join(ROOT, "data", "latest"), exist_ok=True)
-    json.dump(r, open(os.path.join(ROOT, "data", "latest", "health.json"),
-                      "w", encoding="utf-8"), indent=1)
+    json.dump(r, open(os.path.join(ROOT, HEALTH), "w", encoding="utf-8"), indent=1)
     print("═══ WATCHDOG — does the page look right to Sam right now? ═══")
     print("  checked %s (ET %s)" % (r["checked_at"], r["et_date"]))
     if r["healthy"]:
