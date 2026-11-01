@@ -307,7 +307,7 @@ def drive(body, state, open_issue):
 #    an undeclared close is a failure, so the map cannot be padded
 #    quietly.
 # @vacuity a watcher's declared resolving path must really close
-#   file: .github/workflows/owed_tests.yml
+#   file: docs/upload/owed_tests.yml
 #   find: gh issue close "$NUM"
 #   with: echo "deliberately not closing"
 _RESOLVES_ON = {

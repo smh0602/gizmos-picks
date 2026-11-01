@@ -157,11 +157,14 @@ note("pr-tests: %d job(s) per image (%s)" % (len(SHARDS), ", ".join(SHARDS)))
 _ntext = W.read(W.effective_workflows(ROOT)["vacuity.yml"])
 _nm = re.findall(r"(?m)^        part: \[(.*)\]\s*$", _ntext)
 NPARTS = [x.strip() for x in _nm[0].split(",")] if len(_nm) == 1 else []
-NN = len(NPARTS)
+# ⚠️ N IS WHAT THE JOBS ARE TOLD, never the matrix's own length: [1, 2, 3] is a
+#    fine list of itself, and with `/4` it leaves part 4/4 swept by nobody.
+_ndiv = re.findall(r"(?m)^\s+VACUITY_PART: \$\{\{ matrix\.part \}\}/(\d+)\s*$", _ntext)
+NN = int(_ndiv[0]) if len(_ndiv) == 1 else 0
 ck("🔴🔴 the nightly's parts are 1..N of ONE N, each exactly once",
    NN >= 2 and NPARTS == [str(k) for k in range(1, NN + 1)],
    "⛔ a missing part is a quarter of the sweep that runs nowhere, every night, "
-   "and only a part that RAN can say so. got %r" % _nm)
+   "and only a part that RAN can say so. matrix %r, told /%r" % (_nm, _ndiv))
 note("nightly: %d part(s)" % NN)
 
 # ════════════════════════════════════════════════════════════════════════

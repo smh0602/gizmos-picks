@@ -10,7 +10,7 @@ Every night a job checks that the site's safety checks can actually fail
 two-hour limit: it ran out of time on **9 of its last 15 nights**. When it
 ran out of time it had nothing to say, and the step that updates the issue
 read "nothing" as a problem and **wrote a blank page over issue #249**. The
-same mistake was in six of these jobs.
+same mistake was in all six of these files.
 
 These 6 files change two things:
 
