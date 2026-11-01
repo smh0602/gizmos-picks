@@ -16,22 +16,47 @@ REAL workflows and the REAL declarations:
      every image;
   2. the Tests loop — driven, not read — runs rest + sweep = every file,
      none twice, refuses an unknown shard and a shard that ran nothing;
-  3. the N parts cover every declared mutation exactly once;
-  4. `vacuity.tier2` really sweeps only its part (driven on a planted tree);
+  1b. `[2026-11-01]` the nightly's `vacuity.yml` runs parts 1..N of ONE N too;
+  3. the N parts cover every declared mutation, and every tier 1 pair, exactly
+     once;
+  4. `vacuity.tier2` and `tier1` really sweep only their part (driven on a
+     planted tree);
   4b. `[Sam, 2026-10-02]` collect runs the `rest` share and NOT the sweep (it
      checks the tests, not the data, and held every pull back 33+ minutes),
      while the nightly `vacuity.yml` still sweeps everything (its step is
      read in test_vacuity_pool.py: a step this file names counts as driven).
+     ~~main() takes no part~~ `[2026-11-01]` main() hands VACUITY_PART to both
+     tiers, and sweeps everything when it is unset.
 
 # @vacuity 🔴🔴 collect's Tests step skips the sweep
 #   file: docs/upload/collect.yml
 #   find:           SUITE_SHARD: rest
 #   with:           SUITE_SHARD: all
 #
-# @vacuity 🔴 vacuity.main() sweeps both tiers whole
+# @vacuity 🔴 vacuity.main() hands its part to tier 2, and unset stays whole
 #   file: vacuity.py
-#   find:     t2 = tier2(leaks=wleaks)
+#   find:     t2 = tier2(leaks=wleaks, part=part)
 #   with:     t2 = tier2(leaks=wleaks, part=(1, 4))
+#
+# @vacuity 🔴 vacuity.main() hands its part to tier 1 too
+#   file: vacuity.py
+#   find:     t1 = tier1(leaks=wleaks, part=part)
+#   with:     t1 = tier1(leaks=wleaks)
+#
+# @vacuity 🔴 vacuity.main() reads VACUITY_PART at all
+#   file: vacuity.py
+#   find:     part = parse_part(os.environ.get("VACUITY_PART"))
+#   with:     part = None
+#
+# @vacuity 🔴🔴 tier1 ignoring its part is caught
+#   file: vacuity.py
+#   find:     return _pool(root, JOBS if jobs is None else jobs, part_of(pairs, part),
+#   with:     return _pool(root, JOBS if jobs is None else jobs, pairs,
+#
+# @vacuity 🔴🔴 a nightly part missing from the matrix is caught
+#   file: docs/upload/vacuity.yml
+#   find:         part: [1, 2, 3, 4]
+#   with:         part: [1, 2, 3]
 
 # @vacuity 🔴🔴 a sweep part missing from the matrix is caught
 #   file: .github/workflows/pr-tests.yml
@@ -125,6 +150,19 @@ ck("🔴 each job is told its shard and its part",
    "⛔ a job that is not told its part sweeps EVERYTHING (slow, never "
    "wrong); one told the wrong part sweeps another's share. got %r" % _env)
 note("pr-tests: %d job(s) per image (%s)" % (len(SHARDS), ", ".join(SHARDS)))
+
+# 🔴 `[2026-11-01]` THE NIGHTLY'S MATRIX IS HELD TO THE SAME BAR, as it will be
+#    live. Its step is told `matrix.part` (test_vacuity_pool.py) and its report
+#    wants every part (test_vacuity_merge.py).
+_ntext = W.read(W.effective_workflows(ROOT)["vacuity.yml"])
+_nm = re.findall(r"(?m)^        part: \[(.*)\]\s*$", _ntext)
+NPARTS = [x.strip() for x in _nm[0].split(",")] if len(_nm) == 1 else []
+NN = len(NPARTS)
+ck("🔴🔴 the nightly's parts are 1..N of ONE N, each exactly once",
+   NN >= 2 and NPARTS == [str(k) for k in range(1, NN + 1)],
+   "⛔ a missing part is a quarter of the sweep that runs nowhere, every night, "
+   "and only a part that RAN can say so. got %r" % _nm)
+note("nightly: %d part(s)" % NN)
 
 # ════════════════════════════════════════════════════════════════════════
 section("2. 🔴🔴 THE TESTS LOOP, DRIVEN: REST + SWEEP = EVERY FILE, ONCE")
@@ -224,6 +262,17 @@ if N:
        "sizes %r" % [len(g) for g in _got])
     note("%d declarations over %d parts: %s"
          % (len(DECLS), N, [len(g) for g in _got]))
+# `[2026-11-01]` The nightly sweeps tier 1 as well, on its own N.
+PAIRS = sorted(V.name_map(ROOT).items())
+ck("⚠️ there are tier 1 pairs to partition", len(PAIRS) >= 10,
+   "⛔ rule 67. got %d" % len(PAIRS))
+if NN:
+    for _name, _items in (("declaration", DECLS), ("tier 1 pair", PAIRS)):
+        _got = [V.part_of(_items, (k, NN)) for k in range(1, NN + 1)]
+        _flat = [x for g in _got for x in g]
+        ck("🔴🔴 the nightly's %d parts together are every %s, each once" % (NN, _name),
+           sorted(_flat) == sorted(_items) and len(_flat) == len(set(_flat)),
+           "⛔ %d swept of %d" % (len(_flat), len(_items)))
 ck("✅ unset means everything", V.part_of(DECLS, None) == DECLS)
 _bad = []
 for _s in ("0/4", "5/4", "1/0", "x", "2", "-1/4"):
@@ -260,6 +309,20 @@ try:
     ck("✅ ...while no part sweeps all three",
        len(V.tier2(_d, jobs=1)) == 3,
        "⛔ the unsplit sweep is the baseline the parts must add up to")
+    # `[2026-11-01]` Tier 1 the same way: each planted subject has its own test.
+    for _i in range(3):
+        open(os.path.join(_d, "mod%d.py" % _i), "w").write("def f():\n    return 1\n")
+        open(os.path.join(_d, "test_mod%d.py" % _i), "w").write(
+            "import sys, mod%d\nsys.exit(0 if mod%d.f() == 1 else 1)\n" % (_i, _i))
+    _pairs = [V.tier1(_d, jobs=1, part=(_k, 3)) for _k in (1, 2, 3)]
+    ck("🔴🔴 tier 1's parts swept the three pairs, once each, and all three bit",
+       [[r["test"] for r in p] for p in _pairs]
+       == [["test_mod0.py"], ["test_mod1.py"], ["test_mod2.py"]]
+       and all(p[0]["state"] == "BITES" for p in _pairs),
+       "⛔ the nightly sweeps tier 1 in parts too. got %r"
+       % [[(r["test"], r["state"]) for r in p] for p in _pairs])
+    ck("✅ ...while unsplit it sweeps all three", len(V.tier1(_d, jobs=1)) == 3,
+       "⛔ the baseline the parts must add up to")
 finally:
     shutil.rmtree(_d, ignore_errors=True)
 
@@ -279,19 +342,51 @@ ck("🔴🔴 collect's Tests step, with its own env, runs every file but test_va
    rc_c == 0 and sorted(ran_c) == sorted(f for f in FIX if f != "test_vacuity.py"),
    "⛔ the sweep in collect holds every data pull back by its whole length. "
    "env=%r ran=%r %s" % (_cenv, ran_c, shown(o_c[-200:])))
-_calls, _keep = [], (V._porcelain, V.tier1, V.tier2, V.leaked)
-try:
-    V._porcelain, V.leaked = (lambda *a, **k: ""), (lambda *a, **k: (True, ""))
-    V.tier1 = lambda *a, **k: _calls.append(("tier1", a, sorted(k))) or []
-    V.tier2 = lambda *a, **k: _calls.append(("tier2", a, sorted(k))) or []
-    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-        V.main()
-finally:
-    V._porcelain, V.tier1, V.tier2, V.leaked = _keep
-ck("🔴 the nightly's vacuity.main() sweeps both tiers whole: no part, no subset",
-   [c[0] for c in _calls] == ["tier1", "tier2"]
-   and all(not a and set(k) <= {"leaks", "jobs"} for _t, a, k in _calls),
-   "⛔ a nightly that sweeps a share is a share nobody checks. got %r" % _calls)
+
+
+def _main_calls(part):
+    """What `vacuity.main()` asks of its tiers. -> [(tier, args, kwargs)].
+
+    ⛔ The env is set, never inherited: pr-tests runs this file with
+    VACUITY_PART set for its sweep jobs, and its sweep runs it as a child.
+    """
+    calls, keep = [], (V._porcelain, V.tier1, V.tier2, V.leaked)
+    saved = {k: os.environ.pop(k, None) for k in ("VACUITY_PART", "VACUITY_OUT")}
+    try:
+        if part is not None:
+            os.environ["VACUITY_PART"] = part
+        V._porcelain, V.leaked = (lambda *a, **k: ""), (lambda *a, **k: (True, ""))
+        V.tier1 = lambda *a, **k: calls.append(("tier1", a, {x: y for x, y in k.items() if x != "leaks"})) or []
+        V.tier2 = lambda *a, **k: calls.append(("tier2", a, {x: y for x, y in k.items() if x != "leaks"})) or []
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            V.main()
+    finally:
+        V._porcelain, V.tier1, V.tier2, V.leaked = keep
+        os.environ.pop("VACUITY_PART", None)
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
+    return calls
+
+
+# 🔴 `[2026-11-01]` ~~sweeps both tiers whole: no part, no subset~~: REWRITTEN,
+#    STRICTER. main() now takes its part from the env, so the question has two
+#    halves, and the old form asked one: unset it is the whole sweep (the deployed
+#    nightly, until Sam's upload), and set, BOTH tiers get that part and nothing
+#    else (a part that swept all of tier 1 would run it four times over).
+_u = _main_calls(None)
+ck("🔴 unset, vacuity.main() sweeps both tiers whole: no part, no subset",
+   [c[0] for c in _u] == ["tier1", "tier2"]
+   and all(not a and not k.get("part") and set(k) <= {"jobs", "part"} for _t, a, k in _u),
+   "⛔ what the deployed nightly does until Sam's upload. got %r" % _u)
+for _spec, _want in (("2/4", (2, 4)), ("4/4", (4, 4))):
+    _s = _main_calls(_spec)
+    ck("🔴🔴 with VACUITY_PART=%s, main() gives both tiers that part and only that" % _spec,
+       [c[0] for c in _s] == ["tier1", "tier2"]
+       and all(not a and k.get("part") == _want and set(k) <= {"jobs", "part"}
+               for _t, a, k in _s),
+       "⛔ a tier that ignores its part is swept whole by all four jobs; one with "
+       "the wrong part leaves a share nobody sweeps. got %r" % _s)
 
 # ════════════════════════════════════════════════════════════════════════
 section("5. 🔴 A GREEN RUN OF THIS FILE PRINTS NO ERROR COMMAND")

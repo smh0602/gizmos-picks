@@ -27,7 +27,9 @@ than by name or id (test_budget_watch.py, test_cfbd_watch.py and
 test_runs_report.py select the three-state watchers' "Tell Sam" steps on
 `gh issue create`; test_card_revert.py and test_test_harness.py run a
 block inside a step). None of those writes a fixed temp path today: their
-/tmp paths are `--body-file` arguments, which only read.
+/tmp paths are `--body-file` arguments, which only read. `[2026-11-01]`
+test_vacuity_merge.py picks two of vacuity.yml's steps by body too; those do
+write /tmp paths, so it points them at a folder of its own before running them.
 
 # @vacuity 🔴 a new fixed /tmp write in a driven step is caught
 #   file: .github/workflows/pr-tests.yml

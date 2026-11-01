@@ -1,6 +1,19 @@
 # UPLOAD BY HAND: `runs.yml`
 
-## Current: the run-status file `[2026-09-25]`
+## Current: the nightly sweep finishes `[2026-11-01]`
+
+**This file is one of 6 uploaded together.** Follow
+**`docs/upload/UPLOAD-sweep-finishes.md`**: it has every click and the
+one commit message. Do it after merging the pull request "The nightly
+sweep finishes, and the watchers stop wiping their issues".
+
+What changes in `runs.yml`: its Tell Sam step now leaves the issue alone when the step before it never finished, instead of overwriting it.
+
+**No schedule, cron line or cost changes.**
+
+---
+
+## ~~Current:~~ Done: the run-status file `[2026-09-25]`
 
 **Do this after you merge the pull request "Collect runs green again:
 doubleheader odds, record rebuild, run-status file".** It is one file.
@@ -75,6 +88,7 @@ Ubuntu 24.04, move to Node 24 actions, pin Python", before 2026-10-19.~~
 
 ## Changelog
 
+- **2026-11-01:** new current section: the 6-file upload in `UPLOAD-sweep-finishes.md`.
 - **2026-09-25:** the run-status file (`publish` job, runs once on upload).
   The 2026-09-24 section is marked done, not deleted.
 - **2026-09-24:** first version.

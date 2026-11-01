@@ -39,6 +39,16 @@ and say which you did.*
      `budget.py`, and the rest of the unreachable set is REPORTED by
      `note()` — rule 76 — so the next reader sees `cfbd_budget.py` sitting
      there rather than discovering it in a month.
+
+# @vacuity 🔴🔴 a Tell Sam step that reads an empty state as a finding is caught
+#   file: docs/upload/vacuity.yml
+#   find:           if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
+#   with:           if [ "$STATE" = "unknown" ]; then
+#
+# @vacuity 🔴 ...in a watcher with no `ok` path too (the class, not one file)
+#   file: docs/upload/owed_tests.yml
+#   find:           if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
+#   with:           if [ "$STATE" = "unknown" ]; then
 """
 import glob
 import os
@@ -53,6 +63,7 @@ from tcheck import ck, note, section
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import budget_watch as B  # noqa: E402
+import wfparse as W  # noqa: E402
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 WF_DIR = os.path.join(ROOT, ".github/workflows")
@@ -218,8 +229,12 @@ section("2. 🔴🔴 THE CLASS: 'I COULD NOT LOOK' MUST NEVER CLOSE AN ISSUE")
 #    ✅ So the set is every step that reads a `steps.look.outputs.state`
 #    into `$STATE` — the watcher contract itself — which is still
 #    DISCOVERED, and still covers a watcher nobody has written yet.
+# ⚠️ `[2026-11-01]` READ AS THEY WILL BE LIVE (`wfparse.effective_workflows`):
+#    the staged copy wins, so a fix waiting for Sam's upload counts and main
+#    is not red between the merge and the upload. `runs_report` flags an upload
+#    left 48 hours.
 _issue_wf, _other_issue = [], set()
-for _p in sorted(glob.glob(os.path.join(WF_DIR, "*.yml"))):
+for _p in sorted(W.effective_workflows(ROOT).values()):
     _t = open(_p, encoding="utf-8").read()
     for _n, _b in run_blocks(_t):
         if "gh issue create" not in live(_b):
@@ -352,6 +367,19 @@ ck("⛔ ...and none of them writes an issue on `unknown` either",
    not _touched,
    "🔴 an alert body overwritten with 'could not look' loses the "
    "finding a human still has to act on. Offenders: %s" % _touched)
+# 🔴🔴 `[2026-11-01]` AND AN EMPTY STATE IS THE SAME "COULD NOT LOOK". A step
+#    killed by its clock never writes its output, so STATE is ''. Every step
+#    tested only "unknown" and "ok", so '' fell through to the alarm path:
+#    `gh issue edit --body-file` on a report nobody wrote. vacuity.yml blanked
+#    #249 that way on 9 nights, with 4 real findings in it. Nothing looked
+#    wrong: the run read `cancelled` and the issue stayed open.
+_wiped = [(f, n) for f, n, b in _issue_wf
+          if re.search(r"issue (create|edit|comment|close)",
+                       drive(b, "", "77") + drive(b, "", ""))]
+ck("🔴🔴 a step that never set its state touches no issue, open or not",
+   not _wiped,
+   "⛔ THIS IS THE DEFECT. An empty state is a timeout, not a finding: it "
+   "wrote an empty body over a real issue. Offenders: %s" % _wiped)
 _nocreate = [f for f, _, b in _issue_wf
              if "issue create" not in drive(b, "bad", "")]
 ck("✅ ...and every one of them DOES open an issue on a real finding",

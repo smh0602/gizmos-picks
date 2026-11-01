@@ -115,7 +115,9 @@ jobs:
           TITLE="Gizmo's Picks - Odds API spend is trending past plan"
           NUM=$(gh issue list --state open --limit 100 --json number,title \
                   --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
-          if [ "$STATE" = "unknown" ]; then
+          # 🔴 `[2026-11-01]` EMPTY IS A STEP THAT NEVER FINISHED, NOT A FINDING:
+          # it fell through to the alarm path and overwrote the open issue.
+          if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
             echo "could not read the spend — leaving any open issue alone"
             exit 0
           fi
@@ -239,7 +241,9 @@ jobs:
           TITLE="Gizmo's Picks - the repository is growing faster than planned"
           NUM=$(gh issue list --state open --limit 100 --json number,title \
                   --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
-          if [ "$STATE" = "unknown" ]; then
+          # 🔴 `[2026-11-01]` EMPTY IS A STEP THAT NEVER FINISHED, NOT A FINDING:
+          # it fell through to the alarm path and overwrote the open issue.
+          if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
             echo "could not read the repository size — leaving any open issue alone"
             exit 0
           fi

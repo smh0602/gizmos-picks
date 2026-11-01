@@ -48,15 +48,25 @@ declarations of its own — the nightly sweep proves each check here bites.
 #   find:     timeout-minutes: 120
 #   with:     timeout-minutes: 30
 #
-# @vacuity 🔴 the nightly runs vacuity.py's main, once, with no part
+# @vacuity 🔴 the nightly runs vacuity.py's main, once, and nothing else there
 #   file: docs/upload/vacuity.yml
 #   find: python vacuity.py > /tmp/vacuity.md 2>/tmp/vacuity.err
 #   with: python -c 'import vacuity as V; V.tier1()' > /tmp/vacuity.md 2>/tmp/vacuity.err
 #
-# @vacuity 🔴 ...and no VACUITY_PART anywhere in the nightly workflow
+# @vacuity 🔴 ...and nothing else in the nightly workflow sets a part
 #   file: docs/upload/vacuity.yml
 #   find: GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #   with: VACUITY_PART: 1/4
+#
+# @vacuity 🔴🔴 every nightly job told the SAME part sweeps a quarter four times
+#   file: docs/upload/vacuity.yml
+#   find: VACUITY_PART: ${{ matrix.part }}/4
+#   with: VACUITY_PART: 1/4
+#
+# @vacuity 🔴🔴 a part count that disagrees with the matrix is caught
+#   file: docs/upload/vacuity.yml
+#   find: VACUITY_PART: ${{ matrix.part }}/4
+#   with: VACUITY_PART: ${{ matrix.part }}/5
 """
 import glob
 import os
@@ -328,13 +338,29 @@ _nwf = W.effective_workflows(ROOT)["vacuity.yml"]
 _nbody = W.step_run(_nwf, step_name="Does every guard actually bite?") or ""
 _py = [l.strip() for l in _nbody.splitlines()
        if not l.lstrip().startswith("#") and re.search(r"\bpython3?\b", l)]
-ck("🔴 the nightly runs vacuity.py's main, once, with no part and nothing else",
+ck("🔴 the nightly runs vacuity.py's main, once, and nothing else in that step",
    len(_py) == 1 and re.fullmatch(r"python3?\s+vacuity\.py(\s+\d?>>?\s*\S+)*", _py[0]),
    "⛔ the nightly is the one full sweep left outside a PR. python lines: %r" % _py)
+# 🔴 `[2026-11-01]` ~~no VACUITY_PART anywhere in the nightly workflow~~: THE
+#    OLD CHECK ASKED THE WRONG QUESTION once the nightly had to run in parts
+#    (one runner ran out its clock on 9 of 15 nights). "Is a part set?" only
+#    stood in for "is the whole sweep covered?". This asks that directly, and is
+#    harder to pass: every job told its own part, of the matrix's own N, and
+#    nothing else setting one. test_pr_shards.py holds the matrix to 1..N and the
+#    N parts to every declaration and pair; test_vacuity_merge.py holds the report
+#    to all N.
 _part = [l.strip() for l in _text(_nwf).splitlines()
          if "VACUITY_PART" in l and not l.lstrip().startswith("#")]
-ck("🔴 ...and no VACUITY_PART anywhere in the nightly workflow",
-   bool(_nbody) and not _part, "⛔ a part set here sweeps a share. %r" % _part)
+_mat = re.findall(r"(?m)^        part: \[(.*)\]\s*$", _text(_nwf))
+_mn = len(_mat[0].split(",")) if len(_mat) == 1 else 0
+ck("🔴 ...told its own part of the matrix's own N, and nothing else sets a part",
+   bool(_nbody) and _mn >= 2
+   and (W.step_env(_nwf, step_name="Does every guard actually bite?") or {}).get("VACUITY_PART")
+   == "${{ matrix.part }}/%d" % _mn
+   and len(_part) == 1,
+   "⛔ a job with no part sweeps everything and outruns its clock; four jobs "
+   "told one part leave three quarters unswept, green. matrix=%r lines=%r"
+   % (_mat, _part))
 
 shutil.rmtree(_d, ignore_errors=True)
 shutil.rmtree(LOG, ignore_errors=True)

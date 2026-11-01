@@ -39,6 +39,11 @@ Sam uploads; `runs_report` already flags an upload left 48h.
 #   find:       - uses: actions/checkout@v5
 #   with:       - uses: actions/checkout@v4
 #
+# @vacuity 🔴 the artifact actions are held to their own Node 24 majors
+#   file: docs/upload/vacuity.yml
+#   find:       - uses: actions/upload-artifact@v7
+#   with:       - uses: actions/upload-artifact@v4
+#
 # @vacuity 🔴 a job that runs Python on the IMAGE's Python is caught
 #   file: docs/upload/calibration.yml
 #   find:       - uses: actions/setup-python@v6
@@ -79,11 +84,15 @@ import wfparse as W  # noqa: E402
 #    write 1 and say so.
 #    actions/checkout      v5 = node24 (v4 = node20)
 #    actions/setup-python  v6 = node24 (v5 = node20)
+#    actions/upload-artifact    v7 = node24 (read at the v7 tag, 2026-11-01)
+#    actions/download-artifact  v8 = node24 (read at the v8 tag, 2026-11-01)
 #    anthropics/claude-code-action  composite — no Node runtime of its own
 # ══════════════════════════════════════════════════════════════════════
 NODE24_MIN = {
     "actions/checkout": 5,
     "actions/setup-python": 6,
+    "actions/upload-artifact": 7,
+    "actions/download-artifact": 8,
     "anthropics/claude-code-action": 1,
 }
 PINNED = re.compile(r"^ubuntu-\d{2}\.\d{2}(-arm)?$")
