@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-01T07:12:00Z",
+ "checked_at": "2026-11-01T07:13:49Z",
  "et_date": "2026-11-01",
  "healthy": false,
  "broken": 0,
  "degraded": 8,
  "findings": [
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (cfb-probe)",
+   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
@@ -39,13 +46,6 @@
    "severity": "DEGRADED",
    "what": "nfl fb-scores was built 301 minutes after it was due",
    "why": "due 2026-10-31T08:00Z, built 2026-10-31T13:01Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 361 minutes after it was due",
-   "why": "due 2026-10-31T07:00Z, built 2026-10-31T13:01Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
   },
   {
