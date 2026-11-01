@@ -1707,6 +1707,13 @@ runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
                   data/latest/runs.json (`collect.py runs`, hourly from
                   runs.yml's own `publish` job): the last 48h of every
                   workflow, and each failure's step and annotations.
+                  `[2026-11-01]` A run its clock stopped counts as failed:
+                  GitHub reports a `timeout-minutes` kill as `cancelled`,
+                  never `timed_out`, so `collect()` writes `timed_out`
+                  itself, by each job's time against that job's own clock
+                  (`mark_timeouts`, one jobs call per candidate). ⛔ No
+                  annotation in `collect()`: `watch` holds no `checks: read`.
+                  `test_runs_timeout.py`.
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a
                   gzip, 560x) and never into `picks/`.
