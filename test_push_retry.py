@@ -110,7 +110,7 @@ again). This drives two real clones against one bare remote.
 #
 # @vacuity 🔴 a file nobody else moved still lands
 #   file: push_retry.sh
-#   find: git diff --quiet --no-renames "$base" "$tip" -- "$p" && continue
+#   find: [ -n "$unjudged" ] || ! git diff --quiet --no-renames "$base" "$tip" -- "$p" || continue
 #   with: true
 #
 # @vacuity 🔴🔴 the tip's copy is what stands
@@ -130,7 +130,7 @@ again). This drives two real clones against one bare remote.
 #
 # @vacuity    the run's log names what gave way
 #   file: push_retry.sh
-#   find: echo "$label: $p moved on the remote after this run's base: the remote's copy stands"
+#   find: echo "$label: $p $why: the remote's copy stands"
 #   with: true
 #
 # @vacuity 🔴🔴 what gave way is folded into this run's commit
@@ -178,6 +178,41 @@ again). This drives two real clones against one bare remote.
 #   find: git commit -q -m "$msg" || { echo "$label: the replayed commit failed: nothing landed"; exit 1; }
 #   with: git commit -q -m "$msg" || true
 #
+# @vacuity 🔴🔴 a run with no identity is a tree nothing judged
+#   file: push_retry.sh
+#   find: git config user.name >/dev/null 2>&1 && git config user.email >/dev/null 2>&1 || unjudged=1
+#   with: true
+#
+# @vacuity 🔴🔴 ...so nothing of it lands but the report, whether the tip moved or not
+#   file: push_retry.sh
+#   find: [ -n "$unjudged" ] || ! git diff --quiet
+#   with: ! git diff --quiet
+#
+# @vacuity 🔴 ...and the log says why, never "moved" for a file nobody moved
+#   file: push_retry.sh
+#   find: [ -z "$unjudged" ] || why="is from a tree no check judged"
+#   with: true
+#
+# @vacuity 🔴🔴 Converge is what gives a run its identity
+#   file: .github/workflows/collect.yml
+#   find: git config user.name  "gizmos-collector"
+#   with: true
+#
+# @vacuity 🔴🔴 ...nothing before the tree check does
+#   file: .github/workflows/collect.yml
+#   find: echo "tree clean after tests"
+#   with: git config user.name x
+#
+# @vacuity 🔴🔴 ...and Converge never runs past a tree the check refused
+#   file: .github/workflows/collect.yml
+#   find:         id: collect
+#   with:         if: always()
+#
+# @vacuity ⚠️ step 1 is what its header says: this run's side of each conflicting hunk
+#   file: push_retry.sh
+#   find: git pull -q --rebase -X theirs --autostash
+#   with: git pull -q --rebase --autostash
+#
 # @vacuity 🔴🔴 keep_both goes before the rule (rebased)
 #   file: push_retry.sh
 #   find: keep_both "$(git rev-parse FETCH_HEAD)"
@@ -210,6 +245,7 @@ import tempfile
 import credits as K
 import freshness as F
 import watchdog as W
+import wfparse
 from tcheck import ck, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -351,6 +387,19 @@ ck('bash push_retry.sh "converge pass $PASS"' in wf,
 ck(re.search(r'push_retry\.sh "converge pass \$PASS"[^\n]*\n[^\n]*rc=1', wf) is not None
    or re.search(r'push_retry\.sh "converge pass \$PASS" \|\| \{[^}]*rc=1', wf) is not None,
    "⛔ ...and a failed push turns the run red")
+# ⚠️ STEP 6 READS A MISSING GIT IDENTITY AS "NOTHING JUDGED THIS TREE". That is only true while
+#    Converge alone sets it, after the tree check, with no `if:` to run it past a refusal. A
+#    name set any earlier would switch the rule off in silence: no run would ever lack one.
+TREE3, CONV3 = "The tests must not have modified the tree", "Converge and hold"
+job3 = wfparse.steps(os.path.join(ROOT, ".github", "workflows", "collect.yml"), "collect")
+ck([s.name for s in job3 if "git config user.name" in (s.run or "")] == [CONV3]
+   and [s.name for s in job3 if s.name in (TREE3, CONV3)] == [TREE3, CONV3]
+   and [s.cond for s in job3 if s.name == CONV3] == [None],
+   "🔴🔴 only Converge gives a run its identity, after the tree check and never past a refusal, "
+   "so a run with none is a run nothing judged",
+   "⛔ push_retry.sh step 6 reads no identity as an unjudged tree: this moved and the rule went "
+   "off in silence, or fires on a judged run. %s"
+   % [(s.name, s.cond) for s in job3 if s.name == CONV3 or "git config user.name" in (s.run or "")])
 
 section("4. 🔴🔴 TWO RUNS BUY THE SAME PAID MINUTE — BOTH RECEIPTS LAND")
 # `[measured 2026-10-23]` Runs 39960254704 and 39954846803 both bought NFL
@@ -592,9 +641,11 @@ section("6. 🔴🔴 THE WATCHDOG'S COMMIT NEVER REPLACES WHAT ANOTHER RUN LANDE
 #    `card`, `card-fb` in any run (watchdog.REBUILDS), and whatever the step's
 #    `git add data picks` sweeps. No record.json version has ever lost a graded day.
 # ⚠️ WHAT THIS GUARDS: every path the watchdog's commit changed that another run also moved.
-#    NOT a new dated archive (`winner-picks`, `model-picks`): a new path never counts as
-#    moved, so a stale repair's save still lands. NOT a converge pass (6b): two overlapping
-#    football runs can still roll a card back for minutes, and that is a separate fix.
+#    NOT a new dated archive (`winner-picks`, `model-picks`) from a run that reached Converge:
+#    a new path never counts as moved, so a stale repair's save still lands. NOT a converge
+#    pass (6b, 6b2): two overlapping football runs can still roll a card back for minutes, or
+#    splice it, and that is a separate fix. A run that never reached Converge is stricter
+#    than all of this (6n): nothing judged its tree, so only its report lands.
 LABEL = "health report"     # what collect.yml's commit step passes; pinned below
 HEALTH6 = W.HEALTH
 REC6 = "data/latest/record.json"
@@ -717,6 +768,24 @@ try:
     ck(rf.returncode == 0 and n6(chk) == 100,
        "⛔ only the watchdog's commit gives way: a converge pass still lands its own file (step 1)",
        "the rule grew past its label")
+
+    # 6b2. WHAT STEP 1 DOES TO A PRETTY-PRINTED FILE. ⚠️ This pins the behaviour the header
+    #      describes, not one anyone wants: `-X theirs` decides conflicting hunks only, so the
+    #      later lander's stamp lands over the other run's price. A fix for the football
+    #      rollbacks turns this red, and must correct step 1's words in the same change.
+    bare6, u, fb = seed6("b2")
+    write(u, CARD6, card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]))
+    land_first(u)
+    write(fb, CARD6, card6("2026-11-11T10:06:00Z", ["a -110", "b -115", "c -120", "d -105"]))
+    commit(fb, "pass fb")
+    rf = run_helper(fb, "converge pass 1")
+    chk = clone(bare6, os.path.join(tmp, "b2-check"))
+    ck(rf.returncode == 0 and open(os.path.join(chk, CARD6)).read()
+       == card6("2026-11-11T10:06:00Z", ["a -105", "b -115", "c -120", "d -105"]),
+       "⚠️ step 1 is hunk by hunk: a pretty-printed card takes this run's stamp and keeps the "
+       "tip's price, a splice of two builds",
+       "⛔ step 1 changed: correct push_retry.sh's header with it. %r"
+       % open(os.path.join(chk, CARD6)).read()[:200])
 
     # 6c. THE REPLAY PATH: the tip deleted a file the repair rewrote, so the rebase aborts.
     bare6, u, fb = seed6("c", {"data/latest/odds.json": '{"v": 0}\n'})
@@ -916,6 +985,43 @@ try:
        "⛔ with no merge base the rule stands aside rather than judge on nothing",
        "rc %s n %s out %r" % (rf.returncode, n6(chk),
                               rf.stdout[-300:]))
+
+    # 6n. A TREE NOTHING JUDGED. No identity means the run never reached Converge: cancelled in
+    #     Tests, refused by the tree check, or red in Tests on a push. The commit step still
+    #     sweeps `data picks`, and that can hold what a killed test left: test_tcheck_guard.py
+    #     rewrites a tracked file and adds one in the real tree. The missing identity used to
+    #     stop that landing, by accident and only on a moved tip. So: the report, and nothing
+    #     else, on every path. (Reproduced on two clones; no such file has ever landed.)
+    PROBE6 = "data/ncaaf/latest/teams.json"
+    DROP6 = "data/ncaaf/latest/_tcheck_probe_delete_me.json"
+    GONE6 = "data/latest/odds.json"
+    for tag, how in (("n", "a moved tip"), ("n2", "a tip nobody moved"), ("n3", "a replay")):
+        bare6, u, fb = seed6(tag, {PROBE6: '{"teams": 1}\n', GONE6: '{"v": 0}\n'})
+        if how == "a moved tip":
+            write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+            land_first(u)
+        elif how == "a replay":
+            sh(u, "git", "rm", "-q", GONE6)
+            land_first(u)
+            write(fb, GONE6, '{"v": "fb"}\n')
+        tip6 = remote_head(u).split()[0]
+        run_env = no_identity(fb)
+        write(fb, PROBE6, '{"teams": 1, "_tcheck_probe": 1}\n')
+        write(fb, DROP6, "{}\n")
+        write(fb, HEALTH6, '{"checked_at": "fb"}')
+        wd_commit(fb)
+        rf = run_helper(fb, LABEL, run_env)
+        chk = clone(bare6, os.path.join(tmp, tag + "-check"))
+        got6 = sh(chk, "git", "diff", "--name-only", "--no-renames", tip6, "HEAD").stdout.split()
+        ck(rf.returncode == 0 and ("replayed" in rf.stdout) == (how == "a replay")
+           and got6 == [HEALTH6]
+           and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
+           "🔴🔴 a run nothing judged lands its health report and nothing else, on %s" % how,
+           "⛔ what a killed test left reached the remote. landed %s rc %s out %r"
+           % (got6, rf.returncode, rf.stdout[-300:]))
+        ck("no check judged" in rf.stdout and "moved on the remote" not in rf.stdout,
+           "   ...and the log says why, never that a file nobody moved had moved",
+           repr(rf.stdout[-300:]))
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
