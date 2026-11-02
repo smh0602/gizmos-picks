@@ -73,7 +73,7 @@ S9_GAME = {"nfl": True, "ncaaf": False}
 #    None is the model above, unchanged. A name is a frozen challenger in
 #    fb_challengers.py whose input the fits then carry; only Sam's merge of the
 #    weekly job's fb/champion-* branch changes it.
-CHAMPION = {"nfl": None, "ncaaf": None}
+CHAMPION = {"nfl": None, "ncaaf": "HC"}
 # 🔴 `[Sam, 2026-10-17]` THE SIMULATION SETS A LEAGUE'S SPREAD AND TOTAL CHANCES only after its
 #    backtest passed the bar fixed in research/fb_sim_design.md §3 BEFORE the run (log loss at
 #    most the smooth curve's AND return at least the smooth curve's, on the closing-line record).
