@@ -188,7 +188,7 @@ jobs:
           # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
           # exception exits 1, the number for a finding, having printed nothing.
           if [ ! -s /tmp/body.md ]; then
-            echo "::warning::no report was written — leaving any open issue alone"
+            echo "::warning::no report was written, so no issue was touched"
             exit 0
           fi
           if [ "$STATE" = "coverage" ]; then
