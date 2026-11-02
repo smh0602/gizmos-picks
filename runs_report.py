@@ -1305,8 +1305,12 @@ def main(argv=None):
         registered = {}
     # `[Sam, 2026-10-07]` a workflow switched off in GitHub is not expected to fire
     DISABLED.update(gh_disabled())
+    # ⛔ HELD BACK TILL THE VERDICT `[2026-11-01]`. Stdout is the issue body, and
+    #    a crash exits 1, the number for a finding. Tell Sam leaves the issue
+    #    alone only when no report was written, and this was written first.
+    head = ""
     if DISABLED:
-        print("switched off in GitHub, not expected to fire: %s" % ", ".join(sorted(DISABLED)))
+        head = "switched off in GitHub, not expected to fire: %s\n" % ", ".join(sorted(DISABLED))
     broken, flapping, seen, truncated, missing = analyse(runs, None, ".",
                                                          registered)
     _by = sorted({(r or {}).get("workflowName") or (r or {}).get("name") or ""
@@ -1326,21 +1330,21 @@ def main(argv=None):
         if rc == EXIT_BROKEN:
             body = render(broken, flapping, seen, truncated, missing,
                           missed, unattributable, floors) + "\n\n"
-        print(body + render_stale(stale))
+        print(head + body + render_stale(stale))
         return EXIT_BROKEN
     if rc == EXIT_OK:
-        print("OK")
+        print(head + "OK")
         return EXIT_OK
     # 🔴 THE COVERAGE-ONLY CASE GETS ITS OWN BODY AND ITS OWN CODE, so
     #    `runs.yml` can file it under its own title. Issue #6 is what
     #    happens without this.
     if rc == EXIT_COVERAGE:
-        print(render_coverage(sorted(set(
+        print(head + render_coverage(sorted(set(
             (r or {}).get("workflowName") or (r or {}).get("name") or ""
             for r in (runs or [])) - {""}), runs=runs))
         return EXIT_COVERAGE
-    print(render(broken, flapping, seen, truncated, missing,
-                 missed, unattributable, floors))
+    print(head + render(broken, flapping, seen, truncated, missing,
+                        missed, unattributable, floors))
     return EXIT_BROKEN
 
 

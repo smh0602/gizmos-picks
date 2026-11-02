@@ -360,7 +360,10 @@ def _drive(state, open_issue):
     os.chmod(gh, os.stat(gh).st_mode | stat.S_IEXEC)
     src = re.sub(r"\$\{\{\s*steps\.look\.outputs\.state\s*\}\}",
                  state, body[-1])
-    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src)
+    # ⚠️ `[2026-11-01]` The report the look step would have left: the step
+    # writes no issue without one (test_budget_watch.py §2).
+    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src).replace("/tmp/", d.replace(os.sep, "/") + "/")
+    open(os.path.join(d, "cfbd.md"), "w", encoding="utf-8").write("a report\n")
     sh = os.path.join(d, "step.sh")
     open(sh, "w", encoding="utf-8").write(src)
     subprocess.run(["bash", sh], cwd=d, timeout=60, capture_output=True,

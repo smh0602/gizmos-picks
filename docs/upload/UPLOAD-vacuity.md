@@ -1,6 +1,19 @@
 # UPLOAD BY HAND: `vacuity.yml`
 
-## Current: give the nightly sweep two hours `[2026-10-02]`
+## Current: the nightly sweep finishes `[2026-11-01]`
+
+**This file is one of 6 uploaded together.** Follow
+**`docs/upload/UPLOAD-sweep-finishes.md`**: it has every click and the
+one commit message. Do it after merging the pull request "The nightly
+sweep finishes, and the watchers stop wiping their issues".
+
+What changes in `vacuity.yml`: the nightly check now runs in four jobs plus a fifth that writes the one report, and Tell Sam leaves the issue alone when a step never finished or wrote no report.
+
+**No schedule, cron line or cost changes.**
+
+---
+
+## ~~Current:~~ Done: give the nightly sweep two hours `[2026-10-02]`
 
 **This file is uploaded together with `collect.yml`.** Follow
 **`docs/upload/UPLOAD-collect.md`** (the "Current" section): it has every
@@ -141,3 +154,4 @@ same sweep.
 - **2026-09-23:** first version.
 - **2026-09-24:** the earlier upload was done; this file now describes the Ubuntu 26 / Node 24 update. The old steps are kept above, under "Earlier upload", as history — not deleted.
 - **2026-10-02:** the Ubuntu 26 / Node 24 upload was done. New current section: the nightly's limit goes from 60 to 120 minutes, uploaded with `collect.yml`. My mistake: PR #221 first raised the pull-request sweep clock to 5,400 s without raising this limit, and pr-tests failed on `test_vacuity_pool.py`, which I had not run.
+- **2026-11-01:** new current section: the 6-file upload in `UPLOAD-sweep-finishes.md`.

@@ -1,6 +1,19 @@
 # UPLOAD BY HAND: `owed_tests.yml`
 
-## Current: the Ubuntu 26 / Node 24 update `[2026-09-24]`
+## Current: the nightly sweep finishes `[2026-11-01]`
+
+**This file is one of 6 uploaded together.** Follow
+**`docs/upload/UPLOAD-sweep-finishes.md`**: it has every click and the
+one commit message. Do it after merging the pull request "The nightly
+sweep finishes, and the watchers stop wiping their issues".
+
+What changes in `owed_tests.yml`: its Tell Sam step now leaves the issue alone when the step before it never finished or wrote no report, instead of overwriting it.
+
+**No schedule, cron line or cost changes.**
+
+---
+
+## ~~Current:~~ Done: the Ubuntu 26 / Node 24 update `[2026-09-24]`
 
 **This file is one of 11 uploaded together.** Follow
 **`docs/upload/UPLOAD-runner-image.md`**: it has every click and the
@@ -33,3 +46,4 @@ workflows: pin ubuntu-24.04, Node 24 actions, pinned Python (no cron change)
 ## Changelog
 
 - **2026-09-24:** first version.
+- **2026-11-01:** new current section: the 6-file upload in `UPLOAD-sweep-finishes.md`.

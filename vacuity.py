@@ -69,6 +69,7 @@ asking git whether the tree is clean.
 """
 import ast
 import glob
+import json
 import os
 import queue
 import re
@@ -77,11 +78,16 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 EXIT_OK, EXIT_VACUOUS, EXIT_UNREADABLE = 0, 1, 2
+# ⚠️ `--merge` ONLY `[2026-11-01]`: a finding, and a part that never reported.
+#    `verdict()` never returns it: that judges what was seen, this says what
+#    was not.
+EXIT_PARTIAL = 3
 
 # ⚠️ CI gives every test file 600s. Matching it means this cannot invent a
 #    failure a real run would not see.
@@ -264,6 +270,11 @@ def run_test(t, root=ROOT, red=False):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1",
                    TMPDIR=tmp, TEMP=tmp, TMP=tmp)
         env.pop("TCHECK_FAIL_FAST", None)
+        # ⛔ A CHILD IS NOT THE SWEEP. `[2026-11-01]` Two test files drive
+        #    `main()` with its tiers stubbed; run from a nightly part they
+        #    would write their planted report over that part's real one.
+        env.pop("VACUITY_OUT", None)
+        env.pop("VACUITY_PART", None)
         if red:
             env["TCHECK_FAIL_FAST"] = "1"
         p = subprocess.run([sys.executable, "-B", t], cwd=root,
@@ -319,12 +330,15 @@ def _tier1_one(pair, root):
             "secs": secs, "why": "goes red when %s is gutted" % s}
 
 
-def tier1(root=ROOT, only=None, jobs=None, leaks=None):
-    """Gut each name-mapped subject; the test must go RED."""
+def tier1(root=ROOT, only=None, jobs=None, leaks=None, part=None):
+    """Gut each name-mapped subject; the test must go RED.
+
+    `part` = (k, n) sweeps only this runner's share, as in `tier2`.
+    """
     pairs = [(t, s) for t, s in sorted(name_map(root).items())
              if not (only and t not in only)]
-    return _pool(root, JOBS if jobs is None else jobs, pairs, _tier1_one,
-                 leaks)
+    return _pool(root, JOBS if jobs is None else jobs, part_of(pairs, part),
+                 _tier1_one, leaks)
 
 
 def declarations(root=ROOT):
@@ -452,8 +466,10 @@ def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
     """Apply each declared mutation: must go RED, then GREEN on revert.
 
     `part` = (k, n) sweeps only this runner's share (`part_of`); None, the
-    default and what `main()` (the nightly `vacuity.yml`) uses, sweeps
-    everything. ~~and `collect.yml`~~: collect runs no sweep since 2026-10-02.
+    default, sweeps everything. ~~and what `main()` (the nightly `vacuity.yml`)
+    uses~~ `[2026-11-01]` `main()` passes `VACUITY_PART`, so the nightly sweeps
+    in parts too (see `merge`). ~~and `collect.yml`~~: collect runs no sweep
+    since 2026-10-02.
     """
     ds = [d for d in declarations(root) if not (only and d["test"] not in only)]
     return _pool(root, JOBS if jobs is None else jobs, part_of(ds, part),
@@ -474,6 +490,7 @@ def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
 #    are adjacent, so the costly ones (test_dossier_fb.py, 17 of them) are
 #    dealt across the parts instead of piling into one.
 # ✅ Unset (`VACUITY_PART` empty), everything is swept in one run, as before.
+# `[2026-11-01]` The nightly's parts are the same deal, tier 1's pairs too.
 def parse_part(spec):
     """'k/n' -> (k, n); '' or None -> None. ⛔ Anything else RAISES.
 
@@ -691,19 +708,97 @@ def verdict(results, leak_ok):
     return EXIT_OK
 
 
-def main():
-    before = _porcelain()
-    wleaks = []
-    t1 = tier1(leaks=wleaks)
-    t2 = tier2(leaks=wleaks)
-    ok, dirty = leaked(before)
-    # ⛔ A WORKER TREE LEFT MODIFIED COUNTS EXACTLY LIKE `root` LEFT
-    #    MODIFIED: every result that tree produced after it is suspect.
-    dirty = "\n".join(x for x in [dirty] + wleaks if x)
-    leak_ok = bool(ok) and not dirty
-    # ⛔ EVERY RETURN BELOW IS THIS NUMBER. main() chooses what to SAY;
-    #    it no longer chooses what to REPORT.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE NIGHTLY SWEEPS IN PARTS TOO, AND THE PARTS ARE JUDGED AS ONE.
+#      `[2026-11-01]`
+# ══════════════════════════════════════════════════════════════════════
+# `[measured]` One 4-core runner, one 120-minute clock, and declarations went
+# 868 -> 1,893 in 23 days: that clock dies at 3.80 s per mutation, and 9 of the
+# last 15 nights were slower than that (finished nights ran 2.87-3.34). So the
+# nightly printed nothing, and its Tell Sam step read an empty state as `bad`
+# and wrote an EMPTY body over the open issue: #249 was blanked on all 9 nights
+# with 4 real findings in it. This is the third clock the sweep has outgrown
+# (30, 60, 120).
+# ✅ `vacuity.yml` now runs the same parts pr-tests runs, one job each, and one
+# more job reads their reports here. ⛔ `verdict()` still decides, over the
+# union, so a part is never a second judgement.
+# 🔴 AND A PART THAT NEVER REPORTED IS NEVER A PASS. A share nobody saw cannot
+# close an issue: no finding plus a missing part is "could not look" (2). A
+# finding is still reported, as a short report (3): its body names the parts
+# that are missing, and the run goes red, because those parts may hold more.
+def write_part(path, part, t1, t2, leak_ok, dirty):
+    """Save one part's results for `merge`. `part` None = the whole sweep."""
+    d = os.path.dirname(os.path.abspath(path))
+    os.makedirs(d, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump({"part": "%d/%d" % (part or (1, 1)), "t1": t1, "t2": t2,
+                   "leak_ok": bool(leak_ok), "dirty": dirty or ""}, fh)
+
+
+def read_parts(d):
+    """Every report under `d`. -> (reports, gaps), gaps in plain words.
+
+    Each report carries its part as (k, n), so N is read off the files, never
+    assumed. ⛔ Whatever cannot be read is a GAP, never a skip: a corrupt
+    report is a share nobody can vouch for, the same as one that never came.
+    """
+    reports, gaps = [], []
+    for p in sorted(glob.glob(os.path.join(glob.escape(d), "**", "*.json"),
+                              recursive=True)):
+        try:
+            with open(p, encoding="utf-8") as fh:
+                r = json.load(fh)
+            part = parse_part(r["part"])
+            if part is None or not all(row["state"] for row in r["t1"] + r["t2"]):
+                raise ValueError("no part, or a row with no state")
+            reports.append({"part": part, "t1": r["t1"], "t2": r["t2"],
+                            "leak_ok": bool(r["leak_ok"]), "dirty": r["dirty"]})
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            gaps.append("`%s` cannot be read (%s: %s)"
+                        % (os.path.relpath(p, d), type(e).__name__, e))
+    if not reports:
+        return [], gaps + ["no part reported"]
+    ns = sorted({r["part"][1] for r in reports})
+    if len(ns) > 1:
+        gaps.append("the parts disagree on how many there are: %s" % ns)
+    have = [r["part"][0] for r in reports]
+    for n in ns:
+        gaps += ["part %d/%d never reported" % (k, n) for k in range(1, n + 1)
+                 if k not in have]
+    gaps += ["part %d reported %d times" % (k, have.count(k))
+             for k in sorted(set(have)) if have.count(k) > 1]
+    return reports, gaps
+
+
+def merge(d):
+    """Judge what the parts in `d` reported, as one sweep. -> the exit code.
+
+    All parts in and clean -> 0. All parts in with a finding -> 1. A finding
+    with a part missing -> 3. A leak, or nothing bad but a part missing, or
+    nothing at all -> 2.
+    """
+    reports, gaps = read_parts(d)
+    t1 = [row for rep in reports for row in rep["t1"]]
+    t2 = [row for rep in reports for row in rep["t2"]]
+    leak_ok = all(rep["leak_ok"] for rep in reports)
+    dirty = "\n".join(rep["dirty"] for rep in reports if rep["dirty"])
+    # ⛔ ONE JUDGEMENT. `verdict()` over the union, and the gaps only ever take
+    #    a clean answer away: they never turn a finding or a leak into a pass.
     rc = verdict(t1 + t2, leak_ok)
+    if rc == EXIT_OK and gaps:
+        rc = EXIT_UNREADABLE
+    if gaps:
+        print("⚠️ **THIS REPORT DOES NOT COVER THE WHOLE SWEEP:** %s.\n"
+              % "; ".join(gaps))
+    say(rc, t1, t2, leak_ok, dirty)
+    # 🔴 A SHORT REPORT IS NOT A WHOLE ONE, WHATEVER IT FOUND. As exit 1 it
+    #    replaced the issue's body, losing what the dead part held, and the run
+    #    stayed green, so nobody saw that a part had died.
+    return EXIT_PARTIAL if rc == EXIT_VACUOUS and gaps else rc
+
+
+def say(rc, t1, t2, leak_ok, dirty):
+    """Print what a sweep found. ⛔ `rc` is `verdict()`'s, never decided here."""
     if not leak_ok:
         # 🔴 THE HARNESS MUTATES THE WORKING TREE. If anything is left
         #    behind, every result above is suspect and NOTHING is reported
@@ -733,8 +828,46 @@ def main():
                      ", ".join(_b[-6:])))
     else:
         print(render(t1, t2, unmapped()))
+
+
+def main():
+    # ✅ UNSET IS THE WHOLE SWEEP, as it always was. `[2026-11-01]` A nightly
+    #    part sets this and `VACUITY_OUT`; the deployed nightly sets neither
+    #    until Sam's upload, and keeps working.
+    # ⛔ A malformed value RAISES (`parse_part`), before anything is mutated.
+    part = parse_part(os.environ.get("VACUITY_PART"))
+    before = _porcelain()
+    wleaks = []
+    t1 = tier1(leaks=wleaks, part=part)
+    t2 = tier2(leaks=wleaks, part=part)
+    ok, dirty = leaked(before)
+    # ⛔ A WORKER TREE LEFT MODIFIED COUNTS EXACTLY LIKE `root` LEFT
+    #    MODIFIED: every result that tree produced after it is suspect.
+    dirty = "\n".join(x for x in [dirty] + wleaks if x)
+    leak_ok = bool(ok) and not dirty
+    if os.environ.get("VACUITY_OUT"):
+        write_part(os.environ["VACUITY_OUT"], part, t1, t2, leak_ok, dirty)
+    # ⛔ EVERY RETURN BELOW IS THIS NUMBER. main() chooses what to SAY;
+    #    it no longer chooses what to REPORT.
+    rc = verdict(t1 + t2, leak_ok)
+    say(rc, t1, t2, leak_ok, dirty)
     return rc
 
 
+def cli(argv):
+    """`vacuity.py` sweeps; `vacuity.py --merge DIR` judges parts already swept."""
+    if argv[:1] == ["--merge"]:
+        return merge(argv[1]) if len(argv) == 2 else EXIT_UNREADABLE
+    return main()
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(cli(sys.argv[1:]))
+    except Exception:  # pylint: disable=broad-except
+        # 🔴 AN UNCAUGHT EXCEPTION EXITS 1, AND 1 MEANS "A GUARD IS VACUOUS".
+        #    `[2026-11-01]` `vacuity.yml` would read a crash as a finding and
+        #    write the empty report over the open issue: the wipe this file's
+        #    merge exists to end, by another door. A crash is "could not look".
+        traceback.print_exc()
+        sys.exit(EXIT_UNREADABLE)

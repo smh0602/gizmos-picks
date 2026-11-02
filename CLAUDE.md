@@ -219,6 +219,14 @@ failed recurring runs, i would like to avoid that"*. So:
    on every PR (four parts) and every night (`vacuity.yml`).
    `test_pr_shards.py` fails if collect runs it again or the nightly stops
    sweeping everything (the nightly step itself: `test_vacuity_pool.py`).
+   `[2026-11-01]` The nightly runs the same four parts, one job each, and a
+   fifth job, `watch`, merges them (`vacuity.py --merge`) and alone touches the
+   issue: on one runner its 120-minute clock ran out on 9 of 15 nights and Tell
+   Sam blanked #249 each time. A part that never reported is never a pass: a
+   finding beside a missing part is added to the issue, never written over it,
+   and the run goes red (`test_vacuity_merge.py`). An empty state or an empty
+   report is "could not look" in every three-state watcher (`test_budget_watch.py`
+   §2); `collect.yml`'s two alerts are another shape and are not covered.
    `[2026-09-25]` One more job, `staged`, applies every workflow staged in
    `docs/upload/` to its own checkout and runs the `rest` shard again:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's
@@ -1760,7 +1768,13 @@ vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   sweep, and never run two at once. `[2026-09-26]` A
                   RED run stops at the first failed check
                   (`TCHECK_FAIL_FAST`); the green-on-revert run is
-                  always a full run (test_fail_fast.py).
+                  always a full run (test_fail_fast.py). `[2026-11-01]`
+                  The nightly's four parts too, tier 1 included: each
+                  writes `VACUITY_OUT`, and `--merge DIR` judges them as
+                  one sweep through `verdict()`. ⛔ A part that never
+                  reported is never exit 0, and a crash is exit 2, never
+                  1 (1 is a finding, and writes the issue).
+                  `test_vacuity_merge.py`.
 ```
 
 ⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`

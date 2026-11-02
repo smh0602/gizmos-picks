@@ -24,8 +24,10 @@ check of the week (rules 257, 260, 262).
 failed — which needs no threshold and clears itself the moment a green run
 lands.
 """
+import contextlib
 import datetime
 import glob
+import io
 import json
 import re
 import os
@@ -767,6 +769,96 @@ ck("⛔ unreadable input still exits 2 — unchanged by this drop",
    "🔴 four codes now, and the third state must not have been clobbered "
    "by adding the fourth. Got rc=%d" % _p_bad.returncode)
 
+section("D3b. 🔴🔴 NOTHING REACHES STDOUT BEFORE THE VERDICT")
+# ⛔ STDOUT IS THE ISSUE BODY, AND TELL SAM TRUSTS IT BECAUSE IT IS NOT EMPTY.
+#    `[2026-11-01]` A crash exits 1, the number for a finding, and the step
+#    leaves the issue alone only when no report was written. This one printed
+#    "switched off in GitHub" BEFORE it judged anything, and self-repair is
+#    switched off, so on the live repo a crash left that one line as the report
+#    and it went over the issue.
+# @vacuity 🔴🔴 the switched-off line waits for the verdict
+#   file: runs_report.py
+#   find:         head = "switched off in GitHub, not expected to fire: %s\n" % ", ".join(sorted(DISABLED))
+#   with:         print("switched off in GitHub, not expected to fire: %s" % ", ".join(sorted(DISABLED)))
+#
+# @vacuity ...and still reaches a clean report
+#   file: runs_report.py
+#   find:         print(head + "OK")
+#   with:         print("OK")
+#
+# @vacuity ...a coverage report
+#   file: runs_report.py
+#   find:         print(head + render_coverage(sorted(set(
+#   with:         print(render_coverage(sorted(set(
+#
+# @vacuity ...a failure report
+#   file: runs_report.py
+#   find:     print(head + render(broken, flapping, seen, truncated, missing,
+#   with:     print(render(broken, flapping, seen, truncated, missing,
+#
+# @vacuity ...and an upload report
+#   file: runs_report.py
+#   find:         print(head + body + render_stale(stale))
+#   with:         print(body + render_stale(stale))
+_OFF_LINE = "switched off in GitHub, not expected to fire: self-repair.yml\n"
+
+
+def _judged(code=None, stale=None, crash=False):
+    """`main()` with self-repair switched off and its judgement stubbed.
+
+    -> (what reached stdout, whether it raised).
+    ⚠️ Every stub goes back, and `DISABLED` is emptied: the sections below read
+    the real ones.
+    """
+    def _boom(*a, **k):
+        raise RuntimeError("a crash after the switched-off list was read")
+
+    keep = {k: getattr(R, k) for k in ("gh_disabled", "gh_workflows", "analyse",
+                                       "unseen_workflows", "missed_fires", "verdict",
+                                       "stale_uploads", "render", "render_coverage",
+                                       "render_stale")}
+    stdin, out, raised = sys.stdin, io.StringIO(), False
+    try:
+        sys.stdin = io.StringIO("[]")
+        R.gh_disabled = lambda *a, **k: {"self-repair.yml"}
+        R.gh_workflows = lambda *a, **k: {}
+        R.analyse = _boom if crash else lambda *a, **k: ([], [], set(), False, [])
+        R.unseen_workflows = lambda *a, **k: ([], {})
+        R.missed_fires = lambda *a, **k: ([], [])
+        R.verdict = lambda *a, **k: code
+        R.stale_uploads = lambda *a, **k: stale or []
+        R.render = lambda *a, **k: "BROKEN"
+        R.render_coverage = lambda *a, **k: "COVERAGE"
+        R.render_stale = lambda *a, **k: "STALE"
+        with contextlib.redirect_stdout(out):
+            try:
+                R.main([])
+            except RuntimeError:
+                raised = True
+    finally:
+        sys.stdin = stdin
+        for _k, _v in keep.items():
+            setattr(R, _k, _v)
+        R.DISABLED.clear()
+    return out.getvalue(), raised
+
+
+_o, _raised = _judged(crash=True)
+ck("⚠️ the crash really happened, after the switched-off list was read",
+   _raised, "⛔ otherwise the next check proves nothing (rule 67)")
+ck("🔴🔴 a crash before the verdict leaves stdout EMPTY, with a workflow switched off",
+   _o == "",
+   "⛔ Tell Sam leaves the issue alone only on an empty report: this text would "
+   "go over the issue as the finding. Got %r" % _o)
+for _name, _kw, _want in (("clean", {"code": R.EXIT_OK}, _OFF_LINE + "OK\n"),
+                          ("coverage", {"code": R.EXIT_COVERAGE}, _OFF_LINE + "COVERAGE\n"),
+                          ("failing", {"code": R.EXIT_BROKEN}, _OFF_LINE + "BROKEN\n"),
+                          ("upload", {"code": R.EXIT_OK, "stale": ["x"]}, _OFF_LINE + "STALE\n")):
+    _o, _raised = _judged(**_kw)
+    ck("✅ ...and the %s report still opens with the switched-off line" % _name,
+       _o == _want and not _raised,
+       "⛔ holding the line back must not lose it: Sam reads it. Got %r" % _o)
+
 section("D4. ⛔ THE COVERAGE FINDING HAS ITS OWN TITLE AND CLEANS UP #6")
 _YML = open(os.path.join(ROOT, ".github/workflows/runs.yml"),
             encoding="utf-8").read()
@@ -834,7 +926,10 @@ def _drive(state, fail_num="", cov_num=""):
     for _n, _b in [(n, b) for n, b in _steps(_YML) if "gh issue create" in b]:
         body = _b
     src = re.sub(r"\$\{\{\s*steps\.look\.outputs\.state\s*\}\}", state, body)
-    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src)
+    # ⚠️ `[2026-11-01]` The report the look step would have left: the step
+    # writes no issue without one (test_budget_watch.py §2). `/tmp/body.md` is
+    # pointed at it; a body in the working folder alone was never read.
+    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src).replace("/tmp/", d.replace(os.sep, "/") + "/")
     sh = os.path.join(d, "step.sh")
     open(sh, "w", encoding="utf-8").write(src)
     open(os.path.join(d, "body.md"), "w").write("x")
