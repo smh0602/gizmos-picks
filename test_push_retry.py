@@ -62,6 +62,176 @@ again). This drives two real clones against one bare remote.
 #   file: freshness.py
 #   find:             git("rm", "-q", "--", rel)
 #   with:             pass
+#
+# @vacuity 🔴🔴 [2026-11-01] a rebased watchdog commit gives way
+#   file: push_retry.sh
+#   find:     give_way "$(git rev-parse FETCH_HEAD)"
+#   with:     true
+#
+# @vacuity 🔴🔴 ...and so does a replayed one
+#   file: push_retry.sh
+#   find:       give_way "$tip"
+#   with:       true
+#
+# @vacuity 🔴🔴 only this step's commit gives way, not a pass under it
+#   file: push_retry.sh
+#   find: done <<< "$(git diff --name-only --no-renames "$own^" "$own")"
+#   with: done <<< "$(git diff --name-only --no-renames "$base" "$own")"
+#
+# @vacuity ⛔ a converge pass is not a repair
+#   file: push_retry.sh
+#   find: [ "$label" = "$REPAIR_LABEL" ] || return 0
+#   with: true
+#
+# @vacuity 🔴 the rule keys on the label the commit step passes
+#   file: push_retry.sh
+#   find: REPAIR_LABEL="health report"
+#   with: REPAIR_LABEL="health note"
+#
+# @vacuity 🔴 ...and the commit step passes it
+#   file: .github/workflows/collect.yml
+#   find: bash push_retry.sh "health report" && exit 0
+#   with: bash push_retry.sh "health note" && exit 0
+#
+# @vacuity 🔴 the health report always lands
+#   file: push_retry.sh
+#   find: [ -n "$p" ] && [ "$p" != "$HEALTH_PATH" ] || continue
+#   with: [ -n "$p" ] || continue
+#
+# @vacuity 🔴 the file that always lands is the one the watchdog writes
+#   file: push_retry.sh
+#   find: HEALTH_PATH="data/latest/health.json"
+#   with: HEALTH_PATH="data/latest/healthz.json"
+#
+# @vacuity 🔴 ...from the watchdog's side too
+#   file: watchdog.py
+#   find: HEALTH = "data/latest/health.json"
+#   with: HEALTH = "data/latest/healthz.json"
+#
+# @vacuity 🔴 a file nobody else moved still lands
+#   file: push_retry.sh
+#   find: [ -n "$unjudged" ] || ! git diff --quiet --no-renames "$base" "$tip" -- "$p" || continue
+#   with: true
+#
+# @vacuity 🔴🔴 the tip's copy is what stands
+#   file: push_retry.sh
+#   find: git checkout -q "$tip" -- "$p"
+#   with: true
+#
+# @vacuity 🔴 a path the tip holds is restored, never deleted
+#   file: push_retry.sh
+#   find: if git cat-file -e "$tip:$p" 2>/dev/null; then
+#   with: if false; then
+#
+# @vacuity 🔴 a file the tip deleted stays deleted
+#   file: push_retry.sh
+#   find: git rm -q --ignore-unmatch -- "$p"
+#   with: true
+#
+# @vacuity    the run's log names what gave way
+#   file: push_retry.sh
+#   find: echo "$label: $p $why: the remote's copy stands"
+#   with: true
+#
+# @vacuity 🔴🔴 what gave way is folded into this run's commit
+#   file: push_retry.sh
+#   find: git commit -q --amend --no-edit
+#   with: true
+#
+# @vacuity 🔴 a commit with nothing left lands nothing
+#   file: push_retry.sh
+#   find: git reset -q --soft 'HEAD^'
+#   with: true
+#
+# @vacuity    a commit nothing raced is left exactly as it was
+#   file: push_retry.sh
+#   find: git diff --cached --quiet HEAD && return 0
+#   with: true
+#
+# @vacuity ⛔ never an amend on HEAD == tip: that is another run's commit
+#   file: push_retry.sh
+#   find: [ "$(git rev-parse HEAD)" != "$tip" ] || return 0
+#   with: true
+#
+# @vacuity ⛔ no merge base: the rule stands aside
+#   file: push_retry.sh
+#   find: base="$(git merge-base "$own" "$tip" 2>/dev/null)" || return 0
+#   with: base="$(git merge-base "$own" "$tip" 2>/dev/null)"
+#
+# @vacuity 🔴🔴 the base is this commit's own, from before any rebase
+#   file: push_retry.sh
+#   find: own="$mine"
+#   with: own=HEAD
+#
+# @vacuity 🔴🔴 a run with no identity gets a name
+#   file: push_retry.sh
+#   find: git config user.name  >/dev/null 2>&1 || git config user.name  collector
+#   with: true
+#
+# @vacuity 🔴🔴 ...and an email
+#   file: push_retry.sh
+#   find: git config user.email >/dev/null 2>&1 || git config user.email collector@local
+#   with: true
+#
+# @vacuity ⛔ a replayed commit that fails is a failure, never "pushed"
+#   file: push_retry.sh
+#   find: git commit -q -m "$msg" || { echo "$label: the replayed commit failed: nothing landed"; exit 1; }
+#   with: git commit -q -m "$msg" || true
+#
+# @vacuity 🔴🔴 a run with no identity is a tree nothing judged
+#   file: push_retry.sh
+#   find: git config user.name >/dev/null 2>&1 && git config user.email >/dev/null 2>&1 || unjudged=1
+#   with: true
+#
+# @vacuity 🔴🔴 ...so nothing of it lands but the report, whether the tip moved or not
+#   file: push_retry.sh
+#   find: [ -n "$unjudged" ] || ! git diff --quiet
+#   with: ! git diff --quiet
+#
+# @vacuity 🔴 ...and the log says why, never "moved" for a file nobody moved
+#   file: push_retry.sh
+#   find: [ -z "$unjudged" ] || why="is from a tree no check judged"
+#   with: true
+#
+# @vacuity 🔴🔴 Converge is what gives a run its identity
+#   file: .github/workflows/collect.yml
+#   find: git config user.name  "gizmos-collector"
+#   with: true
+#
+# @vacuity 🔴🔴 ...nothing before the tree check does
+#   file: .github/workflows/collect.yml
+#   find: echo "tree clean after tests"
+#   with: git config user.name x
+#
+# @vacuity 🔴🔴 ...and Converge never runs past a tree the check refused
+#   file: .github/workflows/collect.yml
+#   find:         id: collect
+#   with:         if: always()
+#
+# @vacuity ⚠️ step 1 is what its header says: this run's side of each conflicting hunk
+#   file: push_retry.sh
+#   find: git pull -q --rebase -X theirs --autostash
+#   with: git pull -q --rebase --autostash
+#
+# @vacuity 🔴🔴 keep_both goes before the rule (rebased)
+#   file: push_retry.sh
+#   find: keep_both "$(git rev-parse FETCH_HEAD)"
+#   with: give_way "$(git rev-parse FETCH_HEAD)"; keep_both "$(git rev-parse FETCH_HEAD)"
+#
+# @vacuity 🔴🔴 ...and replayed
+#   file: push_retry.sh
+#   find: keep_both "$tip"
+#   with: give_way "$tip"; keep_both "$tip"
+#
+# @vacuity 🔴🔴 settle goes after the rule (rebased)
+#   file: push_retry.sh
+#   find: give_way "$(git rev-parse FETCH_HEAD)"
+#   with: settle "$(git rev-parse FETCH_HEAD)"; give_way "$(git rev-parse FETCH_HEAD)"; settle() { :; }
+#
+# @vacuity 🔴🔴 ...and replayed
+#   file: push_retry.sh
+#   find: give_way "$tip"
+#   with: settle "$tip"; give_way "$tip"; settle() { :; }
 """
 import gzip
 import io
@@ -74,14 +244,17 @@ import tempfile
 
 import credits as K
 import freshness as F
+import watchdog as W
+import wfparse
 from tcheck import ck, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 HELPER = os.path.join(ROOT, "push_retry.sh")
 
 
-def sh(cwd, *cmd, check=True):
-    p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+def sh(cwd, *cmd, check=True, env=None):
+    p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True,
+                       env=dict(os.environ, **(env or {})))
     if check and p.returncode:
         raise RuntimeError("%s: %s" % (cmd, p.stderr))
     return p
@@ -102,10 +275,10 @@ def write(repo, rel, data):
         fh.write(data)
 
 
-def run_helper(repo, label):
+def run_helper(repo, label, env=None):
     return subprocess.run(["bash", HELPER, label], cwd=repo,
                           capture_output=True, text=True,
-                          env=dict(os.environ, PUSH_BACKOFF="0"))
+                          env=dict(os.environ, PUSH_BACKOFF="0", **(env or {})))
 
 
 def gz(text):
@@ -214,6 +387,19 @@ ck('bash push_retry.sh "converge pass $PASS"' in wf,
 ck(re.search(r'push_retry\.sh "converge pass \$PASS"[^\n]*\n[^\n]*rc=1', wf) is not None
    or re.search(r'push_retry\.sh "converge pass \$PASS" \|\| \{[^}]*rc=1', wf) is not None,
    "⛔ ...and a failed push turns the run red")
+# ⚠️ STEP 6 READS A MISSING GIT IDENTITY AS "NOTHING JUDGED THIS TREE". That is only true while
+#    Converge alone sets it, after the tree check, with no `if:` to run it past a refusal. A
+#    name set any earlier would switch the rule off in silence: no run would ever lack one.
+TREE3, CONV3 = "The tests must not have modified the tree", "Converge and hold"
+job3 = wfparse.steps(os.path.join(ROOT, ".github", "workflows", "collect.yml"), "collect")
+ck([s.name for s in job3 if "git config user.name" in (s.run or "")] == [CONV3]
+   and [s.name for s in job3 if s.name in (TREE3, CONV3)] == [TREE3, CONV3]
+   and [s.cond for s in job3 if s.name == CONV3] == [None],
+   "🔴🔴 only Converge gives a run its identity, after the tree check and never past a refusal, "
+   "so a run with none is a run nothing judged",
+   "⛔ push_retry.sh step 6 reads no identity as an unjudged tree: this moved and the rule went "
+   "off in silence, or fires on a judged run. %s"
+   % [(s.name, s.cond) for s in job3 if s.name == CONV3 or "git config user.name" in (s.run or "")])
 
 section("4. 🔴🔴 TWO RUNS BUY THE SAME PAID MINUTE — BOTH RECEIPTS LAND")
 # `[measured 2026-10-23]` Runs 39960254704 and 39954846803 both bought NFL
@@ -325,11 +511,12 @@ finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
 section("5. 🔴🔴 A HEARTBEAT LANDS ONLY BESIDE THE BYTES IT VOUCHES FOR")
-# `[2026-10-28, review; measured with two real clones]` A football run's MLB
-#    `record` repair (watchdog) writes the heartbeat for the record-detail ITS
-#    older checkout holds. Step 1's `-X theirs` kept that heartbeat over the
-#    MLB run's, beside the MLB run's newer gzip: it vouched for nothing, the
-#    gzip's own 09:55 stamp was read, and the next MLB pass went red at 10:00Z.
+# `[2026-10-28, review; two real clones, never seen in production]` A football
+#    run's MLB `record` repair (watchdog) writes the heartbeat for the
+#    record-detail ITS older checkout holds. Step 1's `-X theirs` would keep that
+#    heartbeat over the MLB run's, beside the MLB run's newer gzip: it would vouch
+#    for nothing, the gzip's own 09:55 stamp would be read, and the next MLB pass
+#    would go red at 10:00Z.
 #    Step 5 (`freshness.settle_beats`): the tip's heartbeat stays when IT
 #    vouches for the file that lands, else the stale one is removed.
 REC = "data/latest/record-detail.json.gz"
@@ -445,3 +632,406 @@ try:
        % (st, beats, void, sh(fb, "git", "status", "--porcelain").stdout, rf.stdout[-300:]))
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
+
+section("6. 🔴🔴 THE WATCHDOG'S COMMIT NEVER REPLACES WHAT ANOTHER RUN LANDED AFTER ITS BASE")
+# `[2026-11-01, review; two real clones, never seen in production]` A run's repair rebuilds
+#    on the tree this run last pulled and lands through step 1, whose `-X theirs` keeps THIS
+#    run's file. So a football run's MLB `record` repair WOULD put a graded day back out of
+#    record.json, with a LATER built_at, and verify_record would go red. Same exposure:
+#    `card`, `card-fb` in any run (watchdog.REBUILDS), and whatever the step's
+#    `git add data picks` sweeps. No record.json version has ever lost a graded day.
+# ⚠️ WHAT THIS GUARDS: every path the watchdog's commit changed that another run also moved.
+#    NOT a new dated archive (`winner-picks`, `model-picks`) from a run that reached Converge:
+#    a new path never counts as moved, so a stale repair's save still lands. NOT a converge
+#    pass (6b, 6b2): two overlapping football runs can still roll a card back for minutes, or
+#    splice it, and that is a separate fix. A run that never reached Converge is stricter
+#    than all of this (6n): nothing judged its tree, so only its report lands.
+LABEL = "health report"     # what collect.yml's commit step passes; pinned below
+HEALTH6 = W.HEALTH
+REC6 = "data/latest/record.json"
+OTHER6 = "data/nfl/latest/record.json"
+CARD6 = "picks/fb-nfl-latest.json"
+PAID6 = "data/nfl/2026-11-11/gamelines/1728.json.gz"
+
+
+def rec6(built, n):
+    """ONE line, as the real MLB record.json is: a conflict takes the whole file."""
+    return json.dumps({"built_at": built, "overall": {"n": n}}, separators=(",", ":"))
+
+
+def n6(repo):
+    """The landed record's graded count. None if it did not land: a check fails, the file runs on."""
+    p = os.path.join(repo, REC6)
+    return json.load(open(p))["overall"]["n"] if os.path.exists(p) else None
+
+
+def card6(built, rows):
+    """Pretty-printed, as a football card is: a merge can splice two builds."""
+    return json.dumps({"generated_at": built, "note": "x", "picks": rows}, indent=1) + "\n"
+
+
+def seed6(tag, extra=None):
+    bare6 = os.path.join(tmp, tag + ".git")
+    sh(tmp, "git", "init", "-q", "--bare", "-b", "main", bare6)
+    sd = clone(bare6, os.path.join(tmp, tag + "-seed"))
+    write(sd, REC6, rec6("2026-11-10T10:05:00Z", 100))
+    write(sd, HEALTH6, '{"checked_at": "seed"}')
+    write(sd, OTHER6, '{"v": 0}\n')
+    write(sd, CARD6, card6("2026-11-10T10:05:00Z", ["a -110", "b -115", "c -120", "d -105"]))
+    for rel, data in (extra or {}).items():
+        write(sd, rel, data)
+    sh(sd, "git", "add", "-A"); sh(sd, "git", "commit", "-qm", "seed")
+    sh(sd, "git", "push", "-q", "origin", "HEAD:main")
+    return bare6, clone(bare6, os.path.join(tmp, tag + "-mlb")), clone(bare6, os.path.join(tmp, tag + "-fb"))
+
+
+def wd_commit(repo, env=None):
+    """The step's own commit, on the checkout this run last pulled."""
+    sh(repo, "git", "add", "data", "picks")
+    sh(repo, "git", "-c", "user.name=collector", "-c", "user.email=collector@local",
+       "commit", "-qm", "watchdog: health report 2026-11-11T10:06Z", env=env)
+
+
+def land_first(repo, msg="collect[mlb]: converge pass 3"):
+    """The other run: its pass lands before this run's commit does."""
+    commit(repo, msg)
+    run_helper(repo, "converge pass 3")
+
+
+def remote_head(repo):
+    return sh(repo, "git", "ls-remote", "origin", "main").stdout
+
+
+def hook(repo, name, body):
+    p = os.path.join(repo, ".git", "hooks", name)
+    with open(p, "w", newline="\n") as fh:
+        fh.write("#!/bin/sh\n" + body)
+    os.chmod(p, 0o755)
+
+
+def no_identity(repo):
+    """This clone as a run that never reached the workflow's `git config`; -> that run's env.
+
+    ⚠️ Blanking the global config also drops a Windows machine's core.autocrlf, which reads
+    the whole checkout as dirty, so the clone keeps that one setting for itself."""
+    eol = sh(repo, "git", "config", "core.autocrlf", check=False).stdout.strip()
+    if eol:
+        sh(repo, "git", "config", "core.autocrlf", eol)
+    sh(repo, "git", "config", "--unset", "user.name")
+    sh(repo, "git", "config", "--unset", "user.email")
+    sh(repo, "git", "config", "user.useConfigOnly", "true")
+    return {"GIT_CONFIG_GLOBAL": os.path.join(tmp, "no-such-config"), "GIT_CONFIG_NOSYSTEM": "1"}
+
+
+tmp = tempfile.mkdtemp(prefix="pr6-")
+try:
+    # 6a. THE REBASE PATH. The MLB run grades a new day and lands; the football run,
+    #     still on the older base, repairs from its older picks, one minute LATER.
+    bare6, u, fb = seed6("a")
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    write(u, CARD6, card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]))
+    write(u, HEALTH6, '{"checked_at": "mlb"}')
+    land_first(u)
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100))
+    write(fb, CARD6, card6("2026-11-11T10:06:00Z", ["a -110", "b -115", "c -120", "d -105"]))
+    write(fb, OTHER6, '{"v": "repaired"}\n')
+    write(fb, HEALTH6, '{"checked_at": "fb"}')
+    wd_commit(fb)
+    rf = run_helper(fb, LABEL)
+    chk = clone(bare6, os.path.join(tmp, "a-check"))
+    ck(rf.returncode == 0 and n6(chk) == 112,
+       "🔴🔴 a stale repair never rolls the record back: the graded day another run "
+       "landed stays, though the repair's built_at is later",
+       "⛔ rebase -X theirs kept the repair's file. n=%s rc=%s out=%r"
+       % (n6(chk), rf.returncode, rf.stdout[-300:]))
+    ck(open(os.path.join(chk, CARD6)).read()
+       == card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]),
+       "🔴🔴 ...and a pretty-printed card is the tip's, byte for byte, never a splice of two builds",
+       repr(open(os.path.join(chk, CARD6)).read()[:200]))
+    ck(open(os.path.join(chk, OTHER6)).read() == '{"v": "repaired"}\n'
+       and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
+       "   ...while a file nobody else moved lands, and so does the health report",
+       repr(open(os.path.join(chk, OTHER6)).read()))
+    ck("the remote's copy stands" in rf.stdout,
+       "   ...and the run's log names what it gave way on", repr(rf.stdout[-300:]))
+    ck(sh(fb, "git", "status", "--porcelain").stdout == ""
+       and sh(fb, "git", "rev-parse", "HEAD").stdout == sh(fb, "git", "rev-parse", "origin/main").stdout,
+       "   ...and the run's own tree matches what landed")
+
+    # 6b. A CONVERGE PASS IS NOT A REPAIR: step 1 still decides for it.
+    bare6, u, fb = seed6("b")
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    land_first(u)
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); commit(fb, "pass fb")
+    rf = run_helper(fb, "converge pass 1")
+    chk = clone(bare6, os.path.join(tmp, "b-check"))
+    ck(rf.returncode == 0 and n6(chk) == 100,
+       "⛔ only the watchdog's commit gives way: a converge pass still lands its own file (step 1)",
+       "the rule grew past its label")
+
+    # 6b2. WHAT STEP 1 DOES TO A PRETTY-PRINTED FILE. ⚠️ This pins the behaviour the header
+    #      describes, not one anyone wants: `-X theirs` decides conflicting hunks only, so the
+    #      later lander's stamp lands over the other run's price. A fix for the football
+    #      rollbacks turns this red, and must correct step 1's words in the same change.
+    bare6, u, fb = seed6("b2")
+    write(u, CARD6, card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]))
+    land_first(u)
+    write(fb, CARD6, card6("2026-11-11T10:06:00Z", ["a -110", "b -115", "c -120", "d -105"]))
+    commit(fb, "pass fb")
+    rf = run_helper(fb, "converge pass 1")
+    chk = clone(bare6, os.path.join(tmp, "b2-check"))
+    ck(rf.returncode == 0 and open(os.path.join(chk, CARD6)).read()
+       == card6("2026-11-11T10:06:00Z", ["a -105", "b -115", "c -120", "d -105"]),
+       "⚠️ step 1 is hunk by hunk: a pretty-printed card takes this run's stamp and keeps the "
+       "tip's price, a splice of two builds",
+       "⛔ step 1 changed: correct push_retry.sh's header with it. %r"
+       % open(os.path.join(chk, CARD6)).read()[:200])
+
+    # 6c. THE REPLAY PATH: the tip deleted a file the repair rewrote, so the rebase aborts.
+    bare6, u, fb = seed6("c", {"data/latest/odds.json": '{"v": 0}\n'})
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    sh(u, "git", "rm", "-q", "data/latest/odds.json")
+    land_first(u)
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100))
+    write(fb, "data/latest/odds.json", '{"v": "fb"}\n')
+    write(fb, HEALTH6, '{"checked_at": "fb"}')
+    wd_commit(fb)
+    rf = run_helper(fb, LABEL)
+    chk = clone(bare6, os.path.join(tmp, "c-check"))
+    ck(rf.returncode == 0 and "replayed" in rf.stdout
+       and n6(chk) == 112
+       and not os.path.exists(os.path.join(chk, "data/latest/odds.json"))
+       and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
+       "🔴🔴 a REPLAYED landing gives way too, and a file the tip deleted stays deleted",
+       "rc %s, n %s, out %r" % (rf.returncode, n6(chk), rf.stdout[-300:]))
+
+    # 6d. ONLY THE WATCHDOG'S OWN COMMIT: a pass that could not push sits under it.
+    bare6, u, fb = seed6("d", {"data/nfl/latest/board.json": '{"v": 0}\n'})
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    write(u, "data/nfl/latest/board.json", '{"v": "u"}\n')
+    land_first(u, "collect[nfl]: converge pass 3")
+    write(fb, "data/nfl/latest/board.json", '{"v": "paid pass"}\n'); commit(fb, "collect[nfl]: converge pass 1")
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); write(fb, HEALTH6, '{"checked_at": "fb"}')
+    wd_commit(fb)
+    rf = run_helper(fb, LABEL)
+    chk = clone(bare6, os.path.join(tmp, "d-check"))
+    ck(rf.returncode == 0
+       and open(os.path.join(chk, "data/nfl/latest/board.json")).read() == '{"v": "paid pass"}\n'
+       and n6(chk) == 112,
+       "⛔ a converge pass under the watchdog's commit keeps its own files; only the commit "
+       "this step made gives way",
+       "board %r, n %s" % (open(os.path.join(chk, "data/nfl/latest/board.json")).read(),
+                           n6(chk)))
+
+    # 6e. NOTHING LEFT: the repair was all the commit held.
+    bare6, u, fb = seed6("e")
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    land_first(u)
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); wd_commit(fb)
+    before = remote_head(u)
+    rf = run_helper(fb, LABEL)
+    ck(rf.returncode == 0 and remote_head(u) == before
+       and sh(fb, "git", "status", "--porcelain").stdout == "",
+       "   a commit with nothing left lands nothing: no empty commit on the remote",
+       "out %r" % rf.stdout[-300:])
+
+    # 6f. NO IDENTITY. A run cancelled in Tests never reached the workflow's `git config`.
+    #     `[run 41215684625]` "fatal: empty ident name", then "pushed on attempt 1
+    #     (replayed onto the new tip)", and nothing on main: 8 of the 10 such runs.
+    bare6, u, fb = seed6("f")
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    land_first(u)
+    tip6 = sh(u, "git", "rev-parse", "HEAD").stdout.strip()
+    run_env = no_identity(fb)
+    write(fb, HEALTH6, '{"checked_at": "fb"}')
+    wd_commit(fb)
+    rf = run_helper(fb, LABEL, run_env)
+    chk = clone(bare6, os.path.join(tmp, "f-check"))
+    ck(rf.returncode == 0 and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
+       "🔴🔴 a run with no git identity lands its report on a moved tip",
+       "⛔ it said pushed and landed nothing. rc %s out %r err %r"
+       % (rf.returncode, rf.stdout[-300:], rf.stderr[-300:]))
+    ck(sh(chk, "git", "merge-base", "--is-ancestor", tip6, "HEAD", check=False).returncode == 0,
+       "   ...on top of the other run's commit, which nothing amended",
+       sh(chk, "git", "log", "--format=%h %s", "-3").stdout)
+    ck("empty ident" not in rf.stderr and "Author identity" not in rf.stderr,
+       "   ...and git never complained about who it is", repr(rf.stderr[-300:]))
+
+    # 6g. A REPLAYED COMMIT THAT FAILS LANDED NOTHING, AND THE RUN SAYS SO. The hook stands
+    #     in for any reason a commit can fail, now that the identity is not one of them.
+    bare6, u, fb = seed6("g", {"data/latest/odds.json": '{"v": 0}\n'})
+    sh(u, "git", "rm", "-q", "data/latest/odds.json")
+    land_first(u)
+    write(fb, "data/latest/odds.json", '{"v": "fb"}\n'); commit(fb, "collect[nfl]: converge pass 1")
+    hook(fb, "pre-commit", "exit 1\n")
+    before = remote_head(u)
+    rf = run_helper(fb, "converge pass 1")
+    ck(rf.returncode == 1 and "nothing landed" in rf.stdout and "pushed" not in rf.stdout
+       and remote_head(u) == before,
+       "⛔ a replayed commit that fails exits 1 and says nothing landed, never \"pushed\"",
+       "rc %s out %r" % (rf.returncode, rf.stdout[-300:]))
+
+    # 6h. THE TIP ALREADY HOLDS THIS COMMIT: the rebase drops it, and HEAD IS the other run's
+    #     commit. The stray staged file (what --autostash hands back) is how a test reaches
+    #     a dirty index on HEAD == tip: amending there would rewrite a commit that landed.
+    bare6, u, fb = seed6("h")
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    land_first(u)
+    write(fb, REC6, rec6("2026-11-11T10:05:00Z", 112)); wd_commit(fb)
+    write(fb, "stray.txt", "x\n"); sh(fb, "git", "add", "stray.txt")
+    before = remote_head(u)
+    rf = run_helper(fb, LABEL)
+    ck(rf.returncode == 0 and "pushed on attempt 1" in rf.stdout and remote_head(u) == before,
+       "⛔ on HEAD == tip nothing is amended: another run's commit stays as it landed",
+       "rc %s out %r" % (rf.returncode, rf.stdout[-300:]))
+
+    # 6i. keep_both GOES FIRST: a paid receipt the commit swept (a cancelled run's pass) is
+    #     renamed before the rule looks, in both paths, or the rule would drop it.
+    for tag, path, conflict in (("i", "rebased", False), ("i2", "replayed", True)):
+        bare6, u, fb = seed6(tag, {"data/latest/odds.json": '{"v": 0}\n'})
+        first, second = snap("2026-11-11T17:28:01Z", 6, 19941), snap("2026-11-11T17:28:10Z", 6, 19935)
+        write(u, PAID6, first)
+        if conflict:
+            sh(u, "git", "rm", "-q", "data/latest/odds.json")
+            write(fb, "data/latest/odds.json", '{"v": "fb"}\n')
+        land_first(u, "collect[nfl]: converge pass 3")
+        write(fb, PAID6, second); wd_commit(fb)
+        rf = run_helper(fb, LABEL)
+        chk = clone(bare6, os.path.join(tmp, tag + "-check"))
+        ck(rf.returncode == 0 and ("replayed" in rf.stdout) == conflict
+           and blob(PAID6) == first and blob(PAID6.replace("1728", "1728-1")) == second,
+           "🔴🔴 a %s commit keeps a paid receipt it swept: it lands beside the tip's" % path,
+           "⛔ the rule looked first and the credits left the record. rc %s, gamelines %s, out %r"
+           % (rf.returncode, sorted(os.listdir(os.path.dirname(os.path.join(chk, PAID6)))), rf.stdout[-300:]))
+
+    # 6j. settle GOES LAST: a heartbeat the rule gave back to the tip is judged against the
+    #     bytes that land. This commit's full write of the gzip lands (nobody moved it), the
+    #     tip's newer heartbeat came back and vouches for the old bytes: it must go.
+    t1, t2, t3 = "2026-11-11T09:00:00Z", "2026-11-11T10:05:00Z", "2026-11-11T10:06:00Z"
+    for tag, path, replayed in (("j", "replayed", True), ("j2", "rebased", False)):
+        seed_repo(tag)
+        sd = clone(bare, os.path.join(tmp, tag + "-first"))
+        beat(sd, t1, "v0")
+        commit(sd, "collect[mlb]: record 09:00")
+        run_helper(sd, "mlb 1")
+        u = clone(bare, os.path.join(tmp, tag + "-mlb"))
+        fb = clone(bare, os.path.join(tmp, tag + "-fb"))
+        beat(u, t2, "v0")
+        commit(u, "collect[mlb]: record 10:05")
+        run_helper(u, "mlb 2")
+        write(fb, REC, gzdoc(t3, "v1"))
+        F.drop_heartbeat(os.path.join(fb, REC))    # a full write, as collect.write does
+        if not replayed:
+            beat(fb, t3.replace("10:06", "10:07"), "v1")    # ...then a pull that saw it unchanged
+        commit(fb, "watchdog: health report 2026-11-11T10:07Z")
+        rf = run_helper(fb, LABEL)
+        st, beats, void = landed(tag)
+        ck(rf.returncode == 0 and ("replayed" in rf.stdout) == replayed
+           and st == F._parse(t3) and beats == [] and not void,
+           "🔴🔴 a heartbeat the %s commit gave back to the tip never lands beside bytes it does "
+           "not vouch for" % path,
+           "⛔ settle ran before the rule did. stamp_of %s, beats %s, void %s, rc %s, out %r"
+           % (st, beats, void, rf.returncode, rf.stdout[-300:]))
+
+    # 6k. A THIRD RUN LANDS WHILE THIS ONE PUSHES: the first push fails and attempt 2 is
+    #     judged against the newer tip, by the same base (`own` outlives the rebases).
+    bare6, u, fb = seed6("k")
+    third = clone(bare6, os.path.join(tmp, "k-third"))
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    land_first(u)
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100))
+    write(fb, OTHER6, '{"v": "repaired"}\n')
+    write(fb, HEALTH6, '{"checked_at": "fb"}')
+    wd_commit(fb)
+    flag = os.path.join(tmp, "k.flag").replace(os.sep, "/")
+    hook(fb, "pre-push",
+         'if [ ! -f "%(flag)s" ]; then\n'
+         '  touch "%(flag)s"\n'
+         '  cd "%(third)s" && unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE &&\n'
+         "  git pull -q origin main && printf '{\"v\": \"third\"}\\n' > %(other)s &&\n"
+         '  git add -A && git commit -qm third && git push -q origin HEAD:main\n'
+         '  exit 1\n'
+         'fi\n' % {"flag": flag, "third": third.replace(os.sep, "/"), "other": OTHER6})
+    rf = run_helper(fb, LABEL)
+    chk = clone(bare6, os.path.join(tmp, "k-check"))
+    ck(rf.returncode == 0 and "pushed on attempt 2" in rf.stdout
+       and open(os.path.join(chk, OTHER6)).read() == '{"v": "third"}\n'
+       and n6(chk) == 112
+       and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
+       "🔴🔴 a run that lands during the push is not replaced either: attempt 2 gives way to it too",
+       "rc %s other %r out %r" % (rf.returncode, open(os.path.join(chk, OTHER6)).read(), rf.stdout[-300:]))
+
+    # 6l. THE EVERYDAY CASE: a health-only commit nothing raced. The committer date is in the
+    #     past so that an amend, which stamps now, cannot make the same commit by accident.
+    bare6, u, fb = seed6("l")
+    write(fb, HEALTH6, '{"checked_at": "fb"}')
+    wd_commit(fb, {"GIT_COMMITTER_DATE": "2026-01-01T00:00:00Z"})
+    own6 = sh(fb, "git", "rev-parse", "HEAD").stdout.strip()
+    rf = run_helper(fb, LABEL)
+    ck(rf.returncode == 0 and remote_head(u).split()[0] == own6,
+       "   a commit nothing raced lands as the very commit it was: the rule only reads",
+       "own %s remote %s out %r" % (own6, remote_head(u), rf.stdout[-300:]))
+
+    # 6m. NO SHARED HISTORY WITH THE TIP: nothing is known to have moved, so step 1 decides.
+    bare6, u, fb = seed6("m")
+    sh(u, "git", "checkout", "-q", "--orphan", "fresh")
+    write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    sh(u, "git", "add", "-A"); sh(u, "git", "commit", "-qm", "a new root")
+    sh(u, "git", "push", "-qf", "origin", "HEAD:main")
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); wd_commit(fb)
+    rf = run_helper(fb, LABEL)
+    chk = clone(bare6, os.path.join(tmp, "m-check"))
+    ck(rf.returncode == 0 and n6(chk) == 100,
+       "⛔ with no merge base the rule stands aside rather than judge on nothing",
+       "rc %s n %s out %r" % (rf.returncode, n6(chk),
+                              rf.stdout[-300:]))
+
+    # 6n. A TREE NOTHING JUDGED. No identity means the run never reached Converge: cancelled in
+    #     Tests, refused by the tree check, or red in Tests on a push. The commit step still
+    #     sweeps `data picks`, and that can hold what a killed test left: test_tcheck_guard.py
+    #     rewrites a tracked file and adds one in the real tree. The missing identity used to
+    #     stop that landing, by accident and only on a moved tip. So: the report, and nothing
+    #     else, on every path. (Reproduced on two clones; no such file has ever landed.)
+    PROBE6 = "data/ncaaf/latest/teams.json"
+    DROP6 = "data/ncaaf/latest/_tcheck_probe_delete_me.json"
+    GONE6 = "data/latest/odds.json"
+    for tag, how in (("n", "a moved tip"), ("n2", "a tip nobody moved"), ("n3", "a replay")):
+        bare6, u, fb = seed6(tag, {PROBE6: '{"teams": 1}\n', GONE6: '{"v": 0}\n'})
+        if how == "a moved tip":
+            write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+            land_first(u)
+        elif how == "a replay":
+            sh(u, "git", "rm", "-q", GONE6)
+            land_first(u)
+            write(fb, GONE6, '{"v": "fb"}\n')
+        tip6 = remote_head(u).split()[0]
+        run_env = no_identity(fb)
+        write(fb, PROBE6, '{"teams": 1, "_tcheck_probe": 1}\n')
+        write(fb, DROP6, "{}\n")
+        write(fb, HEALTH6, '{"checked_at": "fb"}')
+        wd_commit(fb)
+        rf = run_helper(fb, LABEL, run_env)
+        chk = clone(bare6, os.path.join(tmp, tag + "-check"))
+        got6 = sh(chk, "git", "diff", "--name-only", "--no-renames", tip6, "HEAD").stdout.split()
+        ck(rf.returncode == 0 and ("replayed" in rf.stdout) == (how == "a replay")
+           and got6 == [HEALTH6]
+           and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
+           "🔴🔴 a run nothing judged lands its health report and nothing else, on %s" % how,
+           "⛔ what a killed test left reached the remote. landed %s rc %s out %r"
+           % (got6, rf.returncode, rf.stdout[-300:]))
+        ck("no check judged" in rf.stdout and "moved on the remote" not in rf.stdout,
+           "   ...and the log says why, never that a file nobody moved had moved",
+           repr(rf.stdout[-300:]))
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+
+helper_text = open(HELPER, encoding="utf-8").read()
+m6 = re.search(r'^REPAIR_LABEL="([^"]+)"', helper_text, re.M)
+ck(m6 is not None and m6.group(1) == LABEL and 'bash push_retry.sh "%s"' % m6.group(1) in wf,
+   "🔴 the workflow's commit step passes the label the rule keys on, so renaming one "
+   "cannot switch the rule off in silence",
+   "⛔ collect.yml cannot change without Sam's upload: a label that drifts is a rule that stops")
+h6 = re.search(r'^HEALTH_PATH="([^"]+)"', helper_text, re.M)
+ck(h6 is not None and h6.group(1) == W.HEALTH,
+   "🔴 the one file that always lands is the file the watchdog writes (watchdog.HEALTH)",
+   "⛔ a moved health report would start giving way: the report that says a run went wrong")

@@ -19,14 +19,20 @@
 #
 # ✅ WHAT IT DOES:
 #   1. pull --rebase -X theirs: in a rebase "theirs" is THIS run's commit,
-#      so a fresher build of a `latest/*` file wins. ~~Dated snapshot
-#      paths are unique and never conflict.~~ (see 4)
+#      and it decides CONFLICTING HUNKS only: this run's side of each, the
+#      tip's side of the rest. So a one-line or binary `latest/*` file is the
+#      last lander's whole, whatever its build was made from, and a
+#      pretty-printed one (a card, health.json) can land as a splice of both
+#      builds under the last lander's stamp (5 and 6 are exceptions).
+#      ~~Dated snapshot paths are unique and never conflict.~~ (see 4)
 #   2. If the rebase still cannot finish (binary or modify/delete
 #      conflict), ABORT it — never leave it half-done — and REPLAY: reset
 #      onto the fresh remote tip and re-apply exactly the paths this run
 #      changed, with the same commit message.
-#   3. Five attempts, then EXIT 1. ⛔ It never fails silently; the caller
-#      turns the run red.
+#   3. Five attempts, then EXIT 1. ⛔ It never fails silently. ~~the caller
+#      turns the run red.~~ What that does is the caller's: a converge pass
+#      goes red; the watchdog's commit step is `continue-on-error`, so it only
+#      annotates; and a cancelled run stays cancelled.
 #   4. `[2026-10-23]` Dated snapshot paths are NOT always unique: two
 #      runs that buy in the same minute write
 #      the same `HHMM.json.gz`, and step 1 kept only the later one (10-23
@@ -36,14 +42,40 @@
 #   5. `[2026-10-28]` A heartbeat (`<file>.beat.json`) this run lands must
 #      vouch for the file beside it on the tip it lands on; one that no
 #      longer does gives way to the tip's, or is removed
-#      (`freshness.settle_beats`). A football run's MLB record repair once
-#      landed one bound to its own older record-detail: a red MLB pass.
+#      (`freshness.settle_beats`). Reproduced on two clones, never seen in
+#      production: a football run's MLB record repair would land one bound
+#      to its older record-detail, and the next MLB pass would go red.
+#   6. `[2026-11-01]` The watchdog's commit (REPAIR_LABEL) gives way: every
+#      path it changed that another run also moved since this run's base
+#      keeps the remote's copy. A repair rebuilds on the tree this run last
+#      pulled, so a stale build would otherwise replace a newer file, with
+#      a LATER built_at (two clones; it has never fired). The health report
+#      always lands. A run with no git identity never reached Converge
+#      (cancelled in Tests, refused by the tree check, or red in Tests on a
+#      push), so no check judged what its sweep holds, and that can be what a
+#      killed test left in data/: ALL of it gives way, tip moved or not, and
+#      only its report lands. ⚠️ NOT a new dated archive (`winner-picks`,
+#      `model-picks`) from a run that did reach Converge: a new path never
+#      counts as moved, so a stale repair's save still lands. NOT a converge
+#      pass: step 1 still decides for it, so two overlapping football runs
+#      can still roll a card back for minutes, or splice it.
 # ══════════════════════════════════════════════════════════════════════
 set -u
 label="${1:-push}"
+# A run cancelled in Tests never reached the workflow's `git config`: a rebase, a replayed
+# commit and every amend below need an identity, and a replay without one printed "pushed".
+# The same absence says no check judged this run's tree (step 6), so it is read first.
+# ⚠️ That holds while Converge alone sets the identity: test_push_retry.py pins it.
+unjudged=""
+git config user.name >/dev/null 2>&1 && git config user.email >/dev/null 2>&1 || unjudged=1
+git config user.name  >/dev/null 2>&1 || git config user.name  collector
+git config user.email >/dev/null 2>&1 || git config user.email collector@local
 branch="$(git rev-parse --abbrev-ref HEAD)"
 remote="${PUSH_REMOTE:-origin}"
 mine="$(git rev-parse HEAD)"
+own="$mine"                     # this commit, before any rebase: step 6. Never reassigned.
+REPAIR_LABEL="health report"    # collect.yml's commit step; test_push_retry.py pins it
+HEALTH_PATH="data/latest/health.json"    # watchdog.HEALTH; test_push_retry.py pins it
 msg="$(git log -1 --format=%B "$mine")"
 here="$(cd "$(dirname "$0")" && pwd)"
 
@@ -76,9 +108,38 @@ settle() {
   [ -z "$out" ] || while IFS= read -r line; do echo "$label: $line"; done <<< "$out"
 }
 
+# give_way <tip>: step 6, against the exact commit this push lands on. After keep_both, so a
+# paid snapshot the commit swept is renamed first; before settle, so a heartbeat is judged
+# against what lands. No merge base: nothing is known to have moved, and step 1 decides.
+# A run nothing judged gives way on every path but the report, whether it moved or not.
+give_way() {
+  [ "$label" = "$REPAIR_LABEL" ] || return 0
+  local tip="$1" base p why="moved on the remote after this run's base"
+  [ -z "$unjudged" ] || why="is from a tree no check judged"
+  [ "$(git rev-parse HEAD)" != "$tip" ] || return 0     # no commit of this run to fold into
+  base="$(git merge-base "$own" "$tip" 2>/dev/null)" || return 0
+  while IFS= read -r p; do
+    [ -n "$p" ] && [ "$p" != "$HEALTH_PATH" ] || continue
+    [ -n "$unjudged" ] || ! git diff --quiet --no-renames "$base" "$tip" -- "$p" || continue
+    if git cat-file -e "$tip:$p" 2>/dev/null; then
+      git checkout -q "$tip" -- "$p"
+    else
+      git rm -q --ignore-unmatch -- "$p"
+    fi
+    echo "$label: $p $why: the remote's copy stands"
+  done <<< "$(git diff --name-only --no-renames "$own^" "$own")"
+  git diff --cached --quiet HEAD && return 0
+  if [ "$(git write-tree)" = "$(git rev-parse 'HEAD^^{tree}')" ]; then
+    git reset -q --soft 'HEAD^'
+  else
+    git commit -q --amend --no-edit
+  fi
+}
+
 for i in 1 2 3 4 5; do
   if git pull -q --rebase -X theirs --autostash "$remote" "$branch" >/dev/null 2>&1; then
     keep_both "$(git rev-parse FETCH_HEAD)"
+    give_way "$(git rev-parse FETCH_HEAD)"
     settle "$(git rev-parse FETCH_HEAD)"
     if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then
       echo "$label: pushed on attempt $i"
@@ -100,9 +161,10 @@ for i in 1 2 3 4 5; do
         esac
       done <<< "$changes"
       if ! git diff --cached --quiet; then
-        git commit -q -m "$msg"
+        git commit -q -m "$msg" || { echo "$label: the replayed commit failed: nothing landed"; exit 1; }
       fi
       keep_both "$tip"
+      give_way "$tip"
       settle "$tip"
       mine="$(git rev-parse HEAD)"
       if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then

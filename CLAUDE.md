@@ -1741,6 +1741,29 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   `[2026-10-28]` A heartbeat it lands must vouch for the file
                   beside it on the tip, else the tip's is kept or it is
                   removed (`freshness.settle_beats`). test_push_retry.py §5.
+                  `[2026-11-01]` The watchdog's commit (label `health report`)
+                  gives way: every path it changed that another run also moved
+                  since this run's base keeps the remote's copy, so a repair
+                  built on an older tree cannot replace a newer file with a
+                  later built_at. health.json always lands. Reproduced on two
+                  clones; it has never fired. ✅ Guards that commit: every
+                  repair mode and league, and what its sweep of `data picks`
+                  carries. ⚠️ NOT the class: a new dated archive (`winner-picks`,
+                  `model-picks`) never counts as moved, so a stale repair's
+                  save still lands and can be the last before the start; and a
+                  converge pass still lands by step 1 (this run's side of each
+                  conflicting hunk, the tip's side of the rest), so two
+                  overlapping football runs still roll a card back for minutes,
+                  or splice it, which is a separate fix. A run with no git
+                  identity gets one (such runs printed "pushed" with nothing
+                  landed), and a replayed commit that fails is now exit 1. It
+                  never reached Converge (cancelled in Tests, refused by the
+                  tree check, red in Tests on a push), so no check judged its
+                  sweep, which can hold what a killed test left: ONLY its
+                  health report lands, tip moved or not, dated archives
+                  included. ⚠️ That reads "no identity" as "unjudged", true
+                  only while Converge alone sets it (pinned). test_push_retry.py
+                  §3, §6.
 mlb_refit.py      MLB champion vs challenger, as Sam approved it on
                   2026-09-23 in `research/mlb_refit_spec.md`: v5.0
                   (READ from card.py) against the same model re-fitted
