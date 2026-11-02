@@ -1,32 +1,32 @@
 {
- "built_at": "2026-11-02T00:08:24Z",
+ "built_at": "2026-11-02T16:33:54Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 251,
-  "n": 466,
-  "pct": 53.9
+  "w": 258,
+  "n": 490,
+  "pct": 52.7
  },
  "board": {
-  "w": 312,
-  "n": 574,
-  "pct": 54.4
+  "w": 326,
+  "n": 608,
+  "pct": 53.6
  },
  "game_lines": {
-  "w": 61,
-  "n": 108,
-  "pct": 56.5,
+  "w": 68,
+  "n": 118,
+  "pct": 57.6,
   "overall": {
-   "w": 61,
-   "n": 108,
-   "pct": 56.5
+   "w": 68,
+   "n": 118,
+   "pct": 57.6
   },
-  "shown": 119,
+  "shown": 120,
   "voids": 1,
-  "pending": 10,
+  "pending": 1,
   "unresolved": 0,
   "from": "2026-10-04",
   "by_market": {
@@ -36,19 +36,19 @@
     "pct": 68.8
    },
    "spread": {
-    "w": 13,
-    "n": 28,
-    "pct": 46.4
+    "w": 14,
+    "n": 30,
+    "pct": 46.7
    },
    "alternate_spread": {
-    "w": 19,
-    "n": 38,
-    "pct": 50.0
+    "w": 22,
+    "n": 43,
+    "pct": 51.2
    },
    "total": {
-    "w": 18,
-    "n": 26,
-    "pct": 69.2
+    "w": 21,
+    "n": 29,
+    "pct": 72.4
    }
   },
   "by_basis": {
@@ -58,9 +58,9 @@
     "pct": 70.0
    },
    "MODEL": {
-    "w": 47,
-    "n": 88,
-    "pct": 53.4
+    "w": 54,
+    "n": 98,
+    "pct": 55.1
    }
   },
   "by_day": [
@@ -161,23 +161,31 @@
     "pending": 0
    },
    {
-    "w": 1,
-    "n": 2,
-    "pct": 50.0,
+    "w": 8,
+    "n": 12,
+    "pct": 66.7,
     "date": "2026-11-01",
     "voids": 0,
-    "pending": 10
+    "pending": 0
+   },
+   {
+    "w": 0,
+    "n": 0,
+    "pct": null,
+    "date": "2026-11-02",
+    "voids": 0,
+    "pending": 1
    }
   ]
  },
  "alt_spreads": {
   "basis": "MARKET + MODEL",
   "overall": {
-   "w": 19,
-   "n": 37,
-   "pct": 51.4
+   "w": 22,
+   "n": 41,
+   "pct": 53.7
   },
-  "shown": 42,
+  "shown": 43,
   "by_basis": {
    "MARKET": {
     "w": 14,
@@ -185,13 +193,13 @@
     "pct": 73.7
    },
    "MODEL": {
-    "w": 5,
-    "n": 18,
-    "pct": 27.8
+    "w": 8,
+    "n": 22,
+    "pct": 36.4
    }
   },
   "voids": 0,
-  "pending": 5,
+  "pending": 2,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -731,8 +739,8 @@
     "break_even": 43.1,
     "game": "Minnesota Vikings @ Detroit Lions",
     "commence": "2026-11-01T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-11-01",
@@ -746,8 +754,8 @@
     "break_even": 54.5,
     "game": "Tennessee Titans @ Cincinnati Bengals",
     "commence": "2026-11-01T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-01",
@@ -761,8 +769,8 @@
     "break_even": 43.5,
     "game": "Baltimore Ravens @ Buffalo Bills",
     "commence": "2026-11-01T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-01",
@@ -776,8 +784,8 @@
     "break_even": 47.2,
     "game": "Arizona Cardinals @ Dallas Cowboys",
     "commence": "2026-11-01T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-01",
@@ -823,6 +831,21 @@
     "commence": "2026-11-01T18:00:00Z",
     "won": true,
     "state": "graded"
+   },
+   {
+    "date": "2026-11-02",
+    "player": "Seattle Seahawks",
+    "side": "home",
+    "line": -3.5,
+    "price": 105,
+    "book": "hardrockbet",
+    "confidence": 54,
+    "confidence_basis": "MODEL",
+    "break_even": 48.8,
+    "game": "Chicago Bears @ Seattle Seahawks",
+    "commence": "2026-11-03T01:20:00Z",
+    "won": null,
+    "state": "pending"
    }
   ]
  },
@@ -843,31 +866,31 @@
    "pct": 45.8
   },
   "player_reception_yds": {
-   "w": 74,
-   "n": 140,
-   "pct": 52.9
+   "w": 78,
+   "n": 146,
+   "pct": 53.4
   },
   "player_receptions": {
-   "w": 102,
-   "n": 174,
-   "pct": 58.6
+   "w": 104,
+   "n": 182,
+   "pct": 57.1
   },
   "player_rush_yds": {
-   "w": 37,
-   "n": 75,
-   "pct": 49.3
+   "w": 38,
+   "n": 85,
+   "pct": 44.7
   }
  },
  "by_side": {
   "over": {
-   "w": 131,
-   "n": 259,
-   "pct": 50.6
+   "w": 135,
+   "n": 269,
+   "pct": 50.2
   },
   "under": {
-   "w": 112,
-   "n": 189,
-   "pct": 59.3
+   "w": 115,
+   "n": 203,
+   "pct": 56.7
   },
   "yes": {
    "w": 8,
@@ -877,35 +900,35 @@
  },
  "by_book": {
   "draftkings": {
-   "w": 31,
-   "n": 51,
-   "pct": 60.8
+   "w": 35,
+   "n": 65,
+   "pct": 53.8
   },
   "fanduel": {
-   "w": 21,
-   "n": 34,
-   "pct": 61.8
+   "w": 22,
+   "n": 41,
+   "pct": 53.7
   },
   "hardrockbet": {
-   "w": 199,
-   "n": 381,
-   "pct": 52.2
+   "w": 201,
+   "n": 384,
+   "pct": 52.3
   }
  },
  "calibration": [
   {
    "bucket": "50-60%",
-   "stated": 53.6,
-   "w": 48,
-   "n": 85,
-   "pct": 56.5
+   "stated": 53.9,
+   "w": 55,
+   "n": 106,
+   "pct": 51.9
   },
   {
    "bucket": "60-70%",
-   "stated": 62.3,
+   "stated": 62.9,
    "w": 2,
-   "n": 6,
-   "pct": 33.3
+   "n": 9,
+   "pct": 22.2
   }
  ],
  "card_method_current": "season-blend+props-own",
@@ -1031,17 +1054,17 @@
   "season-blend+props-own": [
    {
     "bucket": "50-60%",
-    "stated": 53.6,
-    "w": 48,
-    "n": 85,
-    "pct": 56.5
+    "stated": 53.9,
+    "w": 55,
+    "n": 106,
+    "pct": 51.9
    },
    {
     "bucket": "60-70%",
-    "stated": 62.3,
+    "stated": 62.9,
     "w": 2,
-    "n": 6,
-    "pct": 33.3
+    "n": 9,
+    "pct": 22.2
    }
   ]
  },
@@ -1062,9 +1085,9 @@
    "pct": 71.4
   },
   "season-blend+props-own": {
-   "w": 50,
-   "n": 91,
-   "pct": 54.9
+   "w": 57,
+   "n": 115,
+   "pct": 49.6
   }
  },
  "by_day": [
@@ -1277,30 +1300,39 @@
   },
   {
    "date": "2026-11-01",
-   "w": 0,
-   "n": 0,
+   "w": 7,
+   "n": 24,
    "carded": 25,
    "voids": 0,
-   "unresolved": 25,
-   "owed": 24
+   "unresolved": 1,
+   "owed": 0
+  },
+  {
+   "date": "2026-11-02",
+   "w": 0,
+   "n": 0,
+   "carded": 3,
+   "voids": 0,
+   "unresolved": 3,
+   "owed": 3
   }
  ],
- "days_graded": 23,
- "cards_seen": 24,
+ "days_graded": 24,
+ "cards_seen": 25,
  "record_from": "2026-09-07",
  "cards_before_record_from": 0,
  "record_from_note": "Counting from 2026-09-07. No earlier cards were set aside.",
- "distinct_players": 182,
- "distinct_games": 85,
- "carded_rows": 506,
+ "distinct_players": 191,
+ "distinct_games": 96,
+ "carded_rows": 509,
  "voids": 0,
- "unresolved": 40,
- "coverage_note": "466 of 506 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 40 could not be settled at all.",
+ "unresolved": 19,
+ "coverage_note": "490 of 509 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 19 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
  "skipped": [
   {
-   "date": "2026-11-01",
+   "date": "2026-11-02",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
