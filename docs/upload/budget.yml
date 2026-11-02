@@ -129,6 +129,12 @@ jobs:
             echo "inside plan"
             exit 0
           fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/budget.md ]; then
+            echo "::warning::no report was written — leaving any open issue alone"
+            exit 0
+          fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
           # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
           # left the `gh issue edit` path alone. Every watcher files ONCE and then
@@ -253,6 +259,12 @@ jobs:
               gh issue close "$NUM"
             fi
             echo "inside the bars"
+            exit 0
+          fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/repo.md ]; then
+            echo "::warning::no report was written — leaving any open issue alone"
             exit 0
           fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.

@@ -7,7 +7,7 @@
 one commit message. Do it after merging the pull request "The nightly
 sweep finishes, and the watchers stop wiping their issues".
 
-What changes in `vacuity.yml`: the nightly check now runs in four jobs plus a fifth that writes the one report, and Tell Sam leaves the issue alone when a step never finished.
+What changes in `vacuity.yml`: the nightly check now runs in four jobs plus a fifth that writes the one report, and Tell Sam leaves the issue alone when a step never finished or wrote no report.
 
 **No schedule, cron line or cost changes.**
 

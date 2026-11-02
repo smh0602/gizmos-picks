@@ -185,6 +185,12 @@ jobs:
             echo "all workflows green"
             exit 0
           fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/body.md ]; then
+            echo "::warning::no report was written — leaving any open issue alone"
+            exit 0
+          fi
           if [ "$STATE" = "coverage" ]; then
             # ⛔ NOTHING IS FAILING, so the outage issue is FALSE and gets
             # closed. This is the line that cleans up #6.

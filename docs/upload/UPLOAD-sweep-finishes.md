@@ -18,8 +18,8 @@ These 6 files change two things:
    each with its own two hours, and a fifth job writes the one report. If
    one computer runs out of time, the other three still report, and the
    report says which one is missing.
-2. All 6 files: when a job dies before it finishes, its "Tell Sam" step now
-   leaves the issue alone instead of overwriting it.
+2. All 6 files: when a job dies or crashes before it finishes, its "Tell Sam"
+   step now leaves the issue alone instead of overwriting it.
 
 **No schedule changes. No cron line changes. No cost:** these run on GitHub's
 free computers and make no paid call. The cron count stays the same.
@@ -90,8 +90,8 @@ No follow-up pull request is needed. Until you upload, the old nightly keeps
 running exactly as it does today; after 48 hours the "runs" report says these
 files are waiting.
 
-After you upload, the next nightly run starts at 06:47 UTC (2:47am ET), though
-GitHub has been starting it hours late:
+After you upload, the next nightly run starts at 06:47 UTC (1:47am ET in
+winter, 2:47am ET in summer), though GitHub has been starting it hours late:
 
 - Go to **https://github.com/smh0602/gizmos-picks/actions/workflows/vacuity.yml**
   and open the newest run. It should show **sweep (1)**, **sweep (2)**,
@@ -100,9 +100,14 @@ GitHub has been starting it hours late:
   findings were still true when last checked, so expect them back; they are
   real and are a separate job, not a sign this upload went wrong.
 
-I (or the next session) check that first run. If a job shows a red X on
-**watch**, nothing is lost: it means one of the four did not report, and the
-issue was left alone.
+I (or the next session) check that first run. If **watch** shows a red X, one
+of the four did not report, and nothing is lost:
+
+- If the other three found nothing, the issue was left exactly as it was.
+- If they found something, it was added to issue #249 as a comment that names
+  the missing part. The issue's main text was left as it was.
+
+Either way the next night that all four finish puts it right by itself.
 
 ---
 

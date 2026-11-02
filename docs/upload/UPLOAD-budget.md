@@ -7,7 +7,7 @@
 one commit message. Do it after merging the pull request "The nightly
 sweep finishes, and the watchers stop wiping their issues".
 
-What changes in `budget.yml`: its two Tell Sam steps now leave the issue alone when the step before them never finished, instead of overwriting it.
+What changes in `budget.yml`: its two Tell Sam steps now leave the issue alone when the step before them never finished or wrote no report, instead of overwriting it.
 
 **No schedule, cron line or cost changes.**
 

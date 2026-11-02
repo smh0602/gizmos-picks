@@ -7,7 +7,7 @@
 one commit message. Do it after merging the pull request "The nightly
 sweep finishes, and the watchers stop wiping their issues".
 
-What changes in `runs.yml`: its Tell Sam step now leaves the issue alone when the step before it never finished, instead of overwriting it.
+What changes in `runs.yml`: its Tell Sam step now leaves the issue alone when the step before it never finished or wrote no report, instead of overwriting it.
 
 **No schedule, cron line or cost changes.**
 

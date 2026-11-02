@@ -222,9 +222,11 @@ failed recurring runs, i would like to avoid that"*. So:
    `[2026-11-01]` The nightly runs the same four parts, one job each, and a
    fifth job, `watch`, merges them (`vacuity.py --merge`) and alone touches the
    issue: on one runner its 120-minute clock ran out on 9 of 15 nights and Tell
-   Sam blanked #249 each time. A part that never reported is never a pass
-   (`test_vacuity_merge.py`), and an empty state is "could not look" in every
-   watcher (`test_budget_watch.py` §2).
+   Sam blanked #249 each time. A part that never reported is never a pass: a
+   finding beside a missing part is added to the issue, never written over it,
+   and the run goes red (`test_vacuity_merge.py`). An empty state or an empty
+   report is "could not look" in every three-state watcher (`test_budget_watch.py`
+   §2); `collect.yml`'s two alerts are another shape and are not covered.
    `[2026-09-25]` One more job, `staged`, applies every workflow staged in
    `docs/upload/` to its own checkout and runs the `rest` shard again:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's

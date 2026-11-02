@@ -32,7 +32,8 @@ on:
   # that changes only when a guard changes.
   # ⛔ Off :00 and :30 like every cron here; those slots are the most
   # congested on GitHub's scheduler and runs get dropped.
-  # ⚠️ 06:47Z = 2:47am ET — quiet, and well clear of the 6am ET trends job.
+  # ⚠️ 06:47Z = 2:47am ET in summer, 1:47am in winter — quiet, and well clear
+  # of the 6am ET trends job.
   schedule:
     - cron: "47 6 * * *"
   workflow_dispatch:
@@ -169,6 +170,10 @@ jobs:
             echo "state=ok" >> "$GITHUB_OUTPUT"
           elif [ "$rc" = "1" ]; then
             echo "state=bad" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "3" ]; then
+            # 🔴 A FINDING, AND A PART THAT NEVER REPORTED: a short report.
+            echo "::warning::a part of the sweep never reported"
+            echo "state=partial" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::vacuity could not complete a clean run"
             echo "state=unknown" >> "$GITHUB_OUTPUT"
@@ -206,6 +211,12 @@ jobs:
             echo "every guard bites"
             exit 0
           fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/vacuity.md ]; then
+            echo "::warning::no report was written — leaving any open issue alone"
+            exit 0
+          fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
           # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
           # left the `gh issue edit` path alone. Every watcher files ONCE and then
@@ -221,7 +232,11 @@ jobs:
           # when X does not exist — the create path needed that and the edit path
           # needs it too.
           gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
-          if [ -n "$NUM" ]; then
+          if [ -n "$NUM" ] && [ "$STATE" = "partial" ]; then
+            # 🔴 `[2026-11-01]` A SHORT REPORT NEVER REPLACES A WHOLE ONE: the part
+            # that died may hold a finding only the issue still shows.
+            gh issue comment "$NUM" --body-file /tmp/vacuity.md
+          elif [ -n "$NUM" ]; then
             gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/vacuity.md
           else
             gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/vacuity.md --assignee smh0602 \
@@ -234,11 +249,14 @@ jobs:
       # sees it. Tell Sam leaves the issue alone on those nights, on purpose,
       # and a green tick there would be the only thing anybody saw.
       # ⛔ ANYTHING BUT `ok` OR `bad`: an empty state is a step that never finished.
+      # 🔴 AND A SHORT REPORT IS RED TOO: its finding is on the issue, but a part
+      # died, and only this says so.
       - name: A run that could not look is red
         if: always()
         run: |
           STATE='${{ steps.look.outputs.state }}'
           case "$STATE" in
             ok|bad) echo "the sweep reported: $STATE" ;;
+            partial) echo "::error::a part of the nightly sweep never reported; the issue has what the others found"; exit 1 ;;
             *) echo "::error::the nightly sweep could not look (state '$STATE')"; exit 1 ;;
           esac

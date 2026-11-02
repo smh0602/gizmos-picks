@@ -49,6 +49,21 @@ and say which you did.*
 #   file: docs/upload/owed_tests.yml
 #   find:           if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
 #   with:           if [ "$STATE" = "unknown" ]; then
+#
+# @vacuity 🔴🔴 a Tell Sam step that reads an empty REPORT as a finding is caught
+#   file: docs/upload/vacuity.yml
+#   find:           if [ ! -s /tmp/vacuity.md ]; then
+#   with:           if false; then
+#
+# @vacuity 🔴 ...in a watcher with no `ok` path, where `answered` closes the issue
+#   file: docs/upload/owed_tests.yml
+#   find:           if [ ! -s /tmp/owed.md ]; then
+#   with:           if false; then
+#
+# @vacuity 🔴 ...and ahead of the run watcher's coverage path, which closes one
+#   file: docs/upload/runs.yml
+#   find:           if [ ! -s /tmp/body.md ]; then
+#   with:           if false; then
 """
 import glob
 import os
@@ -224,8 +239,13 @@ section("2. 🔴🔴 THE CLASS: 'I COULD NOT LOOK' MUST NEVER CLOSE AN ISSUE")
 # ⚠️ SCOPED TO THE THREE-STATE CONTRACT, AND THE SCOPE IS MEASURED.
 #    `collect.yml` also opens an issue, but from a DIFFERENT shape — a
 #    test-failure alert with its own outputs and no `unknown` state at
-#    all. ⛔ Sweeping it in here reddened three checks on a file that is
-#    not broken, which is a guard firing on correct code (CLAUDE.md).
+#    all. ⛔ Sweeping it in here reddened three checks that step cannot
+#    answer, which is a guard firing on the wrong question (CLAUDE.md).
+#    ⚠️ `[2026-11-01]` ~~a file that is not broken~~: a different shape is not
+#    a correct one. Its test alert reads an empty RC as green, so a run killed
+#    during Tests closes the open issue (driven), and the watchdog's closes on
+#    any ALERT but "True" (read, not driven). Both are the defect below by
+#    another shape, and are owed in a PR of their own with a staged collect.yml.
 #    ✅ So the set is every step that reads a `steps.look.outputs.state`
 #    into `$STATE` — the watcher contract itself — which is still
 #    DISCOVERED, and still covers a watcher nobody has written yet.
@@ -249,9 +269,9 @@ ck("⚠️ every three-state watcher in the repo is discovered",
    "nothing (rule 67). Found %s"
    % sorted({f for f, _, _ in _issue_wf}))
 note("⚠️ issue-writing steps OUTSIDE the three-state contract, not swept "
-     "here: %s. ⛔ collect.yml's test alert has no `unknown` state to get "
-     "wrong — it is a different shape, not a broken one, and failing it "
-     "would be a guard firing on correct code."
+     "here: %s. ⛔ collect.yml's test alert has no `unknown` state, so this "
+     "section's questions do not fit it. ⚠️ THAT DOES NOT CLEAR IT: an empty "
+     "RC closes its issue, the same defect by another shape, owed in its own PR."
      % (sorted(_other_issue) or "none"))
 ck("✅ ...and the new watcher is one of them",
    any(f == "budget.yml" for f, _, _ in _issue_wf),
@@ -260,13 +280,17 @@ ck("✅ ...and the new watcher is one of them",
    % sorted({f for f, _, _ in _issue_wf}))
 
 
-def drive(body, state, open_issue):
+def drive(body, state, open_issue, report="a report\n"):
     """Run an issue step's real shell with a fake `gh`. Returns its argv log.
 
     ⛔ THE STEP IS EXECUTED, NOT READ. This is the only way to tell a
     workflow that HANDLES `unknown` from one that merely mentions it.
+    ⚠️ `report` is what the look step left at each `--body-file` path, in a
+    folder of this run's own: a step writes no issue without one. None leaves
+    no file at all.
     """
     d = tempfile.mkdtemp(prefix="budgetwatch-")
+    here = d.replace(os.sep, "/")
     log = os.path.join(d, "gh.log")
     gh = os.path.join(d, "gh")
     with open(gh, "w", encoding="utf-8") as fh:
@@ -278,13 +302,19 @@ def drive(body, state, open_issue):
     # ⚠️ The ONLY substitution is the expression GitHub itself would
     #    expand. Everything else is the deployed shell, byte for byte.
     src = re.sub(r"\$\{\{\s*steps\.look\.outputs\.state\s*\}\}", state, body)
-    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src)
+    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src).replace("/tmp/", here + "/")
     open(script, "w", encoding="utf-8").write(src)
+    if report is not None:
+        for _path in set(re.findall(r"--body-file (%s/\S+)" % re.escape(here), src)):
+            with open(_path, "w", encoding="utf-8") as fh:
+                fh.write(report)
     env = dict(os.environ, PATH=d + os.pathsep + os.environ["PATH"],
                GH_LOG=log, FAKE_NUM=(open_issue or ""))
     subprocess.run(["bash", script], env=env, cwd=d,
                    capture_output=True, text=True, timeout=60)
-    return open(log, encoding="utf-8").read() if os.path.exists(log) else ""
+    out = open(log, encoding="utf-8").read() if os.path.exists(log) else ""
+    shutil.rmtree(d, ignore_errors=True)
+    return out
 
 
 # 🔴 THE HARNESS IS PROVEN ABLE TO SEE A CLOSE BEFORE IT IS TRUSTED TO
@@ -325,7 +355,7 @@ _RESOLVES_ON = {
     "owed_tests.yml": {"answered"},
 }
 _STATES = ("ok", "bad", "unknown", "progress", "shrank", "answered",
-           "coverage")
+           "coverage", "partial")
 _unmapped = sorted({f for f, _, _ in _issue_wf} - set(_RESOLVES_ON))
 ck("⛔ every issue-writing workflow declares the state that resolves it",
    not _unmapped,
@@ -380,6 +410,35 @@ ck("🔴🔴 a step that never set its state touches no issue, open or not",
    not _wiped,
    "⛔ THIS IS THE DEFECT. An empty state is a timeout, not a finding: it "
    "wrote an empty body over a real issue. Offenders: %s" % _wiped)
+# 🔴🔴 `[2026-11-01]` AND SO IS A REPORT NOBODY WROTE, THE SAME WIPE BY ANOTHER
+#    DOOR. An uncaught exception exits 1, the number for a finding, having
+#    printed nothing: the state reads `bad` (`shrank` for the owed tests) and an
+#    empty body goes over the issue. Found in review by raising in all 6 staged
+#    look steps, after only `vacuity.py` had been given its own exit. So every
+#    state that writes a report is driven with the report empty and with no
+#    file, an issue open and none. `ok` is not one of them: it writes no body.
+_silent, _blank = [], []
+for _f, _n, _b in _issue_wf:
+    _writes = [st for st in _STATES if "--body-file" in drive(_b, st, "77")]
+    if not _writes:
+        _silent.append(_f)
+    for _st in _writes:
+        for _rep in ("", None):
+            for _num in ("77", ""):
+                if re.search(r"issue (create|edit|comment|close)",
+                             drive(_b, _st, _num, report=_rep)):
+                    _blank.append((_f, _st, _rep, _num))
+ck("⚠️ every watcher has a state that writes its report",
+   not _silent,
+   "⛔ a step with no such state makes the next check say nothing (rule 67). "
+   "Offenders: %s" % _silent)
+ck("🔴🔴 a report nobody wrote touches no issue, on any state that would write it",
+   not _blank,
+   "⛔ THIS IS THE CRASH. Exit 1 with nothing printed is not a finding: it "
+   "wrote an empty body over a real issue, or closed one. Offenders: %s" % _blank)
+# ✅ THE OTHER HALF, AND IT PROVES `drive` REALLY PLANTED THE REPORT: an alarm
+#    state with one still writes it. Without this the two checks above would
+#    pass on a step that had stopped writing anything at all.
 _nocreate = [f for f, _, b in _issue_wf
              if "issue create" not in drive(b, "bad", "")]
 ck("✅ ...and every one of them DOES open an issue on a real finding",

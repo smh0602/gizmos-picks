@@ -11,19 +11,22 @@ reports, through `vacuity.py --merge`.
 wrong is a clean answer about a share of the sweep: three parts report nothing
 bad, the fourth died, and the issue closes. So this file asks:
   1. `merge()` on planted reports: every clean part -> 0; any finding -> 1;
-     a part missing with nothing bad -> 2, NEVER 0; a leak -> 2; nothing -> 2.
+     a part missing with nothing bad -> 2, NEVER 0; a finding with a part
+     missing -> 3, NEVER 1; a leak -> 2; nothing -> 2.
   2. `main()` writes what `merge()` reads; unset, it writes nothing and sweeps
      everything, which is what the deployed nightly does until Sam's upload.
   3. The real program, run on a planted repo: the parts add up to the whole.
   4. The workflow as it will be live: the report job runs whatever happened to
-     the parts, and a run that could not look is RED.
+     the parts, a run that could not look is RED, and so is a short report,
+     which is added to the issue and never written over it.
 
 ⚠️ CLASS OR INSTANCE. Section 4 is this one workflow (no other sweeps in parts).
-The class, "an empty state writes to no issue", is test_budget_watch.py §2.
+The class, "an empty state or report writes to no issue", is
+test_budget_watch.py §2.
 
 ⚠️ A step this file runs is picked by what it DOES, never by name, except the
 last one, which writes nothing: `test_step_tmp.py` treats a step named by a
-test that starts bash as driven, and the other two keep their fixed /tmp paths
+test that starts bash as driven, and the other three keep their fixed /tmp paths
 (Tell Sam reads one). `run_step` points those at a directory of its own.
 
 # @vacuity 🔴🔴 a part that never reported can never read as clean
@@ -131,6 +134,26 @@ test that starts bash as driven, and the other two keep their fixed /tmp paths
 #   find:             rm -f "$VACUITY_OUT"
 #   with:             true
 #
+# @vacuity 🔴🔴 a finding with a part missing is not a whole report
+#   file: vacuity.py
+#   find:     return EXIT_PARTIAL if rc == EXIT_VACUOUS and gaps else rc
+#   with:     return rc
+#
+# @vacuity 🔴🔴 ...the report job reads that as its own state
+#   file: docs/upload/vacuity.yml
+#   find:           elif [ "$rc" = "3" ]; then
+#   with:           elif [ "$rc" = "9" ]; then
+#
+# @vacuity 🔴🔴 ...a short report never replaces a full one
+#   file: docs/upload/vacuity.yml
+#   find:           if [ -n "$NUM" ] && [ "$STATE" = "partial" ]; then
+#   with:           if false; then
+#
+# @vacuity 🔴🔴 ...and the run goes red with the finding reported
+#   file: docs/upload/vacuity.yml
+#   find:             partial) echo "::error::a part of the nightly sweep never reported; the issue has what the others found"; exit 1 ;;
+#   with:             partial) ;;
+#
 # @vacuity 🔴 the reports reach the report job
 #   file: docs/upload/vacuity.yml
 #   find:           pattern: vacuity-part-*
@@ -227,11 +250,20 @@ ck("🔴🔴 THE HOLE: three clean parts and one missing is exit 2, NEVER 0",
 ck("🔴 ...and says which part", "part 3/4 never reported" in _o, "%s" % _o[:300])
 
 _rc, _o = M(plant(P(1), P(2, t2=[FOUND2])))
-ck("🔴🔴 a finding with parts missing is still exit 1, and names what is missing",
-   _rc == V.EXIT_VACUOUS and "test_found2.py" in _o
+ck("🔴🔴 a finding with parts missing is exit 3, and names what is missing",
+   _rc == V.EXIT_PARTIAL and "test_found2.py" in _o
    and "part 3/4 never reported" in _o and "part 4/4 never reported" in _o,
-   "⛔ a real finding is not lost because another part died, and whoever reads "
-   "it must know the report is partial. rc=%s %s" % (_rc, _o[:300]))
+   "⛔ FOUND IN REVIEW: this was 1, so the night read as a whole report. It "
+   "overwrote the issue, dropping what the dead part held, and nothing went red. "
+   "rc=%s %s" % (_rc, _o[:300]))
+
+_d = plant(P(1, t2=[FOUND2]), P(2), P(3), P(4))
+with open(os.path.join(_d, "vacuity-part-0", "stray.json"), "w", encoding="utf-8") as _fh:
+    _fh.write("{not json")
+_rc, _o = M(_d)
+ck("🔴 ...and so is a finding beside a report nobody can read",
+   _rc == V.EXIT_PARTIAL and "stray.json" in _o and "test_found2.py" in _o,
+   "⛔ every gap counts, not only a missing part. rc=%s %s" % (_rc, _o[:300]))
 
 _rc, _o = M(plant(P(1), P(2, leak_ok=False, dirty=" M card.py"), P(3), P(4)))
 ck("🔴 a part that left a mutation behind makes the whole sweep exit 2",
@@ -240,6 +272,9 @@ ck("🔴 a part that left a mutation behind makes the whole sweep exit 2",
 _rc, _o = M(plant(P(1, t2=[FOUND2]), P(2, leak_ok=False, dirty=" M card.py"),
                   P(3), P(4)))
 ck("🔴 ...and it outranks a finding in another part, as in verdict()",
+   _rc == V.EXIT_UNREADABLE, "rc=%s" % _rc)
+_rc, _o = M(plant(P(1, t2=[FOUND2]), P(2, leak_ok=False, dirty=" M card.py"), P(3)))
+ck("🔴 ...and a missing part as well: every result is suspect, so no finding is written",
    _rc == V.EXIT_UNREADABLE, "rc=%s" % _rc)
 
 _rc, _o = M(tree())
@@ -433,8 +468,8 @@ ck("🔴🔴 THE NIGHT THE PROBLEM PART DIES: a clean part alone is exit 2, not 
 os.rename(_o2 + ".gone", _o2)
 os.remove(_o1)
 _rcm, _om, _em = prog("--merge", _parts)
-ck("🔴 ...and the night a CLEAN part dies, the finding still gets out",
-   _rcm == V.EXIT_VACUOUS and "test_b_vacuous.py" in _om and "part 1/2 never reported" in _om,
+ck("🔴 ...and the night a CLEAN part dies, the finding still gets out, as a short report",
+   _rcm == V.EXIT_PARTIAL and "test_b_vacuous.py" in _om and "part 1/2 never reported" in _om,
    "rc=%s %s" % (_rcm, shown(_om[:300])))
 
 _rcx, _ox, _ex = prog(VACUITY_PART="bogus")
@@ -521,15 +556,17 @@ ck("🔴 the report job downloads every part, to the folder it merges",
 SHIMS = {"python": '#!/bin/sh\necho "$@" >> "$ARGS_LOG"\n'
                    'if [ -n "$VACUITY_OUT" ]; then echo x > "$VACUITY_OUT"; fi\n'
                    'exit "${FAKE_RC:-0}"\n',
-         "git": '#!/bin/sh\nif [ -n "$FAKE_DIRTY" ]; then echo " M card.py"; fi\nexit 0\n'}
+         "git": '#!/bin/sh\nif [ -n "$FAKE_DIRTY" ]; then echo " M card.py"; fi\nexit 0\n',
+         "gh": '#!/bin/sh\necho "$@" >> "$GH_LOG"\n'
+               'if [ "$1 $2" = "issue list" ]; then echo "$FAKE_NUM"; fi\nexit 0\n'}
 
 
-def run_step(body, state="", **env):
-    """Run a step's real shell. -> (rc, output, GITHUB_OUTPUT, args, folder).
+def run_step(body, state="", report=None, **env):
+    """Run a step's real shell. -> (rc, output, GITHUB_OUTPUT, args, folder, gh log).
 
     ⚠️ Its fixed /tmp paths are pointed at a folder of this run's own, and the
     expression GitHub would expand is expanded; the rest is the step, byte for
-    byte. Under the shell GitHub uses.
+    byte. Under the shell GitHub uses. `report` is what the look step left.
     """
     d = tree()
     b = os.path.join(d, "bin")
@@ -543,22 +580,27 @@ def run_step(body, state="", **env):
     script = os.path.join(d, "step.sh")
     with open(script, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(src)
-    log, out = os.path.join(d, "args.log"), os.path.join(d, "out")
+    if report is not None:
+        with open(os.path.join(d, "vacuity.md"), "w", encoding="utf-8") as fh:
+            fh.write(report)
+    log, out, gh = (os.path.join(d, f) for f in ("args.log", "out", "gh.log"))
     e = dict({k: v for k, v in os.environ.items() if k not in ENV},
-             PATH=b + os.pathsep + os.environ["PATH"], ARGS_LOG=log, GITHUB_OUTPUT=out, **env)
+             PATH=b + os.pathsep + os.environ["PATH"], ARGS_LOG=log, GITHUB_OUTPUT=out,
+             GH_LOG=gh, **env)
     p = subprocess.run(["bash", "--noprofile", "--norc", "-eo", "pipefail", script],
                        cwd=d, env=e, capture_output=True, encoding="utf-8", timeout=60)
 
     def _read(path):
         return open(path, encoding="utf-8").read() if os.path.exists(path) else ""
 
-    return p.returncode, p.stdout + p.stderr, _read(out), _read(log), d
+    return p.returncode, p.stdout + p.stderr, _read(out), _read(log), d, _read(gh)
 
 
 if _look is not None:
-    _want = {0: "state=ok", 1: "state=bad", 2: "state=unknown", 3: "state=unknown"}
+    _want = {0: "state=ok", 1: "state=bad", 2: "state=unknown", 3: "state=partial",
+             4: "state=unknown"}
     _got = {rc: run_step(_look.run, FAKE_RC=str(rc), PARTS="the-parts")[2].strip() for rc in _want}
-    ck("🔴🔴 the report job reads merge's exit: 0 ok, 1 bad, anything else unknown",
+    ck("🔴🔴 the report job reads merge's exit: 0 ok, 1 bad, 3 partial, anything else unknown",
        _got == _want,
        "⛔ 2 read as `bad` is the wipe again: an empty report over the issue. got %r" % _got)
     _args = run_step(_look.run, PARTS="the-parts")[3].split()
@@ -568,16 +610,40 @@ if _look is not None:
 _lastrun = W.step_run(WF, step_name=LAST)
 ck("⚠️ the last step was read", bool(_lastrun), "⛔ rule 67")
 if _lastrun:
-    _red = {st: run_step(_lastrun, state=st)[0] for st in ("ok", "bad", "unknown", "", "nonsense")}
+    _red = {st: run_step(_lastrun, state=st)[0]
+            for st in ("ok", "bad", "partial", "unknown", "", "nonsense")}
     ck("🔴🔴 unknown turns the run red", _red["unknown"] != 0, "got %r" % _red)
     ck("🔴🔴 ...and so does an EMPTY state: the merge step never finished",
        _red[""] != 0,
        "⛔ FOUND IN REVIEW. An empty state is the case that started this. got %r" % _red)
     ck("🔴 ...and so does anything else it does not know", _red["nonsense"] != 0,
        "got %r" % _red)
+    ck("🔴🔴 ...and so does a finding with a part missing",
+       _red["partial"] != 0,
+       "⛔ FOUND IN REVIEW. With any finding in a surviving part the run stayed "
+       "green, so a dead part was seen by nobody. got %r" % _red)
     ck("✅ ok and bad stay green: a finding is reported, not a failed run",
        _red["ok"] == 0 and _red["bad"] == 0,
        "⛔ a red run on every finding would be a red run nobody reads. got %r" % _red)
+
+# ⛔ THE NIGHT A PART DIES WITH A FINDING ELSEWHERE. The issue may hold what that
+#    part found, so a short report is added beside it; a whole one replaces it.
+_tell = next((s for s in _ws if s.run and "gh issue edit" in s.run), None)
+ck("⚠️ the issue step was found", _tell is not None, "⛔ rule 67")
+if _tell is not None:
+    _short = "part 2/4 never reported\n"
+    _o77 = run_step(_tell.run, state="partial", report=_short, FAKE_NUM="77")[5]
+    ck("🔴🔴 a short report is ADDED to the open issue, never written over it",
+       "issue comment 77 --body-file" in _o77 and "issue edit" not in _o77
+       and "issue close" not in _o77,
+       "⛔ FOUND IN REVIEW. `gh issue edit` here dropped what the dead part held. "
+       "got %r" % _o77)
+    _o0 = run_step(_tell.run, state="partial", report=_short, FAKE_NUM="")[5]
+    ck("🔴 ...and with no issue open, the finding still opens one",
+       "issue create" in _o0, "got %r" % _o0)
+    _oall = run_step(_tell.run, state="bad", report="the whole report\n", FAKE_NUM="77")[5]
+    ck("✅ a whole report still replaces the body",
+       "issue edit 77" in _oall and "issue comment" not in _oall, "got %r" % _oall)
 
 if _swp is not None:
     _clean = run_step(_swp.run, VACUITY_OUT="report.json", FAKE_RC="1")

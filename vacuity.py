@@ -84,6 +84,10 @@ from concurrent.futures import ThreadPoolExecutor
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 EXIT_OK, EXIT_VACUOUS, EXIT_UNREADABLE = 0, 1, 2
+# ⚠️ `--merge` ONLY `[2026-11-01]`: a finding, and a part that never reported.
+#    `verdict()` never returns it: that judges what was seen, this says what
+#    was not.
+EXIT_PARTIAL = 3
 
 # ⚠️ CI gives every test file 600s. Matching it means this cannot invent a
 #    failure a real run would not see.
@@ -720,7 +724,8 @@ def verdict(results, leak_ok):
 # union, so a part is never a second judgement.
 # 🔴 AND A PART THAT NEVER REPORTED IS NEVER A PASS. A share nobody saw cannot
 # close an issue: no finding plus a missing part is "could not look" (2). A
-# finding is still a finding (1), and its body names the parts that are missing.
+# finding is still reported, as a short report (3): its body names the parts
+# that are missing, and the run goes red, because those parts may hold more.
 def write_part(path, part, t1, t2, leak_ok, dirty):
     """Save one part's results for `merge`. `part` None = the whole sweep."""
     d = os.path.dirname(os.path.abspath(path))
@@ -768,8 +773,9 @@ def read_parts(d):
 def merge(d):
     """Judge what the parts in `d` reported, as one sweep. -> the exit code.
 
-    All parts in and clean -> 0. Any finding -> 1. A leak, or nothing bad but a
-    part missing, or nothing at all -> 2.
+    All parts in and clean -> 0. All parts in with a finding -> 1. A finding
+    with a part missing -> 3. A leak, or nothing bad but a part missing, or
+    nothing at all -> 2.
     """
     reports, gaps = read_parts(d)
     t1 = [row for rep in reports for row in rep["t1"]]
@@ -785,7 +791,10 @@ def merge(d):
         print("⚠️ **THIS REPORT DOES NOT COVER THE WHOLE SWEEP:** %s.\n"
               % "; ".join(gaps))
     say(rc, t1, t2, leak_ok, dirty)
-    return rc
+    # 🔴 A SHORT REPORT IS NOT A WHOLE ONE, WHATEVER IT FOUND. As exit 1 it
+    #    replaced the issue's body, losing what the dead part held, and the run
+    #    stayed green, so nobody saw that a part had died.
+    return EXIT_PARTIAL if rc == EXIT_VACUOUS and gaps else rc
 
 
 def say(rc, t1, t2, leak_ok, dirty):

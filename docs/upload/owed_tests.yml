@@ -119,6 +119,12 @@ jobs:
             echo "could not read the record — leaving any open issue alone"
             exit 0
           fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/owed.md ]; then
+            echo "::warning::no report was written — leaving any open issue alone"
+            exit 0
+          fi
           if [ -z "$NUM" ] && [ "$STATE" = "answered" ]; then
             # ⚠️ IDEMPOTENT. Once the verdict has been delivered and the
             # issue closed, a later run must not reopen it every morning.
