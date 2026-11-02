@@ -2,123 +2,127 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_refit_spec.md",
- "built_at": "2026-10-26T16:18:41Z",
+ "built_at": "2026-11-02T19:46:30Z",
  "champion": null,
  "champion_since": null,
  "season": 2026,
+ "floor": 300,
  "scoreboard": {
   "spread": {
-   "predictions": 105,
-   "model_log_loss": 0.6746,
+   "predictions": 119,
+   "model_log_loss": 0.6732,
    "books_log_loss": 0.6931,
-   "gap": -0.0185,
-   "lo": -0.0482,
-   "hi": 0.0112,
+   "gap": -0.0199,
+   "lo": -0.047,
+   "hi": 0.0071,
    "state": "level",
    "trend": {
     "weeks": [
-     "2026-09-28",
      "2026-10-05",
      "2026-10-12",
-     "2026-10-19"
+     "2026-10-19",
+     "2026-10-26"
     ],
     "before": [
      "2026-09-07",
      "2026-09-14",
-     "2026-09-21"
+     "2026-09-21",
+     "2026-09-28"
     ],
     "state": "no clear change yet",
-    "diff": 0.0339,
-    "lo": -0.0257,
-    "hi": 0.0935
+    "diff": -0.002,
+    "lo": -0.056,
+    "hi": 0.052
    },
-   "said": 57.7,
-   "hit": 55.2
+   "said": 57.4,
+   "hit": 56.3
   },
   "total": {
-   "predictions": 105,
-   "model_log_loss": 0.6924,
+   "predictions": 119,
+   "model_log_loss": 0.6911,
    "books_log_loss": 0.6931,
-   "gap": -0.0008,
-   "lo": -0.0184,
-   "hi": 0.0168,
+   "gap": -0.002,
+   "lo": -0.0182,
+   "hi": 0.0141,
    "state": "level",
    "trend": {
     "weeks": [
-     "2026-09-28",
      "2026-10-05",
      "2026-10-12",
-     "2026-10-19"
+     "2026-10-19",
+     "2026-10-26"
     ],
     "before": [
      "2026-09-07",
      "2026-09-14",
-     "2026-09-21"
+     "2026-09-21",
+     "2026-09-28"
     ],
     "state": "no clear change yet",
-    "diff": -0.0145,
-    "lo": -0.0508,
-    "hi": 0.0218
+    "diff": -0.0237,
+    "lo": -0.0557,
+    "hi": 0.0083
    },
-   "said": 54.4,
+   "said": 54.3,
    "hit": 57.1
   },
   "moneyline": {
-   "predictions": 105,
-   "model_log_loss": 0.6565,
-   "books_log_loss": 0.6631,
-   "gap": -0.0066,
-   "lo": -0.0527,
-   "hi": 0.0395,
+   "predictions": 119,
+   "model_log_loss": 0.6444,
+   "books_log_loss": 0.6445,
+   "gap": -0.0002,
+   "lo": -0.0424,
+   "hi": 0.0421,
    "state": "level",
    "trend": {
     "weeks": [
-     "2026-09-28",
      "2026-10-05",
      "2026-10-12",
-     "2026-10-19"
+     "2026-10-19",
+     "2026-10-26"
     ],
     "before": [
      "2026-09-07",
      "2026-09-14",
-     "2026-09-21"
+     "2026-09-21",
+     "2026-09-28"
     ],
     "state": "no clear change yet",
-    "diff": -0.0495,
-    "lo": -0.1426,
-    "hi": 0.0436
+    "diff": 0.0096,
+    "lo": -0.0748,
+    "hi": 0.094
    },
-   "said": 63.4,
-   "hit": 61.0
+   "said": 63.3,
+   "hit": 62.2
   }
  },
  "miss": {
-  "games": 106,
-  "margin_model": 10.12,
-  "margin_books": 9.35,
-  "total_model": 11.39,
-  "total_books": 10.61
+  "games": 120,
+  "margin_model": 10.24,
+  "margin_books": 9.48,
+  "total_model": 11.45,
+  "total_books": 10.76
  },
  "line_moves": {
   "spread": {
-   "toward": 37,
-   "against": 47,
-   "unmoved": 22,
-   "toward_share": 44.0
+   "toward": 44,
+   "against": 55,
+   "unmoved": 36,
+   "toward_share": 44.4
   },
   "total": {
-   "toward": 45,
-   "against": 44,
-   "unmoved": 17,
-   "toward_share": 50.6
+   "toward": 50,
+   "against": 55,
+   "unmoved": 30,
+   "toward_share": 47.6
   },
   "moneyline": {
-   "toward": 44,
-   "against": 42,
-   "unmoved": 20,
-   "toward_share": 51.2
+   "toward": 49,
+   "against": 49,
+   "unmoved": 37,
+   "toward_share": 50.0
   },
-  "games": 106
+  "games": 135
  },
  "challengers": [
   {
@@ -130,6 +134,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "all",
    "history": {
     "predictions": 425,
     "games": 214,
@@ -141,16 +146,28 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 28,
-    "games": 14,
-    "mean_d": 0.018445,
-    "p": 0.031556,
-    "p_wrong_way": 0.968444,
-    "champion_log_loss": 0.651212,
-    "challenger_log_loss": 0.632767
+    "predictions": 56,
+    "games": 28,
+    "mean_d": -0.00191,
+    "p": 0.592142,
+    "p_wrong_way": 0.407858,
+    "champion_log_loss": 0.629484,
+    "challenger_log_loss": 0.631393
    },
-   "alpha": 0.0011111111111111111,
-   "verdict": "NOT YET MEASURABLE"
+   "counted": {
+    "predictions": 481,
+    "games": 242,
+    "mean_d": -0.002471,
+    "p": 0.717493,
+    "p_wrong_way": 0.282507,
+    "champion_log_loss": 0.673103,
+    "challenger_log_loss": 0.675573,
+    "mean_d_exact": -0.002470655090955694,
+    "p_exact": 0.7174929602919261,
+    "differing": 481
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
   },
   {
    "name": "S",
@@ -162,6 +179,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "scored",
    "history": {
     "predictions": 638,
     "games": 214,
@@ -173,15 +191,27 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 42,
-    "games": 14,
-    "mean_d": 0.007975,
-    "p": 0.075812,
-    "p_wrong_way": 0.924188,
-    "champion_log_loss": 0.664204,
-    "challenger_log_loss": 0.656229
+    "predictions": 84,
+    "games": 28,
+    "mean_d": 0.002124,
+    "p": 0.289547,
+    "p_wrong_way": 0.710453,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.646143
    },
-   "alpha": 0.0011111111111111111,
+   "counted": {
+    "predictions": 84,
+    "games": 28,
+    "mean_d": 0.002124,
+    "p": 0.289547,
+    "p_wrong_way": 0.710453,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.646143,
+    "mean_d_exact": 0.002124271120163538,
+    "p_exact": 0.28954741757535385,
+    "differing": 84
+   },
+   "alpha": 0.0007692307692307692,
    "verdict": "NOT YET MEASURABLE"
   },
   {
@@ -194,6 +224,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "scored",
    "history": {
     "predictions": 638,
     "games": 214,
@@ -205,15 +236,27 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 42,
-    "games": 14,
-    "mean_d": -0.002817,
-    "p": 0.665815,
-    "p_wrong_way": 0.334185,
-    "champion_log_loss": 0.664204,
-    "challenger_log_loss": 0.66702
+    "predictions": 84,
+    "games": 28,
+    "mean_d": 0.004184,
+    "p": 0.143041,
+    "p_wrong_way": 0.856959,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.644083
    },
-   "alpha": 0.0011111111111111111,
+   "counted": {
+    "predictions": 84,
+    "games": 28,
+    "mean_d": 0.004184,
+    "p": 0.143041,
+    "p_wrong_way": 0.856959,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.644083,
+    "mean_d_exact": 0.0041840175875144875,
+    "p_exact": 0.14304087963545709,
+    "differing": 84
+   },
+   "alpha": 0.0007692307692307692,
    "verdict": "NOT YET MEASURABLE"
   },
   {
@@ -224,6 +267,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "all",
    "history": {
     "predictions": 213,
     "games": 213,
@@ -235,15 +279,27 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 14,
-    "games": 14,
-    "mean_d": -0.002762,
-    "p": 0.602388,
-    "p_wrong_way": 0.397612,
-    "champion_log_loss": 0.690189,
-    "challenger_log_loss": 0.692951
+    "predictions": 28,
+    "games": 28,
+    "mean_d": -0.002153,
+    "p": 0.655501,
+    "p_wrong_way": 0.344499,
+    "champion_log_loss": 0.685835,
+    "challenger_log_loss": 0.687988
    },
-   "alpha": 0.0011111111111111111,
+   "counted": {
+    "predictions": 241,
+    "games": 241,
+    "mean_d": -0.00025,
+    "p": 0.65892,
+    "p_wrong_way": 0.34108,
+    "champion_log_loss": 0.702549,
+    "challenger_log_loss": 0.702799,
+    "mean_d_exact": -0.00025019122073340034,
+    "p_exact": 0.6589201188932647,
+    "differing": 28
+   },
+   "alpha": 0.0007692307692307692,
    "verdict": "NOT YET MEASURABLE"
   },
   {
@@ -256,6 +312,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "all",
    "history": {
     "predictions": 638,
     "games": 214,
@@ -267,16 +324,28 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 42,
-    "games": 14,
-    "mean_d": 0.000617,
-    "p": 0.483159,
-    "p_wrong_way": 0.516841,
-    "champion_log_loss": 0.664204,
-    "challenger_log_loss": 0.663587
+    "predictions": 84,
+    "games": 28,
+    "mean_d": 0.001762,
+    "p": 0.431064,
+    "p_wrong_way": 0.568936,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.646506
    },
-   "alpha": 0.0011111111111111111,
-   "verdict": "NOT YET MEASURABLE"
+   "counted": {
+    "predictions": 722,
+    "games": 242,
+    "mean_d": -0.006276,
+    "p": 0.883115,
+    "p_wrong_way": 0.116885,
+    "champion_log_loss": 0.682931,
+    "challenger_log_loss": 0.689208,
+    "mean_d_exact": -0.006276461645510172,
+    "p_exact": 0.8831148618691553,
+    "differing": 722
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
   },
   {
    "name": "AT",
@@ -286,6 +355,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "scored",
    "history": {
     "predictions": 213,
     "games": 213,
@@ -297,15 +367,27 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 14,
-    "games": 14,
-    "mean_d": 0.004137,
-    "p": 0.309267,
-    "p_wrong_way": 0.690733,
-    "champion_log_loss": 0.690189,
-    "challenger_log_loss": 0.686052
+    "predictions": 28,
+    "games": 28,
+    "mean_d": -0.000188,
+    "p": 0.513774,
+    "p_wrong_way": 0.486226,
+    "champion_log_loss": 0.685835,
+    "challenger_log_loss": 0.686023
    },
-   "alpha": 0.0011111111111111111,
+   "counted": {
+    "predictions": 28,
+    "games": 28,
+    "mean_d": -0.000188,
+    "p": 0.513774,
+    "p_wrong_way": 0.486226,
+    "champion_log_loss": 0.685835,
+    "challenger_log_loss": 0.686023,
+    "mean_d_exact": -0.000188445628329947,
+    "p_exact": 0.5137744817289943,
+    "differing": 28
+   },
+   "alpha": 0.0007692307692307692,
    "verdict": "NOT YET MEASURABLE"
   },
   {
@@ -317,6 +399,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "all",
    "history": {
     "predictions": 425,
     "games": 214,
@@ -328,16 +411,28 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 28,
-    "games": 14,
-    "mean_d": 0.034061,
-    "p": 0.111803,
-    "p_wrong_way": 0.888197,
-    "champion_log_loss": 0.651212,
-    "challenger_log_loss": 0.617151
+    "predictions": 56,
+    "games": 28,
+    "mean_d": 0.026772,
+    "p": 0.116175,
+    "p_wrong_way": 0.883825,
+    "champion_log_loss": 0.629484,
+    "challenger_log_loss": 0.602711
    },
-   "alpha": 0.0011111111111111111,
-   "verdict": "NOT YET MEASURABLE"
+   "counted": {
+    "predictions": 481,
+    "games": 242,
+    "mean_d": 0.002774,
+    "p": 0.215615,
+    "p_wrong_way": 0.784385,
+    "champion_log_loss": 0.673103,
+    "challenger_log_loss": 0.670329,
+    "mean_d_exact": 0.0027739078661675673,
+    "p_exact": 0.21561480790443582,
+    "differing": 481
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
   },
   {
    "name": "H",
@@ -349,6 +444,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "all",
    "history": {
     "predictions": 638,
     "games": 214,
@@ -360,16 +456,28 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 42,
-    "games": 14,
-    "mean_d": -0.001642,
-    "p": 0.520945,
-    "p_wrong_way": 0.479055,
-    "champion_log_loss": 0.664204,
-    "challenger_log_loss": 0.665846
+    "predictions": 84,
+    "games": 28,
+    "mean_d": -0.011268,
+    "p": 0.737598,
+    "p_wrong_way": 0.262402,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.659535
    },
-   "alpha": 0.0011111111111111111,
-   "verdict": "NOT YET MEASURABLE"
+   "counted": {
+    "predictions": 722,
+    "games": 242,
+    "mean_d": 0.006371,
+    "p": 0.210437,
+    "p_wrong_way": 0.789563,
+    "champion_log_loss": 0.682931,
+    "challenger_log_loss": 0.67656,
+    "mean_d_exact": 0.006371000471150997,
+    "p_exact": 0.210436797901925,
+    "differing": 722
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
   },
   {
    "name": "SM",
@@ -381,6 +489,7 @@
    ],
    "registered": "2026-10-19",
    "scored_from": "2026-10-19",
+   "counts": "scored",
    "history": {
     "predictions": 638,
     "games": 214,
@@ -392,16 +501,206 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 42,
-    "games": 14,
-    "mean_d": -0.013539,
-    "p": 0.644682,
-    "p_wrong_way": 0.355318,
-    "champion_log_loss": 0.664204,
-    "challenger_log_loss": 0.677742
+    "predictions": 84,
+    "games": 28,
+    "mean_d": -0.023391,
+    "p": 0.863042,
+    "p_wrong_way": 0.136958,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.671658
    },
-   "alpha": 0.0011111111111111111,
+   "counted": {
+    "predictions": 84,
+    "games": 28,
+    "mean_d": -0.023391,
+    "p": 0.863042,
+    "p_wrong_way": 0.136958,
+    "champion_log_loss": 0.648267,
+    "challenger_log_loss": 0.671658,
+    "mean_d_exact": -0.02339074482657167,
+    "p_exact": 0.8630415131396476,
+    "differing": 84
+   },
+   "alpha": 0.0007692307692307692,
    "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "CL",
+   "what": "class vs good teams",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-11-02",
+   "scored_from": "2026-11-02",
+   "counts": "all",
+   "history": {
+    "predictions": 722,
+    "games": 242,
+    "mean_d": 0.002353,
+    "p": 0.257453,
+    "p_wrong_way": 0.742547,
+    "champion_log_loss": 0.682931,
+    "challenger_log_loss": 0.680579
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "counted": {
+    "predictions": 722,
+    "games": 242,
+    "mean_d": 0.002353,
+    "p": 0.257453,
+    "p_wrong_way": 0.742547,
+    "champion_log_loss": 0.682931,
+    "challenger_log_loss": 0.680579,
+    "mean_d_exact": 0.002352595049850859,
+    "p_exact": 0.25745267648310777,
+    "differing": 722
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
+  },
+  {
+   "name": "WL",
+   "what": "win-loss resume",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-11-02",
+   "scored_from": "2026-11-02",
+   "counts": "all",
+   "history": {
+    "predictions": 481,
+    "games": 242,
+    "mean_d": -0.001121,
+    "p": 0.692248,
+    "p_wrong_way": 0.307752,
+    "champion_log_loss": 0.673103,
+    "challenger_log_loss": 0.674223
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "counted": {
+    "predictions": 481,
+    "games": 242,
+    "mean_d": -0.001121,
+    "p": 0.692248,
+    "p_wrong_way": 0.307752,
+    "champion_log_loss": 0.673103,
+    "challenger_log_loss": 0.674223,
+    "mean_d_exact": -0.0011208883981112744,
+    "p_exact": 0.6922478862910939,
+    "differing": 481
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
+  },
+  {
+   "name": "MC",
+   "what": "blowouts capped",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-11-02",
+   "scored_from": "2026-11-02",
+   "counts": "all",
+   "history": {
+    "predictions": 481,
+    "games": 242,
+    "mean_d": 0.000104,
+    "p": 0.484276,
+    "p_wrong_way": 0.515724,
+    "champion_log_loss": 0.673103,
+    "challenger_log_loss": 0.672999
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "counted": {
+    "predictions": 481,
+    "games": 242,
+    "mean_d": 0.000104,
+    "p": 0.484276,
+    "p_wrong_way": 0.515724,
+    "champion_log_loss": 0.673103,
+    "challenger_log_loss": 0.672999,
+    "mean_d_exact": 0.0001036663217556947,
+    "p_exact": 0.48427593466936797,
+    "differing": 481
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
+  },
+  {
+   "name": "AJ",
+   "what": "form and defence adjusted",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-11-02",
+   "scored_from": "2026-11-02",
+   "counts": "all",
+   "history": {
+    "predictions": 722,
+    "games": 242,
+    "mean_d": -0.005632,
+    "p": 0.827155,
+    "p_wrong_way": 0.172845,
+    "champion_log_loss": 0.682931,
+    "challenger_log_loss": 0.688563
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "counted": {
+    "predictions": 722,
+    "games": 242,
+    "mean_d": -0.005632,
+    "p": 0.827155,
+    "p_wrong_way": 0.172845,
+    "champion_log_loss": 0.682931,
+    "challenger_log_loss": 0.688563,
+    "mean_d_exact": -0.005631595194701429,
+    "p_exact": 0.8271549522938619,
+    "differing": 722
+   },
+   "alpha": 0.0007692307692307692,
+   "verdict": "NOT YET"
   }
  ],
  "injury_backtest": {
@@ -431,5 +730,40 @@
    ]
   }
  },
- "elapsed_seconds": 173.1
+ "props_seasons": {
+  "name": "P2526",
+  "what": "the props model trained on last season plus this one",
+  "spec": "research/fb_refit_spec.md \u00a73i",
+  "season": 2026,
+  "champion_seasons": [
+   2021,
+   2022,
+   2023,
+   2024,
+   2025,
+   2026
+  ],
+  "challenger_seasons": [
+   2025,
+   2026
+  ],
+  "floor": 500,
+  "alpha": 0.01,
+  "registered": "2026-11-02",
+  "counted": {
+   "predictions": 6263,
+   "games": 120,
+   "mean_d": -0.046166,
+   "p": 0.999973,
+   "p_wrong_way": 2.7e-05,
+   "champion_log_loss": 0.627966,
+   "challenger_log_loss": 0.674132,
+   "mean_d_exact": -0.0461659563948242,
+   "p_exact": 0.9999728923467072
+  },
+  "verdict": "NOT YET",
+  "champion_only": 25,
+  "challenger_only": 0
+ },
+ "elapsed_seconds": 214.3
 }
