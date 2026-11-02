@@ -32,7 +32,8 @@ on:
   # that changes only when a guard changes.
   # ⛔ Off :00 and :30 like every cron here; those slots are the most
   # congested on GitHub's scheduler and runs get dropped.
-  # ⚠️ 06:47Z = 2:47am ET — quiet, and well clear of the 6am ET trends job.
+  # ⚠️ 06:47Z = 2:47am ET in summer, 1:47am in winter — quiet, and well clear
+  # of the 6am ET trends job.
   schedule:
     - cron: "47 6 * * *"
   workflow_dispatch:
@@ -44,7 +45,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  watch:
+  # 🔴🔴 `[2026-11-01]` FOUR JOBS SWEEP AND A FIFTH REPORTS. On one runner the
+  # 120-minute clock ran out on 9 of the last 15 nights, the sweep printed
+  # nothing, and Tell Sam wrote that nothing over issue #249. Each part now has
+  # its own runner and its own clock, and `watch` below is the only job that
+  # touches the issue, so a part that dies cannot take the report with it.
+  # ⛔ THE SHARES ARE THE ONES PR-TESTS SWEEPS: every mutation and every tier 1
+  # pair exactly once (`test_pr_shards.py`). Nothing is sampled.
+  # ⛔ `sweep` STAYS THE FIRST JOB: `test_vacuity_pool.py` reads the file's first
+  # clock as the nightly's.
+  sweep:
     # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
     # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
     runs-on: ubuntu-24.04
@@ -56,10 +66,17 @@ jobs:
     # 5400s pr-tests gives `test_vacuity.py`, which runs LESS of the same sweep.
     # `[2026-10-02]` ~~60~~ 120: tier 2 alone outran 2400s in collect #2093
     # once #218 added ~140 declarations, and this job runs tier 1 as well.
+    # `[2026-11-01]` Now per part, not for the whole sweep: pr-tests' parts took
+    # 27-48 minutes on 10-31. ⛔ Not raised to fit: raising it is how this clock
+    # got outgrown three times.
     timeout-minutes: 120
     permissions:
       contents: read
-      issues: write
+    strategy:
+      # ⛔ ONE PART FAILING MUST NOT CANCEL THE OTHERS: their findings still count.
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -74,13 +91,78 @@ jobs:
           python-version: "3.12"
 
       - name: Does every guard actually bite?
-        id: look
+        env:
+          VACUITY_PART: ${{ matrix.part }}/4
+          # ⚠️ OUTSIDE THE CHECKOUT: the sweep needs a clean tree, and the check
+          # below would read the report as a leftover mutation.
+          VACUITY_OUT: ${{ runner.temp }}/vacuity-part.json
         run: |
           set +e
           # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.
           # `vacuity.py` is driven by `test_vacuity.py`, which plants
           # deliberately vacuous guards and proves the harness names them.
+          # `[2026-11-01]` This part only reports; `watch` judges all of them.
           python vacuity.py > /tmp/vacuity.md 2>/tmp/vacuity.err
+          cat /tmp/vacuity.md
+          cat /tmp/vacuity.err >&2
+          # 🔴 AND IT MUST NOT HAVE LEFT A MUTATION BEHIND. vacuity.py
+          # checks this itself and reports it; this is the second pair
+          # of eyes, because a leaked mutation in a repo whose collector
+          # commits every few minutes would be committed.
+          # ⛔ No report means this part reads as missing: "could not look".
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::vacuity left the working tree modified"
+            git status --porcelain
+            rm -f "$VACUITY_OUT"
+          fi
+          exit 0
+
+      # ⚠️ `always()`, AND NO FILE IS NOT A FAILURE: a part that ran out its
+      # clock has written nothing, and `watch` reports that part by number.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: vacuity-part-${{ matrix.part }}
+          path: ${{ runner.temp }}/vacuity-part.json
+          if-no-files-found: warn
+          retention-days: 1
+
+  # 🔴🔴 THE REPORT. `[2026-11-01]` Everything from here down was the last half
+  # of the one job, and still reads the same way to whoever reads the issue.
+  watch:
+    needs: sweep
+    if: always() # a part that ran out its clock must not skip the report
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # ⚠️ NOT FATAL: no reports at all is a state `--merge` knows how to say.
+      - uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: vacuity-part-*
+          path: ${{ runner.temp }}/vacuity-parts
+
+      - name: What did the parts find?
+        id: look
+        env:
+          PARTS: ${{ runner.temp }}/vacuity-parts
+        run: |
+          set +e
+          # ⛔ STILL IN PYTHON: `vacuity.py --merge` puts every part through the
+          # same `verdict()`, and a part that never reported is never a pass.
+          # `test_vacuity_merge.py` drives it, and this mapping.
+          python vacuity.py --merge "$PARTS" > /tmp/vacuity.md 2>/tmp/vacuity.err
           rc=$?
           cat /tmp/vacuity.md
           cat /tmp/vacuity.err >&2
@@ -88,17 +170,12 @@ jobs:
             echo "state=ok" >> "$GITHUB_OUTPUT"
           elif [ "$rc" = "1" ]; then
             echo "state=bad" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "3" ]; then
+            # 🔴 A FINDING, AND A PART THAT NEVER REPORTED: a short report.
+            echo "::warning::a part of the sweep never reported"
+            echo "state=partial" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::vacuity could not complete a clean run"
-            echo "state=unknown" >> "$GITHUB_OUTPUT"
-          fi
-          # 🔴 AND IT MUST NOT HAVE LEFT A MUTATION BEHIND. vacuity.py
-          # checks this itself and exits 2 if so; this is the second pair
-          # of eyes, because a leaked mutation in a repo whose collector
-          # commits every few minutes would be committed.
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "::error::vacuity left the working tree modified"
-            git status --porcelain
             echo "state=unknown" >> "$GITHUB_OUTPUT"
           fi
           exit 0
@@ -120,7 +197,9 @@ jobs:
           TITLE="Gizmo's Picks - a guard is not guarding anything"
           NUM=$(gh issue list --state open --limit 100 --json number,title \
                   --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
-          if [ "$STATE" = "unknown" ]; then
+          # 🔴 `[2026-11-01]` EMPTY IS A STEP THAT NEVER FINISHED, NOT A FINDING.
+          # It fell through to `bad` below and blanked #249 on 9 nights.
+          if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
             echo "could not complete a clean run — leaving any open issue alone"
             exit 0
           fi
@@ -130,6 +209,12 @@ jobs:
               gh issue close "$NUM"
             fi
             echo "every guard bites"
+            exit 0
+          fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/vacuity.md ]; then
+            echo "::warning::no report was written, so no issue was touched"
             exit 0
           fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
@@ -147,7 +232,11 @@ jobs:
           # when X does not exist — the create path needed that and the edit path
           # needs it too.
           gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
-          if [ -n "$NUM" ]; then
+          if [ -n "$NUM" ] && [ "$STATE" = "partial" ]; then
+            # 🔴 `[2026-11-01]` A SHORT REPORT NEVER REPLACES A WHOLE ONE: the part
+            # that died may hold a finding only the issue still shows.
+            gh issue comment "$NUM" --body-file /tmp/vacuity.md
+          elif [ -n "$NUM" ]; then
             gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/vacuity.md
           else
             gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/vacuity.md --assignee smh0602 \
@@ -155,3 +244,19 @@ jobs:
               || gh issue create --title "$TITLE" --body-file /tmp/vacuity.md
           fi
           exit 0
+
+      # 🔴 A RUN THAT COULD NOT LOOK IS RED `[2026-11-01]`, so `runs_report.py`
+      # sees it. Tell Sam leaves the issue alone on those nights, on purpose,
+      # and a green tick there would be the only thing anybody saw.
+      # ⛔ ANYTHING BUT `ok` OR `bad`: an empty state is a step that never finished.
+      # 🔴 AND A SHORT REPORT IS RED TOO: its finding is on the issue, but a part
+      # died, and only this says so.
+      - name: A run that could not look is red
+        if: always()
+        run: |
+          STATE='${{ steps.look.outputs.state }}'
+          case "$STATE" in
+            ok|bad) echo "the sweep reported: $STATE" ;;
+            partial) echo "::error::a part of the nightly sweep never reported; the issue has what the others found"; exit 1 ;;
+            *) echo "::error::the nightly sweep could not look (state '$STATE')"; exit 1 ;;
+          esac

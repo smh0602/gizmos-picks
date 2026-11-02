@@ -115,7 +115,9 @@ jobs:
           TITLE="Gizmo's Picks - Odds API spend is trending past plan"
           NUM=$(gh issue list --state open --limit 100 --json number,title \
                   --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
-          if [ "$STATE" = "unknown" ]; then
+          # 🔴 `[2026-11-01]` EMPTY IS A STEP THAT NEVER FINISHED, NOT A FINDING:
+          # it fell through to the alarm path and overwrote the open issue.
+          if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
             echo "could not read the spend — leaving any open issue alone"
             exit 0
           fi
@@ -125,6 +127,12 @@ jobs:
               gh issue close "$NUM"
             fi
             echo "inside plan"
+            exit 0
+          fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/budget.md ]; then
+            echo "::warning::no report was written, so no issue was touched"
             exit 0
           fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
@@ -239,7 +247,9 @@ jobs:
           TITLE="Gizmo's Picks - the repository is growing faster than planned"
           NUM=$(gh issue list --state open --limit 100 --json number,title \
                   --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
-          if [ "$STATE" = "unknown" ]; then
+          # 🔴 `[2026-11-01]` EMPTY IS A STEP THAT NEVER FINISHED, NOT A FINDING:
+          # it fell through to the alarm path and overwrote the open issue.
+          if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
             echo "could not read the repository size — leaving any open issue alone"
             exit 0
           fi
@@ -249,6 +259,12 @@ jobs:
               gh issue close "$NUM"
             fi
             echo "inside the bars"
+            exit 0
+          fi
+          # 🔴 `[2026-11-01]` A REPORT NOBODY WROTE IS NOT A FINDING. An uncaught
+          # exception exits 1, the number for a finding, having printed nothing.
+          if [ ! -s /tmp/repo.md ]; then
+            echo "::warning::no report was written, so no issue was touched"
             exit 0
           fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
