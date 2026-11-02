@@ -608,6 +608,12 @@ def rec6(built, n):
     return json.dumps({"built_at": built, "overall": {"n": n}}, separators=(",", ":"))
 
 
+def n6(repo):
+    """The landed record's graded count. None if it did not land: a check fails, the file runs on."""
+    p = os.path.join(repo, REC6)
+    return json.load(open(p))["overall"]["n"] if os.path.exists(p) else None
+
+
 def card6(built, rows):
     """Pretty-printed, as a football card is: a merge can splice two builds."""
     return json.dumps({"generated_at": built, "note": "x", "picks": rows}, indent=1) + "\n"
@@ -682,12 +688,11 @@ try:
     wd_commit(fb)
     rf = run_helper(fb, LABEL)
     chk = clone(bare6, os.path.join(tmp, "a-check"))
-    got = json.load(open(os.path.join(chk, REC6)))
-    ck(rf.returncode == 0 and got["overall"]["n"] == 112,
+    ck(rf.returncode == 0 and n6(chk) == 112,
        "🔴🔴 a stale repair never rolls the record back: the graded day another run "
        "landed stays, though the repair's built_at is later",
        "⛔ rebase -X theirs kept the repair's file. n=%s rc=%s out=%r"
-       % (got["overall"]["n"], rf.returncode, rf.stdout[-300:]))
+       % (n6(chk), rf.returncode, rf.stdout[-300:]))
     ck(open(os.path.join(chk, CARD6)).read()
        == card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]),
        "🔴🔴 ...and a pretty-printed card is the tip's, byte for byte, never a splice of two builds",
@@ -709,7 +714,7 @@ try:
     write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); commit(fb, "pass fb")
     rf = run_helper(fb, "converge pass 1")
     chk = clone(bare6, os.path.join(tmp, "b-check"))
-    ck(rf.returncode == 0 and json.load(open(os.path.join(chk, REC6)))["overall"]["n"] == 100,
+    ck(rf.returncode == 0 and n6(chk) == 100,
        "⛔ only the watchdog's commit gives way: a converge pass still lands its own file (step 1)",
        "the rule grew past its label")
 
@@ -725,11 +730,11 @@ try:
     rf = run_helper(fb, LABEL)
     chk = clone(bare6, os.path.join(tmp, "c-check"))
     ck(rf.returncode == 0 and "replayed" in rf.stdout
-       and json.load(open(os.path.join(chk, REC6)))["overall"]["n"] == 112
+       and n6(chk) == 112
        and not os.path.exists(os.path.join(chk, "data/latest/odds.json"))
        and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
        "🔴🔴 a REPLAYED landing gives way too, and a file the tip deleted stays deleted",
-       "rc %s, n %s, out %r" % (rf.returncode, json.load(open(os.path.join(chk, REC6)))["overall"]["n"], rf.stdout[-300:]))
+       "rc %s, n %s, out %r" % (rf.returncode, n6(chk), rf.stdout[-300:]))
 
     # 6d. ONLY THE WATCHDOG'S OWN COMMIT: a pass that could not push sits under it.
     bare6, u, fb = seed6("d", {"data/nfl/latest/board.json": '{"v": 0}\n'})
@@ -743,11 +748,11 @@ try:
     chk = clone(bare6, os.path.join(tmp, "d-check"))
     ck(rf.returncode == 0
        and open(os.path.join(chk, "data/nfl/latest/board.json")).read() == '{"v": "paid pass"}\n'
-       and json.load(open(os.path.join(chk, REC6)))["overall"]["n"] == 112,
+       and n6(chk) == 112,
        "⛔ a converge pass under the watchdog's commit keeps its own files; only the commit "
        "this step made gives way",
        "board %r, n %s" % (open(os.path.join(chk, "data/nfl/latest/board.json")).read(),
-                           json.load(open(os.path.join(chk, REC6)))["overall"]["n"]))
+                           n6(chk)))
 
     # 6e. NOTHING LEFT: the repair was all the commit held.
     bare6, u, fb = seed6("e")
@@ -882,7 +887,7 @@ try:
     chk = clone(bare6, os.path.join(tmp, "k-check"))
     ck(rf.returncode == 0 and "pushed on attempt 2" in rf.stdout
        and open(os.path.join(chk, OTHER6)).read() == '{"v": "third"}\n'
-       and json.load(open(os.path.join(chk, REC6)))["overall"]["n"] == 112
+       and n6(chk) == 112
        and open(os.path.join(chk, HEALTH6)).read() == '{"checked_at": "fb"}',
        "🔴🔴 a run that lands during the push is not replaced either: attempt 2 gives way to it too",
        "rc %s other %r out %r" % (rf.returncode, open(os.path.join(chk, OTHER6)).read(), rf.stdout[-300:]))
@@ -907,9 +912,9 @@ try:
     write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); wd_commit(fb)
     rf = run_helper(fb, LABEL)
     chk = clone(bare6, os.path.join(tmp, "m-check"))
-    ck(rf.returncode == 0 and json.load(open(os.path.join(chk, REC6)))["overall"]["n"] == 100,
+    ck(rf.returncode == 0 and n6(chk) == 100,
        "⛔ with no merge base the rule stands aside rather than judge on nothing",
-       "rc %s n %s out %r" % (rf.returncode, json.load(open(os.path.join(chk, REC6)))["overall"]["n"],
+       "rc %s n %s out %r" % (rf.returncode, n6(chk),
                               rf.stdout[-300:]))
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
