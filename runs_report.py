@@ -492,18 +492,29 @@ def normalise(run, names=None):
 #    job, which holds no `checks: read`: every refusal would read as a
 #    timeout, and `watch` and `publish` would disagree. `failure_detail`
 #    reads annotations, in `publish`, which holds it.
-# ⚠️ A call that fails, a job that never finished, a time or a job name we
-#    cannot read all REPORT: ignorance never buys silence (see DISABLED).
+# ⚠️ A call that fails, or a job with no conclusion or end time, REPORTS, and a
+#    job name no job could carry is held to the workflow's shortest clock:
+#    ignorance never buys silence (see DISABLED). A job with no start time never
+#    ran, so no clock ran.
 DEFAULT_CLOCK = 360     # GitHub's limit for a job that sets no `timeout-minutes`
+EXPRESSION = re.compile(r"\$\{\{.*?\}\}")
 
 
 def job_clocks(root="."):
-    """`.github/workflows/<file>` -> {job id: its minutes}. ⛔ DECLARED, NOT
-    REMEMBERED: a new workflow is covered the day it ships. A path not in here
-    (Pages' `dynamic/pages/...`) has no clock and is never judged."""
-    return {".github/workflows/" + os.path.basename(p):
-            {j: DEFAULT_CLOCK if t is None else t for j, t in wfparse.job_timeouts(p).items()}
-            for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml")))}
+    """`.github/workflows/<file>` -> {a job's declared name: its minutes}. The
+    declared name is its `name:` as written, or its id when it sets none; two
+    jobs declaring one name keep the shorter clock. ⛔ DECLARED, NOT REMEMBERED:
+    a new workflow is covered the day it ships. A path not in here (Pages'
+    `dynamic/pages/...`) has no clock and is never judged."""
+    out = {}
+    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        shown, mine = wfparse.job_names(p), {}
+        for job, mins in wfparse.job_timeouts(p).items():
+            mins = DEFAULT_CLOCK if mins is None else mins
+            key = shown.get(job) or job
+            mine[key] = min(mins, mine.get(key, mins))
+        out[".github/workflows/" + os.path.basename(p)] = mine
+    return out
 
 
 def _shortest(clocks):
@@ -523,19 +534,29 @@ def past_its_clock(r, clocks):
     return (b - a).total_seconds() >= _shortest(mine) * 60
 
 
+def _can_show(declared, name):
+    """Could a job declared this way be listed as `name`? An expression can
+    expand to anything, and GitHub adds ` (values)` to a matrix job."""
+    parts = [re.escape(p) for p in EXPRESSION.split(declared)]
+    return re.fullmatch(".*".join(parts) + r"( \(.*\))?", name) is not None
+
+
 def _own_clock(name, clocks):
-    """One job's clock, by the first word of its display name: GitHub shows job
-    `tests` as `tests · sweep 2/4` and job `render` as `render (ubuntu-26.04)`.
-    A name no job declares takes the workflow's shortest, erring toward a report.
-    `clocks`: this workflow's {job id: minutes}."""
-    first = ((name or "").split() or [""])[0]
-    return clocks.get(first, _shortest(clocks))
+    """One job's clock, from the name the jobs list gives it, which need not be
+    its id: pr-tests' `staged` lists as `tests (staged uploads applied)`.
+    ⛔ THE SHORTEST OF EVERY JOB THAT COULD CARRY THE NAME. Its own clock is
+    always among them, so a timeout cannot be missed, and a job that could not
+    carry the name cannot lend it a clock, so a concurrency cancel stays one.
+    A name no job could carry takes the workflow's shortest, erring toward a
+    report. `clocks`: this workflow's {declared name: minutes}."""
+    return min((m for d, m in clocks.items() if _can_show(d, name or "")),
+               default=_shortest(clocks))
 
 
 def hit_its_clock(run_id, clocks, fetch_json):
     """Did a job of this cancelled run reach its OWN clock? One jobs call, no
-    annotation. `clocks`: this workflow's {job id: minutes}. A run with no jobs
-    was cancelled in the queue, so no clock ever ran."""
+    annotation. `clocks`: this workflow's {declared name: minutes}. A run with
+    no jobs was cancelled in the queue, so no clock ever ran."""
     try:
         got = fetch_json("actions/runs/%s/jobs?per_page=100" % run_id) or {}
         jobs = got.get("jobs") or []

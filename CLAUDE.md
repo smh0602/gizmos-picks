@@ -1711,7 +1711,9 @@ runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
                   GitHub reports a `timeout-minutes` kill as `cancelled`,
                   never `timed_out`, so `collect()` writes `timed_out`
                   itself, by each job's time against that job's own clock
-                  (`mark_timeouts`, one jobs call per candidate). ⛔ No
+                  (`mark_timeouts`, one jobs call per candidate), found by
+                  the name it lists under, never its id (`_own_clock`: the
+                  shortest of every job that could carry the name). ⛔ No
                   annotation in `collect()`: `watch` holds no `checks: read`.
                   `test_runs_timeout.py`.
 daystore.py       the one dated, write-once archive writer. ⛔ Never

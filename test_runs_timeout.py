@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A RUN ITS CLOCK STOPPED IS A FAILED RUN, AND GITHUB NEVER SAYS SO.
+r"""A RUN ITS CLOCK STOPPED IS A FAILED RUN, AND GITHUB NEVER SAYS SO.
 
 🔴 `[2026-11-01]` The nightly sweep hit its 120-minute clock on 9 of 15 nights
 and no watcher said a word. `runs_report.FAILED` listed `timed_out`, and my
@@ -21,7 +21,10 @@ never sends, so it stayed green through all of it.
   6. what cannot be read is reported, never read as fine;
   7. ⛔ `collect()` never reads an annotation: runs.yml's `watch` job holds no
      `checks: read`, so the fake here refuses them as that token would;
-  8. both ways in, `--collect` (watch) and `--status-file` (publish).
+  8. both ways in, `--collect` (watch) and `--status-file` (publish);
+  9. a job's clock is found by the name it lists under, never by its id: only
+     a job that could carry that name counts, and the shortest of them decides,
+     so a renamed job can never read a longer clock than its own.
 
 ⚠️ Everything is planted: workflow files, clocks, runs, jobs. Nothing here reads
 a real workflow or a stored run, and the clock is the real one.
@@ -96,15 +99,60 @@ a real workflow or a stored run, and the clock is the real one.
 #   find:         if j["conclusion"] == "cancelled" and a is not None \
 #   with:         if j["conclusion"] == "cancelled" \
 #
-# @vacuity 🔴 a job is found by the first word of its display name
+# @vacuity 🔴 an expression in a `name:` can expand to anything (`tests · sweep 2/4`)
 #   file: runs_report.py
-#   find:     first = ((name or "").split() or [""])[0]
-#   with:     first = name or ""
+#   find:     return re.fullmatch(".*".join(parts) + r"( \(.*\))?", name) is not None
+#   with:     return re.fullmatch("".join(parts) + r"( \(.*\))?", name) is not None
 #
-# @vacuity 🔴 a name no job declares takes the shortest clock, erring toward a report
+# @vacuity 🔴 a matrix job is listed with its values after its name
 #   file: runs_report.py
-#   find:     return clocks.get(first, _shortest(clocks))
-#   with:     return clocks.get(first, DEFAULT_CLOCK)
+#   find:     return re.fullmatch(".*".join(parts) + r"( \(.*\))?", name) is not None
+#   with:     return re.fullmatch(".*".join(parts), name) is not None
+#
+# @vacuity 🔴 a declared name is text, never a pattern: `(staged ...)` is no regex group
+#   file: runs_report.py
+#   find:     parts = [re.escape(p) for p in EXPRESSION.split(declared)]
+#   with:     parts = EXPRESSION.split(declared)
+#
+# @vacuity 🔴 the SHORTEST of every job that could carry the name, or a timeout is missed
+#   file: runs_report.py
+#   find:     return min((m for d, m in clocks.items() if _can_show(d, name or "")),
+#   with:     return max((m for d, m in clocks.items() if _can_show(d, name or "")),
+#
+# @vacuity 🔴 a name no job could carry takes the shortest clock, erring toward a report
+#   file: runs_report.py
+#   find:                default=_shortest(clocks))
+#   with:                default=DEFAULT_CLOCK)
+#
+# @vacuity 🔴 a job is filed under the name it lists as, never its id
+#   file: runs_report.py
+#   find:             key = shown.get(job) or job
+#   with:             key = job
+#
+# @vacuity 🔴 two jobs declaring one name keep the shorter clock
+#   file: runs_report.py
+#   find:             mine[key] = min(mins, mine.get(key, mins))
+#   with:             mine[key] = mins
+#
+# @vacuity 🔴 wfparse reads a job's own `name:`
+#   file: wfparse.py
+#   find:             if jb.start <= lineno < jb.end and indent == 4 and key == "name":
+#   with:             if jb.start <= lineno < jb.end and indent == 99 and key == "name":
+#
+# @vacuity 🔴 ...and never a step's
+#   file: wfparse.py
+#   find:             if jb.start <= lineno < jb.end and indent == 4 and key == "name":
+#   with:             if jb.start <= lineno < jb.end and indent >= 4 and key == "name":
+#
+# @vacuity 🔴 a comment after a name is not the name, or the job's own clock is lost
+#   file: wfparse.py
+#   find: _JOB_NAME = re.compile(r'''^("[^"]*"|'[^']*'|.*?)(?:\s+#.*)?$''')
+#   with: _JOB_NAME = re.compile(r'''^("[^"]*"|'[^']*'|.*?)$''')
+#
+# @vacuity 🔴 ...and neither are the quotes around it
+#   file: wfparse.py
+#   find:                 out[jb.name] = _JOB_NAME.match(val).group(1).strip("\"'") or None
+#   with:                 out[jb.name] = _JOB_NAME.match(val).group(1) or None
 #
 # @vacuity ⛔ collect() never asks for an annotation: `watch` holds no checks: read
 #   file: runs_report.py
@@ -153,6 +201,7 @@ from tcheck import ck, eq, section
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import runs_report as R  # noqa: E402
+import wfparse  # noqa: E402
 
 UTC = datetime.timezone.utc
 NOW = datetime.datetime.now(UTC).replace(microsecond=0)
@@ -169,22 +218,36 @@ def _clean():
 atexit.register(_clean)
 
 
-def plant(name, **jobs):
-    """A workflow file: {job id: its timeout-minutes, or None for no line}."""
+WF_DIR = os.path.join(TREE, ".github", "workflows")
+
+
+def plant(name, names=None, **jobs):
+    """A workflow file: {job id: its timeout-minutes, or None for no line}.
+    `names`: {job id: its `name:` value, as written}. ⚠️ Every step has a `name:`
+    too, so a parser that reads one as the job's fails on every plant."""
     lines = ["name: %s" % name, "on: workflow_dispatch", "jobs:"]
     for job, mins in jobs.items():
-        lines += ["  %s:" % job, "    runs-on: ubuntu-24.04"]
+        lines.append("  %s:" % job)
+        if job in (names or {}):
+            lines.append("    name: %s" % names[job])
+        lines.append("    runs-on: ubuntu-24.04")
         if mins is not None:
             lines.append("    timeout-minutes: %d" % mins)
-        lines += ["    steps:", "      - run: echo hi"]
-    d = os.path.join(TREE, ".github", "workflows")
-    os.makedirs(d, exist_ok=True)
-    with open(os.path.join(d, name + ".yml"), "w", encoding="utf-8") as fh:
+        lines += ["    steps:", "      - name: say hi", "        run: echo hi"]
+    os.makedirs(WF_DIR, exist_ok=True)
+    with open(os.path.join(WF_DIR, name + ".yml"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
 
 
+# ⚠️ pr-tests' own `name:` lines, word for word: GitHub lists these jobs as
+#    `tests · sweep 2/4` and `render (ubuntu-26.04)`, and neither is an id.
+TESTS = ("tests${{ matrix.os != 'ubuntu-24.04' && format(' ({0})', matrix.os) || '' }}"
+         "${{ matrix.shard != 'rest' && format(' · sweep {0}', matrix.shard) || '' }}")
+RENDER = "render${{ matrix.os != 'ubuntu-24.04' && format(' ({0})', matrix.os) || '' }}"
+
 plant("nightly", watch=120)                     # the sweep's shape
-plant("ci", tests=120, sweep=120, render=25)    # pr-tests' shape: shortest 25
+plant("ci", names={"tests": TESTS, "render": RENDER},   # pr-tests' shape: shortest 25
+      tests=120, sweep=120, render=25)
 plant("pair", quick=10, slow=15)                # budget's shape: two clocks
 plant("bare", work=None)                        # no timeout-minutes at all
 
@@ -413,8 +476,8 @@ eq(word(run("bare", "cancelled", 340)), ("cancelled", 0), "...nor is a run under
 _mix = run("ci", "cancelled", 40)
 eq(word(_mix, {_mix["id"]: [job("mystery", "success", 30), job("tests", "cancelled", 5)]})[0],
    "cancelled", "only a CANCELLED job can be a clock kill: a long green sibling proves nothing")
-eq(R.job_clocks(TREE)[".github/workflows/ci.yml"], {"tests": 120, "sweep": 120, "render": 25},
-   "the clocks are read from the workflow file, every job")
+eq(R.job_clocks(TREE)[".github/workflows/ci.yml"], {TESTS: 120, "sweep": 120, RENDER: 25},
+   "the clocks are read from the workflow file, every job, under the name it lists as")
 plant("later", brand_new=7)
 _new = run("later", "cancelled", 8)
 eq(word(_new, {_new["id"]: [job("brand_new", "cancelled", 7.5)]})[0], "timed_out",
@@ -497,3 +560,52 @@ _gdoc = R.write_status(os.path.join(TREE, "out", "given.json"),
 eq(by_id(_gdoc["runs"], "run_id"), {_cc["id"]: "cancelled"},
    "write_status asks the jobs through the fetcher it was given")
 ck(any("/jobs" in p for p in _given.calls), "...which was called", str(_given.calls))
+
+# ══════════════════════════════════════════════════════════════════════
+section("9. 🔴 A JOB'S CLOCK IS FOUND BY THE NAME IT LISTS UNDER, NEVER BY ITS ID")
+# ══════════════════════════════════════════════════════════════════════
+# ⚠️ pr-tests' `staged` lists as `tests (staged uploads applied)` and `offseason`
+#    as `tests (off-season, no games)`. Read by the name's first word, both took
+#    job `tests`'s clock, which was right only while all three happened to be 120.
+plant("shared", names={"tests": TESTS, "staged": "tests (staged uploads applied)"},
+      tests=120, staged=30)
+plant("renamed", names={"long": "render everything"}, render=25, long=120)
+plant("twin", names={"slow": "quick (slow pass)"}, quick=10, slow=120)
+plant("same", names={"one": "one name", "two": "one name"}, one=10, two=120)
+plant("open", names={"any": "${{ matrix.label }}"}, any=30, tests=120)
+plant("written", names={"dq": '"tests (double)"  # why', "sq": "'tests (single)'",
+                        "pl": "tests (plain)  # why"}, tests=120, dq=30, sq=30, pl=30)
+
+for _wf, _name, _mins, _want, _why in (
+        ("shared", "tests (staged uploads applied)", 30.5, "timed_out",
+         "🔴 a job named after another job's id still reads its OWN clock: no timeout missed"),
+        ("shared", "tests (staged uploads applied)", 29.5, "cancelled",
+         "...and under that clock it was no timeout"),
+        ("shared", "tests · sweep 2/4", 31, "cancelled",
+         "🔴 a sibling's shorter clock never touches a name it could not carry"),
+        ("shared", "tests", 31, "cancelled", "...the plain name either"),
+        ("shared", "tests · sweep 2/4", 120.5, "timed_out", "...and its own clock still decides"),
+        ("renamed", "render everything", 30, "cancelled",
+         "🔴 a word shared with a shorter job is no timeout: that job could not carry the name"),
+        ("renamed", "render everything", 120.5, "timed_out", "...and its own clock decides"),
+        ("renamed", "render (ubuntu-26.04)", 25.5, "timed_out", "...and the other job keeps its own"),
+        ("twin", "quick (slow pass)", 11, "timed_out",
+         "🔴 two jobs that really could carry one name: the shorter clock, erring toward a report"),
+        ("same", "one name", 11, "timed_out", "🔴 two jobs declaring one name: the shorter clock"),
+        ("open", "tests (x)", 31, "timed_out",
+         "🔴 a `name:` that is all expression could be anything, so its clock counts everywhere"),
+        ("open", "tests (x)", 29, "cancelled", "...and under every clock is no timeout"),
+        ("written", "tests (double)", 31, "timed_out", "🔴 a quoted name with a comment on its line"),
+        ("written", "tests (single)", 31, "timed_out", "...a single-quoted one"),
+        ("written", "tests (plain)", 31, "timed_out", "...and a bare one with a comment")):
+    _r = run(_wf, "cancelled", _mins + 0.5)
+    eq(word(_r, {_r["id"]: [job(_name, "cancelled", _mins)]})[0], _want,
+       "%s (%s at %s)" % (_why, _name, _mins))
+
+eq(R.job_clocks(TREE)[".github/workflows/same.yml"], {"one name": 10},
+   "two jobs declaring one name are one clock, the shorter")
+eq(wfparse.job_names(os.path.join(WF_DIR, "written.yml")),
+   {"tests": None, "dq": "tests (double)", "sq": "tests (single)", "pl": "tests (plain)"},
+   "🔴 job_names: a job's own `name:` without quotes or comment, None when it sets none")
+eq(wfparse.job_names(os.path.join(WF_DIR, "nightly.yml")), {"watch": None},
+   "🔴 ...and a step's `name:` is never the job's")
