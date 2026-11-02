@@ -467,8 +467,120 @@ def normalise(run, names=None):
             "url": r.get("html_url") or r.get("url")}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 A RUN ITS CLOCK STOPPED IS A FAILED RUN, AND GITHUB NEVER SAYS SO.
+#    `[2026-11-01]`
+# ══════════════════════════════════════════════════════════════════════
+# GitHub reports a `timeout-minutes` kill as `cancelled` at run, job and step
+# level. `status=timed_out` returned 0 rows across all 15 workflows while 16
+# real timeouts all read `cancelled`, so nothing here ever counted one: the
+# nightly sweep hit its clock on 9 of 15 nights and no watcher said a word.
+# ✅ So `collect()` writes `timed_out` itself, BEFORE `normalise()`, and both
+#    readers (`analyse()` for the issue, `status_doc()` for runs.json) count
+#    it through FAILED with no line of theirs changed.
+# ⛔ TWO STEPS, AND THE RUN'S OWN ELAPSED TIME DECIDES NEITHER ALONE:
+#    1. `past_its_clock`, no API call: cancelled, and the run lasted as long
+#       as its workflow's SHORTEST clock. It can never miss (run time >= job
+#       time >= clock on all 14 timeouts measured) and it passes 2% of runs.
+#    2. `hit_its_clock`, one jobs call: a job lasted as long as ITS OWN clock.
+#       A job cannot outlive its clock unless the clock killed it, so no
+#       wording of GitHub's is read. Run time against the shortest clock
+#       false-fires: pr-tests' shortest is 25 minutes, and a concurrency
+#       cancel reached 25.3 on a job whose own clock is 120 (40472931447).
+#       Replayed on all 20 candidates this agrees with GitHub's annotations.
+# ⛔ NEVER AN ANNOTATION IN `collect()`. It also runs in runs.yml's `watch`
+#    job, which holds no `checks: read`: every refusal would read as a
+#    timeout, and `watch` and `publish` would disagree. `failure_detail`
+#    reads annotations, in `publish`, which holds it.
+# ⚠️ A call that fails, or a job with no conclusion or end time, REPORTS, and a
+#    job name no job could carry is held to the workflow's shortest clock:
+#    ignorance never buys silence (see DISABLED). A job with no start time never
+#    ran, so no clock ran.
+DEFAULT_CLOCK = 360     # GitHub's limit for a job that sets no `timeout-minutes`
+EXPRESSION = re.compile(r"\$\{\{.*?\}\}")
+
+
+def job_clocks(root="."):
+    """`.github/workflows/<file>` -> {a job's declared name: its minutes}. The
+    declared name is its `name:` as written, or its id when it sets none; two
+    jobs declaring one name keep the shorter clock. ⛔ DECLARED, NOT REMEMBERED:
+    a new workflow is covered the day it ships. A path not in here (Pages'
+    `dynamic/pages/...`) has no clock and is never judged."""
+    out = {}
+    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        shown, mine = wfparse.job_names(p), {}
+        for job, mins in wfparse.job_timeouts(p).items():
+            mins = DEFAULT_CLOCK if mins is None else mins
+            key = shown.get(job) or job
+            mine[key] = min(mins, mine.get(key, mins))
+        out[".github/workflows/" + os.path.basename(p)] = mine
+    return out
+
+
+def _shortest(clocks):
+    return min(clocks.values(), default=DEFAULT_CLOCK)
+
+
+def past_its_clock(r, clocks):
+    """Could a clock have stopped this run? Reads only the run's own row.
+    `clocks`: `job_clocks()`."""
+    r = r or {}
+    mine = clocks.get(r.get("path") or "")
+    if r.get("conclusion") != "cancelled" or mine is None:
+        return False
+    a, b = _dt(r.get("run_started_at") or r.get("created_at")), _dt(r.get("updated_at"))
+    if a is None or b is None:
+        return True     # no time on the row: ask the jobs
+    return (b - a).total_seconds() >= _shortest(mine) * 60
+
+
+def _can_show(declared, name):
+    """Could a job declared this way be listed as `name`? An expression can
+    expand to anything, and GitHub adds ` (values)` to a matrix job."""
+    parts = [re.escape(p) for p in EXPRESSION.split(declared)]
+    return re.fullmatch(".*".join(parts) + r"( \(.*\))?", name) is not None
+
+
+def _own_clock(name, clocks):
+    """One job's clock, from the name the jobs list gives it, which need not be
+    its id: pr-tests' `staged` lists as `tests (staged uploads applied)`.
+    ⛔ THE SHORTEST OF EVERY JOB THAT COULD CARRY THE NAME. Its own clock is
+    always among them, so a timeout cannot be missed, and a job that could not
+    carry the name cannot lend it a clock, so a concurrency cancel stays one.
+    A name no job could carry takes the workflow's shortest, erring toward a
+    report. `clocks`: this workflow's {declared name: minutes}."""
+    return min((m for d, m in clocks.items() if _can_show(d, name or "")),
+               default=_shortest(clocks))
+
+
+def hit_its_clock(run_id, clocks, fetch_json):
+    """Did a job of this cancelled run reach its OWN clock? One jobs call, no
+    annotation. `clocks`: this workflow's {declared name: minutes}. A run with
+    no jobs was cancelled in the queue, so no clock ever ran."""
+    try:
+        got = fetch_json("actions/runs/%s/jobs?per_page=100" % run_id) or {}
+        jobs = got.get("jobs") or []
+    except Exception:           # noqa: BLE001 - see the block above
+        return True     # the call failed: ignorance never buys silence
+    for j in jobs:
+        a, b = _dt(j.get("started_at")), _dt(j.get("completed_at"))
+        if not j.get("conclusion") or b is None:
+            return True     # it never finished (36791843765: 1,470 minutes, no conclusion)
+        if j["conclusion"] == "cancelled" and a is not None \
+                and (b - a).total_seconds() >= _own_clock(j.get("name"), clocks) * 60:
+            return True
+    return False
+
+
+def mark_timeouts(batch, clocks, fetch_json):
+    """Write `timed_out` on each run in `batch` its own clock stopped, in place."""
+    for r in batch:
+        if past_its_clock(r, clocks) and hit_its_clock(r.get("id"), clocks[r["path"]], fetch_json):
+            r["conclusion"] = "timed_out"
+
+
 def collect(fetch_page, now=None, root=".", max_pages=MAX_PAGES,
-            window_h=WINDOW_H, raw=False):
+            window_h=WINDOW_H, raw=False, fetch_json=None):
     """Page until the window is covered. -> (runs, pages_read, covered).
 
     `fetch_page(n)` returns the REST `workflow_runs` list for 1-based page
@@ -487,15 +599,21 @@ def collect(fetch_page, now=None, root=".", max_pages=MAX_PAGES,
     ⚠️ `raw=True` hands back the REST objects themselves (the run status
     file needs `run_number`, `event` and `id`, which `normalise` drops);
     the stopping rule is the same one either way.
+
+    `fetch_json`: injected like `fetch_page`, for the one jobs call a cancelled
+    run past its clock costs (`hit_its_clock`). None is the real API.
     """
     now = now or datetime.datetime.now(datetime.timezone.utc)
     floor = now - datetime.timedelta(hours=window_h + COVER_MARGIN_H)
     runs, pages, covered = [], 0, False
     kept = []
     names = workflow_names(root)
+    clocks = job_clocks(root)
     for page in range(1, max_pages + 1):
         batch = fetch_page(page) or []
         pages = page
+        # ⛔ BEFORE `normalise()`: it copies the conclusion, and `analyse()` reads the copy.
+        mark_timeouts(batch, clocks, fetch_json or _gh_json)
         kept.extend(batch)
         runs.extend(normalise(r, names) for r in batch)
         if len(batch) < REST_PER_PAGE:
@@ -726,8 +844,11 @@ def analyse(runs, now=None, root=".", registered=None):
         recent = [r for r in done
                   if (_dt(r.get("createdAt")) or now) >= cutoff]
         # `[R1, 2026-10-18]` ~~`== "failure"`~~: every conclusion runs.json already counts
-        #    as failed (FAILED): a run GitHub stopped at its `timeout-minutes` ("timed_out")
-        #    or never started ("startup_failure") is as broken as a red one.
+        #    as failed (FAILED): a run ~~GitHub stopped at its `timeout-minutes` ("timed_out")
+        #    or~~ never started ("startup_failure") is as broken as a red one.
+        #    `[2026-11-01]` That struck half was false and it was mine: GitHub never sends
+        #    `timed_out`. A clock kill reads `cancelled`, so this counted no timeout at all.
+        #    `collect()` now writes the word itself (see `mark_timeouts`).
         fails = [r for r in recent if r.get("conclusion") in FAILED]
         if latest.get("conclusion") in FAILED:
             broken.append({"name": name, "url": latest.get("url"),
@@ -978,7 +1099,11 @@ def render_stale(stale):
 #    is reused, keyed on run id + attempt + conclusion.
 # ══════════════════════════════════════════════════════════════════════
 STATUS_WINDOW_H = 48
+# ⚠️ `timed_out` IS OUR WORD, NEVER GITHUB'S: `collect()` writes it (`mark_timeouts`).
 FAILED = frozenset({"failure", "timed_out", "startup_failure"})
+# A timed-out run's jobs read `cancelled`, a stuck one's read nothing. ⛔ Only for a
+# timed-out run: on a failed one a cancelled sibling is noise.
+CLOCK_STOPPED = FAILED | {"cancelled", None}
 MAX_ANNOTATIONS = 6
 
 
@@ -1001,24 +1126,29 @@ def status_entry(r, names):
     return e
 
 
-def failure_detail(run_id, fetch_json):
+def failure_detail(run_id, fetch_json, counts=FAILED):
     """-> {"failing_steps": [...], "annotations": [...]} for one failed run.
 
     ⚠️ `collect.yml` records its test failures as `::error::` ANNOTATIONS
     and fails a LATER step ("Fail if the tests failed"), so the step name
-    alone would say nothing useful — the annotations say which file."""
+    alone would say nothing useful — the annotations say which file.
+
+    `counts`: the job and step conclusions that are the failure here.
+    ⛔ `status_doc` runs this, in runs.yml's `publish` job, the one that holds
+    `checks: read`; never from `collect()`, which also runs in `watch`."""
     jobs = (fetch_json("actions/runs/%s/jobs?per_page=100" % run_id) or {}).get("jobs") or []
     steps, notes = [], []
     multi = len(jobs) > 1
     for j in jobs:
-        if j.get("conclusion") not in FAILED:
+        if j.get("conclusion") not in counts:
             continue
         bad = [s.get("name") for s in (j.get("steps") or [])
-               if s.get("conclusion") in FAILED]
+               if s.get("conclusion") in counts]
         pre = (j.get("name") + ": ") if multi else ""
         steps.extend(pre + (s or "?") for s in bad)
         if not bad:
-            steps.append(pre + "(the job %s with no failed step)" % j.get("conclusion"))
+            steps.append(pre + "(the job %s with no failed step)"
+                         % (j.get("conclusion") or "never finished"))
         # ⚠️ a job IS a check run; its own URL names the id to ask about.
         cr = (j.get("check_run_url") or "").rstrip("/").rsplit("/", 1)[-1] or j.get("id")
         for a in fetch_json("check-runs/%s/annotations" % cr) or []:
@@ -1052,7 +1182,8 @@ def status_doc(raw, now, names, prior=None, fetch_json=None,
                         e[k] = old[k]
             else:
                 try:
-                    e.update(failure_detail(e["run_id"], fetch_json))
+                    e.update(failure_detail(e["run_id"], fetch_json, (
+                        CLOCK_STOPPED if e["conclusion"] == "timed_out" else FAILED)))
                 except Exception as x:      # noqa: BLE001 - recorded, not hidden
                     e["detail_error"] = ("%s: %s" % (type(x).__name__, x))[:200]
         entries.append(e)
@@ -1103,7 +1234,7 @@ def write_status(path, fetch_page=None, fetch_json=None, now=None, root=".",
     stopped updating is exactly what its freshness row exists to catch."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     raw, pages, covered = collect(fetch_page or gh_page, now, root,
-                                  window_h=window_h, raw=True)
+                                  window_h=window_h, raw=True, fetch_json=fetch_json)
     prior = {}
     try:
         old = json.load(open(path, encoding="utf-8"))

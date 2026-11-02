@@ -312,6 +312,22 @@ def job_timeouts(src):
     return out
 
 
+# A value as YAML means it: a quoted string, or text up to a ` # comment`.
+_JOB_NAME = re.compile(r'''^("[^"]*"|'[^']*'|.*?)(?:\s+#.*)?$''')
+
+
+def job_names(src):
+    """{job: its own `name:` as written, or None when GitHub lists it by id}."""
+    lines = read(src).splitlines()
+    out = {}
+    for jb in jobs(src):
+        out[jb.name] = None
+        for lineno, indent, key, val, _b in _scan(lines):
+            if jb.start <= lineno < jb.end and indent == 4 and key == "name":
+                out[jb.name] = _JOB_NAME.match(val).group(1).strip("\"'") or None
+    return out
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE CRON TOTAL COUNTS STAGED UPLOADS TOO — SO IT NEVER GOES RED IN
 #    THE GAP BETWEEN A PR MERGING AND SAM UPLOADING. `[Sam, 2026-09-23]`
