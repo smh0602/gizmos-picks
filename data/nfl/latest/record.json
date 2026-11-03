@@ -1,5 +1,5 @@
 {
- "built_at": "2026-11-03T01:13:35Z",
+ "built_at": "2026-11-03T15:34:30Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -7,24 +7,24 @@
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
   "w": 258,
-  "n": 490,
-  "pct": 52.7
+  "n": 491,
+  "pct": 52.5
  },
  "board": {
   "w": 326,
-  "n": 608,
-  "pct": 53.6
+  "n": 610,
+  "pct": 53.4
  },
  "game_lines": {
   "w": 68,
-  "n": 118,
-  "pct": 57.6,
+  "n": 119,
+  "pct": 57.1,
   "overall": {
    "w": 68,
-   "n": 118,
-   "pct": 57.6
+   "n": 119,
+   "pct": 57.1
   },
-  "shown": 120,
+  "shown": 121,
   "voids": 1,
   "pending": 1,
   "unresolved": 0,
@@ -42,8 +42,8 @@
    },
    "alternate_spread": {
     "w": 22,
-    "n": 43,
-    "pct": 51.2
+    "n": 44,
+    "pct": 50.0
    },
    "total": {
     "w": 21,
@@ -59,8 +59,8 @@
    },
    "MODEL": {
     "w": 54,
-    "n": 98,
-    "pct": 55.1
+    "n": 99,
+    "pct": 54.5
    }
   },
   "by_day": [
@@ -170,9 +170,17 @@
    },
    {
     "w": 0,
+    "n": 1,
+    "pct": 0.0,
+    "date": "2026-11-02",
+    "voids": 0,
+    "pending": 0
+   },
+   {
+    "w": 0,
     "n": 0,
     "pct": null,
-    "date": "2026-11-02",
+    "date": "2026-11-05",
     "voids": 0,
     "pending": 1
    }
@@ -872,8 +880,8 @@
   },
   "player_receptions": {
    "w": 104,
-   "n": 182,
-   "pct": 57.1
+   "n": 183,
+   "pct": 56.8
   },
   "player_rush_yds": {
    "w": 38,
@@ -889,8 +897,8 @@
   },
   "under": {
    "w": 115,
-   "n": 203,
-   "pct": 56.7
+   "n": 204,
+   "pct": 56.4
   },
   "yes": {
    "w": 8,
@@ -906,8 +914,8 @@
   },
   "fanduel": {
    "w": 22,
-   "n": 41,
-   "pct": 53.7
+   "n": 42,
+   "pct": 52.4
   },
   "hardrockbet": {
    "w": 201,
@@ -920,8 +928,8 @@
    "bucket": "50-60%",
    "stated": 53.9,
    "w": 55,
-   "n": 106,
-   "pct": 51.9
+   "n": 107,
+   "pct": 51.4
   },
   {
    "bucket": "60-70%",
@@ -1056,8 +1064,8 @@
     "bucket": "50-60%",
     "stated": 53.9,
     "w": 55,
-    "n": 106,
-    "pct": 51.9
+    "n": 107,
+    "pct": 51.4
    },
    {
     "bucket": "60-70%",
@@ -1086,8 +1094,8 @@
   },
   "season-blend+props-own": {
    "w": 57,
-   "n": 115,
-   "pct": 49.6
+   "n": 116,
+   "pct": 49.1
   }
  },
  "by_day": [
@@ -1310,6 +1318,15 @@
   {
    "date": "2026-11-02",
    "w": 0,
+   "n": 1,
+   "carded": 3,
+   "voids": 0,
+   "unresolved": 2,
+   "owed": 0
+  },
+  {
+   "date": "2026-11-05",
+   "w": 0,
    "n": 0,
    "carded": 3,
    "voids": 0,
@@ -1317,22 +1334,22 @@
    "owed": 3
   }
  ],
- "days_graded": 24,
- "cards_seen": 25,
+ "days_graded": 25,
+ "cards_seen": 26,
  "record_from": "2026-09-07",
  "cards_before_record_from": 0,
  "record_from_note": "Counting from 2026-09-07. No earlier cards were set aside.",
- "distinct_players": 191,
- "distinct_games": 96,
- "carded_rows": 509,
+ "distinct_players": 192,
+ "distinct_games": 97,
+ "carded_rows": 512,
  "voids": 0,
- "unresolved": 19,
- "coverage_note": "490 of 509 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 19 could not be settled at all.",
+ "unresolved": 21,
+ "coverage_note": "491 of 512 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 21 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
  "skipped": [
   {
-   "date": "2026-11-02",
+   "date": "2026-11-05",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
