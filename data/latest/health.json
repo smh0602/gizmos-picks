@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-03T18:56:24Z",
+ "checked_at": "2026-11-03T19:50:46Z",
  "et_date": "2026-11-03",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 12,
  "findings": [
   {
    "key": "late:lineups:mlb",
@@ -82,6 +82,13 @@
    "what": "nfl news was built 90 minutes after it was due",
    "why": "due 2026-11-03T14:05Z, built 2026-11-03T15:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
+  },
+  {
+   "key": "credits:unrecorded",
+   "severity": "DEGRADED",
+   "what": "42 Odds API credit(s) were spent since 2026-11-02T19:50:46Z that no stored snapshot records",
+   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-11-03T19:50:28Z \u221242 (data/nfl/2026-11-03/gamelines/1950.json.gz)",
+   "repair": null
   }
  ],
  "repairs": [],
@@ -89,15 +96,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19554,
-  "pulled_at": "2026-11-03T18:46:18Z",
+  "balance": 19506,
+  "pulled_at": "2026-11-03T19:50:28Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.2,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-03T18:46:18Z",
-  "source": "data/ncaaf/2026-11-03/gamelines/1846.json.gz",
-  "readings_on_disk": 1377,
+  "newest_paid_pull": "2026-11-03T19:50:28Z",
+  "source": "data/nfl/2026-11-03/gamelines/1950.json.gz",
+  "readings_on_disk": 1378,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
