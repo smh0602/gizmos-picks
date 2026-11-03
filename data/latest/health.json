@@ -1,30 +1,58 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-03T13:22:54Z",
+ "checked_at": "2026-11-03T15:31:56Z",
  "et_date": "2026-11-03",
  "healthy": false,
  "broken": 0,
- "degraded": 9,
+ "degraded": 13,
  "findings": [
+  {
+   "key": "late:alt-lines:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf alt-lines was built 172 minutes after it was due",
+   "why": "due 2026-11-03T12:30Z, built 2026-11-03T15:22Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "repair": null
+  },
   {
    "key": "late:card-fb:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf card-fb was built 179 minutes after it was due",
-   "why": "due 2026-11-02T13:30Z, built 2026-11-02T16:29Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
+   "what": "ncaaf card-fb was built 116 minutes after it was due",
+   "why": "due 2026-11-03T13:30Z, built 2026-11-03T15:26Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:fb-record:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf fb-record was built 150 minutes after it was due",
+   "why": "due 2026-11-03T13:00Z, built 2026-11-03T15:29Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:gamelines:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf gamelines was built 112 minutes after it was due",
-   "why": "due 2026-11-02T19:00Z, built 2026-11-02T20:52Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "what": "ncaaf gamelines was built 263 minutes after it was due",
+   "why": "due 2026-11-03T11:00Z, built 2026-11-03T15:22Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:news:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf news was built 148 minutes after it was due",
-   "why": "due 2026-11-02T14:05Z, built 2026-11-02T16:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "what": "ncaaf news was built 85 minutes after it was due",
+   "why": "due 2026-11-03T14:05Z, built 2026-11-03T15:29Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-board:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf props-board was built 173 minutes after it was due",
+   "why": "due 2026-11-03T12:30Z, built 2026-11-03T15:22Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-player:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf props-player was built 172 minutes after it was due",
+   "why": "due 2026-11-03T12:30Z, built 2026-11-03T15:22Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -75,15 +103,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19612,
-  "pulled_at": "2026-11-03T11:07:53Z",
+  "balance": 19586,
+  "pulled_at": "2026-11-03T15:22:41Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.3,
+  "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-03T11:07:53Z",
-  "source": "data/2026-11-03/props-pitcher/1107.json.gz",
-  "readings_on_disk": 1368,
+  "newest_paid_pull": "2026-11-03T15:22:41Z",
+  "source": "data/ncaaf/2026-11-03/props-player/1522.json.gz",
+  "readings_on_disk": 1371,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
