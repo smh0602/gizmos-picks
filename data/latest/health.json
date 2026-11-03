@@ -1,23 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-03T06:38:22Z",
+ "checked_at": "2026-11-03T07:10:07Z",
  "et_date": "2026-11-03",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 9,
  "findings": [
   {
    "key": "late:card-fb:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf card-fb was built 179 minutes after it was due",
    "why": "due 2026-11-02T13:30Z, built 2026-11-02T16:29Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:cfb-probe:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 104 minutes after it was due",
-   "why": "due 2026-11-02T07:00Z, built 2026-11-02T08:44Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -63,13 +56,6 @@
    "repair": null
   },
   {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 103 minutes after it was due",
-   "why": "due 2026-11-02T07:00Z, built 2026-11-02T08:43Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:props-board:nfl",
    "severity": "DEGRADED",
    "what": "nfl props-board was built 93 minutes after it was due",
@@ -93,7 +79,7 @@
   "pulled_at": "2026-11-03T01:54:05Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 4.7,
+  "reading_age_hours": 5.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-03T01:54:05Z",
   "source": "data/ncaaf/2026-11-03/gamelines/0154.json.gz",
