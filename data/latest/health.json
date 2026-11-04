@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-04T15:40:52Z",
+ "checked_at": "2026-11-04T16:26:13Z",
  "et_date": "2026-11-04",
  "healthy": false,
  "broken": 0,
@@ -110,13 +110,6 @@
    "what": "nfl nfl-logs was built 166 minutes after it was due",
    "why": "due 2026-11-04T07:00Z, built 2026-11-04T09:46Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
-  },
-  {
-   "key": "credits:unrecorded",
-   "severity": "DEGRADED",
-   "what": "37 Odds API credit(s) were spent since 2026-11-03T15:40:45Z that no stored snapshot records",
-   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-11-04T15:39:37Z \u221237 (data/nfl/2026-11-04/gamelines/1539.json.gz)",
-   "repair": null
   }
  ],
  "repairs": [],
@@ -128,7 +121,7 @@
   "pulled_at": "2026-11-04T15:39:37Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-04T15:39:37Z",
   "source": "data/nfl/2026-11-04/props-player/1539.json.gz",
