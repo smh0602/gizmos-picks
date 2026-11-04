@@ -1,23 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-04T13:01:38Z",
+ "checked_at": "2026-11-04T15:40:45Z",
  "et_date": "2026-11-04",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 13,
  "findings": [
   {
-   "key": "late:lineups:mlb",
+   "key": "stopped:ncaaf",
    "severity": "DEGRADED",
-   "what": "mlb lineups was built 205 minutes after it was due",
-   "why": "due 2026-11-03T14:00Z, built 2026-11-03T17:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next lineups build is on time (within 60 minutes).",
+   "what": "ncaaf has not updated since Wed 09:45Z",
+   "why": "gamelines is past due with no collect run for ncaaf since then (oldest: gamelines, due 2026-11-04T11:00Z). Nothing repairs this on its own; the next run that lands will.",
    "repair": null
   },
   {
-   "key": "late:weather:mlb",
+   "key": "late:news:mlb",
    "severity": "DEGRADED",
-   "what": "mlb weather was built 205 minutes after it was due",
-   "why": "due 2026-11-03T14:00Z, built 2026-11-03T17:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next weather build is on time (within 60 minutes).",
+   "what": "mlb news was built 101 minutes after it was due",
+   "why": "due 2026-11-04T13:05Z, built 2026-11-04T14:45Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -58,8 +58,8 @@
   {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
-   "what": "nfl fb-record was built 86 minutes after it was due",
-   "why": "due 2026-10-28T13:00Z, built 2026-10-28T14:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
+   "what": "nfl fb-record was built 160 minutes after it was due",
+   "why": "due 2026-11-04T13:00Z, built 2026-11-04T15:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -70,10 +70,17 @@
    "repair": null
   },
   {
+   "key": "late:gamelines:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl gamelines was built 220 minutes after it was due",
+   "why": "due 2026-11-04T12:00Z, built 2026-11-04T15:39Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:news:nfl",
    "severity": "DEGRADED",
-   "what": "nfl news was built 90 minutes after it was due",
-   "why": "due 2026-11-03T14:05Z, built 2026-11-03T15:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "what": "nfl news was built 95 minutes after it was due",
+   "why": "due 2026-11-04T14:05Z, built 2026-11-04T15:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -82,6 +89,13 @@
    "what": "nfl nfl-logs was built 166 minutes after it was due",
    "why": "due 2026-11-04T07:00Z, built 2026-11-04T09:46Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
+  },
+  {
+   "key": "credits:unrecorded",
+   "severity": "DEGRADED",
+   "what": "37 Odds API credit(s) were spent since 2026-11-03T15:40:45Z that no stored snapshot records",
+   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-11-04T15:39:37Z \u221237 (data/nfl/2026-11-04/gamelines/1539.json.gz)",
+   "repair": null
   }
  ],
  "repairs": [],
@@ -89,15 +103,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19470,
-  "pulled_at": "2026-11-04T11:02:34Z",
+  "balance": 19415,
+  "pulled_at": "2026-11-04T15:39:37Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.0,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-04T11:02:34Z",
-  "source": "data/2026-11-04/props-pitcher/1102.json.gz",
-  "readings_on_disk": 1398,
+  "newest_paid_pull": "2026-11-04T15:39:37Z",
+  "source": "data/nfl/2026-11-04/props-player/1539.json.gz",
+  "readings_on_disk": 1401,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
