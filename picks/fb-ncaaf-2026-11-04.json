@@ -1,0 +1,4036 @@
+{
+ "date": "2026-11-04",
+ "league": "ncaaf",
+ "generated_at": "2026-11-04T15:37:14Z",
+ "generated_by": "card_fb.py",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-11-04T15:35:24Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": null,
+ "denominator": "every game he appears in (union denominator)",
+ "min_games": 6,
+ "n_gated_by_measurement": 0,
+ "rate_gates": {
+  "min_reception_line": 3.5,
+  "measured_markets": [
+   "player_anytime_td",
+   "player_pass_yds",
+   "player_reception_yds",
+   "player_receptions",
+   "player_rush_yds"
+  ],
+  "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
+ },
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Sacramento State Hornets",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": 25.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "draftkings",
+   "price": -115,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 69,
+   "break_even": 53.5,
+   "edge": 15.7,
+   "why": [
+    "The game model gives Sacramento State Hornets 69% to cover +25.5; the price -115 needs 53.5%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UMass Minutemen",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "draftkings",
+   "price": -155,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "break_even": 60.8,
+   "edge": 0.4,
+   "why": [
+    "The game model gives UMass Minutemen 61% to win; the price -155 needs 60.8%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Central Michigan Chippewas",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 1.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 52.4,
+   "edge": 7.3,
+   "why": [
+    "The game model gives Central Michigan Chippewas 60% to cover +1.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 44.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 51.2,
+   "edge": 7.9,
+   "why": [
+    "The game model gives Under 59% at 44.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 4
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Central Michigan Chippewas",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "hardrockbet",
+   "price": 100,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 50.0,
+   "edge": 6.2,
+   "why": [
+    "The game model gives Central Michigan Chippewas 56% to win; the price +100 needs 50.0%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 5
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 53.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 52.4,
+   "edge": 3.4,
+   "why": [
+    "The game model gives Under 56% at 53.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 6
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UMass Minutemen",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -3.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 1.7,
+   "why": [
+    "The game model gives UMass Minutemen 53% to cover -3.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 7
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Sacramento State Hornets",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": 25.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "draftkings",
+   "price": -115,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 69,
+   "break_even": 53.5,
+   "edge": 15.7,
+   "why": [
+    "The game model gives Sacramento State Hornets 69% to cover +25.5; the price -115 needs 53.5%.",
+    "The model's predicted score: Toledo Rockets 34, Sacramento State Hornets 17 (total 51).",
+    "The Toledo Rockets score 37.4 and allow 25.4 points a game this season (8 games).",
+    "The Sacramento State Hornets score 17 and allow 30.3 points a game this season (9 games).",
+    "Against teams the model rates above average this season: Toledo Rockets 0-0, Sacramento State Hornets 0-2."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives Sacramento State Hornets 69% to cover +25.5; the price -115 needs 53.5%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 44.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 51.2,
+   "edge": 7.9,
+   "why": [
+    "The game model gives Under 59% at 44.5; the price -105 needs 51.2%.",
+    "The model's predicted score: Central Michigan Chippewas 22, Eastern Michigan Eagles 19 (total 41).",
+    "The Central Michigan Chippewas score 17.9 and allow 25.9 points a game this season (8 games).",
+    "The Eastern Michigan Eagles score 21.3 and allow 25.7 points a game this season (9 games).",
+    "Against teams the model rates above average this season: Central Michigan Chippewas 0-2, Eastern Michigan Eagles 0-2."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 2,
+   "why_card": [
+    "The game model gives Under 59% at 44.5; the price -105 needs 51.2%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UMass Minutemen",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -3.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 1.7,
+   "why": [
+    "The game model gives UMass Minutemen 53% to cover -3.5; the price -105 needs 51.2%.",
+    "The model's predicted score: Ball State Cardinals 22, UMass Minutemen 27 (total 49).",
+    "The Ball State Cardinals score 22 and allow 35.2 points a game this season (8 games).",
+    "The UMass Minutemen score 26.5 and allow 21.1 points a game this season (8 games).",
+    "Against teams the model rates above average this season: Ball State Cardinals 0-4, UMass Minutemen 0-0."
+   ],
+   "priced_at": "2026-11-04T15:35:23Z",
+   "rank": 3,
+   "why_card": [
+    "The game model gives UMass Minutemen 53% to cover -3.5; the price -105 needs 51.2%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-11-04",
+  "card_slate": "2026-11-04",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-11-04T15:36:59Z",
+  "ladder_built_at": "2026-11-04T15:37:04Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "score": {
+    "home": 27,
+    "away": 22
+   }
+  },
+  {
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "score": {
+    "home": 17,
+    "away": 34
+   }
+  },
+  {
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "score": {
+    "home": 19,
+    "away": 22
+   }
+  },
+  {
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "score": {
+    "home": 32,
+    "away": 40
+   }
+  },
+  {
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "score": {
+    "home": 21,
+    "away": 36
+   }
+  },
+  {
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "score": {
+    "home": 32,
+    "away": 23
+   }
+  },
+  {
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "score": {
+    "home": 19,
+    "away": 20
+   }
+  },
+  {
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "score": {
+    "home": 23,
+    "away": 26
+   }
+  },
+  {
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "score": {
+    "home": 13,
+    "away": 23
+   }
+  },
+  {
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "score": {
+    "home": 27,
+    "away": 17
+   }
+  },
+  {
+   "away": "Texas Longhorns",
+   "home": "Missouri Tigers",
+   "score": {
+    "home": 22,
+    "away": 21
+   }
+  },
+  {
+   "away": "BYU Cougars",
+   "home": "Utah Utes",
+   "score": {
+    "home": 30,
+    "away": 19
+   }
+  },
+  {
+   "away": "Iowa State Cyclones",
+   "home": "Baylor Bears",
+   "score": {
+    "home": 30,
+    "away": 21
+   }
+  },
+  {
+   "away": "Clemson Tigers",
+   "home": "Syracuse Orange",
+   "score": {
+    "home": 25,
+    "away": 26
+   }
+  },
+  {
+   "away": "Florida State Seminoles",
+   "home": "Boston College Eagles",
+   "score": {
+    "home": 22,
+    "away": 29
+   }
+  },
+  {
+   "away": "North Carolina Tar Heels",
+   "home": "UConn Huskies",
+   "score": {
+    "home": 27,
+    "away": 28
+   }
+  },
+  {
+   "away": "Michigan State Spartans",
+   "home": "Michigan Wolverines",
+   "score": {
+    "home": 25,
+    "away": 15
+   }
+  },
+  {
+   "away": "UCLA Bruins",
+   "home": "Minnesota Golden Gophers",
+   "score": {
+    "home": 17,
+    "away": 20
+   }
+  },
+  {
+   "away": "Iowa Hawkeyes",
+   "home": "Northwestern Wildcats",
+   "score": {
+    "home": 22,
+    "away": 21
+   }
+  },
+  {
+   "away": "Tulsa Golden Hurricane",
+   "home": "Tulane Green Wave",
+   "score": {
+    "home": 28,
+    "away": 25
+   }
+  },
+  {
+   "away": "Duke Blue Devils",
+   "home": "NC State Wolfpack",
+   "score": {
+    "home": 24,
+    "away": 26
+   }
+  },
+  {
+   "away": "Maryland Terrapins",
+   "home": "Purdue Boilermakers",
+   "score": {
+    "home": 33,
+    "away": 24
+   }
+  },
+  {
+   "away": "Arkansas Razorbacks",
+   "home": "Auburn Tigers",
+   "score": {
+    "home": 31,
+    "away": 22
+   }
+  },
+  {
+   "away": "Oklahoma State Cowboys",
+   "home": "Kansas State Wildcats",
+   "score": {
+    "home": 34,
+    "away": 32
+   }
+  },
+  {
+   "away": "Old Dominion Monarchs",
+   "home": "Coastal Carolina Chanticleers",
+   "score": {
+    "home": 25,
+    "away": 19
+   }
+  },
+  {
+   "away": "Georgia State Panthers",
+   "home": "Appalachian State Mountaineers",
+   "score": {
+    "home": 29,
+    "away": 25
+   }
+  },
+  {
+   "away": "Texas A&M Aggies",
+   "home": "South Carolina Gamecocks",
+   "score": {
+    "home": 25,
+    "away": 24
+   }
+  },
+  {
+   "away": "UL Monroe Warhawks",
+   "home": "Arkansas State Red Wolves",
+   "score": {
+    "home": 35,
+    "away": 19
+   }
+  },
+  {
+   "away": "Delaware Blue Hens",
+   "home": "Kennesaw State Owls",
+   "score": {
+    "home": 29,
+    "away": 27
+   }
+  },
+  {
+   "away": "Alabama Crimson Tide",
+   "home": "LSU Tigers",
+   "score": {
+    "home": 30,
+    "away": 26
+   }
+  },
+  {
+   "away": "Cincinnati Bearcats",
+   "home": "Houston Cougars",
+   "score": {
+    "home": 38,
+    "away": 24
+   }
+  },
+  {
+   "away": "West Virginia Mountaineers",
+   "home": "Texas Tech Red Raiders",
+   "score": {
+    "home": 42,
+    "away": 25
+   }
+  },
+  {
+   "away": "Oregon Ducks",
+   "home": "Ohio State Buckeyes",
+   "score": {
+    "home": 28,
+    "away": 17
+   }
+  },
+  {
+   "away": "Penn State Nittany Lions",
+   "home": "Washington Huskies",
+   "score": {
+    "home": 23,
+    "away": 21
+   }
+  },
+  {
+   "away": "Charlotte 49ers",
+   "home": "UAB Blazers",
+   "score": {
+    "home": 31,
+    "away": 17
+   }
+  },
+  {
+   "away": "Temple Owls",
+   "home": "Navy Midshipmen",
+   "score": {
+    "home": 33,
+    "away": 23
+   }
+  },
+  {
+   "away": "Marshall Thundering Herd",
+   "home": "Georgia Southern Eagles",
+   "score": {
+    "home": 33,
+    "away": 23
+   }
+  },
+  {
+   "away": "Western Kentucky Hilltoppers",
+   "home": "Middle Tennessee Blue Raiders",
+   "score": {
+    "home": 25,
+    "away": 24
+   }
+  },
+  {
+   "away": "UCF Knights",
+   "home": "Kansas Jayhawks",
+   "score": {
+    "home": 27,
+    "away": 21
+   }
+  },
+  {
+   "away": "Rice Owls",
+   "home": "North Texas Mean Green",
+   "score": {
+    "home": 40,
+    "away": 21
+   }
+  },
+  {
+   "away": "Northern Illinois Huskies",
+   "home": "San Jose State Spartans",
+   "score": {
+    "home": 31,
+    "away": 20
+   }
+  },
+  {
+   "away": "Missouri State Bears",
+   "home": "Florida International Panthers",
+   "score": {
+    "home": 28,
+    "away": 22
+   }
+  },
+  {
+   "away": "Louisiana Tech Bulldogs",
+   "home": "Troy Trojans",
+   "score": {
+    "home": 21,
+    "away": 26
+   }
+  },
+  {
+   "away": "Vanderbilt Commodores",
+   "home": "Mississippi State Bulldogs",
+   "score": {
+    "home": 26,
+    "away": 21
+   }
+  },
+  {
+   "away": "Rutgers Scarlet Knights",
+   "home": "Wisconsin Badgers",
+   "score": {
+    "home": 29,
+    "away": 16
+   }
+  },
+  {
+   "away": "South Alabama Jaguars",
+   "home": "Louisiana Ragin Cajuns",
+   "score": {
+    "home": 33,
+    "away": 24
+   }
+  },
+  {
+   "away": "Boise State Broncos",
+   "home": "Colorado State Rams",
+   "score": {
+    "home": 26,
+    "away": 41
+   }
+  },
+  {
+   "away": "Georgia Bulldogs",
+   "home": "Ole Miss Rebels",
+   "score": {
+    "home": 23,
+    "away": 24
+   }
+  },
+  {
+   "away": "Kentucky Wildcats",
+   "home": "Tennessee Volunteers",
+   "score": {
+    "home": 28,
+    "away": 21
+   }
+  },
+  {
+   "away": "Sam Houston State Bearkats",
+   "home": "Jacksonville State Gamecocks",
+   "score": {
+    "home": 31,
+    "away": 15
+   }
+  },
+  {
+   "away": "Colorado Buffaloes",
+   "home": "Arizona State Sun Devils",
+   "score": {
+    "home": 28,
+    "away": 19
+   }
+  },
+  {
+   "away": "Louisville Cardinals",
+   "home": "Georgia Tech Yellow Jackets",
+   "score": {
+    "home": 25,
+    "away": 36
+   }
+  },
+  {
+   "away": "Miami Hurricanes",
+   "home": "Notre Dame Fighting Irish",
+   "score": {
+    "home": 30,
+    "away": 28
+   }
+  },
+  {
+   "away": "Air Force Falcons",
+   "home": "Army Black Knights",
+   "score": {
+    "home": 26,
+    "away": 19
+   }
+  },
+  {
+   "away": "Oklahoma Sooners",
+   "home": "Florida Gators",
+   "score": {
+    "home": 25,
+    "away": 19
+   }
+  },
+  {
+   "away": "Liberty Flames",
+   "home": "New Mexico State Aggies",
+   "score": {
+    "home": 16,
+    "away": 30
+   }
+  },
+  {
+   "away": "Fresno State Bulldogs",
+   "home": "Utah State Aggies",
+   "score": {
+    "home": 20,
+    "away": 24
+   }
+  },
+  {
+   "away": "Hawaii Rainbow Warriors",
+   "home": "UTEP Miners",
+   "score": {
+    "home": 19,
+    "away": 29
+   }
+  },
+  {
+   "away": "Texas State Bobcats",
+   "home": "Oregon State Beavers",
+   "score": {
+    "home": 39,
+    "away": 33
+   }
+  },
+  {
+   "away": "Wyoming Cowboys",
+   "home": "UNLV Rebels",
+   "score": {
+    "home": 30,
+    "away": 20
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 7 pick(s) for 2026-11-04 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jadyn Glasser",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 185.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622328006&selectionId=104651489",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "raw": "8 of 9",
+   "record": "8 of 9",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": 7.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.571,
+    "weighted_n": 7.73,
+    "mean_all": 60.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.0,
+   "projection": 60.1,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 60.1 pass yds a game.",
+   "why": [
+    "<b>Jadyn Glasser</b> went under 185.5 pass yds in <b>6 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 60.6,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Adjatay Dabbs",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622065818&selectionId=102475885",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 70,
+   "break_even": 53.3,
+   "edge": 3.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.826,
+    "weighted_n": 8.0,
+    "mean_all": 74.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 74.0,
+   "projection": 74.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 74.0 rec yds a game.",
+   "why": [
+    "<b>Adjatay Dabbs</b> went under 68.5 rec yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 56.8,
+   "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jabari Smith Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621923381&selectionId=104582298",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 12",
+   "record": "6 of 12",
+   "rate": 52,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 8,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.491,
+    "weighted_n": 8.0,
+    "mean_all": 31.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 20.75,
+   "projection": 31.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 31.5 rec yds a game.",
+   "why": [
+    "<b>Jabari Smith Jr.</b> went over 29.5 rec yds in <b>3 of 4 games</b> in 2026 and 3 of 8 in 2025, in the games he appears in."
+   ],
+   "model_p": 56.1,
+   "rank": 4
+  }
+ ],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 1,
+  "same_game_already_listed": 28,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 32,
+  "cap": 10,
+  "distinct_games": 3,
+  "shared_with_board_head": 3,
+  "board_head_size": 10
+ },
+ "top_plays_rule": "The 3 most likely to hit for 2026-11-04 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 3 game(s). 28 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "parlays": {
+  "2": [
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Adjatay Dabbs u68.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 34.8,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     57
+    ],
+    "break_even": 28.4,
+    "edge": 6.4,
+    "ev_30": 6.76
+   },
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Jabari Smith Jr. o29.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 34.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     56
+    ],
+    "break_even": 28.4,
+    "edge": 5.8,
+    "ev_30": 6.11
+   },
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Jabari Smith Jr. o3.5 rec"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -122
+    ],
+    "multiplier": 3.416,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 33.6,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     55
+    ],
+    "break_even": 29.3,
+    "edge": 4.3,
+    "ev_30": 4.38
+   },
+   {
+    "legs": [
+     "Jamarion McDougle u3.5 rec",
+     "Jadyn Glasser u185.5 pass yds"
+    ],
+    "games": [
+     "Ball State Cardinals @ UMass Minutemen",
+     "Central Michigan Chippewas @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "6ee8ad6eb7454d13bebc0806a10cc861",
+     "e5c8c0aaad6dc26e9ede547783d854d2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -194,
+     -114
+    ],
+    "multiplier": 2.845,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 32.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     54,
+     61
+    ],
+    "break_even": 35.2,
+    "edge": -2.2,
+    "ev_30": -1.89
+   },
+   {
+    "legs": [
+     "Joshua Long o34.5 rec yds",
+     "Adjatay Dabbs u68.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114
+    ],
+    "multiplier": 3.553,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 32.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     57
+    ],
+    "break_even": 28.1,
+    "edge": 4.3,
+    "ev_30": 4.63
+   },
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Daryl Barnett Jr. u29.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 32.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     53
+    ],
+    "break_even": 28.4,
+    "edge": 4.0,
+    "ev_30": 4.18
+   },
+   {
+    "legs": [
+     "Joshua Long o34.5 rec yds",
+     "Jabari Smith Jr. o29.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114
+    ],
+    "multiplier": 3.553,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     56
+    ],
+    "break_even": 28.1,
+    "edge": 3.8,
+    "ev_30": 4.03
+   },
+   {
+    "legs": [
+     "Adjatay Dabbs u68.5 rec yds",
+     "Jabari Smith Jr. o29.5 rec yds"
+    ],
+    "games": [
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     56
+    ],
+    "break_even": 28.4,
+    "edge": 3.5,
+    "ev_30": 3.74
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Adjatay Dabbs u68.5 rec yds",
+     "Jabari Smith Jr. o29.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 19.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     57,
+     56
+    ],
+    "break_even": 15.1,
+    "edge": 4.4,
+    "ev_30": 8.64
+   },
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Adjatay Dabbs u68.5 rec yds",
+     "Jabari Smith Jr. o3.5 rec"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -122
+    ],
+    "multiplier": 6.412,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 19.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     57,
+     55
+    ],
+    "break_even": 15.6,
+    "edge": 3.5,
+    "ev_30": 6.79
+   },
+   {
+    "legs": [
+     "Jamarion McDougle u3.5 rec",
+     "Jadyn Glasser u185.5 pass yds",
+     "Adjatay Dabbs u68.5 rec yds"
+    ],
+    "games": [
+     "Ball State Cardinals @ UMass Minutemen",
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets"
+    ],
+    "game_ids": [
+     "6ee8ad6eb7454d13bebc0806a10cc861",
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -194,
+     -114,
+     -114
+    ],
+    "multiplier": 5.34,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 18.8,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     54,
+     61,
+     57
+    ],
+    "break_even": 18.7,
+    "edge": 0.1,
+    "ev_30": 0.08
+   },
+   {
+    "legs": [
+     "Joshua Long o34.5 rec yds",
+     "Adjatay Dabbs u68.5 rec yds",
+     "Jabari Smith Jr. o29.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114,
+     -114
+    ],
+    "multiplier": 6.67,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 18.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     57,
+     56
+    ],
+    "break_even": 15.0,
+    "edge": 3.2,
+    "ev_30": 6.41
+   },
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Adjatay Dabbs u68.5 rec yds",
+     "Donovan Hamilton o36.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 18.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     57,
+     52
+    ],
+    "break_even": 15.1,
+    "edge": 3.0,
+    "ev_30": 5.88
+   },
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Jabari Smith Jr. o29.5 rec yds",
+     "Daryl Barnett Jr. u29.5 rec yds"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Ball State Cardinals @ UMass Minutemen",
+     "Toledo Rockets @ Sacramento State Hornets"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "6ee8ad6eb7454d13bebc0806a10cc861",
+     "7db0ce3fddd5c735e599b1085c9b5cef"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 18.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     61,
+     56,
+     53
+    ],
+    "break_even": 15.1,
+    "edge": 3.0,
+    "ev_30": 5.93
+   },
+   {
+    "legs": [
+     "Joshua Long o34.5 rec yds",
+     "Adjatay Dabbs u68.5 rec yds",
+     "Jabari Smith Jr. o3.5 rec"
+    ],
+    "games": [
+     "Central Michigan Chippewas @ Eastern Michigan Eagles",
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen"
+    ],
+    "game_ids": [
+     "e5c8c0aaad6dc26e9ede547783d854d2",
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114,
+     -122
+    ],
+    "multiplier": 6.466,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 17.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     57,
+     55
+    ],
+    "break_even": 15.5,
+    "edge": 2.4,
+    "ev_30": 4.66
+   },
+   {
+    "legs": [
+     "Adjatay Dabbs u68.5 rec yds",
+     "Jabari Smith Jr. o29.5 rec yds",
+     "Harold Mack o29.5 rec yds"
+    ],
+    "games": [
+     "Toledo Rockets @ Sacramento State Hornets",
+     "Ball State Cardinals @ UMass Minutemen",
+     "Central Michigan Chippewas @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "7db0ce3fddd5c735e599b1085c9b5cef",
+     "6ee8ad6eb7454d13bebc0806a10cc861",
+     "e5c8c0aaad6dc26e9ede547783d854d2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 17.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     56,
+     56
+    ],
+    "break_even": 15.1,
+    "edge": 2.8,
+    "ev_30": 5.47
+   }
+  ],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 14,
+  "rated_legs": 32,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 2,
+    "taken": 2
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 30,
+    "taken": 12
+   },
+   {
+    "decimal": "2-3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 1327,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "32 rated legs, 14 in the stratified pool. Rejected: 1327 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Under 44.5 total"
+    ],
+    "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+    "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -105
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.665,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 61,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     61
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Joshua Long o34.5 rec yds",
+     "Under 44.5 total"
+    ],
+    "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+    "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -105
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.696,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Jabari Smith Jr. o29.5 rec yds",
+     "Jamarion McDougle u3.5 rec"
+    ],
+    "game": "Ball State Cardinals @ UMass Minutemen",
+    "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -194
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 2.845,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     54
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Jabari Smith Jr. o3.5 rec",
+     "Jamarion McDougle u3.5 rec"
+    ],
+    "game": "Ball State Cardinals @ UMass Minutemen",
+    "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -122,
+     -194
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 2.758,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Adjatay Dabbs u68.5 rec yds",
+     "Daryl Barnett Jr. u29.5 rec yds"
+    ],
+    "game": "Toledo Rockets @ Sacramento State Hornets",
+    "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.524,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 53,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57,
+     53
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Adjatay Dabbs u68.5 rec yds",
+     "John Alan Richter u253.5 pass yds"
+    ],
+    "game": "Toledo Rockets @ Sacramento State Hornets",
+    "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.524,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 52,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57,
+     52
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Jadyn Glasser u185.5 pass yds",
+     "Joshua Long o34.5 rec yds",
+     "Under 44.5 total"
+    ],
+    "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+    "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -112,
+     -105
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.937,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     61,
+     57
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Joshua Long o34.5 rec yds",
+     "Harold Mack o29.5 rec yds",
+     "Under 44.5 total"
+    ],
+    "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+    "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114,
+     -105
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.937,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57,
+     56
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Adjatay Dabbs u68.5 rec yds",
+     "Daryl Barnett Jr. u29.5 rec yds",
+     "John Alan Richter u253.5 pass yds"
+    ],
+    "game": "Toledo Rockets @ Sacramento State Hornets",
+    "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.615,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 52,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57,
+     53,
+     52
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Adjatay Dabbs u68.5 rec yds",
+     "Daryl Barnett Jr. u29.5 rec yds",
+     "Onterrio Smith Jr. u35.5 rec yds"
+    ],
+    "game": "Toledo Rockets @ Sacramento State Hornets",
+    "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.615,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 52,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57,
+     53,
+     52
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jabari Smith Jr. o29.5 rec yds",
+     "Jamarion McDougle u3.5 rec",
+     "Donovan Hamilton o36.5 rec yds"
+    ],
+    "game": "Ball State Cardinals @ UMass Minutemen",
+    "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -194,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 5.34,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 52,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     54,
+     52
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jabari Smith Jr. o3.5 rec",
+     "Jamarion McDougle u3.5 rec",
+     "Donovan Hamilton o36.5 rec yds"
+    ],
+    "game": "Ball State Cardinals @ UMass Minutemen",
+    "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -122,
+     -194,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 5.177,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 52,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54,
+     52
+    ],
+    "band_floor": 3.0
+   }
+  ]
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 3,
+  "games_with_a_line_row": 1,
+  "games_used": 3,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 62,
+   "mixed_book": 76,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "3 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {
+  "Donovan Hamilton|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Isaiah Thacker|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jabari Smith Jr.|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Jalen Bonds|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Jamarion McDougle|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Johnny Thompson Jr.|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Keldric Luster|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
+  },
+  "TJ Horton|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Keldric Luster|player_pass_yds|over|202.5": {
+   "v": 146.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 146.0 pass yds a game."
+  },
+  "Keldric Luster|player_pass_yds|under|202.5": {
+   "v": 146.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 146.0 pass yds a game."
+  },
+  "Keldric Luster|player_pass_yds|over|205.5": {
+   "v": 146.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 146.0 pass yds a game."
+  },
+  "Keldric Luster|player_pass_yds|under|205.5": {
+   "v": 146.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 146.0 pass yds a game."
+  },
+  "Donovan Hamilton|player_reception_yds|over|36.5": {
+   "v": 39.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 39.6 rec yds a game."
+  },
+  "Donovan Hamilton|player_reception_yds|under|36.5": {
+   "v": 39.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 39.6 rec yds a game."
+  },
+  "Donovan Hamilton|player_reception_yds|over|37.5": {
+   "v": 39.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 39.6 rec yds a game."
+  },
+  "Donovan Hamilton|player_reception_yds|under|37.5": {
+   "v": 39.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 39.6 rec yds a game."
+  },
+  "Jabari Smith Jr.|player_reception_yds|over|29.5": {
+   "v": 31.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 31.5 rec yds a game."
+  },
+  "Jabari Smith Jr.|player_reception_yds|under|29.5": {
+   "v": 31.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 31.5 rec yds a game."
+  },
+  "Jamarion McDougle|player_reception_yds|over|33.5": {
+   "v": 30.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 30.7 rec yds a game."
+  },
+  "Jamarion McDougle|player_reception_yds|under|33.5": {
+   "v": 30.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 30.7 rec yds a game."
+  },
+  "Jamarion McDougle|player_reception_yds|over|34.5": {
+   "v": 30.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 30.7 rec yds a game."
+  },
+  "Jamarion McDougle|player_reception_yds|under|34.5": {
+   "v": 30.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 30.7 rec yds a game."
+  },
+  "Donovan Hamilton|player_receptions|over|3.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 3.2 rec a game."
+  },
+  "Donovan Hamilton|player_receptions|under|3.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 3.2 rec a game."
+  },
+  "Jabari Smith Jr.|player_receptions|over|3.5": {
+   "v": 3.0,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 3.0 rec a game."
+  },
+  "Jabari Smith Jr.|player_receptions|under|3.5": {
+   "v": 3.0,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 3.0 rec a game."
+  },
+  "Jamarion McDougle|player_receptions|over|3.5": {
+   "v": 2.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 2.5 rec a game."
+  },
+  "Jamarion McDougle|player_receptions|under|3.5": {
+   "v": 2.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 2.5 rec a game."
+  },
+  "Keldric Luster|player_rush_yds|over|38.5": {
+   "v": 30.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 30.1 rush yds a game."
+  },
+  "Keldric Luster|player_rush_yds|under|38.5": {
+   "v": 30.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 30.1 rush yds a game."
+  },
+  "Keldric Luster|player_rush_yds|over|39.5": {
+   "v": 30.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 30.1 rush yds a game."
+  },
+  "Keldric Luster|player_rush_yds|under|39.5": {
+   "v": 30.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 30.1 rush yds a game."
+  },
+  "TJ Horton|player_rush_yds|over|40.5": {
+   "v": 33.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 33.7 rush yds a game."
+  },
+  "TJ Horton|player_rush_yds|under|40.5": {
+   "v": 33.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 33.7 rush yds a game."
+  },
+  "TJ Horton|player_rush_yds|over|41.5": {
+   "v": 33.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 33.7 rush yds a game."
+  },
+  "TJ Horton|player_rush_yds|under|41.5": {
+   "v": 33.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 33.7 rush yds a game."
+  },
+  "Adjatay Dabbs|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Autavius Ison|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Bryson Hammer|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
+  },
+  "CJ Miller|player_anytime_td|yes|None": {
+   "v": 1.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 1.0 TD a game."
+  },
+  "Cincere Rhaney|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Connor Walendzak|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Daniel Swinney|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Isaiah Ene|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Jackson Sharman|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Jamar Curtis|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.1 TD a game."
+  },
+  "John Alan Richter|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Onterrio Smith Jr.|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Sam Lee|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Terrell Crosby Jr.|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Jackson Sharman|player_pass_yds|over|170.5": {
+   "v": 171.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 171.8 pass yds a game."
+  },
+  "Jackson Sharman|player_pass_yds|under|170.5": {
+   "v": 171.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 171.8 pass yds a game."
+  },
+  "John Alan Richter|player_pass_yds|over|253.5": {
+   "v": 217.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 217.9 pass yds a game."
+  },
+  "John Alan Richter|player_pass_yds|under|253.5": {
+   "v": 217.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 217.9 pass yds a game."
+  },
+  "Adjatay Dabbs|player_reception_yds|over|68.5": {
+   "v": 74.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 74.0 rec yds a game."
+  },
+  "Adjatay Dabbs|player_reception_yds|under|68.5": {
+   "v": 74.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 74.0 rec yds a game."
+  },
+  "Bryson Hammer|player_reception_yds|over|48.5": {
+   "v": 59.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 59.4 rec yds a game."
+  },
+  "Bryson Hammer|player_reception_yds|under|48.5": {
+   "v": 59.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 59.4 rec yds a game."
+  },
+  "Onterrio Smith Jr.|player_reception_yds|over|35.5": {
+   "v": 43.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 43.3 rec yds a game."
+  },
+  "Onterrio Smith Jr.|player_reception_yds|under|35.5": {
+   "v": 43.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 43.3 rec yds a game."
+  },
+  "Isaiah Ene|player_rush_yds|over|41.5": {
+   "v": 45.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 45.6 rush yds a game."
+  },
+  "Isaiah Ene|player_rush_yds|under|41.5": {
+   "v": 45.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 45.6 rush yds a game."
+  },
+  "Amareon Blue|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Braydon Bennett|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Brock Townsend|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Harold Mack|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Jadyn Glasser|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jayden Clerveaux|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Joey Mattord|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Joshua Long|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Nick Devereaux|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Noah Kim|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Vaughn Blue|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jadyn Glasser|player_pass_yds|over|185.5": {
+   "v": 60.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 60.1 pass yds a game."
+  },
+  "Jadyn Glasser|player_pass_yds|under|185.5": {
+   "v": 60.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 60.1 pass yds a game."
+  },
+  "Harold Mack|player_reception_yds|over|29.5": {
+   "v": 53.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 53.8 rec yds a game."
+  },
+  "Harold Mack|player_reception_yds|under|29.5": {
+   "v": 53.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 53.8 rec yds a game."
+  },
+  "Joey Mattord|player_reception_yds|over|16.5": {
+   "v": 15.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 15.1 rec yds a game."
+  },
+  "Joey Mattord|player_reception_yds|under|16.5": {
+   "v": 15.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 15.1 rec yds a game."
+  },
+  "Joshua Long|player_reception_yds|under|34.5": {
+   "v": 35.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 35.2 rec yds a game."
+  },
+  "Joshua Long|player_reception_yds|over|34.5": {
+   "v": 35.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 35.2 rec yds a game."
+  },
+  "Nick Devereaux|player_reception_yds|over|35.5": {
+   "v": 40.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 40.1 rec yds a game."
+  },
+  "Nick Devereaux|player_reception_yds|under|35.5": {
+   "v": 40.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 40.1 rec yds a game."
+  },
+  "Amareon Blue|player_rush_yds|over|37.5": {
+   "v": 45.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 45.0 rush yds a game."
+  },
+  "Amareon Blue|player_rush_yds|under|37.5": {
+   "v": 45.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 45.0 rush yds a game."
+  },
+  "Braydon Bennett|player_rush_yds|over|20.5": {
+   "v": 26.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 26.2 rush yds a game."
+  },
+  "Braydon Bennett|player_rush_yds|under|20.5": {
+   "v": 26.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 26.2 rush yds a game."
+  },
+  "Jayden Clerveaux|player_rush_yds|over|34.5": {
+   "v": 38.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 38.7 rush yds a game."
+  },
+  "Jayden Clerveaux|player_rush_yds|under|34.5": {
+   "v": 38.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 38.7 rush yds a game."
+  },
+  "Joey Mattord|player_rush_yds|over|26.5": {
+   "v": 24.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 24.1 rush yds a game."
+  },
+  "Joey Mattord|player_rush_yds|under|26.5": {
+   "v": 24.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 24.1 rush yds a game."
+  },
+  "Vaughn Blue|player_rush_yds|over|28.5": {
+   "v": 24.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 24.8 rush yds a game."
+  },
+  "Vaughn Blue|player_rush_yds|under|28.5": {
+   "v": 24.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 24.8 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.934,
+ "n_priced": 42,
+ "single_day": true,
+ "slate_date": "2026-11-04",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 42,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-11-04 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": null,
+ "short_reason": null,
+ "coverage": "42 priced football rows for 2026-11-04 across 3 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 55.9% against a claimed 54.2% (+1.7 pts, n=161); 60-70 hit 42.9% against a claimed 62.4% (-19.5 pts, n=21). The under-60 band is currently the closest to its own claim. 70-80 has too few graded plays to read. 182 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jadyn Glasser",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 185.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622328006&selectionId=104651489",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "raw": "8 of 9",
+   "record": "8 of 9",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": 7.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.571,
+    "weighted_n": 7.73,
+    "mean_all": 60.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.0,
+   "projection": 60.1,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 60.1 pass yds a game.",
+   "why": [
+    "<b>Jadyn Glasser</b> went under 185.5 pass yds in <b>6 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 60.6,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joshua Long",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 34.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622330434&selectionId=102454522",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "9 of 21",
+   "record": "9 of 21",
+   "rate": 35,
+   "break_even": 52.8,
+   "edge": 4.2,
+   "season_detail": {
+    "h25": 4,
+    "n25": 12,
+    "h26": 5,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.211,
+    "weighted_n": 12.69,
+    "mean_all": 35.238
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 29.75,
+   "projection": 35.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 35.2 rec yds a game.",
+   "why": [
+    "<b>Joshua Long</b> went over 34.5 rec yds in <b>5 of 9 games</b> in 2026 and 4 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 57.0,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Adjatay Dabbs",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622065818&selectionId=102475885",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 70,
+   "break_even": 53.3,
+   "edge": 3.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.826,
+    "weighted_n": 8.0,
+    "mean_all": 74.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 74.0,
+   "projection": 74.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 74.0 rec yds a game.",
+   "why": [
+    "<b>Adjatay Dabbs</b> went under 68.5 rec yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 56.8,
+   "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jabari Smith Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621923381&selectionId=104582298",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 12",
+   "record": "6 of 12",
+   "rate": 52,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 8,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.491,
+    "weighted_n": 8.0,
+    "mean_all": 31.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 20.75,
+   "projection": 31.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 31.5 rec yds a game.",
+   "why": [
+    "<b>Jabari Smith Jr.</b> went over 29.5 rec yds in <b>3 of 4 games</b> in 2026 and 3 of 8 in 2025, in the games he appears in."
+   ],
+   "model_p": 56.1,
+   "rank": 4
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Harold Mack",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622330160&selectionId=102476187",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "11 of 13",
+   "record": "11 of 13",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 4,
+    "n25": 5,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.491,
+    "weighted_n": 9.67,
+    "mean_all": 53.846
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.6,
+   "projection": 53.8,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 53.8 rec yds a game.",
+   "why": [
+    "<b>Harold Mack</b> went over 29.5 rec yds in <b>7 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.7,
+   "rank": 5
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joey Mattord",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 16.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622329468&selectionId=104651622",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 13",
+   "record": "6 of 13",
+   "rate": 41,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 1,
+    "n25": 4,
+    "h26": 5,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.315,
+    "weighted_n": 10.23,
+    "mean_all": 15.077
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 8.25,
+   "projection": 15.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 15.1 rec yds a game.",
+   "why": [
+    "<b>Joey Mattord</b> went over 16.5 rec yds in <b>5 of 9 games</b> in 2026 and 1 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.7,
+   "rank": 6
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Amareon Blue",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 37.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622328419&selectionId=102454569",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "3 of 9",
+   "record": "3 of 9",
+   "rate": 48,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 3,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.598,
+    "weighted_n": 9.0,
+    "mean_all": 45.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 45.0,
+   "projection": 45.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 45.0 rush yds a game.",
+   "why": [
+    "<b>Amareon Blue</b> went under 37.5 rush yds in <b>3 of 9 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 55.7,
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jabari Smith Jr.",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -122,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621923387&selectionId=104582298",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "4 of 12",
+   "record": "4 of 12",
+   "rate": 36,
+   "break_even": 55.0,
+   "edge": 0.0,
+   "season_detail": {
+    "h25": 1,
+    "n25": 8,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.31,
+    "weighted_n": 8.0,
+    "mean_all": 3.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.88,
+   "projection": 3.0,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 3.0 rec a game.",
+   "why": [
+    "<b>Jabari Smith Jr.</b> went over 3.5 rec in <b>3 of 4 games</b> in 2026 and 1 of 8 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.7,
+   "rank": 8,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Vaughn Blue",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 28.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622329328&selectionId=104651656",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "13 of 17",
+   "record": "13 of 17",
+   "rate": 62,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 8,
+    "n25": 10,
+    "h26": 5,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.508,
+    "weighted_n": 10.64,
+    "mean_all": 24.765
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 23.4,
+   "projection": 24.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 24.8 rush yds a game.",
+   "why": [
+    "<b>Vaughn Blue</b> went under 28.5 rush yds in <b>5 of 7 games</b> in 2026 and 8 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.2,
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jamarion McDougle",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -194,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621923388&selectionId=104582247",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 67,
+   "break_even": 66.0,
+   "edge": -12.0,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.69,
+    "weighted_n": 8.09,
+    "mean_all": 2.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 0.67,
+   "projection": 2.5,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 2.5 rec a game.",
+   "why": [
+    "<b>Jamarion McDougle</b> went under 3.5 rec in <b>4 of 7 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.5,
+   "rank": 10,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Daryl Barnett Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 29.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622066034&selectionId=104634812",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 53.3,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": -0.3,
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Braydon Bennett",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 20.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622329327&selectionId=42119260",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "6 of 11",
+   "record": "6 of 11",
+   "rate": 61,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 2,
+    "h26": 6,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.592,
+    "weighted_n": 9.62,
+    "mean_all": 26.182
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.0,
+   "projection": 26.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 26.2 rush yds a game.",
+   "why": [
+    "<b>Braydon Bennett</b> went over 20.5 rush yds in <b>6 of 9 games</b> in 2026 and 0 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.4,
+   "rank": 12,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Donovan Hamilton",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 36.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621923383&selectionId=104582244",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "8 of 14",
+   "record": "8 of 14",
+   "rate": 51,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 3,
+    "n25": 7,
+    "h26": 5,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.412,
+    "weighted_n": 9.55,
+    "mean_all": 39.571
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 34.86,
+   "projection": 39.6,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 39.6 rec yds a game.",
+   "why": [
+    "<b>Donovan Hamilton</b> went over 36.5 rec yds in <b>5 of 7 games</b> in 2026 and 3 of 7 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.7,
+   "rank": 13,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "John Alan Richter",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 253.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622065093&selectionId=102440334",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "7 of 11",
+   "record": "7 of 11",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.784,
+    "weighted_n": 9.0,
+    "mean_all": 217.909
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 51.0,
+   "projection": 217.9,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 217.9 pass yds a game.",
+   "why": [
+    "<b>John Alan Richter</b> went under 253.5 pass yds in <b>4 of 8 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.5,
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Onterrio Smith Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 35.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622066770&selectionId=104442244",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "2 of 9",
+   "record": "2 of 9",
+   "rate": 43,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 2,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.578,
+    "weighted_n": 9.0,
+    "mean_all": 43.333
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 43.33,
+   "projection": 43.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 43.3 rec yds a game.",
+   "why": [
+    "<b>Onterrio Smith Jr.</b> went under 35.5 rec yds in <b>2 of 9 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 51.5,
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Isaiah Ene",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 41.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622065624&selectionId=104441995",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "5 of 9",
+   "record": "5 of 9",
+   "rate": 45,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 5,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.368,
+    "weighted_n": 9.0,
+    "mean_all": 45.556
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 45.56,
+   "projection": 45.6,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 45.6 rush yds a game.",
+   "why": [
+    "<b>Isaiah Ene</b> went over 41.5 rush yds in <b>5 of 9 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 51.6,
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jayden Clerveaux",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 34.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622328420&selectionId=104651579",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "5 of 7",
+   "record": "5 of 7",
+   "rate": 62,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 5,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.572,
+    "weighted_n": 7.0,
+    "mean_all": 38.714
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 38.71,
+   "projection": 38.7,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 38.7 rush yds a game.",
+   "why": [
+    "<b>Jayden Clerveaux</b> went under 34.5 rush yds in <b>5 of 7 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 51.8,
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "TJ Horton",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 41.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/179254355092963753",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "14 of 18",
+   "record": "14 of 18",
+   "rate": 64,
+   "break_even": 53.5,
+   "edge": -1.5,
+   "season_detail": {
+    "h25": 10,
+    "n25": 10,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.632,
+    "weighted_n": 11.33,
+    "mean_all": 33.667
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.0,
+   "projection": 33.7,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 33.7 rush yds a game.",
+   "why": [
+    "<b>TJ Horton</b> went under 41.5 rush yds in <b>4 of 8 games</b> in 2026 and 10 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.6,
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Keldric Luster",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 202.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621922457&selectionId=102391331",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "5 of 9",
+   "record": "5 of 9",
+   "rate": 57,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.623,
+    "weighted_n": 7.73,
+    "mean_all": 146.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 7.0,
+   "projection": 146.0,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 146.0 pass yds a game.",
+   "why": [
+    "<b>Keldric Luster</b> went under 202.5 pass yds in <b>3 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.9,
+   "rank": 19,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jackson Sharman",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 170.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622065092&selectionId=102978560",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 52,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.527,
+    "weighted_n": 8.0,
+    "mean_all": 171.75
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 171.75,
+   "projection": 171.8,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 171.8 pass yds a game.",
+   "why": [
+    "<b>Jackson Sharman</b> went under 170.5 pass yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 50.8,
+   "rank": 20,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Bryson Hammer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 48.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622066033&selectionId=104634795",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "3 of 9",
+   "record": "3 of 9",
+   "rate": 51,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 1,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.698,
+    "weighted_n": 7.73,
+    "mean_all": 59.444
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 20.5,
+   "projection": 59.4,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 59.4 rec yds a game.",
+   "why": [
+    "<b>Bryson Hammer</b> went under 48.5 rec yds in <b>1 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.8,
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Raiden Brown",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 21.5,
+   "game": "Toledo Rockets @ Sacramento State Hornets",
+   "game_id": "7db0ce3fddd5c735e599b1085c9b5cef",
+   "away": "Toledo Rockets",
+   "home": "Sacramento State Hornets",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622067011&selectionId=104442303",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 50.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": -2.3,
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nick Devereaux",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 35.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622329903&selectionId=102216199",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "10 of 17",
+   "record": "10 of 17",
+   "rate": 58,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 7,
+    "n25": 12,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.578,
+    "weighted_n": 10.33,
+    "mean_all": 40.059
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.5,
+   "projection": 40.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 40.1 rec yds a game.",
+   "why": [
+    "<b>Nick Devereaux</b> went under 35.5 rec yds in <b>3 of 5 games</b> in 2026 and 7 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.8,
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joey Mattord",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 26.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622329170&selectionId=104651622",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "5 of 13",
+   "record": "5 of 13",
+   "rate": 47,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 1,
+    "n25": 4,
+    "h26": 4,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.515,
+    "weighted_n": 10.23,
+    "mean_all": 24.077
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 12.0,
+   "projection": 24.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 24.1 rush yds a game.",
+   "why": [
+    "<b>Joey Mattord</b> went over 26.5 rush yds in <b>4 of 9 games</b> in 2026 and 1 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.0,
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Keldric Luster",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 39.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3054874597741691268",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 9",
+   "record": "6 of 9",
+   "rate": 72,
+   "break_even": 53.5,
+   "edge": -2.5,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.791,
+    "weighted_n": 7.73,
+    "mean_all": 30.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 7.0,
+   "projection": 30.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 30.1 rush yds a game.",
+   "why": [
+    "<b>Keldric Luster</b> went under 39.5 rush yds in <b>4 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.8,
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jadyn Glasser",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 185.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622328006&selectionId=104651489",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "raw": "8 of 9",
+   "record": "8 of 9",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": 7.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.571,
+    "weighted_n": 7.73,
+    "mean_all": 60.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.0,
+   "projection": 60.1,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 60.1 pass yds a game.",
+   "why": [
+    "<b>Jadyn Glasser</b> went under 185.5 pass yds in <b>6 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in.",
+    "The Eastern Michigan Eagles allow 263.4 passing yards a game to quarterbacks (17th most of 137).",
+    "The model gives it <b>61%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 60.6,
+   "rank": 1,
+   "why_card": [
+    "<b>Jadyn Glasser</b> went under 185.5 pass yds in <b>6 of 7 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joshua Long",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 34.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622330434&selectionId=102454522",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "9 of 21",
+   "record": "9 of 21",
+   "rate": 35,
+   "break_even": 52.8,
+   "edge": 4.2,
+   "season_detail": {
+    "h25": 4,
+    "n25": 12,
+    "h26": 5,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.211,
+    "weighted_n": 12.69,
+    "mean_all": 35.238
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 29.75,
+   "projection": 35.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 35.2 rec yds a game.",
+   "why": [
+    "<b>Joshua Long</b> went over 34.5 rec yds in <b>5 of 9 games</b> in 2026 and 4 of 12 in 2025, in the games he appears in.",
+    "The Central Michigan Chippewas allow 43.7 receiving yards a game to tight ends (27th most of 137).",
+    "The model gives it <b>57%</b>; at -112 it needs 52.8% to pay."
+   ],
+   "model_p": 57.0,
+   "rank": 2,
+   "why_card": [
+    "<b>Joshua Long</b> went over 34.5 rec yds in <b>5 of 9 games</b> in 2026 and 4 of 12 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jabari Smith Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Ball State Cardinals @ UMass Minutemen",
+   "game_id": "6ee8ad6eb7454d13bebc0806a10cc861",
+   "away": "Ball State Cardinals",
+   "home": "UMass Minutemen",
+   "commence": "2026-11-05T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621923381&selectionId=104582298",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 12",
+   "record": "6 of 12",
+   "rate": 52,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 8,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.491,
+    "weighted_n": 8.0,
+    "mean_all": 31.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 20.75,
+   "projection": 31.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 31.5 rec yds a game.",
+   "why": [
+    "<b>Jabari Smith Jr.</b> went over 29.5 rec yds in <b>3 of 4 games</b> in 2026 and 3 of 8 in 2025, in the games he appears in.",
+    "The UMass Minutemen allow 149.8 receiving yards a game to wide receivers.",
+    "The model gives it <b>56%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 56.1,
+   "rank": 3,
+   "why_card": [
+    "<b>Jabari Smith Jr.</b> went over 29.5 rec yds in <b>3 of 4 games</b> in 2026 and 3 of 8 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Harold Mack",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622330160&selectionId=102476187",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "11 of 13",
+   "record": "11 of 13",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 4,
+    "n25": 5,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.491,
+    "weighted_n": 9.67,
+    "mean_all": 53.846
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.6,
+   "projection": 53.8,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 53.8 rec yds a game.",
+   "why": [
+    "<b>Harold Mack</b> went over 29.5 rec yds in <b>7 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in.",
+    "The Central Michigan Chippewas allow 130.1 receiving yards a game to wide receivers (25th fewest of 137).",
+    "The model gives it <b>56%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 55.7,
+   "rank": 4,
+   "why_card": [
+    "<b>Harold Mack</b> went over 29.5 rec yds in <b>7 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Vaughn Blue",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 28.5,
+   "game": "Central Michigan Chippewas @ Eastern Michigan Eagles",
+   "game_id": "e5c8c0aaad6dc26e9ede547783d854d2",
+   "away": "Central Michigan Chippewas",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-05T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622329328&selectionId=104651656",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "13 of 17",
+   "record": "13 of 17",
+   "rate": 62,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 8,
+    "n25": 10,
+    "h26": 5,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.508,
+    "weighted_n": 10.64,
+    "mean_all": 24.765
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 23.4,
+   "projection": 24.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 24.8 rush yds a game.",
+   "why": [
+    "<b>Vaughn Blue</b> went under 28.5 rush yds in <b>5 of 7 games</b> in 2026 and 8 of 10 in 2025, in the games he appears in.",
+    "The Eastern Michigan Eagles allow 125 rushing yards a game to running backs (53rd most of 137).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 54.2,
+   "rank": 5,
+   "why_card": [
+    "<b>Vaughn Blue</b> went under 28.5 rush yds in <b>5 of 7 games</b> in 2026 and 8 of 10 in 2025, in the games he appears in."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 8,
+ "price_ceiling": 400,
+ "market_max_share": null,
+ "board_mixed": false,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}
