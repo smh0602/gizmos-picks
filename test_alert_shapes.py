@@ -16,16 +16,22 @@ another shape. Driven on 2026-11-04, the deployed `collect.yml`:
   - and a watchdog.py that raised mid-run left the LAST pass's health.json in
     place. The Watchdog step still wrote that verdict as this run's
     (`healthy=True`), and the alert acted on it.
+⚠️ AND MY FIRST FIX DROPPED A REAL ONE (found in review, 2026-11-04). It gave a
+verdict only from the LAST pass, so a fresh first-pass BROKEN was thrown away
+when the re-check after repairing raised, or the run was killed while repairing.
+§3 now drives both passes: the first verdict lands before the repairs.
 
 ✅ THE CLASS, NOT THE INSTANCE. Every step in every workflow as it will be live
 (`wfparse.effective_workflows`: a staged copy wins) whose live lines can close
-or overwrite an issue (`gh issue close`, `edit` or `create`; a comment adds and
-loses nothing) is either a three-state watcher, swept by `test_budget_watch.py`
-§2, or a shape in `SHAPES` below, which says how to give that step no result
-and a real one. ⛔ A step in neither FAILS, so a new alert cannot slip past by
-having a new shape. Each shape is RUN with a fake `gh`. With no result it
-touches no issue, with an issue open and with none. A real result closes or
-writes, which proves the harness can see it (rule 67).
+or overwrite an issue (`gh issue close`, `edit`, `create` or `reopen`, or a
+`comment --edit-last`; a plain comment adds and loses nothing) is either a
+three-state watcher, swept by `test_budget_watch.py` §2, or a shape in `SHAPES`
+below, which says how to give that step no result and a real one. ⛔ A step in
+neither FAILS, so a new alert cannot slip past by having a new shape. Steps are
+keyed by workflow, job and id (else name), and two steps sharing a key FAIL,
+so one cannot hide behind another's name. Each shape is RUN with a fake `gh`.
+With no result it touches no issue, with an issue open and with none. A real
+result closes or writes, which proves the harness can see it (rule 67).
 
 ⚠️ WHAT THIS CANNOT SEE: an issue written some other way than the `gh issue`
 CLI (curl to the API, an action), and a step that writes one only through a
@@ -53,8 +59,23 @@ script it calls.
 #
 # @vacuity 🔴🔴 a watchdog.py that raised gives no verdict (its health.json is the last pass's)
 #   file: docs/upload/collect.yml
-#   find:           if [ "$LOOKED" != "0" ]; then
-#   with:           if false; then
+#   find:           if [ "$LOOKED" = "0" ]; then
+#   with:           if true; then
+#
+# @vacuity 🔴🔴 ...and the first pass's verdict lands before the repairs, so a failed re-check keeps it
+#   file: docs/upload/collect.yml
+#   find:             echo "healthy=$FIRST" >> "$GITHUB_OUTPUT"
+#   with:             true
+#
+# @vacuity 🔴 ...a re-check that raised does not replace it with the stale file's
+#   file: docs/upload/collect.yml
+#   find:             if [ "$RECHECK" = "0" ]; then
+#   with:             if true; then
+#
+# @vacuity 🔴 ...and a re-check that finished does replace it
+#   file: docs/upload/collect.yml
+#   find:               echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
+#   with:               true
 #
 # @vacuity 🔴 ...and the weekly status, the class's third shape, posts no empty body
 #   file: docs/upload/status.yml
@@ -74,7 +95,8 @@ import wfparse as W
 from tcheck import ck, eq, note, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-WRITES = re.compile(r"\bgh issue (close|edit|create)\b")
+WRITES = re.compile(r"\bgh issue (?:close|edit|create|reopen)\b"
+                    r"|\bgh issue comment\b[^\n]*--edit-last")
 TOUCH = re.compile(r"^issue (create|edit|comment|close|reopen)\b", re.M)
 
 
@@ -91,20 +113,24 @@ def three_state(run):
 
 
 def discover(root):
-    """-> (three-state [(file, key)], other {(file, key): Step}) for every step
-    that can close or overwrite an issue, the staged copy of a workflow winning.
-    A step's key is its `id:`, else its `name:`."""
-    swept, other = [], {}
+    """-> (three-state [key], other {key: Step}, keys held by more than one step)
+    for every step that can close or overwrite an issue, the staged copy of a
+    workflow winning. A key is (workflow, job, the step's id, else its name)."""
+    swept, other, seen, dupes = [], {}, set(), []
     for f, p in sorted(W.effective_workflows(root).items()):
-        for s in W.steps(p):
-            if not s.run or not WRITES.search(live(s.run)):
-                continue
-            key = (f, s.id or s.name)
-            if three_state(s.run):
-                swept.append(key)
-            else:
-                other[key] = s
-    return swept, other
+        for j in W.jobs(p):
+            for s in W.steps(p, j.name):
+                if not s.run or not WRITES.search(live(s.run)):
+                    continue
+                key = (f, j.name, s.id or s.name)
+                if key in seen:
+                    dupes.append(key)
+                seen.add(key)
+                if three_state(s.run):
+                    swept.append(key)
+                else:
+                    other[key] = s
+    return swept, other, dupes
 
 
 _GH = r'''#!/bin/bash
@@ -129,9 +155,10 @@ exit 0
 '''
 
 
-def drive(step, num, title="", exprs=None, files=None, env=None):
+def drive(step, num, title="", exprs=None, files=None, env=None, keep=None):
     """Run a step's REAL shell in a folder of its own, with a fake `gh` first on
-    PATH. -> (every `gh` call, one per line; what it wrote to GITHUB_OUTPUT).
+    PATH. -> (every `gh` call, one per line; what it wrote to GITHUB_OUTPUT;
+    the text of the file `keep` names in the folder afterwards, or "").
 
     ⚠️ The only substitutions are the expressions GitHub itself would expand:
     `exprs` gives a value to `${{ <expr> }}`, and any other one expands to ''
@@ -168,15 +195,22 @@ def drive(step, num, title="", exprs=None, files=None, env=None):
                  RUNNER_TEMP=tmp, TMPDIR=tmp, PYTHONPATH=ROOT, PYTHONUTF8="1")
         subprocess.run(["bash", "step.sh"], cwd=d, env=e, capture_output=True,
                        text=True, timeout=120)
-        got = open(log, encoding="utf-8").read() if os.path.exists(log) else ""
-        wrote = open(out, encoding="utf-8").read() if os.path.exists(out) else ""
-        return got, wrote
+
+        def text(p):
+            return open(p, encoding="utf-8").read() if os.path.exists(p) else ""
+        return text(log), text(out), text(os.path.join(d, keep)) if keep else ""
     finally:
         shutil.rmtree(d, ignore_errors=True)
 
 
 def touched(log):
     return [l for l in log.splitlines() if TOUCH.match(l)]
+
+
+def verdict(output):
+    """The `healthy` a step's GITHUB_OUTPUT gives the steps after it: GitHub keeps
+    the LAST value written for a name. '' when none was written."""
+    return (re.findall(r"^healthy=(.*)$", output, re.M) or [""])[-1]
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -194,9 +228,10 @@ _BROKEN = json.dumps({"healthy": False, "repairs": [],
 _HEALTH = "data/latest/health.json"
 _WD = "steps.watchdog.outputs.healthy"
 _RC, _NAMES = "steps.tests.outputs.rc", "steps.tests.outputs.failed"
+TELL = ("collect.yml", "collect", "tell")
 
 SHAPES = {
-    ("collect.yml", "Tell Sam the tests are failing"): {
+    ("collect.yml", "collect", "Tell Sam the tests are failing"): {
         "title": "Gizmo's Picks - the test suite is failing",
         "real": [
             ("a green suite closes the open issue", "77",
@@ -212,7 +247,7 @@ SHAPES = {
             ("the Tests step never reported (rc empty)", {"exprs": {_RC: "", _NAMES: ""}}),
         ],
     },
-    ("collect.yml", "tell"): {
+    TELL: {
         "title": "Gizmo's Picks - the watchdog says the site is wrong",
         "real": [
             ("a clean report closes the open issue", "77",
@@ -253,7 +288,7 @@ SHAPES = {
                                                            "what": "x"}]})}}),
         ],
     },
-    ("status.yml", "Send Sam the weekly status"): {
+    ("status.yml", "status", "Send Sam the weekly status"): {
         "title": "Gizmo's Picks - weekly status",
         "real": [
             ("the week's body is posted on the issue", "77",
@@ -291,31 +326,51 @@ try:
           "          [ \"$X\" = 0 ] && gh issue close 1\n"
         + "      - name: State but no create\n        run: |\n"
           "          STATE='${{ steps.look.outputs.state }}'\n"
-          "          [ \"$STATE\" = ok ] && gh issue close 1\n")
+          "          [ \"$STATE\" = ok ] && gh issue close 1\n"
+        + "      - name: Rewrites the last comment\n        run: |\n"
+          "          gh issue comment 1 --edit-last --body-file b\n"
+        + "      - name: Reopens\n        run: |\n          gh issue reopen 1\n"
+        + "      - name: Twin\n        run: |\n          gh issue close 2\n"
+        # ⚠️ A SECOND JOB with a step of the same name is a different step (budget.yml
+        #    has two "Tell Sam" steps); one job holding two steps of one name is a
+        #    key two steps share, and fails.
+        + "  k:\n    runs-on: x\n    steps:\n"
+        + "      - name: Twin\n        run: |\n          gh issue close 3\n"
+        + "      - name: Dup\n        run: |\n          gh issue close 4\n"
+        + "      - name: Dup\n        run: |\n          gh issue edit 4 --body-file b\n")
     # ⚠️ the STAGED copy wins: live, `v.yml` writes no issue; staged, it does.
     open(os.path.join(_t, ".github/workflows/v.yml"), "w").write(
         _head + "      - name: Staged\n        run: |\n          echo\n")
     open(os.path.join(_t, "docs/upload/v.yml"), "w").write(
         _head + "      - name: Staged\n        run: |\n          gh issue edit 1 --body-file b\n")
-    _sw, _ot = discover(_t)
-    eq(_sw, [("w.yml", "Three")],
+    _sw, _ot, _du = discover(_t)
+    eq(_sw, [("w.yml", "j", "Three")],
        "a three-state step is left to test_budget_watch.py, exactly as it selects them")
-    eq(sorted(_ot), [("v.yml", "Staged"), ("w.yml", "State but no create"),
-                     ("w.yml", "fresh")],
-       "🔴 every other step that can close or overwrite an issue is found, keyed by id "
-       "then name, the staged copy read; a comment and a commented-out call are not")
+    eq(sorted(_ot), [("v.yml", "j", "Staged"), ("w.yml", "j", "Reopens"),
+                     ("w.yml", "j", "Rewrites the last comment"),
+                     ("w.yml", "j", "State but no create"), ("w.yml", "j", "Twin"),
+                     ("w.yml", "j", "fresh"), ("w.yml", "k", "Dup"),
+                     ("w.yml", "k", "Twin")],
+       "🔴 every other step that can close or overwrite an issue is found, keyed by "
+       "workflow, job and id then name, the staged copy read; a reopen and a "
+       "`comment --edit-last` count, a plain comment and a commented-out call do not")
+    eq(_du, [("w.yml", "k", "Dup")],
+       "🔴 ...and two steps of one name in one job are reported, never folded into one")
 finally:
     shutil.rmtree(_t, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴🔴 EVERY ISSUE-WRITING STEP IS A KNOWN SHAPE (the workflows as they will be live)")
 # ══════════════════════════════════════════════════════════════════════
-SWEPT, OTHER = discover(ROOT)
+SWEPT, OTHER, DUPES = discover(ROOT)
 note("three-state, swept by test_budget_watch.py §2: %s" % sorted(SWEPT))
 note("other shapes, swept here: %s" % sorted(OTHER))
-ck(len(SWEPT) >= 3 and ("collect.yml", "tell") in OTHER
-   and ("collect.yml", "Tell Sam the tests are failing") in OTHER,
+ck(len(SWEPT) >= 3 and TELL in OTHER
+   and ("collect.yml", "collect", "Tell Sam the tests are failing") in OTHER,
    "⚠️ the sweep holds the steps known to write issues (rule 67)")
+ck(not DUPES, "⛔ no two issue-writing steps share a key",
+   "🔴 a step whose workflow, job and name another step also has is a step this "
+   "file would never ask. Give one an `id:`. Shared: %s" % DUPES)
 _unmapped = sorted(set(OTHER) - set(SHAPES))
 ck(not _unmapped,
    "⛔ every issue-writing step outside the three-state contract is a shape here",
@@ -330,7 +385,7 @@ _blind, _wiped = [], []
 for _key in sorted(set(SHAPES) & set(OTHER)):
     _shape, _step = SHAPES[_key], OTHER[_key]
     for _label, _num, _kw, _want in _shape["real"]:
-        _log, _ = drive(_step, _num, _shape["title"], **_kw)
+        _log = drive(_step, _num, _shape["title"], **_kw)[0]
         if not re.search(_want, _log, re.M):
             _blind.append((_key, _label, touched(_log)))
     for _label, _kw in _shape["none"]:
@@ -347,36 +402,80 @@ ck(not _wiped, "🔴🔴 a step with no result touches no issue, open or not",
    % "\n".join("       %s :: %s (%s): %s" % w for w in _wiped))
 
 # ══════════════════════════════════════════════════════════════════════
-section("3. 🔴🔴 THE WATCHDOG'S VERDICT IS THIS RUN'S, OR THERE IS NONE")
+section("3. 🔴🔴 THE WATCHDOG'S VERDICT COMES FROM A PASS THAT FINISHED THIS RUN, OR THERE IS NONE")
 # ══════════════════════════════════════════════════════════════════════
-# ⛔ The alert acts on `steps.watchdog.outputs.healthy`, so that output must
-#    come from a report THIS run wrote. A watchdog.py that raised wrote none,
-#    and the health.json beside it is the last pass's. Driven: the Watchdog step
-#    with a stand-in watchdog.py, then its output into the alert.
+# ⛔ The alert acts on `steps.watchdog.outputs.healthy`, so that output must come
+#    from a pass of watchdog.py that FINISHED this run. One that raised wrote no
+#    report, and the health.json beside it is the last pass's. ⛔ And a finished
+#    first pass's verdict must survive what follows it: a re-check that raises, or
+#    a run killed while repairing (found in review: the first fix dropped a fresh
+#    BROKEN that way). Driven: the Watchdog step with a stand-in watchdog.py that
+#    does one thing per call, and a stand-in collect.py that records what the
+#    step had already written when the repairs ran. Then the verdict into the alert.
 _wf = W.effective_workflows(ROOT).get("collect.yml")
 _wd = next((s for s in W.steps(_wf) if s.id == "watchdog"), None) if _wf else None
 ck(_wd is not None and "python watchdog.py" in live(_wd.run or ""),
    "⚠️ the Watchdog step was found, and it runs watchdog.py (rule 67)")
+_REPORTS = {"clean": json.loads(_CLEAN),
+            "broken": dict(json.loads(_BROKEN), repairs=["card"])}
+
+
+def standin(*acts):
+    """A watchdog.py whose n-th run does acts[n]: write the 'clean' or 'broken'
+    (one repair listed) report and exit 0, or 'raise' before writing anything."""
+    return ("import json, os\n"
+            "n = int(open('calls.txt').read()) if os.path.exists('calls.txt') else 0\n"
+            "open('calls.txt', 'w').write(str(n + 1))\n"
+            "act = %r[min(n, %d)]\n"
+            "if act == 'raise':\n"
+            "    raise RuntimeError('a check raised')\n"
+            "os.makedirs('data/latest', exist_ok=True)\n"
+            "json.dump(%r[act], open('data/latest/health.json', 'w'))\n"
+            ) % (list(acts), len(acts) - 1, _REPORTS)
+
+
+_AT_REPAIR = ("import os\n"
+              "o = os.environ.get('GITHUB_OUTPUT', '')\n"
+              "open('at_repair.txt', 'a').write(open(o).read() if os.path.exists(o) else '')\n")
+_tell = OTHER.get(TELL)
 if _wd is not None:
-    _writes = ("import json, os, sys\n"
-               "os.makedirs('data/latest', exist_ok=True)\n"
-               "json.dump(%s, open('data/latest/health.json', 'w'))\n")
-    _ok = _writes % repr(json.loads(_CLEAN)) + "sys.exit(0)\n"
-    _raise = "raise RuntimeError('a check raised')\n"
-    _, _out = drive(_wd, "", files={"watchdog.py": _ok, _HEALTH: _BROKEN})
-    ck(re.search(r"^healthy=True$", _out, re.M),
-       "✅ a watchdog that wrote its report gives that report's verdict",
-       "⛔ the other half: a step that never says True would make the alert "
-       "leave every issue alone for ever. GITHUB_OUTPUT: %r" % _out)
-    _, _out = drive(_wd, "", files={"watchdog.py": _raise, _HEALTH: _CLEAN})
-    _verdict = (re.findall(r"^healthy=(.*)$", _out, re.M) or [""])[-1]
-    ck(_verdict not in ("True", "False"),
-       "🔴🔴 a watchdog.py that raised gives NO verdict, not the last pass's",
-       "⛔ its health.json is the last pass's, so `healthy=%s` reported an old "
-       "report as this run's. GITHUB_OUTPUT: %r" % (_verdict, _out))
-    _tell = OTHER.get(("collect.yml", "tell"))
+    # (what each pass does, the health.json left from the last run, the verdict
+    #  wanted, why)
+    _CASES = [
+        (("clean",), _BROKEN, "True", "a pass that finished gives its verdict"),
+        (("raise",), _CLEAN, "", "🔴🔴 a pass that raised gives none, not the last run's"),
+        (("broken", "raise"), _CLEAN, "False",
+         "🔴🔴 a fresh BROKEN survives a re-check that raised"),
+        (("broken", "clean"), _CLEAN, "True", "a re-check that finished replaces it"),
+        (("raise", "raise"), json.dumps(_REPORTS["broken"]), "",
+         "🔴 no pass finished, though the last run's report listed a repair: none"),
+    ]
+    _got = {}
+    for _acts, _stale, _want, _why in _CASES:
+        _, _out, _seen = drive(_wd, "", files={"watchdog.py": standin(*_acts),
+                                               "collect.py": _AT_REPAIR, _HEALTH: _stale},
+                               keep="at_repair.txt")
+        _got[_acts] = (verdict(_out), _seen)
+        ck(verdict(_out) == _want, "%s (%s)" % (_why, " then ".join(_acts)),
+           "⛔ the alert would act on `healthy=%s`, wanted %r. GITHUB_OUTPUT: %r"
+           % (verdict(_out), _want, _out))
+    _seen = _got.get(("broken", "raise"), ("", ""))[1]
+    ck(bool(_seen) and verdict(_seen) == "False",
+       "🔴🔴 ...and the first verdict had landed BEFORE the repairs ran",
+       "⛔ a run killed while repairing (each repair may take 15 minutes) would "
+       "leave no verdict, and a real BROKEN would reach nobody. GITHUB_OUTPUT as "
+       "the repair saw it: %r" % _seen)
     if _tell is not None:
-        _t = touched(drive(_tell, "77", SHAPES[("collect.yml", "tell")]["title"],
-                           exprs={_WD: _verdict}, files={_HEALTH: _CLEAN})[0])
-        ck(not _t, "🔴 ...so the alert leaves the open issue alone",
-           "⛔ the stale clean report closed it as resolved: %s" % _t)
+        _title = SHAPES[TELL]["title"]
+        _t = touched(drive(_tell, "", _title, exprs={_WD: _got[("broken", "raise")][0]},
+                           files={_HEALTH: json.dumps(_REPORTS["broken"])})[0])
+        ck(any(l.startswith("issue create") for l in _t),
+           "🔴 ...so the alert still opens the issue on that fresh BROKEN",
+           "⛔ the regression the review found: %s" % _t)
+        for _acts, _stale in ((("raise",), _CLEAN), (("raise", "raise"), json.dumps(_REPORTS["broken"]))):
+            for _num in ("77", ""):
+                _t = touched(drive(_tell, _num, _title, exprs={_WD: _got[_acts][0]},
+                                   files={_HEALTH: _stale})[0])
+                ck(not _t, "🔴 ...and with no verdict (%s, %s) the alert touches no issue"
+                   % (" then ".join(_acts), "issue open" if _num else "none open"),
+                   "⛔ the last run's report closed or opened it: %s" % _t)

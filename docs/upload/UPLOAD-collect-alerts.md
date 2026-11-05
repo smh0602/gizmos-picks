@@ -23,7 +23,9 @@ their issue alone when they could not look".** It is one file. Time: about
 After the upload, in every one of those cases the step **leaves the issue
 exactly as it was** and says so in the run's log. Real results work as
 before: green tests or a healthy site close the issue, and a real failure
-opens or updates it.
+opens or updates it. A real problem the watchdog found still reaches you even
+if its second look, after trying a repair, crashes or the run is stopped
+while repairing.
 
 **No schedule, cron line or cost changes. The cron count does not change.**
 All 44 `cron:` lines are byte-identical to the live file. Only three steps

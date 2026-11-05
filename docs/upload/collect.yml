@@ -1179,6 +1179,17 @@ jobs:
           #    fixed file in /tmp that nothing read (test_step_tmp.py).
           python watchdog.py
           LOOKED=$?
+          # 🔴 `[2026-11-04]` A VERDICT ONLY FROM A PASS THAT FINISHED, AND THE FIRST
+          #    ONE LANDS AT ONCE. watchdog.py exits 0 whenever it finishes; anything
+          #    else means the health.json beside it is the LAST pass's, and "Tell Sam"
+          #    closed the issue on such an old clean report (test_alert_shapes.py).
+          #    ⛔ Written BEFORE the repairs: a re-check that raises, or a run killed
+          #    while repairing, keeps this pass's fresh verdict and never blanks it.
+          #    GitHub keeps the last value written for an output name.
+          if [ "$LOOKED" = "0" ]; then
+            FIRST=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
+            echo "healthy=$FIRST" >> "$GITHUB_OUTPUT"
+          fi
           REPAIRS=$(python -c "import json;print(' '.join(json.load(open('data/latest/health.json'))['repairs']))")
           if [ -n "$REPAIRS" ]; then
             echo "::notice::watchdog attempting repair: $REPAIRS"
@@ -1202,20 +1213,20 @@ jobs:
             # 🔴 RE-CHECK AFTER REPAIRING. An alarm raised for something
             #    the system just fixed is the alarm Sam learns to ignore.
             python watchdog.py
-            LOOKED=$?
+            RECHECK=$?
+            # ✅ Only a re-check that finished replaces the verdict.
+            if [ "$RECHECK" = "0" ]; then
+              LOOKED=0
+              HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
+              echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
+            elif [ "$LOOKED" -eq 0 ]; then
+              echo "::warning::the re-check after repairing exited $RECHECK — the verdict stays the first pass's"
+            fi
           fi
-          # 🔴 `[2026-11-04]` A WATCHDOG THAT RAISED WROTE NO REPORT. watchdog.py
-          #    exits 0 whenever it finishes, so anything else means the
-          #    health.json beside it is the LAST pass's, and its verdict is not
-          #    this run's. "Tell Sam" then closed the issue on an old clean report
-          #    (test_alert_shapes.py). No verdict, and Tell Sam leaves the issue alone.
+          # ⚠️ No pass finished: no `healthy` was written, so Tell Sam leaves the issue alone.
           if [ "$LOOKED" != "0" ]; then
             echo "::warning::watchdog.py exited $LOOKED, so health.json is the last pass's — no verdict this run"
-            echo "healthy=" >> "$GITHUB_OUTPUT"
-            exit 0
           fi
-          HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
-          echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
           exit 0
 
       # ⚠️ THE REPAIR'S OUTPUT HAS TO LAND OR THE REPAIR DID NOT HAPPEN.
@@ -1263,10 +1274,10 @@ jobs:
             exit 0
           fi
           # 🔴 `[2026-11-04]` NO VERDICT, NO ACTION. The Watchdog step writes
-          # `healthy` only from a report it wrote this run: killed, or with a
-          # watchdog.py that raised, it writes none, and the health.json here is
-          # the last pass's. Read anyway, that old report closed the open issue
-          # as resolved, or opened one (test_alert_shapes.py).
+          # `healthy` only from a pass of watchdog.py that finished this run:
+          # killed before one did, or with each one raising, it writes none, and
+          # the health.json here is the last pass's. Read anyway, that old report
+          # closed the open issue as resolved, or opened one (test_alert_shapes.py).
           HEALTHY='${{ steps.watchdog.outputs.healthy }}'
           if [ "$HEALTHY" != "True" ] && [ "$HEALTHY" != "False" ]; then
             echo "the watchdog gave no verdict this run — leaving any open issue alone"
