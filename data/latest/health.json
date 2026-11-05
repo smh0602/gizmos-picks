@@ -1,11 +1,25 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-05T16:42:37Z",
+ "checked_at": "2026-11-05T17:51:21Z",
  "et_date": "2026-11-05",
  "healthy": false,
  "broken": 0,
- "degraded": 12,
+ "degraded": 14,
  "findings": [
+  {
+   "key": "late:lineups:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb lineups was built 223 minutes after it was due",
+   "why": "due 2026-11-05T14:00Z, built 2026-11-05T17:43Z. GitHub started the run late; there is nothing to repair, and this clears when the next lineups build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:weather:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb weather was built 223 minutes after it was due",
+   "why": "due 2026-11-05T14:00Z, built 2026-11-05T17:43Z. GitHub started the run late; there is nothing to repair, and this clears when the next weather build is on time (within 60 minutes).",
+   "repair": null
+  },
   {
    "key": "late:alt-lines:ncaaf",
    "severity": "DEGRADED",
@@ -100,7 +114,7 @@
   "pulled_at": "2026-11-05T15:50:32Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.9,
+  "reading_age_hours": 2.0,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-05T15:50:30Z",
   "source": "data/nfl/2026-11-05/alt-lines/1550.json.gz",
