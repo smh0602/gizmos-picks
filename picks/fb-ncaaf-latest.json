@@ -1,10 +1,10 @@
 {
  "date": "2026-11-05",
  "league": "ncaaf",
- "generated_at": "2026-11-05T00:48:30Z",
+ "generated_at": "2026-11-05T15:48:07Z",
  "generated_by": "card_fb.py",
- "kind": "RECORD + MARKET",
- "odds_pulled_at": "2026-11-04T19:04:53Z",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-11-05T15:46:26Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -12,7 +12,7 @@
  "snap_floor": null,
  "denominator": "every game he appears in (union denominator)",
  "min_games": 6,
- "n_gated_by_measurement": 0,
+ "n_gated_by_measurement": 2,
  "rate_gates": {
   "min_reception_line": 3.5,
   "measured_markets": [
@@ -33,25 +33,81 @@
    "market": "total",
    "market_label": "Total",
    "side": "under",
-   "line": 73.5,
+   "line": 58.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -115,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 53.5,
+   "edge": 2.5,
+   "why": [
+    "The game model gives Under 56% at 58.5; the price -115 needs 53.5%."
+   ],
+   "priced_at": "2026-11-05T15:46:25Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "James Madison Dukes",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -13.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 51.9,
+   "edge": 1.3,
+   "why": [
+    "The game model gives James Madison Dukes 53% to cover -13.5; the price -108 needs 51.9%."
+   ],
+   "priced_at": "2026-11-05T15:46:25Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 72.5,
    "game": "UTSA Roadrunners @ Florida Atlantic Owls",
    "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
    "away": "UTSA Roadrunners",
    "home": "Florida Atlantic Owls",
    "commence": "2026-11-06T00:30:00Z",
    "book": "fanduel",
-   "price": -110,
+   "price": -105,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 56,
-   "break_even": 52.4,
-   "edge": 3.4,
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 2.2,
    "why": [
-    "The game model gives Under 56% at 73.5; the price -110 needs 52.4%."
+    "The game model gives Under 53% at 72.5; the price -105 needs 51.2%."
    ],
-   "priced_at": "2026-11-04T19:04:52Z",
-   "rank": 1
+   "priced_at": "2026-11-05T15:46:25Z",
+   "rank": 3
   }
  ],
  "game_lines_liked": [
@@ -63,31 +119,66 @@
    "market": "total",
    "market_label": "Total",
    "side": "under",
-   "line": 73.5,
+   "line": 58.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -115,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 53.5,
+   "edge": 2.5,
+   "why": [
+    "The game model gives Under 56% at 58.5; the price -115 needs 53.5%.",
+    "The model's predicted score: James Madison Dukes 35, Southern Mississippi Golden Eagles 21 (total 56).",
+    "The James Madison Dukes score 39.1 and allow 18.9 points a game this season (9 games).",
+    "The Southern Mississippi Golden Eagles score 26.9 and allow 31 points a game this season (8 games).",
+    "Against teams the model rates above average this season: James Madison Dukes 1-0, Southern Mississippi Golden Eagles 0-1."
+   ],
+   "priced_at": "2026-11-05T15:46:25Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives Under 56% at 58.5; the price -115 needs 53.5%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 72.5,
    "game": "UTSA Roadrunners @ Florida Atlantic Owls",
    "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
    "away": "UTSA Roadrunners",
    "home": "Florida Atlantic Owls",
    "commence": "2026-11-06T00:30:00Z",
    "book": "fanduel",
-   "price": -110,
+   "price": -105,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 56,
-   "break_even": 52.4,
-   "edge": 3.4,
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 2.2,
    "why": [
-    "The game model gives Under 56% at 73.5; the price -110 needs 52.4%.",
+    "The game model gives Under 53% at 72.5; the price -105 needs 51.2%.",
     "The model's predicted score: UTSA Roadrunners 39, Florida Atlantic Owls 32 (total 71).",
     "The UTSA Roadrunners score 33.5 and allow 26 points a game this season (8 games).",
     "The Florida Atlantic Owls score 37.8 and allow 35.8 points a game this season (8 games).",
     "Against teams the model rates above average this season: UTSA Roadrunners 2-1, Florida Atlantic Owls 0-3."
    ],
-   "priced_at": "2026-11-04T19:04:52Z",
-   "rank": 1,
+   "priced_at": "2026-11-05T15:46:25Z",
+   "rank": 2,
    "why_card": [
-    "The game model gives Under 56% at 73.5; the price -110 needs 52.4%."
+    "The game model gives Under 53% at 72.5; the price -105 needs 51.2%."
    ]
   }
  ],
@@ -99,35 +190,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-04T21:53:19Z",
-  "ladder_built_at": "2026-11-05T00:48:14Z",
+  "model_built_at": "2026-11-05T15:47:53Z",
+  "ladder_built_at": "2026-11-05T15:47:59Z",
   "alt_spreads": 0
  },
  "scores_shown": [
-  {
-   "away": "Ball State Cardinals",
-   "home": "UMass Minutemen",
-   "score": {
-    "home": 27,
-    "away": 22
-   }
-  },
-  {
-   "away": "Toledo Rockets",
-   "home": "Sacramento State Hornets",
-   "score": {
-    "home": 17,
-    "away": 34
-   }
-  },
-  {
-   "away": "Central Michigan Chippewas",
-   "home": "Eastern Michigan Eagles",
-   "score": {
-    "home": 19,
-    "away": 22
-   }
-  },
   {
    "away": "UTSA Roadrunners",
    "home": "Florida Atlantic Owls",
@@ -141,7 +208,7 @@
    "home": "Southern Mississippi Golden Eagles",
    "score": {
     "home": 21,
-    "away": 36
+    "away": 35
    }
   },
   {
@@ -173,15 +240,15 @@
    "home": "Nevada Wolf Pack",
    "score": {
     "home": 13,
-    "away": 23
+    "away": 24
    }
   },
   {
    "away": "TCU Horned Frogs",
    "home": "Arizona Wildcats",
    "score": {
-    "home": 27,
-    "away": 17
+    "home": 29,
+    "away": 18
    }
   },
   {
@@ -220,8 +287,8 @@
    "away": "Florida State Seminoles",
    "home": "Boston College Eagles",
    "score": {
-    "home": 22,
-    "away": 29
+    "home": 23,
+    "away": 30
    }
   },
   {
@@ -276,8 +343,8 @@
    "away": "Maryland Terrapins",
    "home": "Purdue Boilermakers",
    "score": {
-    "home": 33,
-    "away": 24
+    "home": 32,
+    "away": 23
    }
   },
   {
@@ -285,7 +352,7 @@
    "home": "Auburn Tigers",
    "score": {
     "home": 31,
-    "away": 22
+    "away": 23
    }
   },
   {
@@ -516,7 +583,7 @@
    "away": "Louisville Cardinals",
    "home": "Georgia Tech Yellow Jackets",
    "score": {
-    "home": 25,
+    "home": 26,
     "away": 36
    }
   },
@@ -524,8 +591,8 @@
    "away": "Miami Hurricanes",
    "home": "Notre Dame Fighting Irish",
    "score": {
-    "home": 30,
-    "away": 28
+    "home": 29,
+    "away": 27
    }
   },
   {
@@ -540,8 +607,8 @@
    "away": "Oklahoma Sooners",
    "home": "Florida Gators",
    "score": {
-    "home": 25,
-    "away": 19
+    "home": 26,
+    "away": 20
    }
   },
   {
@@ -585,29 +652,383 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 1 pick(s) for 2026-11-05 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
- "top_plays": [],
+ "game_lines_rule": "The game model's own 3 pick(s) for 2026-11-05 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Seth Cromwell",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 86.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622440667&selectionId=104171488",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 67,
+   "raw": "7 of 8",
+   "record": "7 of 8",
+   "rate": 87,
+   "break_even": 53.3,
+   "edge": 13.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.875,
+    "weighted_n": 8.0,
+    "mean_all": 39.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.25,
+   "projection": 39.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 39.2 rush yds a game.",
+   "why": [
+    "<b>Seth Cromwell</b> went under 86.5 rush yds in <b>7 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 66.6,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 85.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622550824&selectionId=104339423",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 11",
+   "record": "6 of 11",
+   "rate": 70,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.893,
+    "weighted_n": 9.0,
+    "mean_all": 71.545
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 11.67,
+   "projection": 71.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 71.5 rec yds a game.",
+   "why": [
+    "<b>Kelby Valsin</b> went under 85.5 rec yds in <b>3 of 8 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.6,
+   "rank": 4
+  }
+ ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 0,
-  "same_game_already_listed": 0,
+  "same_player_already_listed": 1,
+  "same_game_already_listed": 22,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 0,
+  "pool_after_price_gate": 25,
   "cap": 10,
-  "distinct_games": 0,
-  "shared_with_board_head": 0,
-  "board_head_size": 0
+  "distinct_games": 2,
+  "shared_with_board_head": 2,
+  "board_head_size": 10
  },
- "top_plays_rule": "No top plays for 2026-11-05. Nothing is priced for this day yet, so there was nothing to rank. \u26a0\ufe0f When rows do arrive, only those carrying a record are ranked \u2014 ranking by price would be ranking by which bet pays worst while calling it 'most likely to hit'.",
+ "top_plays_rule": "The 2 most likely to hit for 2026-11-05 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 10, over 2 game(s). 22 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
-  "2": [],
+  "2": [
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Kelby Valsin u85.5 rec yds"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 37.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     56
+    ],
+    "break_even": 28.4,
+    "edge": 9.1,
+    "ev_30": 9.66
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "David Amador II u6.5 rec"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -140
+    ],
+    "multiplier": 3.218,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 37.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     56
+    ],
+    "break_even": 31.1,
+    "edge": 6.4,
+    "ev_30": 6.22
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Will Henderson III u88.5 rush yds"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     55
+    ],
+    "break_even": 28.4,
+    "edge": 8.5,
+    "ev_30": 8.96
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Caden Veltkamp u338.5 pass yds"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     54
+    ],
+    "break_even": 28.4,
+    "edge": 7.8,
+    "ev_30": 8.25
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Owen McCown u260.5 pass yds"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     54
+    ],
+    "break_even": 28.4,
+    "edge": 7.8,
+    "ev_30": 8.25
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Leonard Farrow u50.5 rush yds"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     54
+    ],
+    "break_even": 28.4,
+    "edge": 7.8,
+    "ev_30": 8.25
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Kelby Valsin u6.5 rec"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -148
+    ],
+    "multiplier": 3.146,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     54
+    ],
+    "break_even": 31.8,
+    "edge": 4.4,
+    "ev_30": 4.14
+   },
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Mekhi Anderson u3.5 rec"
+    ],
+    "games": [
+     "James Madison Dukes @ Southern Mississippi Golden Eagles",
+     "UTSA Roadrunners @ Florida Atlantic Owls"
+    ],
+    "game_ids": [
+     "c93b343bc3151a39a9541c0af3b22123",
+     "5af84fe49ccd4f304f9af0dce0a0db56"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     102
+    ],
+    "multiplier": 3.792,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     67,
+     54
+    ],
+    "break_even": 26.4,
+    "edge": 9.8,
+    "ev_30": 11.16
+   }
+  ],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 0,
-  "rated_legs": 0,
+  "pool": 14,
+  "rated_legs": 25,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -616,18 +1037,18 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 0,
-    "taken": 0
+    "available": 1,
+    "taken": 1
    },
    {
     "decimal": "1.6-2",
-    "available": 0,
-    "taken": 0
+    "available": 23,
+    "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 0,
-    "taken": 0
+    "available": 1,
+    "taken": 1
    },
    {
     "decimal": "3-99",
@@ -636,24 +1057,287 @@
    }
   ],
   "rejected": {
-   "same_game": 0,
+   "same_game": 1411,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "0 rated legs, 0 in the stratified pool. Rejected: 0 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "25 rated legs, 14 in the stratified pool. Rejected: 1411 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
-  "2": [],
-  "3": []
+  "2": [
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "James Madison Dukes -13.5 spread"
+    ],
+    "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+    "game_id": "c93b343bc3151a39a9541c0af3b22123",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.584,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 67,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     67
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Nick Herman u34.5 rush yds",
+     "James Madison Dukes -13.5 spread"
+    ],
+    "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+    "game_id": "c93b343bc3151a39a9541c0af3b22123",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.614,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 61,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     61
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Kelby Valsin u85.5 rec yds",
+     "UTSA Roadrunners -6.5 spread"
+    ],
+    "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+    "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -120
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -118,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.442,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Kelby Valsin u85.5 rec yds",
+     "David Amador II u6.5 rec"
+    ],
+    "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+    "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -140
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.218,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     56
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Seth Cromwell u86.5 rush yds",
+     "Nick Herman u34.5 rush yds",
+     "James Madison Dukes -13.5 spread"
+    ],
+    "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+    "game_id": "c93b343bc3151a39a9541c0af3b22123",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -112,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.783,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 61,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     67,
+     61
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Nick Herman u34.5 rush yds",
+     "Corey Scott u42.5 rec yds",
+     "James Madison Dukes -13.5 spread"
+    ],
+    "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+    "game_id": "c93b343bc3151a39a9541c0af3b22123",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.783,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     61,
+     57
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Kelby Valsin u85.5 rec yds",
+     "David Amador II u6.5 rec",
+     "UTSA Roadrunners -6.5 spread"
+    ],
+    "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+    "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -140,
+     -120
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -118,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.9,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     56
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Kelby Valsin u85.5 rec yds",
+     "Will Henderson III u88.5 rush yds",
+     "UTSA Roadrunners -6.5 spread"
+    ],
+    "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+    "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -120
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -118,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.46,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     55
+    ],
+    "band_floor": 3.0
+   }
+  ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 0,
-  "games_with_a_line_row": 1,
-  "games_used": 0,
+  "games_with_rated_legs": 2,
+  "games_with_a_line_row": 2,
+  "games_used": 2,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 0,
+   "same_player": 29,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
@@ -662,34 +1346,2095 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "0 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "2 game(s) on this card carry a rated leg and 2 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
- "projections": {},
- "name_match_rate": null,
- "n_priced": 0,
+ "projections": {
+  "AJ Wilson|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Brady Tillman III|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Brandon High Jr.|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Caden Veltkamp|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.3 TD a game."
+  },
+  "DJ Allen Jr.|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.4 TD a game."
+  },
+  "David Amador II|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Easton Messer|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Ethan Ervin|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Kelby Valsin|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Leonard Farrow|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Mekhi Anderson|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Owen McCown|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Will Henderson III|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Caden Veltkamp|player_pass_yds|over|338.5": {
+   "v": 309.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 309.3 pass yds a game."
+  },
+  "Caden Veltkamp|player_pass_yds|under|338.5": {
+   "v": 309.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 309.3 pass yds a game."
+  },
+  "Owen McCown|player_pass_yds|over|260.5": {
+   "v": 225.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 225.8 pass yds a game."
+  },
+  "Owen McCown|player_pass_yds|under|260.5": {
+   "v": 225.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 225.8 pass yds a game."
+  },
+  "AJ Wilson|player_reception_yds|over|30.5": {
+   "v": 42.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 42.1 rec yds a game."
+  },
+  "AJ Wilson|player_reception_yds|under|30.5": {
+   "v": 42.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 42.1 rec yds a game."
+  },
+  "DJ Allen Jr.|player_reception_yds|over|33.5": {
+   "v": 38.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 38.3 rec yds a game."
+  },
+  "DJ Allen Jr.|player_reception_yds|under|33.5": {
+   "v": 38.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 38.3 rec yds a game."
+  },
+  "David Amador II|player_reception_yds|over|59.5": {
+   "v": 40.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 40.9 rec yds a game."
+  },
+  "David Amador II|player_reception_yds|under|59.5": {
+   "v": 40.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 40.9 rec yds a game."
+  },
+  "Easton Messer|player_reception_yds|over|111.5": {
+   "v": 96.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 96.0 rec yds a game."
+  },
+  "Easton Messer|player_reception_yds|under|111.5": {
+   "v": 96.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 96.0 rec yds a game."
+  },
+  "Kelby Valsin|player_reception_yds|over|85.5": {
+   "v": 71.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 71.5 rec yds a game."
+  },
+  "Kelby Valsin|player_reception_yds|under|85.5": {
+   "v": 71.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 71.5 rec yds a game."
+  },
+  "Mekhi Anderson|player_reception_yds|over|38.5": {
+   "v": 29.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 29.5 rec yds a game."
+  },
+  "Mekhi Anderson|player_reception_yds|under|38.5": {
+   "v": 29.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 29.5 rec yds a game."
+  },
+  "DJ Allen Jr.|player_receptions|over|3.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 3.2 rec a game."
+  },
+  "DJ Allen Jr.|player_receptions|under|3.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 3.2 rec a game."
+  },
+  "David Amador II|player_receptions|over|6.5": {
+   "v": 4.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 4.5 rec a game."
+  },
+  "David Amador II|player_receptions|under|6.5": {
+   "v": 4.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 4.5 rec a game."
+  },
+  "Easton Messer|player_receptions|over|10.5": {
+   "v": 8.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 8.6 rec a game."
+  },
+  "Easton Messer|player_receptions|under|10.5": {
+   "v": 8.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 8.6 rec a game."
+  },
+  "Kelby Valsin|player_receptions|over|6.5": {
+   "v": 5.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 5.7 rec a game."
+  },
+  "Kelby Valsin|player_receptions|under|6.5": {
+   "v": 5.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 5.7 rec a game."
+  },
+  "Mekhi Anderson|player_receptions|over|3.5": {
+   "v": 2.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 2.6 rec a game."
+  },
+  "Mekhi Anderson|player_receptions|under|3.5": {
+   "v": 2.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 2.6 rec a game."
+  },
+  "Leonard Farrow|player_rush_yds|over|50.5": {
+   "v": 44.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 44.1 rush yds a game."
+  },
+  "Leonard Farrow|player_rush_yds|under|50.5": {
+   "v": 44.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 44.1 rush yds a game."
+  },
+  "Will Henderson III|player_rush_yds|over|88.5": {
+   "v": 72.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 72.8 rush yds a game."
+  },
+  "Will Henderson III|player_rush_yds|under|88.5": {
+   "v": 72.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 72.8 rush yds a game."
+  },
+  "Braeden Wisloski|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Camden Coleman|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Corey Scott|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.6 TD a game."
+  },
+  "JC Evans|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Jamarice Wilder|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.7 TD a game."
+  },
+  "Jeremiah Harrison|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Kaden Saunders|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Mario Sanders|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Michael Scott|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Nick Herman|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Seth Cromwell|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Steven Robinson|player_anytime_td|yes|None": {
+   "v": 1.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 1.2 TD a game."
+  },
+  "Braeden Wisloski|player_reception_yds|over|36.5": {
+   "v": 36.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 36.7 rec yds a game."
+  },
+  "Braeden Wisloski|player_reception_yds|under|36.5": {
+   "v": 36.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 36.7 rec yds a game."
+  },
+  "Corey Scott|player_reception_yds|over|42.5": {
+   "v": 48.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 48.2 rec yds a game."
+  },
+  "Corey Scott|player_reception_yds|under|42.5": {
+   "v": 48.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 48.2 rec yds a game."
+  },
+  "Jeremiah Harrison|player_reception_yds|over|31.5": {
+   "v": 38.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 38.3 rec yds a game."
+  },
+  "Jeremiah Harrison|player_reception_yds|under|31.5": {
+   "v": 38.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 38.3 rec yds a game."
+  },
+  "Mario Sanders|player_reception_yds|over|69.5": {
+   "v": 63.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 63.2 rec yds a game."
+  },
+  "Mario Sanders|player_reception_yds|under|69.5": {
+   "v": 63.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 63.2 rec yds a game."
+  },
+  "Michael Scott|player_reception_yds|over|41.5": {
+   "v": 36.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 36.8 rec yds a game."
+  },
+  "Michael Scott|player_reception_yds|under|41.5": {
+   "v": 36.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 36.8 rec yds a game."
+  },
+  "Mario Sanders|player_receptions|over|5.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Mario Sanders|player_receptions|under|5.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Nick Herman|player_rush_yds|over|34.5": {
+   "v": 35.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 35.0 rush yds a game."
+  },
+  "Nick Herman|player_rush_yds|under|34.5": {
+   "v": 35.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 35.0 rush yds a game."
+  },
+  "Seth Cromwell|player_rush_yds|over|86.5": {
+   "v": 39.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 39.2 rush yds a game."
+  },
+  "Seth Cromwell|player_rush_yds|under|86.5": {
+   "v": 39.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 39.2 rush yds a game."
+  },
+  "Steven Robinson|player_rush_yds|over|77.5": {
+   "v": 91.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 91.0 rush yds a game."
+  },
+  "Steven Robinson|player_rush_yds|under|77.5": {
+   "v": 91.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 91.0 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.905,
+ "n_priced": 30,
  "single_day": true,
  "slate_date": "2026-11-05",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 0,
+ "n_on_slate_day": 30,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-05 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
- "empty_reason": "No College Football picks for 2026-11-05. Nothing is priced for this day yet. An empty board on a day with no games is the correct result, not a failure \u2014 the card was built and it found nothing to show.",
+ "empty_reason": null,
  "short_reason": null,
- "coverage": "0 priced football rows for 2026-11-05 across 0 board games; 0 shown.",
+ "coverage": "30 priced football rows for 2026-11-05 across 2 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 56% against a claimed 54.2% (+1.8 pts, n=166); 60-70 hit 42.9% against a claimed 62.4% (-19.5 pts, n=21). The under-60 band is currently the closest to its own claim. 70-80 has too few graded plays to read. 187 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
- "picks": [],
- "liked": [],
- "n_longshots_excluded": 0,
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Seth Cromwell",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 86.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622440667&selectionId=104171488",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 67,
+   "raw": "7 of 8",
+   "record": "7 of 8",
+   "rate": 87,
+   "break_even": 53.3,
+   "edge": 13.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.875,
+    "weighted_n": 8.0,
+    "mean_all": 39.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.25,
+   "projection": 39.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 39.2 rush yds a game.",
+   "why": [
+    "<b>Seth Cromwell</b> went under 86.5 rush yds in <b>7 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 66.6,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nick Herman",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 34.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622440353&selectionId=104416251",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "raw": "6 of 9",
+   "record": "6 of 9",
+   "rate": 61,
+   "break_even": 52.8,
+   "edge": 8.2,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 6,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.572,
+    "weighted_n": 9.0,
+    "mean_all": 35.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 35.0,
+   "projection": 35.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 35.0 rush yds a game.",
+   "why": [
+    "<b>Nick Herman</b> went under 34.5 rush yds in <b>6 of 9 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 60.6,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Corey Scott",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 42.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622443793&selectionId=102931447",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "3 of 8",
+   "record": "3 of 8",
+   "rate": 54,
+   "break_even": 53.3,
+   "edge": 3.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.646,
+    "weighted_n": 8.0,
+    "mean_all": 48.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 48.25,
+   "projection": 48.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 48.2 rec yds a game.",
+   "why": [
+    "<b>Corey Scott</b> went under 42.5 rec yds in <b>3 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 56.9,
+   "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 85.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622550824&selectionId=104339423",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 11",
+   "record": "6 of 11",
+   "rate": 70,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.893,
+    "weighted_n": 9.0,
+    "mean_all": 71.545
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 11.67,
+   "projection": 71.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 71.5 rec yds a game.",
+   "why": [
+    "<b>Kelby Valsin</b> went under 85.5 rec yds in <b>3 of 8 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.6,
+   "rank": 4
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mario Sanders",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622435722&selectionId=103580298",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "5 of 10",
+   "record": "5 of 10",
+   "rate": 68,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.873,
+    "weighted_n": 8.67,
+    "mean_all": 4.6
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.0,
+   "projection": 4.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 4.6 rec a game.",
+   "why": [
+    "<b>Mario Sanders</b> went under 5.5 rec in <b>3 of 8 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.6,
+   "rank": 5
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "David Amador II",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 6.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -140,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549939&selectionId=103629438",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "15 of 19",
+   "record": "15 of 19",
+   "rate": 82,
+   "break_even": 58.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 10,
+    "n25": 11,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.922,
+    "weighted_n": 11.67,
+    "mean_all": 4.474
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.09,
+   "projection": 4.5,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 4.5 rec a game.",
+   "why": [
+    "<b>David Amador II</b> went under 6.5 rec in <b>5 of 8 games</b> in 2026 and 10 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 56.5,
+   "rank": 6,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Will Henderson III",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 88.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549929&selectionId=103629373",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "14 of 21",
+   "record": "14 of 21",
+   "rate": 74,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 10,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.881,
+    "weighted_n": 12.33,
+    "mean_all": 72.762
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.62,
+   "projection": 72.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 72.8 rush yds a game.",
+   "why": [
+    "<b>Will Henderson III</b> went under 88.5 rush yds in <b>4 of 8 games</b> in 2026 and 10 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.0,
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mekhi Anderson",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": 102,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549942&selectionId=102997819",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "10 of 13",
+   "record": "10 of 13",
+   "rate": 69,
+   "break_even": 49.5,
+   "edge": 4.5,
+   "season_detail": {
+    "h25": 5,
+    "n25": 5,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.69,
+    "weighted_n": 9.67,
+    "mean_all": 2.615
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.0,
+   "projection": 2.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 2.6 rec a game.",
+   "why": [
+    "<b>Mekhi Anderson</b> went under 3.5 rec in <b>5 of 8 games</b> in 2026 and 5 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.6,
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Caden Veltkamp",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 338.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622547040&selectionId=104002607",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "14 of 20",
+   "record": "14 of 20",
+   "rate": 81,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 12,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.95,
+    "weighted_n": 12.0,
+    "mean_all": 309.3
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 304.33,
+   "projection": 309.3,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 309.3 pass yds a game.",
+   "why": [
+    "<b>Caden Veltkamp</b> went under 338.5 pass yds in <b>5 of 8 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.7,
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Owen McCown",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 260.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622547041&selectionId=48955496",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "14 of 21",
+   "record": "14 of 21",
+   "rate": 73,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.806,
+    "weighted_n": 12.33,
+    "mean_all": 225.762
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 230.0,
+   "projection": 225.8,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 225.8 pass yds a game.",
+   "why": [
+    "<b>Owen McCown</b> went under 260.5 pass yds in <b>5 of 8 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.0,
+   "rank": 10
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Leonard Farrow",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 50.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622553097&selectionId=104693424",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "5 of 8",
+   "record": "5 of 8",
+   "rate": 67,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.703,
+    "weighted_n": 8.0,
+    "mean_all": 44.125
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 44.12,
+   "projection": 44.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 44.1 rush yds a game.",
+   "why": [
+    "<b>Leonard Farrow</b> went under 50.5 rush yds in <b>5 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 54.4,
+   "rank": 11
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mario Sanders",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 69.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622435720&selectionId=103580298",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "5 of 10",
+   "record": "5 of 10",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.832,
+    "weighted_n": 8.67,
+    "mean_all": 63.2
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 16.0,
+   "projection": 63.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 63.2 rec yds a game.",
+   "why": [
+    "<b>Mario Sanders</b> went under 69.5 rec yds in <b>3 of 8 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.3,
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kelby Valsin",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 6.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -148,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622550830&selectionId=104339423",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "5 of 11",
+   "record": "5 of 11",
+   "rate": 67,
+   "break_even": 59.7,
+   "edge": -5.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 2,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.922,
+    "weighted_n": 9.0,
+    "mean_all": 5.727
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.0,
+   "projection": 5.7,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 5.7 rec a game.",
+   "why": [
+    "<b>Kelby Valsin</b> went under 6.5 rec in <b>2 of 8 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.4,
+   "rank": 13,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Easton Messer",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 10.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -154,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622550828&selectionId=60552735",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "14 of 20",
+   "record": "14 of 20",
+   "rate": 83,
+   "break_even": 60.6,
+   "edge": -6.6,
+   "season_detail": {
+    "h25": 9,
+    "n25": 12,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.993,
+    "weighted_n": 12.0,
+    "mean_all": 8.6
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 8.33,
+   "projection": 8.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 8.6 rec a game.",
+   "why": [
+    "<b>Easton Messer</b> went under 10.5 rec in <b>5 of 8 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.7,
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mekhi Anderson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 38.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549934&selectionId=102997819",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "9 of 13",
+   "record": "9 of 13",
+   "rate": 60,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 5,
+    "n25": 5,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.607,
+    "weighted_n": 9.67,
+    "mean_all": 29.462
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 13.2,
+   "projection": 29.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 29.5 rec yds a game.",
+   "why": [
+    "<b>Mekhi Anderson</b> went under 38.5 rec yds in <b>4 of 8 games</b> in 2026 and 5 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.6,
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "David Amador II",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 59.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549931&selectionId=103629438",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "15 of 19",
+   "record": "15 of 19",
+   "rate": 77,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 9,
+    "n25": 11,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.777,
+    "weighted_n": 11.67,
+    "mean_all": 40.947
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 40.27,
+   "projection": 40.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 40.9 rec yds a game.",
+   "why": [
+    "<b>David Amador II</b> went under 59.5 rec yds in <b>6 of 8 games</b> in 2026 and 9 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.3,
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Braeden Wisloski",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 36.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622443794&selectionId=103447724",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "11 of 19",
+   "record": "11 of 19",
+   "rate": 57,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 7,
+    "n25": 11,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.588,
+    "weighted_n": 11.67,
+    "mean_all": 36.684
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 32.55,
+   "projection": 36.7,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 36.7 rec yds a game.",
+   "why": [
+    "<b>Braeden Wisloski</b> went under 36.5 rec yds in <b>4 of 8 games</b> in 2026 and 7 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.6,
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Michael Scott",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 41.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622443795&selectionId=104170881",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 12",
+   "record": "6 of 12",
+   "rate": 51,
+   "break_even": 52.8,
+   "edge": -1.8,
+   "season_detail": {
+    "h25": 4,
+    "n25": 4,
+    "h26": 2,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.637,
+    "weighted_n": 9.33,
+    "mean_all": 36.75
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 21.25,
+   "projection": 36.8,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 36.8 rec yds a game.",
+   "why": [
+    "<b>Michael Scott</b> went under 41.5 rec yds in <b>2 of 8 games</b> in 2026 and 4 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.9,
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "AJ Wilson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 30.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549932&selectionId=102997845",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "8 of 19",
+   "record": "8 of 19",
+   "rate": 49,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 4,
+    "n25": 11,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.52,
+    "weighted_n": 11.67,
+    "mean_all": 42.053
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 47.55,
+   "projection": 42.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 42.1 rec yds a game.",
+   "why": [
+    "<b>AJ Wilson</b> went under 30.5 rec yds in <b>4 of 8 games</b> in 2026 and 4 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.2,
+   "rank": 19,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "DJ Allen Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 33.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549933&selectionId=103690050",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 14",
+   "record": "6 of 14",
+   "rate": 44,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 3,
+    "n25": 7,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.446,
+    "weighted_n": 9.55,
+    "mean_all": 38.286
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 27.0,
+   "projection": 38.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 38.3 rec yds a game.",
+   "why": [
+    "<b>DJ Allen Jr.</b> went over 33.5 rec yds in <b>3 of 7 games</b> in 2026 and 3 of 7 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.2,
+   "rank": 20,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Easton Messer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 111.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622550822&selectionId=60552735",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "14 of 20",
+   "record": "14 of 20",
+   "rate": 81,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 9,
+    "n25": 12,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.951,
+    "weighted_n": 12.0,
+    "mean_all": 96.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 85.75,
+   "projection": 96.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 96.0 rec yds a game.",
+   "why": [
+    "<b>Easton Messer</b> went under 111.5 rec yds in <b>5 of 8 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.6,
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "AJ Wilson",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549940&selectionId=102997845",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 51.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": -2.3,
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Steven Robinson",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 77.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -118,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622433976&selectionId=103580387",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 29,
+   "break_even": 54.1,
+   "edge": -3.1,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.158,
+    "weighted_n": 8.0,
+    "mean_all": 91.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 91.0,
+   "projection": 91.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 91.0 rush yds a game.",
+   "why": [
+    "<b>Steven Robinson</b> went over 77.5 rush yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 50.7,
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "DJ Allen Jr.",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -194,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549941&selectionId=103690054",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "10 of 14",
+   "record": "10 of 14",
+   "rate": 67,
+   "break_even": 66.0,
+   "edge": -15.0,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.69,
+    "weighted_n": 9.55,
+    "mean_all": 3.214
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.86,
+   "projection": 3.2,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 3.2 rec a game.",
+   "why": [
+    "<b>DJ Allen Jr.</b> went under 3.5 rec in <b>4 of 7 games</b> in 2026 and 6 of 7 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.4,
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jeremiah Harrison",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 31.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622443791&selectionId=104416297",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 50,
+   "raw": "2 of 6",
+   "record": "2 of 6",
+   "rate": 47,
+   "break_even": 52.8,
+   "edge": -2.8,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 2,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.532,
+    "weighted_n": 6.0,
+    "mean_all": 38.333
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 38.33,
+   "projection": 38.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 6 games this record is built from \u2014 38.3 rec yds a game.",
+   "why": [
+    "<b>Jeremiah Harrison</b> went under 31.5 rec yds in <b>2 of 6 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 50.3,
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Seth Cromwell",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 86.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622440667&selectionId=104171488",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 67,
+   "raw": "7 of 8",
+   "record": "7 of 8",
+   "rate": 87,
+   "break_even": 53.3,
+   "edge": 13.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.875,
+    "weighted_n": 8.0,
+    "mean_all": 39.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.25,
+   "projection": 39.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 39.2 rush yds a game.",
+   "why": [
+    "<b>Seth Cromwell</b> went under 86.5 rush yds in <b>7 of 8 games</b> in 2026, in the games he appears in.",
+    "The Southern Mississippi Golden Eagles allow 192.9 rushing yards a game to running backs (3rd most of 138).",
+    "The Southern Mississippi Golden Eagles list ILB Ricky Harding (Out for Season), DL Jeffery Rush (Out for Season).",
+    "The model gives it <b>67%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 66.6,
+   "rank": 1,
+   "why_card": [
+    "<b>Seth Cromwell</b> went under 86.5 rush yds in <b>7 of 8 games</b> in 2026, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kelby Valsin",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 85.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622550824&selectionId=104339423",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "6 of 11",
+   "record": "6 of 11",
+   "rate": 70,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.893,
+    "weighted_n": 9.0,
+    "mean_all": 71.545
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 11.67,
+   "projection": 71.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 71.5 rec yds a game.",
+   "why": [
+    "<b>Kelby Valsin</b> went under 85.5 rec yds in <b>3 of 8 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in.",
+    "The UTSA Roadrunners allow 142.1 receiving yards a game to wide receivers (39th fewest of 138).",
+    "The model gives it <b>56%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 55.6,
+   "rank": 2,
+   "why_card": [
+    "<b>Kelby Valsin</b> went under 85.5 rec yds in <b>3 of 8 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mario Sanders",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+   "game_id": "c93b343bc3151a39a9541c0af3b22123",
+   "away": "James Madison Dukes",
+   "home": "Southern Mississippi Golden Eagles",
+   "commence": "2026-11-06T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622435722&selectionId=103580298",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "5 of 10",
+   "record": "5 of 10",
+   "rate": 68,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.873,
+    "weighted_n": 8.67,
+    "mean_all": 4.6
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.0,
+   "projection": 4.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 4.6 rec a game.",
+   "why": [
+    "<b>Mario Sanders</b> went under 5.5 rec in <b>3 of 8 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in.",
+    "The James Madison Dukes allow 12.4 catches a game to wide receivers (65th most of 138).",
+    "The James Madison Dukes list DB Jayon Harvey (Out).",
+    "The model gives it <b>56%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 55.6,
+   "rank": 3,
+   "why_card": [
+    "<b>Mario Sanders</b> went under 5.5 rec in <b>3 of 8 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Will Henderson III",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 88.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549929&selectionId=103629373",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "14 of 21",
+   "record": "14 of 21",
+   "rate": 74,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 10,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.881,
+    "weighted_n": 12.33,
+    "mean_all": 72.762
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.62,
+   "projection": 72.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 72.8 rush yds a game.",
+   "why": [
+    "<b>Will Henderson III</b> went under 88.5 rush yds in <b>4 of 8 games</b> in 2026 and 10 of 13 in 2025, in the games he appears in.",
+    "The Florida Atlantic Owls allow 127.1 rushing yards a game to running backs (52nd most of 138).",
+    "The model gives it <b>55%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 55.0,
+   "rank": 4,
+   "why_card": [
+    "<b>Will Henderson III</b> went under 88.5 rush yds in <b>4 of 8 games</b> in 2026 and 10 of 13 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mekhi Anderson",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": 102,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622549942&selectionId=102997819",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "10 of 13",
+   "record": "10 of 13",
+   "rate": 69,
+   "break_even": 49.5,
+   "edge": 4.5,
+   "season_detail": {
+    "h25": 5,
+    "n25": 5,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.69,
+    "weighted_n": 9.67,
+    "mean_all": 2.615
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.0,
+   "projection": 2.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 2.6 rec a game.",
+   "why": [
+    "<b>Mekhi Anderson</b> went under 3.5 rec in <b>5 of 8 games</b> in 2026 and 5 of 5 in 2025, in the games he appears in.",
+    "The Florida Atlantic Owls allow 10.9 catches a game to wide receivers (29th fewest of 138).",
+    "The model gives it <b>54%</b>; at +102 it needs 49.5% to pay."
+   ],
+   "model_p": 53.6,
+   "rank": 5,
+   "why_card": [
+    "<b>Mekhi Anderson</b> went under 3.5 rec in <b>5 of 8 games</b> in 2026 and 5 of 5 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Caden Veltkamp",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 338.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622547040&selectionId=104002607",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "14 of 20",
+   "record": "14 of 20",
+   "rate": 81,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 12,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.95,
+    "weighted_n": 12.0,
+    "mean_all": 309.3
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 304.33,
+   "projection": 309.3,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 309.3 pass yds a game.",
+   "why": [
+    "<b>Caden Veltkamp</b> went under 338.5 pass yds in <b>5 of 8 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in.",
+    "The UTSA Roadrunners allow 203 passing yards a game to quarterbacks (48th fewest of 138).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 53.7,
+   "rank": 6,
+   "why_card": [
+    "<b>Caden Veltkamp</b> went under 338.5 pass yds in <b>5 of 8 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Owen McCown",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 260.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622547041&selectionId=48955496",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "14 of 21",
+   "record": "14 of 21",
+   "rate": 73,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.806,
+    "weighted_n": 12.33,
+    "mean_all": 225.762
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 230.0,
+   "projection": 225.8,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 225.8 pass yds a game.",
+   "why": [
+    "<b>Owen McCown</b> went under 260.5 pass yds in <b>5 of 8 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in.",
+    "The Florida Atlantic Owls allow 220.7 passing yards a game to quarterbacks (68th most of 138).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 54.0,
+   "rank": 7,
+   "why_card": [
+    "<b>Owen McCown</b> went under 260.5 pass yds in <b>5 of 8 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Leonard Farrow",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 50.5,
+   "game": "UTSA Roadrunners @ Florida Atlantic Owls",
+   "game_id": "5af84fe49ccd4f304f9af0dce0a0db56",
+   "away": "UTSA Roadrunners",
+   "home": "Florida Atlantic Owls",
+   "commence": "2026-11-06T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622553097&selectionId=104693424",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "5 of 8",
+   "record": "5 of 8",
+   "rate": 67,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.703,
+    "weighted_n": 8.0,
+    "mean_all": 44.125
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 44.12,
+   "projection": 44.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 44.1 rush yds a game.",
+   "why": [
+    "<b>Leonard Farrow</b> went under 50.5 rush yds in <b>5 of 8 games</b> in 2026, in the games he appears in.",
+    "The UTSA Roadrunners allow 118.7 rushing yards a game to running backs (68th fewest of 138).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 54.4,
+   "rank": 8,
+   "why_card": [
+    "<b>Leonard Farrow</b> went under 50.5 rush yds in <b>5 of 8 games</b> in 2026, in the games he appears in."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 10,
  "price_ceiling": 400,
- "market_max_share": 0.34,
- "board_mixed": true,
+ "market_max_share": null,
+ "board_mixed": false,
  "below_price_floor": [],
  "price_floor": -400,
  "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
