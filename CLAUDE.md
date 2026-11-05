@@ -226,7 +226,12 @@ failed recurring runs, i would like to avoid that"*. So:
    finding beside a missing part is added to the issue, never written over it,
    and the run goes red (`test_vacuity_merge.py`). An empty state or an empty
    report is "could not look" in every three-state watcher (`test_budget_watch.py`
-   §2); `collect.yml`'s two alerts are another shape and are not covered.
+   §2); ~~`collect.yml`'s two alerts are another shape and are not covered~~
+   `[2026-11-04]` and in every other step that can close or overwrite an issue,
+   whatever its shape: with no result (an empty rc, no watchdog verdict, an
+   unreadable report, an empty body) it touches no issue. A new such step that is
+   not given a shape fails (`test_alert_shapes.py`). Live after Sam uploads
+   `collect.yml` (`docs/upload/UPLOAD-collect-alerts.md`).
    `[2026-09-25]` One more job, `staged`, applies every workflow staged in
    `docs/upload/` to its own checkout and runs the `rest` shard again:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's

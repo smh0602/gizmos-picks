@@ -245,7 +245,10 @@ section("2. 🔴🔴 THE CLASS: 'I COULD NOT LOOK' MUST NEVER CLOSE AN ISSUE")
 #    a correct one. Its test alert reads an empty RC as green, so a run killed
 #    during Tests closes the open issue (driven), and the watchdog's closes on
 #    any ALERT but "True" (read, not driven). Both are the defect below by
-#    another shape, and are owed in a PR of their own with a staged collect.yml.
+#    another shape, ~~and are owed in a PR of their own with a staged collect.yml~~
+#    `[2026-11-04]` fixed in a staged collect.yml and swept by
+#    `test_alert_shapes.py`: every issue-writing step OUTSIDE this contract must
+#    be a shape there, given no result and a real one, so none is left unasked.
 #    ✅ So the set is every step that reads a `steps.look.outputs.state`
 #    into `$STATE` — the watcher contract itself — which is still
 #    DISCOVERED, and still covers a watcher nobody has written yet.
@@ -270,8 +273,8 @@ ck("⚠️ every three-state watcher in the repo is discovered",
    % sorted({f for f, _, _ in _issue_wf}))
 note("⚠️ issue-writing steps OUTSIDE the three-state contract, not swept "
      "here: %s. ⛔ collect.yml's test alert has no `unknown` state, so this "
-     "section's questions do not fit it. ⚠️ THAT DOES NOT CLEAR IT: an empty "
-     "RC closes its issue, the same defect by another shape, owed in its own PR."
+     "section's questions do not fit it. ✅ test_alert_shapes.py asks each of them "
+     "the same question in its own shape: with no result, no issue is touched."
      % (sorted(_other_issue) or "none"))
 ck("✅ ...and the new watcher is one of them",
    any(f == "budget.yml" for f, _, _ in _issue_wf),

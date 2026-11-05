@@ -1178,6 +1178,18 @@ jobs:
           # ⚠️ `[2026-09-28]` its report is printed, not also written to a
           #    fixed file in /tmp that nothing read (test_step_tmp.py).
           python watchdog.py
+          LOOKED=$?
+          # 🔴 `[2026-11-04]` A VERDICT ONLY FROM A PASS THAT FINISHED, AND THE FIRST
+          #    ONE LANDS AT ONCE. watchdog.py exits 0 whenever it finishes; anything
+          #    else means the health.json beside it is the LAST pass's, and "Tell Sam"
+          #    closed the issue on such an old clean report (test_alert_shapes.py).
+          #    ⛔ Written BEFORE the repairs: a re-check that raises, or a run killed
+          #    while repairing, keeps this pass's fresh verdict and never blanks it.
+          #    GitHub keeps the last value written for an output name.
+          if [ "$LOOKED" = "0" ]; then
+            FIRST=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
+            echo "healthy=$FIRST" >> "$GITHUB_OUTPUT"
+          fi
           REPAIRS=$(python -c "import json;print(' '.join(json.load(open('data/latest/health.json'))['repairs']))")
           if [ -n "$REPAIRS" ]; then
             echo "::notice::watchdog attempting repair: $REPAIRS"
@@ -1201,9 +1213,20 @@ jobs:
             # 🔴 RE-CHECK AFTER REPAIRING. An alarm raised for something
             #    the system just fixed is the alarm Sam learns to ignore.
             python watchdog.py
+            RECHECK=$?
+            # ✅ Only a re-check that finished replaces the verdict.
+            if [ "$RECHECK" = "0" ]; then
+              LOOKED=0
+              HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
+              echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
+            elif [ "$LOOKED" -eq 0 ]; then
+              echo "::warning::the re-check after repairing exited $RECHECK — the verdict stays the first pass's"
+            fi
           fi
-          HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
-          echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
+          # ⚠️ No pass finished: no `healthy` was written, so Tell Sam leaves the issue alone.
+          if [ "$LOOKED" != "0" ]; then
+            echo "::warning::watchdog.py exited $LOOKED, so health.json is the last pass's — no verdict this run"
+          fi
           exit 0
 
       # ⚠️ THE REPAIR'S OUTPUT HAS TO LAND OR THE REPAIR DID NOT HAPPEN.
@@ -1250,6 +1273,16 @@ jobs:
             echo "no health report — nothing to say"
             exit 0
           fi
+          # 🔴 `[2026-11-04]` NO VERDICT, NO ACTION. The Watchdog step writes
+          # `healthy` only from a pass of watchdog.py that finished this run:
+          # killed before one did, or with each one raising, it writes none, and
+          # the health.json here is the last pass's. Read anyway, that old report
+          # closed the open issue as resolved, or opened one (test_alert_shapes.py).
+          HEALTHY='${{ steps.watchdog.outputs.healthy }}'
+          if [ "$HEALTHY" != "True" ] && [ "$HEALTHY" != "False" ]; then
+            echo "the watchdog gave no verdict this run — leaving any open issue alone"
+            exit 0
+          fi
           # ⛔ MATCHED ON THE EXACT TITLE IN `jq`, NOT THROUGH GitHub's
           # SEARCH. `--search "in:title ..."` has to survive shell quoting,
           # an em dash, an apostrophe and an emoji before it ever reaches
@@ -1272,6 +1305,14 @@ jobs:
           ALERT=$(python -c "import json,watchdog;print(watchdog.alerting(json.load(open('data/latest/health.json'))))")
           BODY=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/body.XXXXXX")
           python -c "import json,sys,watchdog;open(sys.argv[1],'w').write(watchdog.render(json.load(open('data/latest/health.json'))))" "$BODY"
+          # 🔴 `[2026-11-04]` ONLY "False" MEANS NOTHING IS BROKEN. An empty ALERT is
+          # this read failing (health.json cut short, watchdog.py that does not
+          # import, a finding of the wrong shape), and "not True" closed the issue
+          # on it as "✅ Resolved" (test_alert_shapes.py).
+          if [ "$ALERT" != "True" ] && [ "$ALERT" != "False" ]; then
+            echo "the health report could not be read — leaving any open issue alone"
+            exit 0
+          fi
           if [ "$ALERT" != "True" ]; then
             # ✅ IT CLOSES ITSELF. An alert channel that needs tidying by
             # hand becomes a list of stale issues, and then it is ignored.
@@ -1280,6 +1321,13 @@ jobs:
               gh issue close "$NUM"
             fi
             echo "nothing BROKEN; nothing to report"
+            exit 0
+          fi
+          # 🔴 `[2026-11-04]` AN ALERT NOBODY WROTE IS NOT AN ALERT. A report that
+          # does not render (a finding with no `why`) left $BODY empty, and the
+          # edit below wrote a 0-byte body over the open issue (test_alert_shapes.py).
+          if [ ! -s "$BODY" ]; then
+            echo "::warning::the watchdog's alert could not be written, so no issue was touched"
             exit 0
           fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
@@ -1340,7 +1388,16 @@ jobs:
                   --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
           RC='${{ steps.tests.outputs.rc }}'
           NAMES='${{ steps.tests.outputs.failed }}'
-          if [ "$RC" = "0" ] || [ -z "$RC" ]; then
+          # 🔴 `[2026-11-04]` AN EMPTY RC IS A TESTS STEP THAT NEVER FINISHED, NOT A
+          # GREEN SUITE. The step writes `rc` as its last act, so a run killed or
+          # cancelled during Tests has none, and ~~`|| [ -z "$RC" ]`~~ read that as
+          # green: it commented "✅ Resolved" and closed the open issue (driven,
+          # 2026-11-01; test_alert_shapes.py).
+          if [ -z "$RC" ]; then
+            echo "the Tests step never reported — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$RC" = "0" ]; then
             if [ -n "$NUM" ]; then
               gh issue comment "$NUM" --body "✅ Resolved — the suite is green again."
               gh issue close "$NUM"
@@ -1348,6 +1405,9 @@ jobs:
             echo "tests green; nothing to report"
             exit 0
           fi
+          # ⚠️ `[2026-11-04]` a file of this run's own (test_step_tmp.py: a test now
+          #    runs this step), never the fixed /tmp/tests_body.md.
+          TESTS_BODY=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/tests_body.XXXXXX")
           {
             echo "**The test suite is failing, and it has been failing on every"
             echo "collector run since it started.**"
@@ -1364,7 +1424,7 @@ jobs:
             echo
             echo "_This issue is updated in place and closes itself when the"
             echo "suite goes green._"
-          } > /tmp/tests_body.md
+          } > "$TESTS_BODY"
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
           # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
           # left the `gh issue edit` path alone. Every watcher files ONCE and then
@@ -1381,11 +1441,11 @@ jobs:
           # needs it too.
           gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
           if [ -n "$NUM" ]; then
-            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/tests_body.md
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file "$TESTS_BODY"
           else
-            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/tests_body.md --assignee smh0602 \
-              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/tests_body.md \
-              || gh issue create --title "$TITLE" --body-file /tmp/tests_body.md
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file "$TESTS_BODY" --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file "$TESTS_BODY" \
+              || gh issue create --title "$TITLE" --body-file "$TESTS_BODY"
           fi
           exit 0
 
