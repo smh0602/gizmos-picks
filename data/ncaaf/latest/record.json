@@ -1,5 +1,5 @@
 {
- "built_at": "2026-11-05T18:59:28Z",
+ "built_at": "2026-11-05T19:22:24Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -265,7 +265,7 @@
    "n": 66,
    "pct": 31.8
   },
-  "shown": 66,
+  "shown": 67,
   "by_basis": {
    "MARKET": {
     "w": 7,
@@ -279,7 +279,7 @@
    }
   },
   "voids": 0,
-  "pending": 0,
+  "pending": 1,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -1271,6 +1271,21 @@
     "commence": "2026-11-05T00:00:00Z",
     "won": false,
     "state": "graded"
+   },
+   {
+    "date": "2026-11-05",
+    "player": "James Madison Dukes",
+    "side": "away",
+    "line": -10.5,
+    "price": -135,
+    "book": "hardrockbet",
+    "confidence": 60,
+    "confidence_basis": "MODEL",
+    "break_even": 57.4,
+    "game": "James Madison Dukes @ Southern Mississippi Golden Eagles",
+    "commence": "2026-11-06T01:00:00Z",
+    "won": null,
+    "state": "pending"
    }
   ]
  },
@@ -1864,10 +1879,10 @@
    "date": "2026-11-05",
    "w": 0,
    "n": 0,
-   "carded": 8,
+   "carded": 10,
    "voids": 0,
-   "unresolved": 8,
-   "owed": 8
+   "unresolved": 10,
+   "owed": 10
   }
  ],
  "days_graded": 33,
@@ -1877,10 +1892,10 @@
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
  "distinct_players": 305,
  "distinct_games": 180,
- "carded_rows": 654,
+ "carded_rows": 656,
  "voids": 0,
- "unresolved": 59,
- "coverage_note": "595 of 654 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 59 could not be settled at all.",
+ "unresolved": 61,
+ "coverage_note": "595 of 656 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 61 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
