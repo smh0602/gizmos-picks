@@ -208,10 +208,95 @@ again). This drives two real clones against one bare remote.
 #   find:         id: collect
 #   with:         if: always()
 #
-# @vacuity ⚠️ step 1 is what its header says: this run's side of each conflicting hunk
+# @vacuity ⚠️ step 1 resolves a conflicting hunk in the rebase (this run's side), so a race on one file is no replay
 #   file: push_retry.sh
 #   find: git pull -q --rebase -X theirs --autostash
 #   with: git pull -q --rebase --autostash
+#
+# @vacuity 🔴🔴 [2026-11-04] a rebased converge pass never lands an older-tree file or a splice
+#   file: push_retry.sh
+#   find:     stand_newer "$(git rev-parse FETCH_HEAD)"
+#   with:     true
+#
+# @vacuity 🔴🔴 ...nor does a replayed one
+#   file: push_retry.sh
+#   find:       stand_newer "$tip"
+#   with:       true
+#
+# @vacuity 🔴🔴 a copy that read its sources later lands, whole
+#   file: freshness.py
+#   find:         if both and all(mine[k] >= theirs[k] for k in both) and any(mine[k] > theirs[k] for k in both):
+#   with:         if False:
+#
+# @vacuity 🔴 ...only when it read EVERY shared source at least as late
+#   file: freshness.py
+#   find:         if both and all(mine[k] >= theirs[k] for k in both) and any(mine[k] > theirs[k] for k in both):
+#   with:         if both and any(mine[k] > theirs[k] for k in both):
+#
+# @vacuity 🔴 ...and one of them later: the same reading built later is not newer
+#   file: freshness.py
+#   find:         if both and all(mine[k] >= theirs[k] for k in both) and any(mine[k] > theirs[k] for k in both):
+#   with:         if both and all(mine[k] >= theirs[k] for k in both):
+#
+# @vacuity 🔴🔴 the remote's copy is what stands
+#   file: freshness.py
+#   find:             rev = top if side == "this run" else tip
+#   with:             rev = top
+#
+# @vacuity 🔴🔴 a file and its heartbeat are one unit
+#   file: freshness.py
+#   find:         return p[:-len(HEARTBEAT_SUFFIX)] if p.endswith(HEARTBEAT_SUFFIX) else p
+#   with:         return p
+#
+# @vacuity 🔴 ...judged on the stamps its heartbeat vouches for
+#   file: freshness.py
+#   find:             d = dict(d, **st) if st else d
+#   with:             d = d
+#
+# @vacuity 🔴🔴 a card under picks/ is judged too
+#   file: freshness.py
+#   find: LANDING_SCOPE = re.compile(r"^(data/(?:[^/]+/)*latest/|picks/)")
+#   with: LANDING_SCOPE = re.compile(r"^(data/(?:[^/]+/)*latest/)")
+#
+# @vacuity 🔴🔴 every commit of the pass since its base, not only the last
+#   file: freshness.py
+#   find:     raced = {unit(p) for p in names(base, top) if LANDING_SCOPE.match(p)} \
+#   with:     raced = {unit(p) for p in names(top + "^", top) if LANDING_SCOPE.match(p)} \
+#
+# @vacuity 🔴 a pass with nothing left lands nothing
+#   file: freshness.py
+#   find:             git("reset", "-q", "--soft", "HEAD^")       # nothing of this run's own is left
+#   with:             pass
+#
+# @vacuity 🔴🔴 what stands is folded into this run's commit
+#   file: freshness.py
+#   find:         p = git("commit", "-q", "--amend", "--no-edit", "--only", "--", *touched)
+#   with:         p = git("status")
+#
+# @vacuity 🔴🔴 the watchdog's commit judges only the passes under it; step 6 has its own
+#   file: push_retry.sh
+#   find:     "$REPAIR_LABEL") top="$own^" ;;
+#   with:     "$REPAIR_LABEL") top="$own" ;;
+#
+# @vacuity ⛔ any other label is one writer, and step 1 decides for it
+#   file: push_retry.sh
+#   find:     *) return 0 ;;
+#   with:     *) top="$own" ;;
+#
+# @vacuity 🔴 the rule keys on the label the converge loop passes
+#   file: push_retry.sh
+#   find: PASS_LABEL="converge pass "
+#   with: PASS_LABEL="converge round "
+#
+# @vacuity 🔴 ...and the converge loop passes it
+#   file: .github/workflows/collect.yml
+#   find: bash push_retry.sh "converge pass $PASS" ||
+#   with: bash push_retry.sh "converge round $PASS" ||
+#
+# @vacuity ⛔ a rule that cannot run says so
+#   file: push_retry.sh
+#   find:     echo "::warning::$label: could not judge which run's copy of a latest/ or picks/ file is newer, so step 1's stands: ${out:-no python}"
+#   with:     true
 #
 # @vacuity 🔴🔴 keep_both goes before the rule (rebased)
 #   file: push_retry.sh
@@ -321,7 +406,8 @@ try:
        "again. Found %s" % got)
     fr = open(os.path.join(chk, "data/nfl/latest/freshness.json")).read()
     ck('"b"' in fr,
-       "   ...and the LATER pass's latest/ file wins, text and binary",
+       "   ...and under a label step 7 does not judge, the LATER pass's latest/ file wins, text "
+       "and binary (a converge pass: §7)",
        "got %r" % fr)
     ck(gzip.decompress(open(os.path.join(chk, "data/nfl/latest/board.json.gz"), "rb").read()) == b"v-b",
        "   ...including a gzip, which a line merge cannot resolve")
@@ -642,10 +728,11 @@ section("6. 🔴🔴 THE WATCHDOG'S COMMIT NEVER REPLACES WHAT ANOTHER RUN LANDE
 #    `git add data picks` sweeps. No record.json version has ever lost a graded day.
 # ⚠️ WHAT THIS GUARDS: every path the watchdog's commit changed that another run also moved.
 #    NOT a new dated archive (`winner-picks`, `model-picks`) from a run that reached Converge:
-#    a new path never counts as moved, so a stale repair's save still lands. NOT a converge
+#    a new path never counts as moved, so a stale repair's save still lands. ~~NOT a converge
 #    pass (6b, 6b2): two overlapping football runs can still roll a card back for minutes, or
-#    splice it, and that is a separate fix. A run that never reached Converge is stricter
-#    than all of this (6n): nothing judged its tree, so only its report lands.
+#    splice it, and that is a separate fix.~~ `[2026-11-04]` A converge pass is step 7's (§7;
+#    6b, 6b2, 6d here keep step 6 to its own commit). A run that never reached Converge is
+#    stricter than all of this (6n): nothing judged its tree, so only its report lands.
 LABEL = "health report"     # what collect.yml's commit step passes; pinned below
 HEALTH6 = W.HEALTH
 REC6 = "data/latest/record.json"
@@ -758,21 +845,31 @@ try:
        and sh(fb, "git", "rev-parse", "HEAD").stdout == sh(fb, "git", "rev-parse", "origin/main").stdout,
        "   ...and the run's own tree matches what landed")
 
-    # 6b. A CONVERGE PASS IS NOT A REPAIR: step 1 still decides for it.
-    bare6, u, fb = seed6("b")
+    # 6b. A CONVERGE PASS IS NOT A REPAIR: step 7 decides for it, never step 6. ~~step 1 still
+    #     decides for it~~ `[2026-11-04]` Its board read LATER than the other run's, so step 7
+    #     lands it, where step 6 gives way to anything moved; its older record still gives way.
+    bare6, u, fb = seed6("b", {"data/nfl/latest/board.json": '{"pulled_at": "2026-11-10T10:00:00Z"}\n'})
     write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
+    write(u, "data/nfl/latest/board.json", '{"pulled_at": "2026-11-11T10:05:00Z"}\n')
     land_first(u)
-    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); commit(fb, "pass fb")
+    write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100))
+    write(fb, "data/nfl/latest/board.json", '{"pulled_at": "2026-11-11T10:06:00Z"}\n')
+    commit(fb, "pass fb")
     rf = run_helper(fb, "converge pass 1")
     chk = clone(bare6, os.path.join(tmp, "b-check"))
-    ck(rf.returncode == 0 and n6(chk) == 100,
-       "⛔ only the watchdog's commit gives way: a converge pass still lands its own file (step 1)",
-       "the rule grew past its label")
+    ck(rf.returncode == 0 and n6(chk) == 112
+       and open(os.path.join(chk, "data/nfl/latest/board.json")).read() == '{"pulled_at": "2026-11-11T10:06:00Z"}\n',
+       "⛔ only the watchdog's commit gives way to everything moved: a converge pass that read "
+       "later still lands its own copy (step 7)",
+       "the rule grew past its label. n %s board %r"
+       % (n6(chk), open(os.path.join(chk, "data/nfl/latest/board.json")).read()))
 
-    # 6b2. WHAT STEP 1 DOES TO A PRETTY-PRINTED FILE. ⚠️ This pins the behaviour the header
-    #      describes, not one anyone wants: `-X theirs` decides conflicting hunks only, so the
-    #      later lander's stamp lands over the other run's price. A fix for the football
-    #      rollbacks turns this red, and must correct step 1's words in the same change.
+    # 6b2. WHAT A CONVERGE PASS DOES TO A PRETTY-PRINTED FILE. ~~⚠️ This pins the behaviour the
+    #      header describes, not one anyone wants: `-X theirs` decides conflicting hunks only, so
+    #      the later lander's stamp lands over the other run's price. A fix for the football
+    #      rollbacks turns this red, and must correct step 1's words in the same change.~~
+    #      `[2026-11-04]` It turned red with step 7, and step 1's words were corrected with it:
+    #      the card is the other run's, whole (§7 has the rest of the class).
     bare6, u, fb = seed6("b2")
     write(u, CARD6, card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]))
     land_first(u)
@@ -781,11 +878,10 @@ try:
     rf = run_helper(fb, "converge pass 1")
     chk = clone(bare6, os.path.join(tmp, "b2-check"))
     ck(rf.returncode == 0 and open(os.path.join(chk, CARD6)).read()
-       == card6("2026-11-11T10:06:00Z", ["a -105", "b -115", "c -120", "d -105"]),
-       "⚠️ step 1 is hunk by hunk: a pretty-printed card takes this run's stamp and keeps the "
-       "tip's price, a splice of two builds",
-       "⛔ step 1 changed: correct push_retry.sh's header with it. %r"
-       % open(os.path.join(chk, CARD6)).read()[:200])
+       == card6("2026-11-11T10:05:00Z", ["a -105", "b -115", "c -120", "d -105"]),
+       "🔴🔴 a converge pass never splices a pretty-printed card: the other run's stamp and price, "
+       "whole, where step 1 alone put this run's stamp over the other run's price",
+       "⛔ a splice of two builds landed. %r" % open(os.path.join(chk, CARD6)).read()[:200])
 
     # 6c. THE REPLAY PATH: the tip deleted a file the repair rewrote, so the rebase aborts.
     bare6, u, fb = seed6("c", {"data/latest/odds.json": '{"v": 0}\n'})
@@ -806,20 +902,23 @@ try:
        "rc %s, n %s, out %r" % (rf.returncode, n6(chk), rf.stdout[-300:]))
 
     # 6d. ONLY THE WATCHDOG'S OWN COMMIT: a pass that could not push sits under it.
-    bare6, u, fb = seed6("d", {"data/nfl/latest/board.json": '{"v": 0}\n'})
+    #     `[2026-11-04]` That pass is judged by step 7: its paid pull read LATER, so it lands.
+    bare6, u, fb = seed6("d", {"data/nfl/latest/board.json": '{"pulled_at": "2026-11-10T10:00:00Z", "v": 0}\n'})
     write(u, REC6, rec6("2026-11-11T10:05:00Z", 112))
-    write(u, "data/nfl/latest/board.json", '{"v": "u"}\n')
+    write(u, "data/nfl/latest/board.json", '{"pulled_at": "2026-11-11T10:05:00Z", "v": "u"}\n')
     land_first(u, "collect[nfl]: converge pass 3")
-    write(fb, "data/nfl/latest/board.json", '{"v": "paid pass"}\n'); commit(fb, "collect[nfl]: converge pass 1")
+    write(fb, "data/nfl/latest/board.json", '{"pulled_at": "2026-11-11T10:06:00Z", "v": "paid pass"}\n')
+    commit(fb, "collect[nfl]: converge pass 1")
     write(fb, REC6, rec6("2026-11-11T10:06:00Z", 100)); write(fb, HEALTH6, '{"checked_at": "fb"}')
     wd_commit(fb)
     rf = run_helper(fb, LABEL)
     chk = clone(bare6, os.path.join(tmp, "d-check"))
     ck(rf.returncode == 0
-       and open(os.path.join(chk, "data/nfl/latest/board.json")).read() == '{"v": "paid pass"}\n'
+       and open(os.path.join(chk, "data/nfl/latest/board.json")).read()
+       == '{"pulled_at": "2026-11-11T10:06:00Z", "v": "paid pass"}\n'
        and n6(chk) == 112,
-       "⛔ a converge pass under the watchdog's commit keeps its own files; only the commit "
-       "this step made gives way",
+       "⛔ a converge pass under the watchdog's commit is judged as a pass (its later pull lands); "
+       "only the commit this step made gives way to everything moved",
        "board %r, n %s" % (open(os.path.join(chk, "data/nfl/latest/board.json")).read(),
                            n6(chk)))
 
@@ -1025,7 +1124,267 @@ try:
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
+section("7. 🔴🔴 A CONVERGE PASS NEVER REPLACES A NEWER latest/ OR picks/ FILE WITH ONE BUILT FROM AN OLDER TREE")
+# `[measured 2026-09-20 -> 11-04, main's own history]` Two football runs overlap and each
+#    builds both leagues' cards from the tree its pass pulled. Step 1 let the second lander
+#    win: 25 NFL and 13 college cards landed with an older build than the card they replaced
+#    (median 14 and 18 minutes back, worst 54; 10-17 put Bills -230 back to -225 for 42), and a
+#    pretty-printed card could land as a splice of the two builds (6b2 pinned it). A later
+#    pull is newer whatever tree joined it (1 of the other 24 races' second cards was priced
+#    from one), so "the remote always wins" would hide paid prices. Step 7
+#    (`freshness.stand_newer`): the remote's copy, whole, unless this run's copy read its
+#    sources later. `u` is the run that lands first; `fb` the run whose pass began before.
+T0, TU, TF, TL = ("2026-11-11T10:00:00Z", "2026-11-11T10:05:00Z", "2026-11-11T10:06:00Z",
+                  "2026-11-11T10:07:00Z")
+T2, TB = "2026-11-11T10:02:00Z", "2026-11-11T10:04:00Z"
+CARD7, REC7, BOARD7 = "picks/fb-nfl-latest.json", "data/nfl/latest/record.json", "data/nfl/latest/board.json"
+PROPS7, MIX7 = "data/nfl/latest/props.json.gz", "data/nfl/latest/fb-props-model.json"
+SAME7, LOGS7 = "data/nfl/latest/vs-position-2026.json.gz", "data/nfl/latest/players-2026.json.gz"
+ONLY7, GONE7 = "data/nfl/latest/news-flags.json", "data/nfl/latest/odds-probe.json"
+PASS7 = "converge pass 1"      # what collect.yml passes: PASS_LABEL + the pass number, pinned below
+
+
+def card7(built, odds, first, note="x"):
+    """Pretty-printed, as card_fb.py writes it: step 1 merges it hunk by hunk."""
+    return json.dumps({"generated_at": built, "note": note, "odds_pulled_at": odds, "rule": "y",
+                       "picks": [first, "b -115", "c -120", "d -105"]}, indent=1) + "\n"
+
+
+def one7(**kw):
+    """ONE line, as most latest/ files are: a conflict takes the whole file."""
+    return json.dumps(kw, separators=(",", ":"))
+
+
+def seed7(tag):
+    bare7 = os.path.join(tmp, tag + ".git")
+    sh(tmp, "git", "init", "-q", "--bare", "-b", "main", bare7)
+    sd = clone(bare7, os.path.join(tmp, tag + "-seed"))
+    for rel, data in {CARD7: card7(T0, T0, "a -110"), REC7: one7(built_at=T0, n=100),
+                      BOARD7: one7(pulled_at=T0, v=0), PROPS7: gz(one7(pulled_at=T0, v=0)),
+                      MIX7: one7(built_at=T0, board_pulled_at=T0, logs_pulled_at=T0),
+                      SAME7: gz(one7(pulled_at=T0, v=0)), LOGS7: gz(one7(pulled_at=T0, rows="v0")),
+                      ONLY7: one7(built_at=T0, v=0), GONE7: one7(built_at=T0, v=0)}.items():
+        write(sd, rel, data)
+    sh(sd, "git", "add", "-A"); sh(sd, "git", "commit", "-qm", "seed")
+    sh(sd, "git", "push", "-q", "origin", "HEAD:main")
+    return bare7, clone(bare7, os.path.join(tmp, tag + "-u")), clone(bare7, os.path.join(tmp, tag + "-fb"))
+
+
+def read7(repo, rel):
+    """What landed at `rel`, as text (a gzip decompressed); None if nothing did."""
+    p = os.path.join(repo, rel)
+    if not os.path.exists(p):
+        return None
+    return gzip.decompress(open(p, "rb").read()).decode() if rel.endswith(".gz") else open(p).read()
+
+
+def n7(repo):
+    return json.loads(read7(repo, REC7) or "{}").get("n")
+
+
+def beat7(repo, at):
+    """A stamp-only pull of LOGS7 in `repo`: the heartbeat, as collect.write makes it."""
+    return F.keep_with_heartbeat(os.path.join(repo, LOGS7), {"pulled_at": at, "rows": "v0"})
+
+
+def clean7(repo):
+    return (sh(repo, "git", "status", "--porcelain").stdout == ""
+            and sh(repo, "git", "rev-parse", "HEAD").stdout == sh(repo, "git", "rev-parse", "origin/main").stdout)
+
+
+tmp = tempfile.mkdtemp(prefix="pr7-")
+try:
+    # 7a. THE REBASE PATH, AS IT RACES TODAY. The other run lands a new price and a graded
+    #     day; this run built LATER from the older tree, and read the board EARLIER.
+    bare7, u, fb = seed7("a")
+    write(u, CARD7, card7(TU, T0, "a -105"))
+    write(u, REC7, one7(built_at=TU, n=112))
+    write(u, BOARD7, one7(pulled_at=T2, v="u"))
+    write(u, MIX7, one7(built_at=TU, board_pulled_at=T2, logs_pulled_at=T0))
+    ck(beat7(u, TB), "(the other run's 10:04 logs pull is stamp-only: a heartbeat)")
+    land_first(u)
+    write(fb, CARD7, card7(TF, T0, "a -110"))
+    write(fb, REC7, one7(built_at=TF, n=100))
+    write(fb, BOARD7, one7(pulled_at="2026-11-11T10:01:00Z", v="fb"))
+    write(fb, MIX7, one7(built_at=TF, board_pulled_at=TL, logs_pulled_at="2026-11-11T09:00:00Z"))
+    write(fb, LOGS7, gz(one7(pulled_at="2026-11-11T10:03:00Z", rows="v1")))
+    write(fb, ONLY7, one7(built_at=TF, v="fb"))
+    commit(fb, "collect[ncaaf nfl]: converge pass 1")
+    rf = run_helper(fb, PASS7)
+    chk = clone(bare7, os.path.join(tmp, "a-check"))
+    ck(rf.returncode == 0 and read7(chk, CARD7) == card7(TU, T0, "a -105"),
+       "🔴🔴 a pretty-printed card is the other run's, byte for byte, never a splice of two builds",
+       "⛔ step 1 put this run's stamp over the other run's price. rc %s card %r out %r"
+       % (rf.returncode, (read7(chk, CARD7) or "")[:160], rf.stdout[-300:]))
+    ck(n7(chk) == 112,
+       "🔴🔴 a pass built from an older tree never rolls a file back, though its built_at is later",
+       "⛔ the graded day another run landed left main. n=%s" % n7(chk))
+    ck(read7(chk, BOARD7) == one7(pulled_at=T2, v="u"),
+       "🔴 a pass that read its source EARLIER gives way too", repr(read7(chk, BOARD7)))
+    ck(F.stamp_of(os.path.join(chk, LOGS7)) == F._parse(TB)
+       and json.loads(read7(chk, LOGS7))["rows"] == "v0",
+       "🔴🔴 a file and its heartbeat are one: the other run's later reading stands, read "
+       "through the heartbeat that vouches for it",
+       "stamp_of %s rows %r" % (F.stamp_of(os.path.join(chk, LOGS7)), read7(chk, LOGS7)))
+    ck(read7(chk, MIX7) == one7(built_at=TU, board_pulled_at=T2, logs_pulled_at=T0),
+       "🔴 a copy that read one source later and another earlier is not newer: the remote's stands",
+       repr(read7(chk, MIX7)))
+    ck(read7(chk, ONLY7) == one7(built_at=TF, v="fb"),
+       "   ...while a file nobody else moved lands", repr(read7(chk, ONLY7)))
+    ck("the remote's copy stands" in rf.stdout and clean7(fb),
+       "   ...the run's log names what gave way, and its tree matches what landed",
+       repr(rf.stdout[-400:]))
+
+    # 7b. THIS RUN READ LATER: it bought the odds after the other run did, so its board, its
+    #     props join and the card priced from them land whole (the other run's note included).
+    bare7, u, fb = seed7("b")
+    write(u, BOARD7, one7(pulled_at=T2, v="u"))
+    write(u, PROPS7, gz(one7(pulled_at=T2, v="u")))
+    write(u, CARD7, card7(TU, T2, "a -105", note="u"))
+    write(u, REC7, one7(built_at=TU, n=112))
+    write(u, SAME7, gz(one7(pulled_at=T2, v="u")))
+    beat7(u, TB)
+    land_first(u)
+    write(fb, BOARD7, one7(pulled_at=TL, v="fb"))
+    write(fb, PROPS7, gz(one7(pulled_at=TL, v="fb")))
+    write(fb, CARD7, card7(TL, TL, "a -125"))
+    write(fb, REC7, one7(built_at=TF, n=100))
+    write(fb, SAME7, gz(one7(pulled_at=T2, v="fb")))
+    write(fb, LOGS7, gz(one7(pulled_at=TL, rows="v1")))
+    commit(fb, "collect[nfl]: converge pass 1")
+    rf = run_helper(fb, PASS7)
+    chk = clone(bare7, os.path.join(tmp, "b-check"))
+    ck(rf.returncode == 0 and read7(chk, BOARD7) == one7(pulled_at=TL, v="fb")
+       and read7(chk, PROPS7) == one7(pulled_at=TL, v="fb")
+       and read7(chk, CARD7) == card7(TL, TL, "a -125"),
+       "🔴🔴 a pass that read its odds LATER lands its own copy, whole: the board, the props join "
+       "and the card priced from them",
+       "⛔ a newer paid pull was hidden behind the other run's older one. board %r card %r out %r"
+       % (read7(chk, BOARD7), (read7(chk, CARD7) or "")[:160], rf.stdout[-300:]))
+    ck(read7(chk, SAME7) == one7(pulled_at=T2, v="u"),
+       "🔴 the same reading built later is not newer: the remote's copy stands", repr(read7(chk, SAME7)))
+    ck(n7(chk) == 112, "   ...and in the same pass a file with no reading still gives way", "n=%s" % n7(chk))
+    ck(F.stamp_of(os.path.join(chk, LOGS7)) == F._parse(TL)
+       and not os.path.exists(os.path.join(chk, LOGS7 + F.HEARTBEAT_SUFFIX)),
+       "🔴 a later full write takes its heartbeat with it: none is left beside bytes it never saw",
+       "stamp_of %s" % F.stamp_of(os.path.join(chk, LOGS7)))
+    ck("this run's copy lands whole" in rf.stdout and clean7(fb),
+       "   ...and the log says which of this run's copies read later", repr(rf.stdout[-400:]))
+
+    # 7c. THE REPLAY PATH: the other run deleted a file this pass rewrote, so the rebase aborts
+    #     and this run's files are replayed onto the tip, then judged the same way.
+    bare7, u, fb = seed7("c")
+    write(u, CARD7, card7(TU, T0, "a -105"))
+    write(u, REC7, one7(built_at=TU, n=112))
+    write(u, BOARD7, one7(pulled_at=T2, v="u"))
+    sh(u, "git", "rm", "-q", GONE7)
+    land_first(u)
+    write(fb, CARD7, card7(TF, T0, "a -110"))
+    write(fb, REC7, one7(built_at=TF, n=100))
+    write(fb, BOARD7, one7(pulled_at=TL, v="fb"))
+    write(fb, GONE7, one7(built_at=TF, v="fb"))
+    commit(fb, "collect[nfl]: converge pass 1")
+    rf = run_helper(fb, PASS7)
+    chk = clone(bare7, os.path.join(tmp, "c-check"))
+    ck(rf.returncode == 0 and "replayed" in rf.stdout
+       and read7(chk, CARD7) == card7(TU, T0, "a -105") and n7(chk) == 112,
+       "🔴🔴 a REPLAYED pass never lands its older-tree card or record over the other run's",
+       "⛔ the replay checked out every file this run changed. rc %s n %s out %r"
+       % (rf.returncode, n7(chk), rf.stdout[-300:]))
+    ck(read7(chk, BOARD7) == one7(pulled_at=TL, v="fb") and read7(chk, GONE7) is None and clean7(fb),
+       "   ...its later read still lands, and a file the other run deleted stays deleted",
+       "board %r gone %r" % (read7(chk, BOARD7), read7(chk, GONE7)))
+
+    # 7d. AN EARLIER PASS THAT COULD NOT PUSH sits under this one: it is this run's too.
+    bare7, u, fb = seed7("d")
+    write(u, REC7, one7(built_at=TU, n=112))
+    write(u, CARD7, card7(TU, T0, "a -105"))
+    land_first(u)
+    write(fb, REC7, one7(built_at=TF, n=100)); commit(fb, "collect[nfl]: converge pass 1")
+    write(fb, CARD7, card7(TL, T0, "a -110")); write(fb, ONLY7, one7(built_at=TL, v="fb"))
+    commit(fb, "collect[nfl]: converge pass 2")
+    rf = run_helper(fb, "converge pass 2")
+    chk = clone(bare7, os.path.join(tmp, "d-check"))
+    ck(rf.returncode == 0 and n7(chk) == 112 and read7(chk, CARD7) == card7(TU, T0, "a -105")
+       and read7(chk, ONLY7) == one7(built_at=TL, v="fb"),
+       "🔴🔴 every commit of this run since its base is judged, not only the last: an earlier "
+       "pass's older record gives way too",
+       "n %s out %r" % (n7(chk), rf.stdout[-300:]))
+
+    # 7e. NOTHING LEFT: every file the pass changed gave way.
+    bare7, u, fb = seed7("e")
+    write(u, REC7, one7(built_at=TU, n=112)); land_first(u)
+    write(fb, REC7, one7(built_at=TF, n=100)); commit(fb, "collect[nfl]: converge pass 1")
+    before = remote_head(u)
+    rf = run_helper(fb, PASS7)
+    ck(rf.returncode == 0 and remote_head(u) == before and clean7(fb)
+       and "the remote's copy stands" in rf.stdout,
+       "   a pass whose every file gave way lands nothing (no empty commit), and its log says why",
+       "out %r" % rf.stdout[-300:])
+
+    # 7f. A THIRD RUN LANDS WHILE THIS ONE PUSHES: attempt 2 is judged against the newer tip.
+    bare7, u, fb = seed7("f")
+    third = clone(bare7, os.path.join(tmp, "f-third"))
+    write(u, REC7, one7(built_at=TU, n=112)); land_first(u)
+    write(fb, REC7, one7(built_at=TF, n=100)); write(fb, ONLY7, one7(built_at=TF, v="fb"))
+    commit(fb, "collect[nfl]: converge pass 1")
+    flag = os.path.join(tmp, "f.flag").replace(os.sep, "/")
+    hook(fb, "pre-push",
+         'if [ ! -f "%(flag)s" ]; then\n'
+         '  touch "%(flag)s"\n'
+         '  cd "%(third)s" && unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE &&\n'
+         "  git pull -q origin main && printf '%%s' '%(rec)s' > %(path)s &&\n"
+         '  git add -A && git commit -qm third && git push -q origin HEAD:main\n'
+         '  exit 1\n'
+         'fi\n' % {"flag": flag, "third": third.replace(os.sep, "/"), "path": REC7,
+                   "rec": one7(built_at="2026-11-11T10:08:00Z", n=120)})
+    rf = run_helper(fb, PASS7)
+    chk = clone(bare7, os.path.join(tmp, "f-check"))
+    ck(rf.returncode == 0 and "pushed on attempt 2" in rf.stdout and n7(chk) == 120
+       and read7(chk, ONLY7) == one7(built_at=TF, v="fb"),
+       "🔴🔴 a run that lands during the push is not replaced either: attempt 2 gives way to it too",
+       "rc %s n %s out %r" % (rf.returncode, n7(chk), rf.stdout[-300:]))
+
+    # 7g. ANOTHER LABEL. A refit, the run list and a self-repair record are each the one writer
+    #     of their files: step 7 judges a converge pass (and the passes under the watchdog's).
+    bare7, u, fb = seed7("g")
+    write(u, REC7, one7(built_at=TU, n=112)); land_first(u)
+    write(fb, REC7, one7(built_at=TF, n=100)); commit(fb, "runs: run status")
+    rf = run_helper(fb, "run status")
+    chk = clone(bare7, os.path.join(tmp, "g-check"))
+    ck(rf.returncode == 0 and n7(chk) == 100,
+       "⛔ only a converge pass is judged: under another label step 1 still decides",
+       "n %s out %r" % (n7(chk), rf.stdout[-300:]))
+
+    # 7h. THE RULE CANNOT RUN (a broken freshness.py beside the script): the run says so and
+    #     lands step 1's result. Losing the pass, and the paid receipts in it, would be worse.
+    bare7, u, fb = seed7("h")
+    write(u, REC7, one7(built_at=TU, n=112)); land_first(u)
+    write(fb, REC7, one7(built_at=TF, n=100)); commit(fb, "collect[nfl]: converge pass 1")
+    alone = os.path.join(tmp, "h-helper")
+    os.makedirs(alone)
+    shutil.copy(HELPER, alone)
+    with open(os.path.join(alone, "freshness.py"), "w") as fh:
+        fh.write("import sys\nsys.exit('boom')\n")
+    rf = subprocess.run(["bash", os.path.join(alone, "push_retry.sh"), PASS7], cwd=fb,
+                        capture_output=True, text=True, env=dict(os.environ, PUSH_BACKOFF="0"))
+    chk = clone(bare7, os.path.join(tmp, "h-check"))
+    ck(rf.returncode == 0 and "::warning::converge pass 1: could not judge" in rf.stdout
+       and n7(chk) == 100,
+       "⛔ a rule that cannot run warns and lands the pass: never silent, and never a pass lost",
+       "rc %s n %s out %r" % (rf.returncode, n7(chk), rf.stdout[-300:]))
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+
 helper_text = open(HELPER, encoding="utf-8").read()
+m7 = re.search(r'^PASS_LABEL="([^"]+)"', helper_text, re.M)
+for wf7 in (".github/workflows/collect.yml", "docs/upload/collect.yml"):
+    if os.path.exists(os.path.join(ROOT, wf7)):
+        ck(m7 is not None and m7.group(1) + "1" == PASS7
+           and 'bash push_retry.sh "%s$PASS"' % m7.group(1) in open(os.path.join(ROOT, wf7), encoding="utf-8").read(),
+           "🔴 %s's converge loop passes the label step 7 keys on" % wf7,
+           "⛔ a label that drifts is a rule that stops in silence, and collect.yml changes only by "
+           "Sam's upload")
 m6 = re.search(r'^REPAIR_LABEL="([^"]+)"', helper_text, re.M)
 ck(m6 is not None and m6.group(1) == LABEL and 'bash push_retry.sh "%s"' % m6.group(1) in wf,
    "🔴 the workflow's commit step passes the label the rule keys on, so renaming one "

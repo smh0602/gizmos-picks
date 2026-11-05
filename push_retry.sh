@@ -20,10 +20,14 @@
 # ✅ WHAT IT DOES:
 #   1. pull --rebase -X theirs: in a rebase "theirs" is THIS run's commit,
 #      and it decides CONFLICTING HUNKS only: this run's side of each, the
-#      tip's side of the rest. So a one-line or binary `latest/*` file is the
-#      last lander's whole, whatever its build was made from, and a
-#      pretty-printed one (a card, health.json) can land as a splice of both
-#      builds under the last lander's stamp (5 and 6 are exceptions).
+#      tip's side of the rest. So ON ITS OWN a one-line or binary `latest/*`
+#      file is the last lander's whole, whatever its build was made from, and a
+#      pretty-printed one (a card, health.json) is a splice of both builds
+#      under the last lander's stamp. ~~(5 and 6 are exceptions)~~ `[2026-11-04]`
+#      Steps 5, 6 and 7 then correct it before every push: ⛔ a converge pass
+#      never lands that splice or that last lander's whole (7). Step 1 still
+#      decides alone for a dated path that is not paid, and for any label but a
+#      converge pass and the watchdog's (each of those workflows is one writer).
 #      ~~Dated snapshot paths are unique and never conflict.~~ (see 4)
 #   2. If the rebase still cannot finish (binary or modify/delete
 #      conflict), ABORT it — never leave it half-done — and REPLAY: reset
@@ -56,9 +60,25 @@
 #      killed test left in data/: ALL of it gives way, tip moved or not, and
 #      only its report lands. ⚠️ NOT a new dated archive (`winner-picks`,
 #      `model-picks`) from a run that did reach Converge: a new path never
-#      counts as moved, so a stale repair's save still lands. NOT a converge
+#      counts as moved, so a stale repair's save still lands. ~~NOT a converge
 #      pass: step 1 still decides for it, so two overlapping football runs
-#      can still roll a card back for minutes, or splice it.
+#      can still roll a card back for minutes, or splice it.~~ (see 7)
+#   7. `[2026-11-04]` A CONVERGE PASS NEVER REPLACES A NEWER FILE WITH ONE BUILT
+#      FROM AN OLDER TREE (`freshness.stand_newer`). Two football runs overlap and
+#      each builds both leagues' cards from the tree its pass pulled; step 1 let
+#      the second lander win: 09-20 -> 11-04, 25 NFL and 13 college cards landed
+#      with an older build than the one they replaced (worst 54 minutes; one with
+#      other prices: 10-17, Bills -230 back to -225 for 42), and a card could land
+#      spliced. Now every
+#      `data/**/latest/` and `picks/` file this pass changed that another run
+#      landed after this pass's base is the REMOTE's copy, whole, unless this
+#      run's copy read its sources later (`pulled_at`, `odds_pulled_at`, ...):
+#      then this run's, whole. A file and its heartbeat go together. The
+#      watchdog's commit judges the passes under it this way, its own by 6.
+#      ⚠️ It chooses, it never rebuilds: a pass that gives way loses its newer
+#      build of that file until the next one (23 cards in that window, 21 with the
+#      same rows and prices); a later props pull that wins carries only what its
+#      own tree had of the other run's books. A failure warns and step 1 stands.
 # ══════════════════════════════════════════════════════════════════════
 set -u
 label="${1:-push}"
@@ -75,6 +95,7 @@ remote="${PUSH_REMOTE:-origin}"
 mine="$(git rev-parse HEAD)"
 own="$mine"                     # this commit, before any rebase: step 6. Never reassigned.
 REPAIR_LABEL="health report"    # collect.yml's commit step; test_push_retry.py pins it
+PASS_LABEL="converge pass "     # collect.yml's converge loop, + the pass number; pinned too
 HEALTH_PATH="data/latest/health.json"    # watchdog.HEALTH; test_push_retry.py pins it
 msg="$(git log -1 --format=%B "$mine")"
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -103,6 +124,28 @@ settle() {
   py="$(command -v python || command -v python3)"
   if [ -z "$py" ] || ! out="$("$py" "$here/freshness.py" settle-beats "$1" 2>&1)"; then
     echo "::warning::$label: could not check this run's heartbeats against the remote: ${out:-no python}"
+    return 0
+  fi
+  [ -z "$out" ] || while IFS= read -r line; do echo "$label: $line"; done <<< "$out"
+}
+
+# stand_newer <tip>: step 7, against the exact commit this push lands on. A converge pass
+# judges every commit it holds (an earlier pass that could not push included); the watchdog's
+# commit judges the passes under it and leaves its own to step 6. After keep_both (a paid
+# snapshot is a dated path, never judged here), before give_way and settle.
+# ⚠️ Like settle: no freshness.py beside the script (a fixture) means no rule, and a failure
+#    warns and lands step 1's result: losing the whole pass would be worse.
+stand_newer() {
+  local top py out
+  case "$label" in
+    "$PASS_LABEL"*) top="$own" ;;
+    "$REPAIR_LABEL") top="$own^" ;;
+    *) return 0 ;;
+  esac
+  [ -f "$here/freshness.py" ] || return 0
+  py="$(command -v python || command -v python3)"
+  if [ -z "$py" ] || ! out="$("$py" "$here/freshness.py" stand-newer "$1" "$top" 2>&1)"; then
+    echo "::warning::$label: could not judge which run's copy of a latest/ or picks/ file is newer, so step 1's stands: ${out:-no python}"
     return 0
   fi
   [ -z "$out" ] || while IFS= read -r line; do echo "$label: $line"; done <<< "$out"
@@ -139,6 +182,7 @@ give_way() {
 for i in 1 2 3 4 5; do
   if git pull -q --rebase -X theirs --autostash "$remote" "$branch" >/dev/null 2>&1; then
     keep_both "$(git rev-parse FETCH_HEAD)"
+    stand_newer "$(git rev-parse FETCH_HEAD)"
     give_way "$(git rev-parse FETCH_HEAD)"
     settle "$(git rev-parse FETCH_HEAD)"
     if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then
@@ -164,6 +208,7 @@ for i in 1 2 3 4 5; do
         git commit -q -m "$msg" || { echo "$label: the replayed commit failed: nothing landed"; exit 1; }
       fi
       keep_both "$tip"
+      stand_newer "$tip"
       give_way "$tip"
       settle "$tip"
       mine="$(git rev-parse HEAD)"

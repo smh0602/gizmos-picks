@@ -1573,6 +1573,9 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `keep_with_heartbeat`, `same_but_stamps` (the one
                   whole-document stamp-aside compare), read by `stamp_of`;
                   `settle_beats`, push_retry.sh's landing step.
+                  `[2026-11-04]` also `stand_newer` (`LANDING_SCOPE`,
+                  `readings`): push_retry.sh's step 7, which copy of a
+                  latest/ or picks/ file a converge pass lands.
                   `converge` plans its work from this, not from crons.
                   `[2026-09-26]` `classify` is the gate's one hard/soft
                   verdict; `judge_failures` decides whether a failed
@@ -1750,11 +1753,12 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   repair mode and league, and what its sweep of `data picks`
                   carries. ⚠️ NOT the class: a new dated archive (`winner-picks`,
                   `model-picks`) never counts as moved, so a stale repair's
-                  save still lands and can be the last before the start; and a
+                  save still lands and can be the last before the start; ~~and a
                   converge pass still lands by step 1 (this run's side of each
                   conflicting hunk, the tip's side of the rest), so two
                   overlapping football runs still roll a card back for minutes,
-                  or splice it, which is a separate fix. A run with no git
+                  or splice it, which is a separate fix~~ (fixed 2026-11-04,
+                  below). A run with no git
                   identity gets one (such runs printed "pushed" with nothing
                   landed), and a replayed commit that fails is now exit 1. It
                   never reached Converge (cancelled in Tests, refused by the
@@ -1764,6 +1768,25 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   included. ⚠️ That reads "no identity" as "unjudged", true
                   only while Converge alone sets it (pinned). test_push_retry.py
                   §3, §6.
+                  `[2026-11-04]` A CONVERGE PASS NEVER REPLACES A NEWER FILE
+                  WITH ONE BUILT FROM AN OLDER TREE (step 7,
+                  `freshness.stand_newer`). Measured on main 09-20 -> 11-04:
+                  25 NFL and 13 college cards landed with an older build than
+                  the one they replaced (worst 54 min; 37 with the same rows and
+                  prices, 10-17's put Bills -230 back to -225 for 42), and a card
+                  could land spliced. Now every
+                  `data/**/latest/` and `picks/` file a pass changed that
+                  another run landed after the pass's base is the remote's,
+                  whole, unless the pass's copy read its sources later
+                  (`pulled_at`, `odds_pulled_at`, ...: every shared one at
+                  least as late, one later; a later pull is newer whatever tree
+                  joined it). A file and its heartbeat go
+                  together. The watchdog's commit judges the passes under it,
+                  its own by step 6; any other label is one writer (step 1).
+                  ⚠️ It chooses, never rebuilds: a pass that gives way loses its
+                  newer build of that file until the next build (23 cards in
+                  that window, 21 with the same rows and prices). A failure warns
+                  and step 1 stands. test_push_retry.py §7 (6b, 6b2, 6d).
 mlb_refit.py      MLB champion vs challenger, as Sam approved it on
                   2026-09-23 in `research/mlb_refit_spec.md`: v5.0
                   (READ from card.py) against the same model re-fitted

@@ -322,6 +322,131 @@ def settle_beats(tip, cwd=None):
     return done
 
 
+# 🔴🔴 THE FILES A CONVERGE PASS LANDS WHOLE, FROM ONE RUN (`stand_newer`).
+LANDING_SCOPE = re.compile(r"^(data/(?:[^/]+/)*latest/|picks/)")
+
+
+def readings(doc):
+    """When each source behind `doc` was read: its `pulled_at` and every `*_pulled_at`."""
+    if not isinstance(doc, dict):
+        return {}
+    got = ((k, _parse(v)) for k, v in doc.items() if k == "pulled_at" or k.endswith("_pulled_at"))
+    return {k: t for k, t in got if t}
+
+
+def stand_newer(tip, top, cwd=None):
+    """🔴🔴 A CONVERGE PASS NEVER REPLACES A NEWER FILE WITH ONE BUILT FROM AN OLDER TREE.
+
+    `[measured 2026-09-20 -> 11-04]` Two football runs overlap, each builds both
+    leagues' cards from the tree its pass pulled, and `push_retry.sh`'s step 1
+    kept the second lander's side of every conflicting hunk: 25 NFL and 13 college
+    cards landed with an older build than the card they replaced (median 14 and 18
+    minutes back, worst 54; 37 with the same rows and prices, and 10-17's put Bills
+    -230 back to -225 for 42 minutes), and a pretty-printed card could land as a
+    splice of both builds.
+    ✅ Every `LANDING_SCOPE` file this run's commits up to `top` changed that the
+    tip ALSO changed since their merge base is made WHOLE, from one side: the
+    tip's (another run landed it after this run's base, so this run built without
+    it), unless this run's copy READ ITS SOURCES LATER (`readings`: every stamp the
+    two copies share is at least as late, one later; a later pull is newer whatever
+    tree joined it, and 1 of the other 24 races' second cards was priced from one).
+    A file and its heartbeat are one unit, judged on the stamps the heartbeat
+    vouches for. Folded into HEAD's commit, as `settle_beats` is.
+    -> [(path, "tip" | "this run", why)].
+    ⚠️ It chooses, it never rebuilds: a copy that gives way takes this run's newer
+    build of it with it until the next build (of those 24 races' cards, 21 had the
+    same rows and prices, 2 one or two rows different).
+    ⛔ No merge base, or HEAD is the tip: nothing is known to have moved, and it
+    stands aside."""
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(("git",) + args, cwd=cwd, capture_output=True)
+
+    def out(*args):
+        return git(*args).stdout.decode("utf-8").strip()
+
+    def blob(rev, rel):
+        p = git("cat-file", "blob", f"{rev}:{rel}")
+        return p.stdout if p.returncode == 0 else None
+
+    def names(a, b):
+        return {p for p in git("diff", "--name-only", "--no-renames", "-z", a, b)
+                .stdout.decode("utf-8").split("\0") if p}
+
+    def unit(p):
+        return p[:-len(HEARTBEAT_SUFFIX)] if p.endswith(HEARTBEAT_SUFFIX) else p
+
+    def logical(rev, f):
+        """The document at `rev` as its readers see it: a bound heartbeat's stamps on it."""
+        buf = blob(rev, f)
+        try:
+            d = json.loads((gzip.decompress(buf) if f.endswith(".gz") else buf).decode("utf-8"))
+        except Exception:
+            return None
+        if isinstance(d, dict):
+            try:
+                beat = json.loads((blob(rev, f + HEARTBEAT_SUFFIX) or b"null").decode("utf-8"))
+            except Exception:
+                beat = None
+            st = _vouched(beat, f.rsplit("/", 1)[-1], buf, _stamps(d))
+            d = dict(d, **st) if st else d
+        return d
+
+    base = git("merge-base", top, tip)
+    if base.returncode or out("rev-parse", "HEAD") == out("rev-parse", tip):
+        return []
+    base = base.stdout.decode("utf-8").strip()
+    raced = {unit(p) for p in names(base, top) if LANDING_SCOPE.match(p)} \
+        & {unit(p) for p in names(base, tip)}
+    done = []
+    for f in sorted(raced):
+        rels = (f, f + HEARTBEAT_SUFFIX)
+        if all(blob(top, r) == blob(tip, r) for r in rels):
+            continue
+        mine, theirs = readings(logical(top, f)), readings(logical(tip, f))
+        both = sorted(set(mine) & set(theirs))
+        if both and all(mine[k] >= theirs[k] for k in both) and any(mine[k] > theirs[k] for k in both):
+            k = next(k for k in both if mine[k] > theirs[k])
+            done.append((f, "this run", f"it read {k} {mine[k]:%Y-%m-%dT%H:%MZ}, "
+                                       f"the remote's {theirs[k]:%Y-%m-%dT%H:%MZ}"))
+        else:
+            done.append((f, "tip", "another run landed it after this run's base"))
+    touched = []
+    try:
+        for f, side, _why in done:
+            rev = top if side == "this run" else tip
+            for rel in (f, f + HEARTBEAT_SUFFIX):
+                want = blob(rev, rel)
+                if want == blob("HEAD", rel):
+                    continue
+                touched.append(rel)
+                p = git("checkout", "-q", rev, "--", rel) if want is not None \
+                    else git("rm", "--quiet", "--", rel)
+                if p.returncode:
+                    raise RuntimeError(f"stand_newer: could not restore {rel}: "
+                                       + p.stderr.decode("utf-8", "replace")[:300])
+        if not touched:
+            return done
+        if out("write-tree") == out("rev-parse", "HEAD^^{tree}"):
+            git("reset", "-q", "--soft", "HEAD^")       # nothing of this run's own is left
+            return done
+        p = git("commit", "-q", "--amend", "--no-edit", "--only", "--", *touched)
+        if p.returncode:
+            raise RuntimeError("stand_newer: the amend failed: " + p.stderr.decode("utf-8", "replace")[:300])
+    except Exception:
+        # ⛔ Never a half-applied choice: HEAD's own files back, then the caller warns.
+        root = out("rev-parse", "--show-toplevel")
+        for rel in touched:
+            git("reset", "-q", "HEAD", "--", rel)
+            if blob("HEAD", rel) is not None:
+                git("checkout", "-q", "HEAD", "--", rel)
+            elif os.path.exists(os.path.join(root, rel)):
+                os.remove(os.path.join(root, rel))
+        raise
+    return done
+
+
 def drop_heartbeat(path):
     """A full write of `path` supersedes its heartbeat. (An unbound one is
     ignored anyway; this keeps the tree honest to read.)"""
@@ -2776,5 +2901,11 @@ if __name__ == "__main__":
                   + ("the remote's heartbeat is kept" if _how == "tip"
                      else "removed, so the file's own stamp stands"))
         _sys.exit(0)
-    print("usage: freshness.py settle-beats <tip>")
+    # `python freshness.py stand-newer <tip> <top>`: push_retry.sh's step 7 (stand_newer).
+    if len(_sys.argv) == 4 and _sys.argv[1] == "stand-newer":
+        for _p, _side, _why in stand_newer(_sys.argv[2], _sys.argv[3]):
+            print(f"{_p}: " + ("this run's copy lands whole: " if _side == "this run"
+                               else "the remote's copy stands: ") + _why)
+        _sys.exit(0)
+    print("usage: freshness.py settle-beats <tip> | stand-newer <tip> <top>")
     _sys.exit(2)
