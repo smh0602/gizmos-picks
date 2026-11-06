@@ -1,0 +1,5504 @@
+{
+ "date": "2026-11-06",
+ "league": "ncaaf",
+ "generated_at": "2026-11-06T15:11:19Z",
+ "generated_by": "card_fb.py",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-11-06T15:09:46Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": null,
+ "denominator": "every game he appears in (union denominator)",
+ "min_games": 6,
+ "n_gated_by_measurement": 12,
+ "rate_gates": {
+  "min_reception_line": 3.5,
+  "measured_markets": [
+   "player_anytime_td",
+   "player_pass_yds",
+   "player_reception_yds",
+   "player_receptions",
+   "player_rush_yds"
+  ],
+  "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
+ },
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "SMU Mustangs",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -210,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 71,
+   "break_even": 67.7,
+   "edge": 3.0,
+   "why": [
+    "The game model gives SMU Mustangs 71% to win; the price -210 needs 67.7%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "South Florida Bulls",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 2.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -104,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 51.0,
+   "edge": 8.4,
+   "why": [
+    "The game model gives South Florida Bulls 59% to cover +2.5; the price -104 needs 51.0%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "SMU Mustangs",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -5.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 58,
+   "break_even": 52.4,
+   "edge": 5.8,
+   "why": [
+    "The game model gives SMU Mustangs 58% to cover -5.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Arizona Wildcats",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -7.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "draftkings",
+   "price": -102,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "break_even": 50.5,
+   "edge": 6.8,
+   "why": [
+    "The game model gives Arizona Wildcats 57% to cover -7.5; the price -102 needs 50.5%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 4
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Illinois Fighting Illini",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": 4.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 51.9,
+   "edge": 1.7,
+   "why": [
+    "The game model gives Illinois Fighting Illini 54% to cover +4.5; the price -108 needs 51.9%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 5
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "South Florida Bulls",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "draftkings",
+   "price": 114,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 46.7,
+   "edge": 6.8,
+   "why": [
+    "The game model gives South Florida Bulls 54% to win; the price +114 needs 46.7%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 6
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 38.5,
+   "game": "New Mexico Lobos @ Nevada Wolf Pack",
+   "game_id": "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "commence": "2026-11-07T02:00:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 52.4,
+   "edge": 0.3,
+   "why": [
+    "The game model gives Under 53% at 38.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 7
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 46.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 1.7,
+   "why": [
+    "The game model gives Over 53% at 46.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 8
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "South Florida Bulls",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 2.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -104,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 51.0,
+   "edge": 8.4,
+   "why": [
+    "The game model gives South Florida Bulls 59% to cover +2.5; the price -104 needs 51.0%.",
+    "The model's predicted score: South Florida Bulls 20, East Carolina Pirates 19 (total 39).",
+    "The South Florida Bulls score 27 and allow 14.5 points a game this season (8 games).",
+    "The East Carolina Pirates score 24 and allow 24.1 points a game this season (8 games).",
+    "Against teams the model rates above average this season: South Florida Bulls 1-1, East Carolina Pirates 0-2."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives South Florida Bulls 59% to cover +2.5; the price -104 needs 51.0%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "SMU Mustangs",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -5.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 58,
+   "break_even": 52.4,
+   "edge": 5.8,
+   "why": [
+    "The game model gives SMU Mustangs 58% to cover -5.5; the price -110 needs 52.4%.",
+    "The model's predicted score: Virginia Tech Hokies 23, SMU Mustangs 32 (total 55).",
+    "The Virginia Tech Hokies score 35 and allow 20.5 points a game this season (8 games).",
+    "The SMU Mustangs score 35.2 and allow 22.2 points a game this season (8 games).",
+    "Against teams the model rates above average this season: Virginia Tech Hokies 1-1, SMU Mustangs 2-1."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 2,
+   "why_card": [
+    "The game model gives SMU Mustangs 58% to cover -5.5; the price -110 needs 52.4%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Arizona Wildcats",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -7.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "draftkings",
+   "price": -102,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "break_even": 50.5,
+   "edge": 6.8,
+   "why": [
+    "The game model gives Arizona Wildcats 57% to cover -7.5; the price -102 needs 50.5%.",
+    "The model's predicted score: TCU Horned Frogs 19, Arizona Wildcats 29 (total 48).",
+    "The TCU Horned Frogs score 23.2 and allow 14.1 points a game this season (8 games).",
+    "The Arizona Wildcats score 34.9 and allow 18.9 points a game this season (8 games).",
+    "Against teams the model rates above average this season: TCU Horned Frogs 2-3, Arizona Wildcats 2-2."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 3,
+   "why_card": [
+    "The game model gives Arizona Wildcats 57% to cover -7.5; the price -102 needs 50.5%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Illinois Fighting Illini",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": 4.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 51.9,
+   "edge": 1.7,
+   "why": [
+    "The game model gives Illinois Fighting Illini 54% to cover +4.5; the price -108 needs 51.9%.",
+    "The model's predicted score: Nebraska Cornhuskers 26, Illinois Fighting Illini 23 (total 49).",
+    "The Nebraska Cornhuskers score 32.4 and allow 15.6 points a game this season (8 games).",
+    "The Illinois Fighting Illini score 29 and allow 24.2 points a game this season (8 games).",
+    "Against teams the model rates above average this season: Nebraska Cornhuskers 0-3, Illinois Fighting Illini 1-2."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 4,
+   "why_card": [
+    "The game model gives Illinois Fighting Illini 54% to cover +4.5; the price -108 needs 51.9%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 38.5,
+   "game": "New Mexico Lobos @ Nevada Wolf Pack",
+   "game_id": "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "commence": "2026-11-07T02:00:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 52.4,
+   "edge": 0.3,
+   "why": [
+    "The game model gives Under 53% at 38.5; the price -110 needs 52.4%.",
+    "The model's predicted score: New Mexico Lobos 24, Nevada Wolf Pack 13 (total 37).",
+    "The New Mexico Lobos score 35 and allow 11.9 points a game this season (8 games).",
+    "The Nevada Wolf Pack score 23 and allow 22.6 points a game this season (8 games).",
+    "Against teams the model rates above average this season: New Mexico Lobos 1-1, Nevada Wolf Pack 0-3."
+   ],
+   "priced_at": "2026-11-06T11:21:58Z",
+   "rank": 5,
+   "why_card": [
+    "The game model gives Under 53% at 38.5; the price -110 needs 52.4%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-11-06",
+  "card_slate": "2026-11-06",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-11-06T15:11:06Z",
+  "ladder_built_at": "2026-11-06T15:11:11Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "score": {
+    "home": 32,
+    "away": 23
+   }
+  },
+  {
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "score": {
+    "home": 19,
+    "away": 20
+   }
+  },
+  {
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "score": {
+    "home": 23,
+    "away": 26
+   }
+  },
+  {
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "score": {
+    "home": 13,
+    "away": 24
+   }
+  },
+  {
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "score": {
+    "home": 29,
+    "away": 19
+   }
+  },
+  {
+   "away": "Texas Longhorns",
+   "home": "Missouri Tigers",
+   "score": {
+    "home": 22,
+    "away": 21
+   }
+  },
+  {
+   "away": "BYU Cougars",
+   "home": "Utah Utes",
+   "score": {
+    "home": 30,
+    "away": 19
+   }
+  },
+  {
+   "away": "Iowa State Cyclones",
+   "home": "Baylor Bears",
+   "score": {
+    "home": 30,
+    "away": 21
+   }
+  },
+  {
+   "away": "Clemson Tigers",
+   "home": "Syracuse Orange",
+   "score": {
+    "home": 25,
+    "away": 26
+   }
+  },
+  {
+   "away": "Florida State Seminoles",
+   "home": "Boston College Eagles",
+   "score": {
+    "home": 23,
+    "away": 30
+   }
+  },
+  {
+   "away": "North Carolina Tar Heels",
+   "home": "UConn Huskies",
+   "score": {
+    "home": 27,
+    "away": 28
+   }
+  },
+  {
+   "away": "Michigan State Spartans",
+   "home": "Michigan Wolverines",
+   "score": {
+    "home": 25,
+    "away": 15
+   }
+  },
+  {
+   "away": "UCLA Bruins",
+   "home": "Minnesota Golden Gophers",
+   "score": {
+    "home": 17,
+    "away": 20
+   }
+  },
+  {
+   "away": "Iowa Hawkeyes",
+   "home": "Northwestern Wildcats",
+   "score": {
+    "home": 22,
+    "away": 21
+   }
+  },
+  {
+   "away": "Tulsa Golden Hurricane",
+   "home": "Tulane Green Wave",
+   "score": {
+    "home": 28,
+    "away": 25
+   }
+  },
+  {
+   "away": "Duke Blue Devils",
+   "home": "NC State Wolfpack",
+   "score": {
+    "home": 24,
+    "away": 26
+   }
+  },
+  {
+   "away": "Maryland Terrapins",
+   "home": "Purdue Boilermakers",
+   "score": {
+    "home": 32,
+    "away": 23
+   }
+  },
+  {
+   "away": "Arkansas Razorbacks",
+   "home": "Auburn Tigers",
+   "score": {
+    "home": 31,
+    "away": 22
+   }
+  },
+  {
+   "away": "Oklahoma State Cowboys",
+   "home": "Kansas State Wildcats",
+   "score": {
+    "home": 35,
+    "away": 33
+   }
+  },
+  {
+   "away": "Old Dominion Monarchs",
+   "home": "Coastal Carolina Chanticleers",
+   "score": {
+    "home": 25,
+    "away": 19
+   }
+  },
+  {
+   "away": "Georgia State Panthers",
+   "home": "Appalachian State Mountaineers",
+   "score": {
+    "home": 28,
+    "away": 25
+   }
+  },
+  {
+   "away": "Texas A&M Aggies",
+   "home": "South Carolina Gamecocks",
+   "score": {
+    "home": 25,
+    "away": 24
+   }
+  },
+  {
+   "away": "UL Monroe Warhawks",
+   "home": "Arkansas State Red Wolves",
+   "score": {
+    "home": 35,
+    "away": 18
+   }
+  },
+  {
+   "away": "Delaware Blue Hens",
+   "home": "Kennesaw State Owls",
+   "score": {
+    "home": 30,
+    "away": 27
+   }
+  },
+  {
+   "away": "Alabama Crimson Tide",
+   "home": "LSU Tigers",
+   "score": {
+    "home": 30,
+    "away": 26
+   }
+  },
+  {
+   "away": "Cincinnati Bearcats",
+   "home": "Houston Cougars",
+   "score": {
+    "home": 38,
+    "away": 24
+   }
+  },
+  {
+   "away": "West Virginia Mountaineers",
+   "home": "Texas Tech Red Raiders",
+   "score": {
+    "home": 42,
+    "away": 25
+   }
+  },
+  {
+   "away": "Oregon Ducks",
+   "home": "Ohio State Buckeyes",
+   "score": {
+    "home": 28,
+    "away": 17
+   }
+  },
+  {
+   "away": "Penn State Nittany Lions",
+   "home": "Washington Huskies",
+   "score": {
+    "home": 23,
+    "away": 21
+   }
+  },
+  {
+   "away": "Charlotte 49ers",
+   "home": "UAB Blazers",
+   "score": {
+    "home": 31,
+    "away": 17
+   }
+  },
+  {
+   "away": "Temple Owls",
+   "home": "Navy Midshipmen",
+   "score": {
+    "home": 33,
+    "away": 23
+   }
+  },
+  {
+   "away": "Marshall Thundering Herd",
+   "home": "Georgia Southern Eagles",
+   "score": {
+    "home": 33,
+    "away": 23
+   }
+  },
+  {
+   "away": "Western Kentucky Hilltoppers",
+   "home": "Middle Tennessee Blue Raiders",
+   "score": {
+    "home": 26,
+    "away": 25
+   }
+  },
+  {
+   "away": "UCF Knights",
+   "home": "Kansas Jayhawks",
+   "score": {
+    "home": 27,
+    "away": 21
+   }
+  },
+  {
+   "away": "Rice Owls",
+   "home": "North Texas Mean Green",
+   "score": {
+    "home": 40,
+    "away": 21
+   }
+  },
+  {
+   "away": "Northern Illinois Huskies",
+   "home": "San Jose State Spartans",
+   "score": {
+    "home": 32,
+    "away": 21
+   }
+  },
+  {
+   "away": "Missouri State Bears",
+   "home": "Florida International Panthers",
+   "score": {
+    "home": 28,
+    "away": 22
+   }
+  },
+  {
+   "away": "Louisiana Tech Bulldogs",
+   "home": "Troy Trojans",
+   "score": {
+    "home": 21,
+    "away": 26
+   }
+  },
+  {
+   "away": "Vanderbilt Commodores",
+   "home": "Mississippi State Bulldogs",
+   "score": {
+    "home": 26,
+    "away": 21
+   }
+  },
+  {
+   "away": "Rutgers Scarlet Knights",
+   "home": "Wisconsin Badgers",
+   "score": {
+    "home": 29,
+    "away": 16
+   }
+  },
+  {
+   "away": "South Alabama Jaguars",
+   "home": "Louisiana Ragin Cajuns",
+   "score": {
+    "home": 33,
+    "away": 24
+   }
+  },
+  {
+   "away": "Boise State Broncos",
+   "home": "Colorado State Rams",
+   "score": {
+    "home": 26,
+    "away": 41
+   }
+  },
+  {
+   "away": "Georgia Bulldogs",
+   "home": "Ole Miss Rebels",
+   "score": {
+    "home": 23,
+    "away": 24
+   }
+  },
+  {
+   "away": "Kentucky Wildcats",
+   "home": "Tennessee Volunteers",
+   "score": {
+    "home": 28,
+    "away": 21
+   }
+  },
+  {
+   "away": "Sam Houston State Bearkats",
+   "home": "Jacksonville State Gamecocks",
+   "score": {
+    "home": 31,
+    "away": 15
+   }
+  },
+  {
+   "away": "Colorado Buffaloes",
+   "home": "Arizona State Sun Devils",
+   "score": {
+    "home": 28,
+    "away": 19
+   }
+  },
+  {
+   "away": "Louisville Cardinals",
+   "home": "Georgia Tech Yellow Jackets",
+   "score": {
+    "home": 26,
+    "away": 36
+   }
+  },
+  {
+   "away": "Miami Hurricanes",
+   "home": "Notre Dame Fighting Irish",
+   "score": {
+    "home": 28,
+    "away": 26
+   }
+  },
+  {
+   "away": "Air Force Falcons",
+   "home": "Army Black Knights",
+   "score": {
+    "home": 26,
+    "away": 19
+   }
+  },
+  {
+   "away": "Oklahoma Sooners",
+   "home": "Florida Gators",
+   "score": {
+    "home": 25,
+    "away": 19
+   }
+  },
+  {
+   "away": "Liberty Flames",
+   "home": "New Mexico State Aggies",
+   "score": {
+    "home": 16,
+    "away": 30
+   }
+  },
+  {
+   "away": "Fresno State Bulldogs",
+   "home": "Utah State Aggies",
+   "score": {
+    "home": 20,
+    "away": 24
+   }
+  },
+  {
+   "away": "Hawaii Rainbow Warriors",
+   "home": "UTEP Miners",
+   "score": {
+    "home": 19,
+    "away": 28
+   }
+  },
+  {
+   "away": "Texas State Bobcats",
+   "home": "Oregon State Beavers",
+   "score": {
+    "home": 38,
+    "away": 32
+   }
+  },
+  {
+   "away": "Wyoming Cowboys",
+   "home": "UNLV Rebels",
+   "score": {
+    "home": 30,
+    "away": 20
+   }
+  },
+  {
+   "away": "Western Michigan Broncos",
+   "home": "Akron Zips",
+   "score": {
+    "home": 17,
+    "away": 30
+   }
+  },
+  {
+   "away": "Kent State Golden Flashes",
+   "home": "Bowling Green Falcons",
+   "score": {
+    "home": 28,
+    "away": 19
+   }
+  },
+  {
+   "away": "Ohio Bobcats",
+   "home": "Miami (OH) RedHawks",
+   "score": {
+    "home": 23,
+    "away": 24
+   }
+  },
+  {
+   "away": "Buffalo Bulls",
+   "home": "Ball State Cardinals",
+   "score": {
+    "home": 24,
+    "away": 25
+   }
+  },
+  {
+   "away": "Sacramento State Hornets",
+   "home": "Central Michigan Chippewas",
+   "score": {
+    "home": 29,
+    "away": 15
+   }
+  },
+  {
+   "away": "UMass Minutemen",
+   "home": "Toledo Rockets",
+   "score": {
+    "home": 35,
+    "away": 17
+   }
+  },
+  {
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "score": {
+    "home": 27,
+    "away": 19
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 8 pick(s) for 2026-11-06 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jamal Rule",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 66.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622074593&selectionId=103179247",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "raw": "3 of 7",
+   "record": "3 of 7",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 9.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.794,
+    "weighted_n": 7.0,
+    "mean_all": 66.143
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.14,
+   "projection": 66.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 66.1 rush yds a game.",
+   "why": [
+    "<b>Jamal Rule</b> went under 66.5 rush yds in <b>3 of 7 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 63.4,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mitch Griffis",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 170.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622746948&selectionId=60309731",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 62,
+   "raw": "10 of 13",
+   "record": "10 of 13",
+   "rate": 63,
+   "break_even": 53.3,
+   "edge": 8.7,
+   "season_detail": {
+    "h25": 4,
+    "n25": 5,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.528,
+    "weighted_n": 9.67,
+    "mean_all": 85.385
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 71.4,
+   "projection": 85.4,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 85.4 pass yds a game.",
+   "why": [
+    "<b>Mitch Griffis</b> went under 170.5 pass yds in <b>6 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 62.4,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jordan Dwyer",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 4.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -180,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397096&selectionId=101885660",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 58,
+   "raw": "8 of 16",
+   "record": "8 of 16",
+   "rate": 38,
+   "break_even": 64.3,
+   "edge": -6.3,
+   "season_detail": {
+    "h25": 4,
+    "n25": 12,
+    "h26": 4,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.204,
+    "weighted_n": 10.0,
+    "mean_all": 5.062
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.5,
+   "projection": 5.1,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 5.1 rec a game.",
+   "why": [
+    "<b>Jordan Dwyer</b> went over 4.5 rec in <b>4 of 4 games</b> in 2026 and 4 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 57.9,
+   "rank": 4,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Scottre Humphrey",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 72.5,
+   "game": "New Mexico Lobos @ Nevada Wolf Pack",
+   "game_id": "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "commence": "2026-11-07T02:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622784376&selectionId=103950080",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "13 of 18",
+   "record": "13 of 18",
+   "rate": 72,
+   "break_even": 52.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.822,
+    "weighted_n": 11.33,
+    "mean_all": 49.389
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 34.9,
+   "projection": 49.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 49.4 rush yds a game.",
+   "why": [
+    "<b>Scottre Humphrey</b> went under 72.5 rush yds in <b>4 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.8,
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jeffrey Overton Jr.",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622212456&selectionId=102738792",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "7 of 12",
+   "record": "7 of 12",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 4,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.806,
+    "weighted_n": 9.33,
+    "mean_all": 65.417
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 36.5,
+   "projection": 65.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 65.4 rush yds a game.",
+   "why": [
+    "<b>Jeffrey Overton Jr.</b> went under 68.5 rush yds in <b>4 of 8 games</b> in 2026 and 3 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.5,
+   "rank": 8
+  }
+ ],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 4,
+  "same_game_already_listed": 71,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 80,
+  "cap": 10,
+  "distinct_games": 5,
+  "shared_with_board_head": 5,
+  "board_head_size": 10
+ },
+ "top_plays_rule": "The 5 most likely to hit for 2026-11-06 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 5 of 10, over 5 game(s). 71 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "parlays": {
+  "2": [
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 39.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62
+    ],
+    "break_even": 28.4,
+    "edge": 10.7,
+    "ev_30": 11.29
+   },
+   {
+    "legs": [
+     "Landon Sides u5.5 rec",
+     "Jamal Rule u66.5 rush yds"
+    ],
+    "games": [
+     "South Florida Bulls @ East Carolina Pirates",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini"
+    ],
+    "game_ids": [
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "59047d3be974c2ec05c7e6282752287b"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -174,
+     -114
+    ],
+    "multiplier": 2.956,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 37.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     59,
+     63
+    ],
+    "break_even": 33.8,
+    "edge": 3.3,
+    "ev_30": 2.96
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Jamal Rule u66.5 rush yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "59047d3be974c2ec05c7e6282752287b"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114
+    ],
+    "multiplier": 2.92,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     63
+    ],
+    "break_even": 34.2,
+    "edge": 2.3,
+    "ev_30": 2.01
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Mitch Griffis u170.5 pass yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "South Florida Bulls @ East Carolina Pirates"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "5172093e8533ea39f59c5d2c63c743b9"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114
+    ],
+    "multiplier": 2.92,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 36.0,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     62
+    ],
+    "break_even": 34.2,
+    "edge": 1.7,
+    "ev_30": 1.5
+   },
+   {
+    "legs": [
+     "Randy Pittman Jr. u3.5 rec",
+     "Jamal Rule u66.5 rush yds"
+    ],
+    "games": [
+     "Virginia Tech Hokies @ SMU Mustangs",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini"
+    ],
+    "game_ids": [
+     "11da04c7d3fba48caf11a5d8b66b8ccd",
+     "59047d3be974c2ec05c7e6282752287b"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -194,
+     -114
+    ],
+    "multiplier": 2.845,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 35.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     56,
+     63
+    ],
+    "break_even": 35.2,
+    "edge": 0.1,
+    "ev_30": 0.11
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Scottre Humphrey u72.5 rush yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "New Mexico Lobos @ Nevada Wolf Pack"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "45fdbdbe6ed3d9922fa8b26b8a885f0e"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -112
+    ],
+    "multiplier": 3.553,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 35.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     56
+    ],
+    "break_even": 28.1,
+    "edge": 7.1,
+    "ev_30": 7.61
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Jeffrey Overton Jr. u68.5 rush yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "Virginia Tech Hokies @ SMU Mustangs"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "11da04c7d3fba48caf11a5d8b66b8ccd"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 35.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     56
+    ],
+    "break_even": 28.4,
+    "edge": 6.9,
+    "ev_30": 7.3
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Ed Small o32.5 rec yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "TCU Horned Frogs @ Arizona Wildcats"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "722ed661705df150a38e7786949ce241"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 35.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     56
+    ],
+    "break_even": 28.4,
+    "edge": 6.9,
+    "ev_30": 7.3
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114,
+     -114
+    ],
+    "multiplier": 5.482,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 22.7,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     63,
+     62
+    ],
+    "break_even": 18.2,
+    "edge": 4.4,
+    "ev_30": 7.26
+   },
+   {
+    "legs": [
+     "Randy Pittman Jr. u3.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds"
+    ],
+    "games": [
+     "Virginia Tech Hokies @ SMU Mustangs",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates"
+    ],
+    "game_ids": [
+     "11da04c7d3fba48caf11a5d8b66b8ccd",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -194,
+     -114,
+     -114
+    ],
+    "multiplier": 5.34,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     56,
+     63,
+     62
+    ],
+    "break_even": 18.7,
+    "edge": 3.1,
+    "ev_30": 5.04
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Scottre Humphrey u72.5 rush yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "New Mexico Lobos @ Nevada Wolf Pack"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "45fdbdbe6ed3d9922fa8b26b8a885f0e"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -112
+    ],
+    "multiplier": 6.67,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     56
+    ],
+    "break_even": 15.0,
+    "edge": 6.9,
+    "ev_30": 13.77
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Jeffrey Overton Jr. u68.5 rush yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "Virginia Tech Hokies @ SMU Mustangs"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "11da04c7d3fba48caf11a5d8b66b8ccd"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     56
+    ],
+    "break_even": 15.1,
+    "edge": 6.8,
+    "ev_30": 13.41
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Ed Small o32.5 rec yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "TCU Horned Frogs @ Arizona Wildcats"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "722ed661705df150a38e7786949ce241"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     56
+    ],
+    "break_even": 15.1,
+    "edge": 6.8,
+    "ev_30": 13.41
+   },
+   {
+    "legs": [
+     "Landon Sides u5.5 rec",
+     "Jordan Dwyer o4.5 rec",
+     "Jamal Rule u66.5 rush yds"
+    ],
+    "games": [
+     "South Florida Bulls @ East Carolina Pirates",
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini"
+    ],
+    "game_ids": [
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "722ed661705df150a38e7786949ce241",
+     "59047d3be974c2ec05c7e6282752287b"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -174,
+     -180,
+     -114
+    ],
+    "multiplier": 4.598,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.6,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     59,
+     58,
+     63
+    ],
+    "break_even": 21.7,
+    "edge": -0.2,
+    "ev_30": -0.26
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Ethan Grunkemeyer u247.5 pass yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "Virginia Tech Hokies @ SMU Mustangs"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "11da04c7d3fba48caf11a5d8b66b8ccd"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     54
+    ],
+    "break_even": 15.1,
+    "edge": 6.0,
+    "ev_30": 11.86
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Jordan Dwyer o66.5 rec yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "TCU Horned Frogs @ Arizona Wildcats"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "722ed661705df150a38e7786949ce241"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     54
+    ],
+    "break_even": 15.1,
+    "edge": 6.0,
+    "ev_30": 11.86
+   }
+  ],
+  "4": [
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Randy Pittman Jr. u3.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Virginia Tech Hokies @ SMU Mustangs",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "11da04c7d3fba48caf11a5d8b66b8ccd",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -194,
+     -114,
+     -114
+    ],
+    "multiplier": 8.307,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.7,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     56,
+     63,
+     62
+    ],
+    "break_even": 12.0,
+    "edge": 0.6,
+    "ev_30": 1.62
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Scottre Humphrey u72.5 rush yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "New Mexico Lobos @ Nevada Wolf Pack"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "45fdbdbe6ed3d9922fa8b26b8a885f0e"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114,
+     -114,
+     -112
+    ],
+    "multiplier": 10.376,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.7,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     63,
+     62,
+     56
+    ],
+    "break_even": 9.6,
+    "edge": 3.0,
+    "ev_30": 9.49
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Jeffrey Overton Jr. u68.5 rush yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "Virginia Tech Hokies @ SMU Mustangs"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "11da04c7d3fba48caf11a5d8b66b8ccd"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 10.29,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.7,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     63,
+     62,
+     56
+    ],
+    "break_even": 9.7,
+    "edge": 3.0,
+    "ev_30": 9.16
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Ethan Grunkemeyer u247.5 pass yds"
+    ],
+    "games": [
+     "TCU Horned Frogs @ Arizona Wildcats",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "Virginia Tech Hokies @ SMU Mustangs"
+    ],
+    "game_ids": [
+     "722ed661705df150a38e7786949ce241",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "11da04c7d3fba48caf11a5d8b66b8ccd"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 10.29,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     63,
+     62,
+     54
+    ],
+    "break_even": 9.7,
+    "edge": 2.5,
+    "ev_30": 7.76
+   },
+   {
+    "legs": [
+     "Randy Pittman Jr. u3.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Scottre Humphrey u72.5 rush yds"
+    ],
+    "games": [
+     "Virginia Tech Hokies @ SMU Mustangs",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "New Mexico Lobos @ Nevada Wolf Pack"
+    ],
+    "game_ids": [
+     "11da04c7d3fba48caf11a5d8b66b8ccd",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "45fdbdbe6ed3d9922fa8b26b8a885f0e"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -194,
+     -114,
+     -114,
+     -112
+    ],
+    "multiplier": 10.108,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     56,
+     63,
+     62,
+     56
+    ],
+    "break_even": 9.9,
+    "edge": 2.4,
+    "ev_30": 7.15
+   },
+   {
+    "legs": [
+     "Randy Pittman Jr. u3.5 rec",
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Ed Small o32.5 rec yds"
+    ],
+    "games": [
+     "Virginia Tech Hokies @ SMU Mustangs",
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "TCU Horned Frogs @ Arizona Wildcats"
+    ],
+    "game_ids": [
+     "11da04c7d3fba48caf11a5d8b66b8ccd",
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "722ed661705df150a38e7786949ce241"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -194,
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 10.025,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     56,
+     63,
+     62,
+     56
+    ],
+    "break_even": 10.0,
+    "edge": 2.3,
+    "ev_30": 6.84
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Scottre Humphrey u72.5 rush yds",
+     "Jeffrey Overton Jr. u68.5 rush yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "New Mexico Lobos @ Nevada Wolf Pack",
+     "Virginia Tech Hokies @ SMU Mustangs"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+     "11da04c7d3fba48caf11a5d8b66b8ccd"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -112,
+     -114
+    ],
+    "multiplier": 12.521,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     56,
+     56
+    ],
+    "break_even": 8.0,
+    "edge": 4.3,
+    "ev_30": 16.01
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Mitch Griffis u170.5 pass yds",
+     "Scottre Humphrey u72.5 rush yds",
+     "Ed Small o32.5 rec yds"
+    ],
+    "games": [
+     "Nebraska Cornhuskers @ Illinois Fighting Illini",
+     "South Florida Bulls @ East Carolina Pirates",
+     "New Mexico Lobos @ Nevada Wolf Pack",
+     "TCU Horned Frogs @ Arizona Wildcats"
+    ],
+    "game_ids": [
+     "59047d3be974c2ec05c7e6282752287b",
+     "5172093e8533ea39f59c5d2c63c743b9",
+     "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+     "722ed661705df150a38e7786949ce241"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -112,
+     -114
+    ],
+    "multiplier": 12.521,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 12.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     63,
+     62,
+     56,
+     56
+    ],
+    "break_even": 8.0,
+    "edge": 4.3,
+    "ev_30": 16.01
+   }
+  ]
+ },
+ "parlay_meta": {
+  "pool": 23,
+  "rated_legs": 80,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 6,
+    "taken": 6
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 69,
+    "taken": 12
+   },
+   {
+    "decimal": "2-3",
+    "available": 5,
+    "taken": 5
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 8463,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "80 rated legs, 23 in the stratified pool. Rejected: 8463 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Illinois Fighting Illini +4.5 spread"
+    ],
+    "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+    "game_id": "59047d3be974c2ec05c7e6282752287b",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.584,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 63,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     63
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Mitch Griffis u170.5 pass yds",
+     "South Florida Bulls +2.5 spread"
+    ],
+    "game": "South Florida Bulls @ East Carolina Pirates",
+    "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -104
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -104,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.682,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 62,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     62
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Landon Sides u5.5 rec",
+     "South Florida Bulls +2.5 spread"
+    ],
+    "game": "South Florida Bulls @ East Carolina Pirates",
+    "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -174,
+     -104
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -104,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.089,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 59,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     59
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Arizona Wildcats -7.5 spread"
+    ],
+    "game": "TCU Horned Frogs @ Arizona Wildcats",
+    "game_id": "722ed661705df150a38e7786949ce241",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 2.97,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 58,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Katin Houser o10.5 rush yds",
+     "Illinois Fighting Illini +4.5 spread"
+    ],
+    "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+    "game_id": "59047d3be974c2ec05c7e6282752287b",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.584,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Ed Small o32.5 rec yds",
+     "Arizona Wildcats -7.5 spread"
+    ],
+    "game": "TCU Horned Frogs @ Arizona Wildcats",
+    "game_id": "722ed661705df150a38e7786949ce241",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.584,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Mitch Griffis u170.5 pass yds",
+     "Landon Sides u5.5 rec",
+     "South Florida Bulls +2.5 spread"
+    ],
+    "game": "South Florida Bulls @ East Carolina Pirates",
+    "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -174,
+     -104
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -104,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.798,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 59,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     62,
+     59
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Katin Houser o10.5 rush yds",
+     "Illinois Fighting Illini +4.5 spread"
+    ],
+    "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+    "game_id": "59047d3be974c2ec05c7e6282752287b",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.727,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     63,
+     57
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jamal Rule u66.5 rush yds",
+     "Nyziah Hunter o2.5 rec",
+     "Illinois Fighting Illini +4.5 spread"
+    ],
+    "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+    "game_id": "59047d3be974c2ec05c7e6282752287b",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -158,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.852,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     63,
+     57
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jordan Dwyer o4.5 rec",
+     "Ed Small o32.5 rec yds",
+     "Arizona Wildcats -7.5 spread"
+    ],
+    "game": "TCU Horned Frogs @ Arizona Wildcats",
+    "game_id": "722ed661705df150a38e7786949ce241",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.575,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58,
+     56
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Mitch Griffis u170.5 pass yds",
+     "D.J. Crowther u65.5 rush yds",
+     "South Florida Bulls +2.5 spread"
+    ],
+    "game": "South Florida Bulls @ East Carolina Pirates",
+    "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -104
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -104,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.912,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     62,
+     55
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Ed Small o3.5 rec",
+     "Isaiah Mizell u5.5 rec",
+     "Arizona Wildcats -7.5 spread"
+    ],
+    "game": "TCU Horned Frogs @ Arizona Wildcats",
+    "game_id": "722ed661705df150a38e7786949ce241",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     116,
+     104,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 8.412,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54,
+     54
+    ],
+    "band_floor": 3.0
+   }
+  ]
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 5,
+  "games_with_a_line_row": 3,
+  "games_used": 5,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 82,
+   "mixed_book": 87,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "5 game(s) on this card carry a rated leg and 3 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {
+  "Derrick McFall|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Dramekco Green|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Ethan Grunkemeyer|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Jalen Cooper|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jeffrey Overton Jr.|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Kendrick Raphael|player_anytime_td|yes|None": {
+   "v": 1.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 1.1 TD a game."
+  },
+  "Kevin Jennings|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Luke Reynolds|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Marcellous Hawkins|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Que'Sean Brown|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Randy Pittman Jr.|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Theo Melin Ohrstrom|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Yamir Knight|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Yannick Smith|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Ethan Grunkemeyer|player_pass_yds|over|247.5": {
+   "v": 193.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 193.3 pass yds a game."
+  },
+  "Ethan Grunkemeyer|player_pass_yds|under|247.5": {
+   "v": 193.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 193.3 pass yds a game."
+  },
+  "Ethan Grunkemeyer|player_pass_yds|over|249.5": {
+   "v": 193.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 193.3 pass yds a game."
+  },
+  "Ethan Grunkemeyer|player_pass_yds|under|249.5": {
+   "v": 193.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 193.3 pass yds a game."
+  },
+  "Kevin Jennings|player_pass_yds|over|276.5": {
+   "v": 289.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 289.2 pass yds a game."
+  },
+  "Kevin Jennings|player_pass_yds|under|276.5": {
+   "v": 289.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 289.2 pass yds a game."
+  },
+  "Kevin Jennings|player_pass_yds|over|277.5": {
+   "v": 289.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 289.2 pass yds a game."
+  },
+  "Kevin Jennings|player_pass_yds|under|277.5": {
+   "v": 289.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 289.2 pass yds a game."
+  },
+  "Jalen Cooper|player_reception_yds|over|35.5": {
+   "v": 47.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 47.3 rec yds a game."
+  },
+  "Jalen Cooper|player_reception_yds|under|35.5": {
+   "v": 47.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 47.3 rec yds a game."
+  },
+  "Jeffrey Overton Jr.|player_reception_yds|over|16.5": {
+   "v": 20.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 20.8 rec yds a game."
+  },
+  "Jeffrey Overton Jr.|player_reception_yds|under|16.5": {
+   "v": 20.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 20.8 rec yds a game."
+  },
+  "Jeffrey Overton Jr.|player_reception_yds|under|19.5": {
+   "v": 20.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 20.8 rec yds a game."
+  },
+  "Jeffrey Overton Jr.|player_reception_yds|over|19.5": {
+   "v": 20.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 20.8 rec yds a game."
+  },
+  "Luke Reynolds|player_reception_yds|over|50.5": {
+   "v": 41.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 41.7 rec yds a game."
+  },
+  "Luke Reynolds|player_reception_yds|under|50.5": {
+   "v": 41.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 41.7 rec yds a game."
+  },
+  "Que'Sean Brown|player_reception_yds|over|63.5": {
+   "v": 69.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 69.4 rec yds a game."
+  },
+  "Que'Sean Brown|player_reception_yds|under|63.5": {
+   "v": 69.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 69.4 rec yds a game."
+  },
+  "Que'Sean Brown|player_reception_yds|over|64.5": {
+   "v": 69.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 69.4 rec yds a game."
+  },
+  "Que'Sean Brown|player_reception_yds|under|64.5": {
+   "v": 69.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 69.4 rec yds a game."
+  },
+  "Randy Pittman Jr.|player_reception_yds|over|22.5": {
+   "v": 24.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 24.8 rec yds a game."
+  },
+  "Randy Pittman Jr.|player_reception_yds|under|22.5": {
+   "v": 24.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 24.8 rec yds a game."
+  },
+  "Randy Pittman Jr.|player_reception_yds|over|24.5": {
+   "v": 24.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 24.8 rec yds a game."
+  },
+  "Randy Pittman Jr.|player_reception_yds|under|24.5": {
+   "v": 24.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 24.8 rec yds a game."
+  },
+  "Theo Melin Ohrstrom|player_reception_yds|over|22.5": {
+   "v": 23.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 23.8 rec yds a game."
+  },
+  "Theo Melin Ohrstrom|player_reception_yds|under|22.5": {
+   "v": 23.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 23.8 rec yds a game."
+  },
+  "Yamir Knight|player_reception_yds|over|55.5": {
+   "v": 58.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 58.0 rec yds a game."
+  },
+  "Yamir Knight|player_reception_yds|under|55.5": {
+   "v": 58.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 58.0 rec yds a game."
+  },
+  "Yamir Knight|player_reception_yds|over|56.5": {
+   "v": 58.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 58.0 rec yds a game."
+  },
+  "Yamir Knight|player_reception_yds|under|56.5": {
+   "v": 58.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 58.0 rec yds a game."
+  },
+  "Yannick Smith|player_reception_yds|over|57.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Yannick Smith|player_reception_yds|under|57.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Yannick Smith|player_reception_yds|over|58.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Yannick Smith|player_reception_yds|under|58.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Luke Reynolds|player_receptions|over|5.5": {
+   "v": 4.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 4.2 rec a game."
+  },
+  "Luke Reynolds|player_receptions|under|5.5": {
+   "v": 4.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 4.2 rec a game."
+  },
+  "Que'Sean Brown|player_receptions|over|5.5": {
+   "v": 5.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 5.2 rec a game."
+  },
+  "Que'Sean Brown|player_receptions|under|5.5": {
+   "v": 5.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 5.2 rec a game."
+  },
+  "Randy Pittman Jr.|player_receptions|over|3.5": {
+   "v": 2.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 2.7 rec a game."
+  },
+  "Randy Pittman Jr.|player_receptions|under|3.5": {
+   "v": 2.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 2.7 rec a game."
+  },
+  "Yamir Knight|player_receptions|over|4.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Yamir Knight|player_receptions|under|4.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Yannick Smith|player_receptions|over|3.5": {
+   "v": 4.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 4.2 rec a game."
+  },
+  "Yannick Smith|player_receptions|under|3.5": {
+   "v": 4.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 4.2 rec a game."
+  },
+  "Jeffrey Overton Jr.|player_rush_yds|over|68.5": {
+   "v": 65.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 65.4 rush yds a game."
+  },
+  "Jeffrey Overton Jr.|player_rush_yds|under|68.5": {
+   "v": 65.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 65.4 rush yds a game."
+  },
+  "Kendrick Raphael|player_rush_yds|over|84.5": {
+   "v": 78.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 78.5 rush yds a game."
+  },
+  "Kendrick Raphael|player_rush_yds|under|84.5": {
+   "v": 78.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 78.5 rush yds a game."
+  },
+  "Kendrick Raphael|player_rush_yds|over|85.5": {
+   "v": 78.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 78.5 rush yds a game."
+  },
+  "Kendrick Raphael|player_rush_yds|under|85.5": {
+   "v": 78.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 78.5 rush yds a game."
+  },
+  "Kevin Jennings|player_rush_yds|over|14.5": {
+   "v": 8.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 8.1 rush yds a game."
+  },
+  "Kevin Jennings|player_rush_yds|under|14.5": {
+   "v": 8.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 8.1 rush yds a game."
+  },
+  "Alvon Isaac|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Arhmad Branch|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Ashton Gray|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Bryson Rodgers|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Cameron Seldon|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.2 TD a game."
+  },
+  "D.J. Crowther|player_anytime_td|yes|None": {
+   "v": 1.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 1.0 TD a game."
+  },
+  "Jason Collins Jr.|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jeremiah Melvin|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Joshua Porter|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Landon Sides|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Michael Allen|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Michael Van Buren Jr.|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Mitch Griffis|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.1 TD a game."
+  },
+  "TJ Engleman Jr.|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Mitch Griffis|player_pass_yds|over|170.5": {
+   "v": 85.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 85.4 pass yds a game."
+  },
+  "Mitch Griffis|player_pass_yds|under|170.5": {
+   "v": 85.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 85.4 pass yds a game."
+  },
+  "Bryson Rodgers|player_reception_yds|over|34.5": {
+   "v": 38.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 38.5 rec yds a game."
+  },
+  "Bryson Rodgers|player_reception_yds|under|34.5": {
+   "v": 38.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 38.5 rec yds a game."
+  },
+  "Landon Sides|player_reception_yds|over|49.5": {
+   "v": 40.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 40.1 rec yds a game."
+  },
+  "Landon Sides|player_reception_yds|under|49.5": {
+   "v": 40.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 40.1 rec yds a game."
+  },
+  "Bryson Rodgers|player_receptions|over|3.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Bryson Rodgers|player_receptions|under|3.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Landon Sides|player_receptions|over|5.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Landon Sides|player_receptions|under|5.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 3.1 rec a game."
+  },
+  "D.J. Crowther|player_rush_yds|over|65.5": {
+   "v": 72.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 72.2 rush yds a game."
+  },
+  "D.J. Crowther|player_rush_yds|under|65.5": {
+   "v": 72.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 72.2 rush yds a game."
+  },
+  "TJ Engleman Jr.|player_rush_yds|over|83.5": {
+   "v": 58.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 58.5 rush yds a game."
+  },
+  "TJ Engleman Jr.|player_rush_yds|under|83.5": {
+   "v": 58.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 58.5 rush yds a game."
+  },
+  "Aidan Laughery|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Anthony Colandrea|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Collin Dixon|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.7 TD a game."
+  },
+  "Hudson Clement|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Isaiah Mozee|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Jacory Barney Jr.|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Jamal Rule|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Jordan Anderson|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Katin Houser|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Kwazi Gilmer|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Luke Lindenmeyer|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Mekhi Nelson|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Nyziah Hunter|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Anthony Colandrea|player_pass_yds|over|227.5": {
+   "v": 240.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 240.1 pass yds a game."
+  },
+  "Anthony Colandrea|player_pass_yds|under|227.5": {
+   "v": 240.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 240.1 pass yds a game."
+  },
+  "Katin Houser|player_pass_yds|over|220.5": {
+   "v": 261.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 261.2 pass yds a game."
+  },
+  "Katin Houser|player_pass_yds|under|220.5": {
+   "v": 261.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 261.2 pass yds a game."
+  },
+  "Collin Dixon|player_reception_yds|over|84.5": {
+   "v": 63.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 63.0 rec yds a game."
+  },
+  "Collin Dixon|player_reception_yds|under|84.5": {
+   "v": 63.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 63.0 rec yds a game."
+  },
+  "Hudson Clement|player_reception_yds|over|53.5": {
+   "v": 45.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 45.4 rec yds a game."
+  },
+  "Hudson Clement|player_reception_yds|under|53.5": {
+   "v": 45.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 45.4 rec yds a game."
+  },
+  "Jacory Barney Jr.|player_reception_yds|over|46.5": {
+   "v": 44.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 44.1 rec yds a game."
+  },
+  "Jacory Barney Jr.|player_reception_yds|under|46.5": {
+   "v": 44.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 44.1 rec yds a game."
+  },
+  "Kwazi Gilmer|player_reception_yds|over|56.5": {
+   "v": 54.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 54.0 rec yds a game."
+  },
+  "Kwazi Gilmer|player_reception_yds|under|56.5": {
+   "v": 54.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 54.0 rec yds a game."
+  },
+  "Luke Lindenmeyer|player_reception_yds|over|29.5": {
+   "v": 29.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 29.4 rec yds a game."
+  },
+  "Luke Lindenmeyer|player_reception_yds|under|29.5": {
+   "v": 29.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 29.4 rec yds a game."
+  },
+  "Nyziah Hunter|player_reception_yds|over|28.5": {
+   "v": 39.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 39.5 rec yds a game."
+  },
+  "Nyziah Hunter|player_reception_yds|under|28.5": {
+   "v": 39.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 39.5 rec yds a game."
+  },
+  "Collin Dixon|player_receptions|over|6.5": {
+   "v": 4.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 4.5 rec a game."
+  },
+  "Collin Dixon|player_receptions|under|6.5": {
+   "v": 4.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 4.5 rec a game."
+  },
+  "Hudson Clement|player_receptions|over|3.5": {
+   "v": 3.4,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 3.4 rec a game."
+  },
+  "Hudson Clement|player_receptions|under|3.5": {
+   "v": 3.4,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 3.4 rec a game."
+  },
+  "Jacory Barney Jr.|player_receptions|over|3.5": {
+   "v": 3.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 3.8 rec a game."
+  },
+  "Jacory Barney Jr.|player_receptions|under|3.5": {
+   "v": 3.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 3.8 rec a game."
+  },
+  "Kwazi Gilmer|player_receptions|over|4.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Kwazi Gilmer|player_receptions|under|4.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Luke Lindenmeyer|player_receptions|over|3.5": {
+   "v": 2.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 2.9 rec a game."
+  },
+  "Luke Lindenmeyer|player_receptions|under|3.5": {
+   "v": 2.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 2.9 rec a game."
+  },
+  "Aidan Laughery|player_rush_yds|under|58.5": {
+   "v": 55.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 55.4 rush yds a game."
+  },
+  "Aidan Laughery|player_rush_yds|over|58.5": {
+   "v": 55.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 55.4 rush yds a game."
+  },
+  "Anthony Colandrea|player_rush_yds|over|39.5": {
+   "v": 45.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 45.6 rush yds a game."
+  },
+  "Anthony Colandrea|player_rush_yds|under|39.5": {
+   "v": 45.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 45.6 rush yds a game."
+  },
+  "Jamal Rule|player_rush_yds|over|66.5": {
+   "v": 66.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 66.1 rush yds a game."
+  },
+  "Jamal Rule|player_rush_yds|under|66.5": {
+   "v": 66.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 66.1 rush yds a game."
+  },
+  "Katin Houser|player_rush_yds|over|10.5": {
+   "v": 17.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 17.4 rush yds a game."
+  },
+  "Katin Houser|player_rush_yds|under|10.5": {
+   "v": 17.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 17.4 rush yds a game."
+  },
+  "AJ Bianco|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Cade Keith|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Dominic Kelley|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Gary Givens III|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Herschel Turner|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Kiefer Sibley|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Scottre Humphrey|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Gary Givens III|player_reception_yds|over|36.5": {
+   "v": 34.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 34.6 rec yds a game."
+  },
+  "Gary Givens III|player_reception_yds|under|36.5": {
+   "v": 34.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 34.6 rec yds a game."
+  },
+  "Dominic Kelley|player_rush_yds|over|51.5": {
+   "v": 40.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 40.5 rush yds a game."
+  },
+  "Dominic Kelley|player_rush_yds|under|51.5": {
+   "v": 40.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 40.5 rush yds a game."
+  },
+  "Herschel Turner|player_rush_yds|over|38.5": {
+   "v": 47.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 47.8 rush yds a game."
+  },
+  "Herschel Turner|player_rush_yds|under|38.5": {
+   "v": 47.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 47.8 rush yds a game."
+  },
+  "Kiefer Sibley|player_rush_yds|over|65.5": {
+   "v": 47.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 47.4 rush yds a game."
+  },
+  "Kiefer Sibley|player_rush_yds|under|65.5": {
+   "v": 47.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 47.4 rush yds a game."
+  },
+  "Scottre Humphrey|player_rush_yds|over|72.5": {
+   "v": 49.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 49.4 rush yds a game."
+  },
+  "Scottre Humphrey|player_rush_yds|under|72.5": {
+   "v": 49.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 49.4 rush yds a game."
+  },
+  "Antwan Roberts Jr.|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Caleb Smith|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Ed Small|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Gio Richardson|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Isaiah Mizell|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Jaden Craig|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jeremy Payne|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Jordan Dwyer|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Kari Ashley|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Kedrick Reescano|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Noah Fifita|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Quincy Craig|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Rodney Gallagher III|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Jaden Craig|player_pass_yds|over|217.5": {
+   "v": 275.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 275.9 pass yds a game."
+  },
+  "Jaden Craig|player_pass_yds|under|217.5": {
+   "v": 275.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 275.9 pass yds a game."
+  },
+  "Noah Fifita|player_pass_yds|over|276.5": {
+   "v": 271.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 271.0 pass yds a game."
+  },
+  "Noah Fifita|player_pass_yds|under|276.5": {
+   "v": 271.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 271.0 pass yds a game."
+  },
+  "Ed Small|player_reception_yds|over|32.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Ed Small|player_reception_yds|under|32.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Gio Richardson|player_reception_yds|over|47.5": {
+   "v": 37.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 37.3 rec yds a game."
+  },
+  "Gio Richardson|player_reception_yds|under|47.5": {
+   "v": 37.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 37.3 rec yds a game."
+  },
+  "Isaiah Mizell|player_reception_yds|over|82.5": {
+   "v": 71.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 71.4 rec yds a game."
+  },
+  "Isaiah Mizell|player_reception_yds|under|82.5": {
+   "v": 71.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 71.4 rec yds a game."
+  },
+  "Jordan Dwyer|player_reception_yds|over|66.5": {
+   "v": 71.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 71.2 rec yds a game."
+  },
+  "Jordan Dwyer|player_reception_yds|under|66.5": {
+   "v": 71.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 71.2 rec yds a game."
+  },
+  "Kari Ashley|player_reception_yds|over|41.5": {
+   "v": 70.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 70.0 rec yds a game."
+  },
+  "Kari Ashley|player_reception_yds|under|41.5": {
+   "v": 70.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 70.0 rec yds a game."
+  },
+  "Ed Small|player_receptions|over|3.5": {
+   "v": 4.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 4.3 rec a game."
+  },
+  "Ed Small|player_receptions|under|3.5": {
+   "v": 4.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 4.3 rec a game."
+  },
+  "Gio Richardson|player_receptions|over|3.5": {
+   "v": 2.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 2.8 rec a game."
+  },
+  "Gio Richardson|player_receptions|under|3.5": {
+   "v": 2.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 2.8 rec a game."
+  },
+  "Isaiah Mizell|player_receptions|over|5.5": {
+   "v": 3.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 3.8 rec a game."
+  },
+  "Isaiah Mizell|player_receptions|under|5.5": {
+   "v": 3.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 3.8 rec a game."
+  },
+  "Jordan Dwyer|player_receptions|over|4.5": {
+   "v": 5.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 5.1 rec a game."
+  },
+  "Jordan Dwyer|player_receptions|under|4.5": {
+   "v": 5.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 5.1 rec a game."
+  },
+  "Kari Ashley|player_receptions|over|3.5": {
+   "v": 4.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 4.8 rec a game."
+  },
+  "Kari Ashley|player_receptions|under|3.5": {
+   "v": 4.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 4.8 rec a game."
+  },
+  "Jaden Craig|player_rush_yds|over|18.5": {
+   "v": 13.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 13.6 rush yds a game."
+  },
+  "Jaden Craig|player_rush_yds|under|18.5": {
+   "v": 13.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 13.6 rush yds a game."
+  },
+  "Jeremy Payne|player_rush_yds|over|44.5": {
+   "v": 61.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 61.9 rush yds a game."
+  },
+  "Jeremy Payne|player_rush_yds|under|44.5": {
+   "v": 61.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 61.9 rush yds a game."
+  },
+  "Kedrick Reescano|player_rush_yds|over|35.5": {
+   "v": 39.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 39.8 rush yds a game."
+  },
+  "Kedrick Reescano|player_rush_yds|under|35.5": {
+   "v": 39.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 39.8 rush yds a game."
+  },
+  "Noah Fifita|player_rush_yds|over|13.5": {
+   "v": 15.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 15.2 rush yds a game."
+  },
+  "Noah Fifita|player_rush_yds|under|13.5": {
+   "v": 15.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 15.2 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.971,
+ "n_priced": 87,
+ "single_day": true,
+ "slate_date": "2026-11-06",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 87,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-11-06 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": null,
+ "short_reason": null,
+ "coverage": "87 priced football rows for 2026-11-06 across 5 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 55.9% against a claimed 54.2% (+1.7 pts, n=170); 60-70 hit 43.5% against a claimed 62.3% (-18.8 pts, n=23). The under-60 band is currently the closest to its own claim. 70-80 has too few graded plays to read. 193 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jamal Rule",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 66.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622074593&selectionId=103179247",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "raw": "3 of 7",
+   "record": "3 of 7",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 9.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.794,
+    "weighted_n": 7.0,
+    "mean_all": 66.143
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.14,
+   "projection": 66.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 66.1 rush yds a game.",
+   "why": [
+    "<b>Jamal Rule</b> went under 66.5 rush yds in <b>3 of 7 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 63.4,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mitch Griffis",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 170.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622746948&selectionId=60309731",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 62,
+   "raw": "10 of 13",
+   "record": "10 of 13",
+   "rate": 63,
+   "break_even": 53.3,
+   "edge": 8.7,
+   "season_detail": {
+    "h25": 4,
+    "n25": 5,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.528,
+    "weighted_n": 9.67,
+    "mean_all": 85.385
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 71.4,
+   "projection": 85.4,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 85.4 pass yds a game.",
+   "why": [
+    "<b>Mitch Griffis</b> went under 170.5 pass yds in <b>6 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 62.4,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Landon Sides",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -174,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622750459&selectionId=104712983",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "raw": "14 of 17",
+   "record": "14 of 17",
+   "rate": 82,
+   "break_even": 63.5,
+   "edge": -4.5,
+   "season_detail": {
+    "h25": 11,
+    "n25": 12,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.874,
+    "weighted_n": 10.33,
+    "mean_all": 3.118
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.83,
+   "projection": 3.1,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 3.1 rec a game.",
+   "why": [
+    "<b>Landon Sides</b> went under 5.5 rec in <b>3 of 5 games</b> in 2026 and 11 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 59.1,
+   "rank": 3,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jordan Dwyer",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 4.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -180,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397096&selectionId=101885660",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 58,
+   "raw": "8 of 16",
+   "record": "8 of 16",
+   "rate": 38,
+   "break_even": 64.3,
+   "edge": -6.3,
+   "season_detail": {
+    "h25": 4,
+    "n25": 12,
+    "h26": 4,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.204,
+    "weighted_n": 10.0,
+    "mean_all": 5.062
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.5,
+   "projection": 5.1,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 5.1 rec a game.",
+   "why": [
+    "<b>Jordan Dwyer</b> went over 4.5 rec in <b>4 of 4 games</b> in 2026 and 4 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 57.9,
+   "rank": 4,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Katin Houser",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 10.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622076956&selectionId=102432075",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "15 of 19",
+   "record": "15 of 19",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 3.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 12,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.515,
+    "weighted_n": 11.36,
+    "mean_all": 17.421
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 16.08,
+   "projection": 17.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 17.4 rush yds a game.",
+   "why": [
+    "<b>Katin Houser</b> went over 10.5 rush yds in <b>6 of 7 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 56.8,
+   "rank": 5
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nyziah Hunter",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -158,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622074605&selectionId=102466537",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 57,
+   "model_p": 56.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 61.2,
+   "edge": -4.2,
+   "rank": 6,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Scottre Humphrey",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 72.5,
+   "game": "New Mexico Lobos @ Nevada Wolf Pack",
+   "game_id": "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "commence": "2026-11-07T02:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622784376&selectionId=103950080",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "13 of 18",
+   "record": "13 of 18",
+   "rate": 72,
+   "break_even": 52.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.822,
+    "weighted_n": 11.33,
+    "mean_all": 49.389
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 34.9,
+   "projection": 49.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 49.4 rush yds a game.",
+   "why": [
+    "<b>Scottre Humphrey</b> went under 72.5 rush yds in <b>4 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.8,
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jeffrey Overton Jr.",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622212456&selectionId=102738792",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "7 of 12",
+   "record": "7 of 12",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 4,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.806,
+    "weighted_n": 9.33,
+    "mean_all": 65.417
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 36.5,
+   "projection": 65.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 65.4 rush yds a game.",
+   "why": [
+    "<b>Jeffrey Overton Jr.</b> went under 68.5 rush yds in <b>4 of 8 games</b> in 2026 and 3 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.5,
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ed Small",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 32.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397984&selectionId=102154250",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "8 of 13",
+   "record": "8 of 13",
+   "rate": 56,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 5,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.457,
+    "weighted_n": 9.67,
+    "mean_all": 56.462
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 37.2,
+   "projection": 56.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 56.5 rec yds a game.",
+   "why": [
+    "<b>Ed Small</b> went over 32.5 rec yds in <b>6 of 8 games</b> in 2026 and 2 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.5,
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jacory Barney Jr.",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -158,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622074607&selectionId=102466479",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "9 of 21",
+   "record": "9 of 21",
+   "rate": 39,
+   "break_even": 61.2,
+   "edge": -5.2,
+   "season_detail": {
+    "h25": 5,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.31,
+    "weighted_n": 12.33,
+    "mean_all": 3.81
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.46,
+   "projection": 3.8,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 3.8 rec a game.",
+   "why": [
+    "<b>Jacory Barney Jr.</b> went over 3.5 rec in <b>4 of 8 games</b> in 2026 and 5 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.6,
+   "rank": 10,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Randy Pittman Jr.",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -194,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622217575&selectionId=102598631",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "14 of 17",
+   "record": "14 of 17",
+   "rate": 82,
+   "break_even": 66.0,
+   "edge": -10.0,
+   "season_detail": {
+    "h25": 8,
+    "n25": 9,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.848,
+    "weighted_n": 11.0,
+    "mean_all": 2.706
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.56,
+   "projection": 2.7,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 2.7 rec a game.",
+   "why": [
+    "<b>Randy Pittman Jr.</b> went under 3.5 rec in <b>6 of 8 games</b> in 2026 and 8 of 9 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.7,
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "D.J. Crowther",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 65.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622750448&selectionId=103449109",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 67,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.789,
+    "weighted_n": 8.0,
+    "mean_all": 72.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 72.25,
+   "projection": 72.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 72.2 rush yds a game.",
+   "why": [
+    "<b>D.J. Crowther</b> went under 65.5 rush yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 54.6,
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ed Small",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": 116,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397986&selectionId=102154250",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 13",
+   "record": "7 of 13",
+   "rate": 43,
+   "break_even": 46.3,
+   "edge": 7.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 5,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.31,
+    "weighted_n": 9.67,
+    "mean_all": 4.308
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.2,
+   "projection": 4.3,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 4.3 rec a game.",
+   "why": [
+    "<b>Ed Small</b> went over 3.5 rec in <b>5 of 8 games</b> in 2026 and 2 of 5 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.9,
+   "rank": 13
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Isaiah Mizell",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": 104,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622386556&selectionId=103415373",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 78,
+   "break_even": 49.0,
+   "edge": 5.0,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.874,
+    "weighted_n": 8.09,
+    "mean_all": 3.8
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.33,
+   "projection": 3.8,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 3.8 rec a game.",
+   "why": [
+    "<b>Isaiah Mizell</b> went under 5.5 rec in <b>4 of 7 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.5,
+   "rank": 14
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ethan Grunkemeyer",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 247.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622211231&selectionId=102738846",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "12 of 18",
+   "record": "12 of 18",
+   "rate": 65,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.765,
+    "weighted_n": 11.33,
+    "mean_all": 193.278
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 133.9,
+   "projection": 193.3,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 193.3 pass yds a game.",
+   "why": [
+    "<b>Ethan Grunkemeyer</b> went under 247.5 pass yds in <b>3 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.0,
+   "rank": 15
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Collin Dixon",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 84.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622080719&selectionId=102439520",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "15 of 21",
+   "record": "15 of 21",
+   "rate": 75,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 11,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.89,
+    "weighted_n": 12.33,
+    "mean_all": 63.048
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.15,
+   "projection": 63.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 63.0 rec yds a game.",
+   "why": [
+    "<b>Collin Dixon</b> went under 84.5 rec yds in <b>4 of 8 games</b> in 2026 and 11 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.5,
+   "rank": 16
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 66.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397094&selectionId=101885660",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "8 of 16",
+   "record": "8 of 16",
+   "rate": 35,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 12,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.184,
+    "weighted_n": 10.0,
+    "mean_all": 71.188
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 60.83,
+   "projection": 71.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 71.2 rec yds a game.",
+   "why": [
+    "<b>Jordan Dwyer</b> went over 66.5 rec yds in <b>3 of 4 games</b> in 2026 and 5 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.8,
+   "rank": 17
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jaden Craig",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 18.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622394314&selectionId=101884998",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 44,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.395,
+    "weighted_n": 8.0,
+    "mean_all": 13.625
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 13.62,
+   "projection": 13.6,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 13.6 rush yds a game.",
+   "why": [
+    "<b>Jaden Craig</b> went over 18.5 rush yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 54.1,
+   "rank": 18
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jalen Cooper",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -130,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622217577&selectionId=102598535",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 54,
+   "model_p": 54.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 56.5,
+   "edge": -2.5,
+   "rank": 19,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Luke Reynolds",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -140,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622213608&selectionId=102921633",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "13 of 18",
+   "record": "13 of 18",
+   "rate": 79,
+   "break_even": 58.3,
+   "edge": -4.3,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.959,
+    "weighted_n": 11.33,
+    "mean_all": 4.222
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.6,
+   "projection": 4.2,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 4.2 rec a game.",
+   "why": [
+    "<b>Luke Reynolds</b> went under 5.5 rec in <b>4 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.4,
+   "rank": 20,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Hudson Clement",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -172,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622080060&selectionId=102439536",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "9 of 20",
+   "record": "9 of 20",
+   "rate": 46,
+   "break_even": 63.2,
+   "edge": -9.2,
+   "season_detail": {
+    "h25": 3,
+    "n25": 13,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.31,
+    "weighted_n": 11.73,
+    "mean_all": 3.4
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.77,
+   "projection": 3.4,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 3.4 rec a game.",
+   "why": [
+    "<b>Hudson Clement</b> went over 3.5 rec in <b>6 of 7 games</b> in 2026 and 3 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.4,
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kendrick Raphael",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 85.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622214231&selectionId=102378425",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "13 of 21",
+   "record": "13 of 21",
+   "rate": 72,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.871,
+    "weighted_n": 12.33,
+    "mean_all": 78.524
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 73.23,
+   "projection": 78.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 78.5 rush yds a game.",
+   "why": [
+    "<b>Kendrick Raphael</b> went under 85.5 rush yds in <b>4 of 8 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.9,
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kevin Jennings",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 14.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622220077&selectionId=102346772",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "7 of 21",
+   "record": "7 of 21",
+   "rate": 43,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 3,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.452,
+    "weighted_n": 12.33,
+    "mean_all": 8.095
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.15,
+   "projection": 8.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 8.1 rush yds a game.",
+   "why": [
+    "<b>Kevin Jennings</b> went over 14.5 rush yds in <b>4 of 8 games</b> in 2026 and 3 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.4,
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Luke Lindenmeyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622074600&selectionId=103416902",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "8 of 19",
+   "record": "8 of 19",
+   "rate": 33,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 5,
+    "n25": 11,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.268,
+    "weighted_n": 11.67,
+    "mean_all": 29.421
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 28.36,
+   "projection": 29.4,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 29.4 rec yds a game.",
+   "why": [
+    "<b>Luke Lindenmeyer</b> went over 29.5 rec yds in <b>3 of 8 games</b> in 2026 and 5 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.4,
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Dominic Kelley",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 51.5,
+   "game": "New Mexico Lobos @ Nevada Wolf Pack",
+   "game_id": "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "commence": "2026-11-07T02:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622784374&selectionId=103222109",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "10 of 16",
+   "record": "10 of 16",
+   "rate": 58,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 8,
+    "n25": 8,
+    "h26": 2,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.711,
+    "weighted_n": 10.67,
+    "mean_all": 40.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 7.5,
+   "projection": 40.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 40.5 rush yds a game.",
+   "why": [
+    "<b>Dominic Kelley</b> went under 51.5 rush yds in <b>2 of 8 games</b> in 2026 and 8 of 8 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.6,
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jamal Rule",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 66.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622074593&selectionId=103179247",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "raw": "3 of 7",
+   "record": "3 of 7",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 9.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.794,
+    "weighted_n": 7.0,
+    "mean_all": 66.143
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 66.14,
+   "projection": 66.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 66.1 rush yds a game.",
+   "why": [
+    "<b>Jamal Rule</b> went under 66.5 rush yds in <b>3 of 7 games</b> in 2026, in the games he appears in.",
+    "The Illinois Fighting Illini allow 126.1 rushing yards a game to running backs (53rd most of 138).",
+    "The Illinois Fighting Illini list LB Grant Beerman (Out), DL Carter Smith (Out), DL Demetrius John (Out).",
+    "The model gives it <b>63%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 63.4,
+   "rank": 1,
+   "why_card": [
+    "<b>Jamal Rule</b> went under 66.5 rush yds in <b>3 of 7 games</b> in 2026, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mitch Griffis",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 170.5,
+   "game": "South Florida Bulls @ East Carolina Pirates",
+   "game_id": "5172093e8533ea39f59c5d2c63c743b9",
+   "away": "South Florida Bulls",
+   "home": "East Carolina Pirates",
+   "commence": "2026-11-07T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622746948&selectionId=60309731",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 62,
+   "raw": "10 of 13",
+   "record": "10 of 13",
+   "rate": 63,
+   "break_even": 53.3,
+   "edge": 8.7,
+   "season_detail": {
+    "h25": 4,
+    "n25": 5,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.528,
+    "weighted_n": 9.67,
+    "mean_all": 85.385
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 71.4,
+   "projection": 85.4,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 85.4 pass yds a game.",
+   "why": [
+    "<b>Mitch Griffis</b> went under 170.5 pass yds in <b>6 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in.",
+    "The South Florida Bulls allow 162.9 passing yards a game to quarterbacks (9th fewest of 138).",
+    "The model gives it <b>62%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 62.4,
+   "rank": 2,
+   "why_card": [
+    "<b>Mitch Griffis</b> went under 170.5 pass yds in <b>6 of 8 games</b> in 2026 and 4 of 5 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Katin Houser",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 10.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622076956&selectionId=102432075",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "15 of 19",
+   "record": "15 of 19",
+   "rate": 66,
+   "break_even": 53.3,
+   "edge": 3.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 12,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.515,
+    "weighted_n": 11.36,
+    "mean_all": 17.421
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 16.08,
+   "projection": 17.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 17.4 rush yds a game.",
+   "why": [
+    "<b>Katin Houser</b> went over 10.5 rush yds in <b>6 of 7 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in.",
+    "The Nebraska Cornhuskers allow 15 rushing yards a game to quarterbacks (30th fewest of 138).",
+    "The Nebraska Cornhuskers list DL Anthony Jones Jr. (Out), LB Jase Reynolds (Out), LB Jacob Bower (Out), DL Gabe Moore (Out).",
+    "The model gives it <b>57%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 56.8,
+   "rank": 3,
+   "why_card": [
+    "<b>Katin Houser</b> went over 10.5 rush yds in <b>6 of 7 games</b> in 2026 and 9 of 12 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Scottre Humphrey",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 72.5,
+   "game": "New Mexico Lobos @ Nevada Wolf Pack",
+   "game_id": "45fdbdbe6ed3d9922fa8b26b8a885f0e",
+   "away": "New Mexico Lobos",
+   "home": "Nevada Wolf Pack",
+   "commence": "2026-11-07T02:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622784376&selectionId=103950080",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "13 of 18",
+   "record": "13 of 18",
+   "rate": 72,
+   "break_even": 52.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.822,
+    "weighted_n": 11.33,
+    "mean_all": 49.389
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 34.9,
+   "projection": 49.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 49.4 rush yds a game.",
+   "why": [
+    "<b>Scottre Humphrey</b> went under 72.5 rush yds in <b>4 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in.",
+    "The Nevada Wolf Pack allow 105.4 rushing yards a game to running backs (48th fewest of 138).",
+    "The model gives it <b>56%</b>; at -112 it needs 52.8% to pay."
+   ],
+   "model_p": 55.8,
+   "rank": 4,
+   "why_card": [
+    "<b>Scottre Humphrey</b> went under 72.5 rush yds in <b>4 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jeffrey Overton Jr.",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622212456&selectionId=102738792",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "7 of 12",
+   "record": "7 of 12",
+   "rate": 69,
+   "break_even": 53.3,
+   "edge": 2.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 4,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.806,
+    "weighted_n": 9.33,
+    "mean_all": 65.417
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 36.5,
+   "projection": 65.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 65.4 rush yds a game.",
+   "why": [
+    "<b>Jeffrey Overton Jr.</b> went under 68.5 rush yds in <b>4 of 8 games</b> in 2026 and 3 of 4 in 2025, in the games he appears in.",
+    "The SMU Mustangs allow 108.6 rushing yards a game to running backs (58th fewest of 138).",
+    "The SMU Mustangs list DE Ira Singleton IV (Out), DE Trey Wilson (Out), LB I'Zayah Young (Out), LB Xavier Wright (Out).",
+    "The model gives it <b>56%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 55.5,
+   "rank": 5,
+   "why_card": [
+    "<b>Jeffrey Overton Jr.</b> went under 68.5 rush yds in <b>4 of 8 games</b> in 2026 and 3 of 4 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ed Small",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": 116,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397986&selectionId=102154250",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 13",
+   "record": "7 of 13",
+   "rate": 43,
+   "break_even": 46.3,
+   "edge": 7.7,
+   "season_detail": {
+    "h25": 2,
+    "n25": 5,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.31,
+    "weighted_n": 9.67,
+    "mean_all": 4.308
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.2,
+   "projection": 4.3,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 4.3 rec a game.",
+   "why": [
+    "<b>Ed Small</b> went over 3.5 rec in <b>5 of 8 games</b> in 2026 and 2 of 5 in 2025, in the games he appears in.",
+    "The Arizona Wildcats allow 11.6 catches a game to wide receivers (51st fewest of 138).",
+    "The Arizona Wildcats list CB Jay'Vion Cole (Out), S Cam Chapa (Out).",
+    "The model gives it <b>54%</b>; at +116 it needs 46.3% to pay."
+   ],
+   "model_p": 53.9,
+   "rank": 6,
+   "why_card": [
+    "<b>Ed Small</b> went over 3.5 rec in <b>5 of 8 games</b> in 2026 and 2 of 5 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Isaiah Mizell",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": 104,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622386556&selectionId=103415373",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 78,
+   "break_even": 49.0,
+   "edge": 5.0,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.874,
+    "weighted_n": 8.09,
+    "mean_all": 3.8
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.33,
+   "projection": 3.8,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 3.8 rec a game.",
+   "why": [
+    "<b>Isaiah Mizell</b> went under 5.5 rec in <b>4 of 7 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in.",
+    "The TCU Horned Frogs allow 10 catches a game to wide receivers (16th fewest of 138).",
+    "The TCU Horned Frogs list S Julius Simms (Out), CB Devondre McGee (Out).",
+    "The model gives it <b>54%</b>; at +104 it needs 49% to pay."
+   ],
+   "model_p": 54.5,
+   "rank": 7,
+   "why_card": [
+    "<b>Isaiah Mizell</b> went under 5.5 rec in <b>4 of 7 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ethan Grunkemeyer",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 247.5,
+   "game": "Virginia Tech Hokies @ SMU Mustangs",
+   "game_id": "11da04c7d3fba48caf11a5d8b66b8ccd",
+   "away": "Virginia Tech Hokies",
+   "home": "SMU Mustangs",
+   "commence": "2026-11-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622211231&selectionId=102738846",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "12 of 18",
+   "record": "12 of 18",
+   "rate": 65,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 3,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.765,
+    "weighted_n": 11.33,
+    "mean_all": 193.278
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 133.9,
+   "projection": 193.3,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 193.3 pass yds a game.",
+   "why": [
+    "<b>Ethan Grunkemeyer</b> went under 247.5 pass yds in <b>3 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in.",
+    "The SMU Mustangs allow 183.3 passing yards a game to quarterbacks (22nd fewest of 138).",
+    "The SMU Mustangs list DE Ira Singleton IV (Out), S Tyren Polley Jr. (Out), CB Jaelyn Davis-Robinson (Out), DE Trey Wilson (Out).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 54.0,
+   "rank": 8,
+   "why_card": [
+    "<b>Ethan Grunkemeyer</b> went under 247.5 pass yds in <b>3 of 8 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Collin Dixon",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 84.5,
+   "game": "Nebraska Cornhuskers @ Illinois Fighting Illini",
+   "game_id": "59047d3be974c2ec05c7e6282752287b",
+   "away": "Nebraska Cornhuskers",
+   "home": "Illinois Fighting Illini",
+   "commence": "2026-11-07T01:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622080719&selectionId=102439520",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "15 of 21",
+   "record": "15 of 21",
+   "rate": 75,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 11,
+    "n25": 13,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.89,
+    "weighted_n": 12.33,
+    "mean_all": 63.048
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.15,
+   "projection": 63.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 63.0 rec yds a game.",
+   "why": [
+    "<b>Collin Dixon</b> went under 84.5 rec yds in <b>4 of 8 games</b> in 2026 and 11 of 13 in 2025, in the games he appears in.",
+    "The Nebraska Cornhuskers allow 141.6 receiving yards a game to wide receivers (36th fewest of 138).",
+    "The Nebraska Cornhuskers list DB Kahmir Prescott (Out), LB Jase Reynolds (Out), LB Jacob Bower (Out).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 53.5,
+   "rank": 9,
+   "why_card": [
+    "<b>Collin Dixon</b> went under 84.5 rec yds in <b>4 of 8 games</b> in 2026 and 11 of 13 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 66.5,
+   "game": "TCU Horned Frogs @ Arizona Wildcats",
+   "game_id": "722ed661705df150a38e7786949ce241",
+   "away": "TCU Horned Frogs",
+   "home": "Arizona Wildcats",
+   "commence": "2026-11-07T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622397094&selectionId=101885660",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "8 of 16",
+   "record": "8 of 16",
+   "rate": 35,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 12,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.184,
+    "weighted_n": 10.0,
+    "mean_all": 71.188
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 60.83,
+   "projection": 71.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 71.2 rec yds a game.",
+   "why": [
+    "<b>Jordan Dwyer</b> went over 66.5 rec yds in <b>3 of 4 games</b> in 2026 and 5 of 12 in 2025, in the games he appears in.",
+    "The Arizona Wildcats allow 146.9 receiving yards a game to wide receivers (45th fewest of 138).",
+    "The Arizona Wildcats list CB Jay'Vion Cole (Out), S Cam Chapa (Out).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 53.8,
+   "rank": 10,
+   "why_card": [
+    "<b>Jordan Dwyer</b> went over 66.5 rec yds in <b>3 of 4 games</b> in 2026 and 5 of 12 in 2025, in the games he appears in."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 19,
+ "price_ceiling": 400,
+ "market_max_share": null,
+ "board_mixed": false,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}
