@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-06T18:42:19Z",
+ "checked_at": "2026-11-06T19:29:41Z",
  "et_date": "2026-11-06",
  "healthy": false,
  "broken": 0,
- "degraded": 12,
+ "degraded": 13,
  "findings": [
   {
    "key": "late:lineups:mlb",
@@ -89,6 +89,13 @@
    "what": "nfl nfl-logs was built 110 minutes after it was due",
    "why": "due 2026-11-06T07:00Z, built 2026-11-06T08:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
+  },
+  {
+   "key": "credits:unrecorded",
+   "severity": "DEGRADED",
+   "what": "44 Odds API credit(s) were spent since 2026-11-05T19:29:41Z that no stored snapshot records",
+   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-11-06T19:29:39Z \u221244 (data/nfl/2026-11-06/gamelines/1929.json.gz)",
+   "repair": null
   }
  ],
  "repairs": [],
@@ -96,15 +103,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 18889,
-  "pulled_at": "2026-11-06T18:18:10Z",
+  "balance": 18839,
+  "pulled_at": "2026-11-06T19:29:39Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.4,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-06T18:18:10Z",
-  "source": "data/nfl/2026-11-06/gamelines/1818.json.gz",
-  "readings_on_disk": 1462,
+  "newest_paid_pull": "2026-11-06T19:29:39Z",
+  "source": "data/nfl/2026-11-06/gamelines/1929.json.gz",
+  "readings_on_disk": 1463,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
