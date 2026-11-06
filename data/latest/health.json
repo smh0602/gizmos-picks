@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-06T15:25:49Z",
+ "checked_at": "2026-11-06T16:08:28Z",
  "et_date": "2026-11-06",
  "healthy": false,
  "broken": 0,
- "degraded": 14,
+ "degraded": 13,
  "findings": [
   {
    "key": "late:lineups:mlb",
@@ -70,13 +70,6 @@
    "repair": null
   },
   {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 145 minutes after it was due",
-   "why": "due 2026-11-06T13:00Z, built 2026-11-06T15:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-record was built 160 minutes after it was due",
@@ -114,7 +107,7 @@
   "pulled_at": "2026-11-06T15:24:22Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.7,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-06T15:24:22Z",
   "source": "data/nfl/2026-11-06/props-player/1524.json.gz",
