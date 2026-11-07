@@ -1,7 +1,7 @@
 {
  "date": "2026-11-07",
  "league": "ncaaf",
- "generated_at": "2026-11-07T19:52:21Z",
+ "generated_at": "2026-11-07T23:10:29Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-07T19:24:26Z",
@@ -2066,7 +2066,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-11-07T19:52:02Z",
-  "ladder_built_at": "2026-11-07T19:52:07Z",
+  "ladder_built_at": "2026-11-07T23:10:11Z",
   "alt_spreads": 12
  },
  "scores_shown": [
@@ -2139,7 +2139,7 @@
    "home": "UAB Blazers",
    "score": {
     "home": 31,
-    "away": 16
+    "away": 17
    }
   },
   {
@@ -2155,7 +2155,7 @@
    "home": "Georgia Southern Eagles",
    "score": {
     "home": 33,
-    "away": 23
+    "away": 22
    }
   },
   {
@@ -2884,16 +2884,16 @@
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 4,
-  "same_game_already_listed": 4,
+  "same_game_already_listed": 5,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 422,
+  "pool_after_price_gate": 252,
   "cap": 10,
   "distinct_games": 10,
-  "shared_with_board_head": 8,
+  "shared_with_board_head": 7,
   "board_head_size": 10
  },
- "top_plays_rule": "The 10 most likely to hit for 2026-11-07 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 8 of 10, over 10 game(s). 4 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 10 most likely to hit for 2026-11-07 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 7 of 10, over 10 game(s). 5 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -3791,8 +3791,8 @@
   ]
  },
  "parlay_meta": {
-  "pool": 34,
-  "rated_legs": 422,
+  "pool": 28,
+  "rated_legs": 252,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -3801,18 +3801,18 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 10,
-    "taken": 10
+    "available": 7,
+    "taken": 7
    },
    {
     "decimal": "1.6-2",
-    "available": 400,
+    "available": 236,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 12,
-    "taken": 12
+    "available": 9,
+    "taken": 9
    },
    {
     "decimal": "3-99",
@@ -3821,12 +3821,12 @@
    }
   ],
   "rejected": {
-   "same_game": 17881,
+   "same_game": 9498,
    "same_player": 0,
-   "mixed_book": 12337,
+   "mixed_book": 5804,
    "out_of_band": 0
   },
-  "note": "422 rated legs, 34 in the stratified pool. Rejected: 17881 same game, 0 same player, 12337 would need two books, 0 outside Sam's bands."
+  "note": "252 rated legs, 28 in the stratified pool. Rejected: 9498 same game, 0 same player, 5804 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -3967,8 +3967,8 @@
      -114,
      -106
     ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
+    "line_best_book": "fanduel",
+    "line_best_price": -106,
     "n_legs": 2,
     "n_line_legs": 1,
     "multiplier": 3.648,
@@ -3998,8 +3998,8 @@
      -114,
      -114
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -105,
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
     "n_legs": 2,
     "n_line_legs": 1,
     "multiplier": 3.524,
@@ -4122,6 +4122,40 @@
    },
    {
     "legs": [
+     "Fluff Bothwell u89.5 rush yds",
+     "Zion Ragins u28.5 rec yds",
+     "Mississippi State Bulldogs -2.5 spread"
+    ],
+    "game": "Vanderbilt Commodores @ Mississippi State Bulldogs",
+    "game_id": "028ce5ee2c58281cf935f06edc90d671",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -120
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -115,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.46,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 58,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     64,
+     58
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
      "Kemper Hodges u108.5 rush yds",
      "Gage LaDue u43.5 rush yds",
      "Under 43.5 total"
@@ -4135,8 +4169,8 @@
      -112,
      -106
     ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
+    "line_best_book": "fanduel",
+    "line_best_price": -106,
     "n_legs": 3,
     "n_line_legs": 1,
     "multiplier": 6.905,
@@ -4188,51 +4222,17 @@
      59
     ],
     "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Fluff Bothwell u89.5 rush yds",
-     "Zion Ragins u28.5 rec yds",
-     "Mississippi State Bulldogs -2.5 spread"
-    ],
-    "game": "Vanderbilt Commodores @ Mississippi State Bulldogs",
-    "game_id": "028ce5ee2c58281cf935f06edc90d671",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -120
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -115,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.46,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 58,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     64,
-     58
-    ],
-    "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 22,
-  "games_with_a_line_row": 17,
-  "games_used": 22,
+  "games_with_rated_legs": 13,
+  "games_with_a_line_row": 20,
+  "games_used": 13,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 633,
-   "mixed_book": 899,
+   "same_player": 429,
+   "mixed_book": 548,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -4240,7 +4240,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "22 game(s) on this card carry a rated leg and 17 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "13 game(s) on this card carry a rated leg and 20 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -13799,19 +13799,19 @@
   }
  },
  "name_match_rate": 0.958,
- "n_priced": 490,
+ "n_priced": 284,
  "single_day": true,
  "slate_date": "2026-11-07",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 490,
+ "n_on_slate_day": 284,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-07 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "490 priced football rows for 2026-11-07 across 50 board games; 25 shown.",
+ "coverage": "284 priced football rows for 2026-11-07 across 50 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 54% against a claimed 54.3% (-0.3 pts, n=189); 60-70 hit 46.2% against a claimed 62.5% (-16.3 pts, n=26). The under-60 band is currently the closest to its own claim. 70-80 has too few graded plays to read. 215 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -14444,54 +14444,6 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Cardae Mack",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 99.5,
-   "game": "Colorado Buffaloes @ Arizona State Sun Devils",
-   "game_id": "4f0efedf5f575715851efea9089f7ea6",
-   "away": "Colorado Buffaloes",
-   "home": "Arizona State Sun Devils",
-   "commence": "2026-11-08T00:30:00Z",
-   "book": "fanduel",
-   "price": -112,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622965840&selectionId=104179146",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 62,
-   "raw": "4 of 7",
-   "record": "4 of 7",
-   "rate": 78,
-   "break_even": 52.8,
-   "edge": 9.2,
-   "season_detail": {
-    "h25": 0,
-    "n25": 0,
-    "h26": 4,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.908,
-    "weighted_n": 7.0,
-    "mean_all": 74.714
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 74.71,
-   "projection": 74.7,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 7 games this record is built from \u2014 74.7 rush yds a game.",
-   "why": [
-    "<b>Cardae Mack</b> went under 99.5 rush yds in <b>4 of 7 games</b> in 2026, in the games he appears in."
-   ],
-   "model_p": 61.8,
-   "rank": 17
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Dylan Riley",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -14532,6 +14484,54 @@
    "projection_note": "His own average over the 22 games this record is built from \u2014 98.8 rush yds a game.",
    "why": [
     "<b>Dylan Riley</b> went under 151.5 rush yds in <b>6 of 8 games</b> in 2026 and 12 of 14 in 2025, in the games he appears in."
+   ],
+   "model_p": 61.8,
+   "rank": 17
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Cardae Mack",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 99.5,
+   "game": "Colorado Buffaloes @ Arizona State Sun Devils",
+   "game_id": "4f0efedf5f575715851efea9089f7ea6",
+   "away": "Colorado Buffaloes",
+   "home": "Arizona State Sun Devils",
+   "commence": "2026-11-08T00:30:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622965840&selectionId=104179146",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 62,
+   "raw": "4 of 7",
+   "record": "4 of 7",
+   "rate": 78,
+   "break_even": 52.8,
+   "edge": 9.2,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.908,
+    "weighted_n": 7.0,
+    "mean_all": 74.714
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 74.71,
+   "projection": 74.7,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 74.7 rush yds a game.",
+   "why": [
+    "<b>Cardae Mack</b> went under 99.5 rush yds in <b>4 of 7 games</b> in 2026, in the games he appears in."
    ],
    "model_p": 61.8,
    "rank": 18
@@ -16002,7 +16002,7 @@
    "why_card": []
   }
  ],
- "n_longshots_excluded": 96,
+ "n_longshots_excluded": 43,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
