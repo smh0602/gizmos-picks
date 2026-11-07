@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-07T14:22:39Z",
+ "checked_at": "2026-11-07T14:28:17Z",
  "et_date": "2026-11-07",
  "healthy": false,
  "broken": 0,
- "degraded": 15,
+ "degraded": 14,
  "findings": [
   {
    "key": "late:alt-lines:ncaaf",
@@ -84,13 +84,6 @@
    "repair": null
   },
   {
-   "key": "late:news:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl news was built 80 minutes after it was due",
-   "why": "due 2026-11-06T14:05Z, built 2026-11-06T15:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:nfl-logs:nfl",
    "severity": "DEGRADED",
    "what": "nfl nfl-logs was built 219 minutes after it was due",
@@ -121,7 +114,7 @@
   "pulled_at": "2026-11-07T13:48:08Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.6,
+  "reading_age_hours": 0.7,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-07T13:48:08Z",
   "source": "data/nfl/2026-11-07/props-player/1348.json.gz",
