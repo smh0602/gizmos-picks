@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-08T17:53:19Z",
+ "checked_at": "2026-11-08T18:13:32Z",
  "et_date": "2026-11-08",
  "healthy": false,
  "broken": 0,
- "degraded": 4,
+ "degraded": 3,
  "findings": [
   {
    "key": "late:fb-record:ncaaf",
@@ -26,13 +26,6 @@
    "what": "nfl fb-record was built 160 minutes after it was due",
    "why": "due 2026-11-04T13:00Z, built 2026-11-04T15:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
    "repair": null
-  },
-  {
-   "key": "late:gamelines:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl gamelines was built 131 minutes after it was due",
-   "why": "due 2026-11-08T12:00Z, built 2026-11-08T14:10Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
   }
  ],
  "repairs": [],
@@ -40,15 +33,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17498,
-  "pulled_at": "2026-11-08T17:20:22Z",
+  "balance": 17462,
+  "pulled_at": "2026-11-08T18:13:28Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.5,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-08T17:20:22Z",
-  "source": "data/ncaaf/2026-11-08/gamelines/1720.json.gz",
-  "readings_on_disk": 1511,
+  "newest_paid_pull": "2026-11-08T18:13:28Z",
+  "source": "data/nfl/2026-11-08/gamelines/1813.json.gz",
+  "readings_on_disk": 1512,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
