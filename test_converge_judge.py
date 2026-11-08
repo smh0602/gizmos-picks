@@ -67,6 +67,7 @@ import importlib
 import io
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -75,14 +76,21 @@ import urllib.error
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from tcheck import ck, eq, note, section  # noqa: E402
+from tcheck import ck, eq, note, section, shown  # noqa: E402
 
 os.environ["LEAGUE"] = "mlb"
 os.environ.setdefault("ODDS_API_KEY", "test")
 import freshness as F  # noqa: E402
 
 UTC = datetime.timezone.utc
-NOW = datetime.datetime.now(UTC)
+# 🔴 ONE PINNED CLOCK FOR THE TREE AND FOR CONVERGE `[2026-11-08]`. NOW was the real
+#    clock, and converge read its own: collect 42517418459 went red here at 20:01Z
+#    because the sandbox's 2-minute-old board sat across the 20:00Z gamelines deadline
+#    (the same tree is stale at 20:00:30Z and inside contract at 20:02:30Z, measured).
+#    The sandbox is a planted tree, so its clock is pinned, and `pinned()` runs converge
+#    at the same instant. 17:10Z is 6h10m after the board's 11:00Z deadline and 4h05m
+#    after news's 13:05Z, so FRESH and the news age sit well inside both windows.
+NOW = datetime.datetime(2026, 11, 4, 17, 10, tzinfo=UTC)
 
 
 def sandbox(board_age_min, news_age_min=5):
@@ -99,9 +107,32 @@ def sandbox(board_age_min, news_age_min=5):
     return d
 
 
+@contextlib.contextmanager
+def pinned(collect):
+    """converge reads three clocks of its own: `collect.now`, and freshness's
+    `plan` and `survey`, which it calls without `now`. Each is pinned to NOW for
+    the call and restored after, so the rest of this file (section 6's live
+    tree) keeps the real clock."""
+    fresh = collect._fresh
+
+    def at_now(fn):
+        def call(*a, **k):
+            if len(a) < 3 and k.get("now") is None:
+                k["now"] = NOW
+            return fn(*a, **k)
+        return call
+    saved = collect.now, fresh.plan, fresh.survey
+    collect.now = lambda: NOW
+    fresh.plan, fresh.survey = at_now(fresh.plan), at_now(fresh.survey)
+    try:
+        yield
+    finally:
+        collect.now, fresh.plan, fresh.survey = saved
+
+
 def converge(d, fail, explicit=()):
-    """Run the real converge in `d`; `fail` maps a mode to the exception it
-    raises. -> (exit code, stdout)."""
+    """Run the real converge in `d`, at NOW; `fail` maps a mode to the
+    exception it raises. -> (exit code, stdout)."""
     cwd = os.getcwd()
     os.chdir(d)
     try:
@@ -114,11 +145,16 @@ def converge(d, fail, explicit=()):
         collect.run_mode = run_mode
         collect.daily_spend = lambda: 0
         out = io.StringIO()
-        with contextlib.redirect_stdout(out):
+        with pinned(collect), contextlib.redirect_stdout(out):
             code = collect.converge(explicit=list(explicit))
         return code, out.getvalue()
     finally:
         os.chdir(cwd)
+
+
+def survey_line(out, mode):
+    """converge's own FRESHNESS SURVEY line for `mode`."""
+    return [l for l in out.splitlines() if " %s " % mode in l and " built " in l]
 
 
 def http(code):
@@ -158,6 +194,12 @@ section("2. AN OUTSIDE SOURCE FAILS, THE ARTIFACT IS STILL CURRENT -> GREEN, WAR
 d = sandbox(FRESH)
 try:
     code, out = converge(d, {"gamelines": http(503)}, ["gamelines"])
+    # 🔴 `[2026-11-08]` converge surveyed at NOW, the sandbox's own instant: its board is
+    #    exactly FRESH minutes old and not due. On the real clock it would be days old.
+    _sl = survey_line(out, "gamelines")
+    ck(len(_sl) == 1 and " ok " in _sl[0] and re.search(r"built +%dm ago" % FRESH, _sl[0]),
+       "🔴 converge ran at the sandbox's pinned clock: its own survey has the board %d minutes "
+       "old and inside contract" % FRESH, shown(_sl))
     eq(code, 0, "🔴 a HARD mode's source outage inside its deadline does not turn the run red")
     w = [l for l in annotations(out, "warning") if l.startswith("::warning::gamelines")]
     ck(len(w) == 1 and "HTTP 503 from the source" in w[0] and "board.json" in w[0]
