@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "MODEL",
- "built_at": "2026-11-08T14:14:39Z",
+ "built_at": "2026-11-08T17:30:00Z",
  "design": "research/fb_props_design.md",
  "train_seasons": [
   2021,
@@ -124,11 +124,11 @@
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 192,
+    "value": 193,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 45.5,
+    "value": 45.7,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -141,8 +141,8 @@
    },
    "interval_95": {
     "value": [
-     40.7,
-     50.3
+     40.9,
+     50.6
     ],
     "basis": "DESCRIPTIVE"
    },
@@ -162,9 +162,9 @@
     "label": "LOSING",
     "picks": 422,
     "min_picks": 300,
-    "p": 0.9991,
+    "p": 0.9989,
     "games": 197,
-    "edge_points": -7.6
+    "edge_points": -7.4
    }
   },
   "player_receptions": {
@@ -364,7 +364,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 49.6,
+     "value": 49.5,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -601,17 +601,17 @@
   "player_pass_yds": {
    "n": 430,
    "card": 0.8264330542020517,
-   "model": 0.7256054661398224
+   "model": 0.7256054654556091
   },
   "player_rush_yds": {
    "n": 863,
    "card": 0.7770382984026256,
-   "model": 0.6930247422558644
+   "model": 0.6930247381247053
   },
   "player_reception_yds": {
    "n": 830,
    "card": 0.7611009950427753,
-   "model": 0.7168788318339131
+   "model": 0.7168788283717447
   },
   "player_receptions": {
    "n": 239,
@@ -621,7 +621,7 @@
   "player_anytime_td": {
    "n": 1991,
    "card": 0.6531802928999211,
-   "model": 0.6332167213222988
+   "model": 0.633216765672686
   }
  },
  "card_logs_season": 2025,
@@ -649,6 +649,7 @@
   "2026-11-03": 2025,
   "2026-10-20": 2025,
   "2026-09-03": 2025,
+  "2026-11-10": 2025,
   "2026-10-03": 2025,
   "2026-09-26": 2025,
   "2026-10-16": 2025,
@@ -670,9 +671,9 @@
  },
  "league_only": {
   "n": 4353,
-  "mean_d": 0.0475198743305701,
-  "t": 5.010828203973283,
-  "p": 4.2567984061873357e-07,
+  "mean_d": 0.047519855592086484,
+  "t": 5.01082563210283,
+  "p": 4.2568515841553627e-07,
   "clusters": 361
  },
  "paired_rows": [
@@ -28723,7 +28724,7 @@
    "player_rush_yds",
    1,
    0.25,
-   0.533518
+   0.533516
   ],
   [
    "ncaaf:5172093e8533ea39f59c5d2c63c743b9",
@@ -28842,14 +28843,14 @@
    "player_rush_yds",
    0,
    0.65,
-   0.558064
+   0.558061
   ],
   [
    "ncaaf:59047d3be974c2ec05c7e6282752287b",
    "player_rush_yds",
    0,
    0.43,
-   0.489146
+   0.489143
   ],
   [
    "ncaaf:59047d3be974c2ec05c7e6282752287b",
@@ -28982,7 +28983,7 @@
    "player_rush_yds",
    1,
    0.61,
-   0.504323
+   0.504321
   ],
   [
    "ncaaf:722ed661705df150a38e7786949ce241",
@@ -29080,14 +29081,14 @@
    "player_rush_yds",
    1,
    0.65,
-   0.483096
+   0.483093
   ],
   [
    "ncaaf:8db5a11826fc84a5a6506c9b85979e70",
    "player_rush_yds",
    1,
    0.5,
-   0.536735
+   0.536733
   ],
   [
    "ncaaf:8db5a11826fc84a5a6506c9b85979e70",
@@ -29136,14 +29137,14 @@
    "player_rush_yds",
    1,
    0.65,
-   0.48716
+   0.487157
   ],
   [
    "ncaaf:8db5a11826fc84a5a6506c9b85979e70",
    "player_rush_yds",
    1,
    0.5,
-   0.531983
+   0.53198
   ],
   [
    "ncaaf:7233098d6f4e9fe94606ee2f3343de84",
@@ -29213,7 +29214,7 @@
    "player_rush_yds",
    1,
    0.68,
-   0.541485
+   0.541482
   ],
   [
    "ncaaf:7233098d6f4e9fe94606ee2f3343de84",
@@ -29549,7 +29550,7 @@
    "player_rush_yds",
    0,
    0.54,
-   0.494511
+   0.494508
   ],
   [
    "ncaaf:43a67a478177d0dc6ef141aacf2bfd2a",
@@ -29801,7 +29802,7 @@
    "player_rush_yds",
    0,
    0.46,
-   0.535104
+   0.535102
   ],
   [
    "ncaaf:59263b8c355e171b2bcd5c1827a36b7e",
@@ -30046,7 +30047,7 @@
    "player_rush_yds",
    1,
    0.73,
-   0.507904
+   0.507901
   ],
   [
    "ncaaf:40065b11db334359a18c868e9af4d7cd",
@@ -30081,7 +30082,7 @@
    "player_rush_yds",
    1,
    0.73,
-   0.49733
+   0.497327
   ],
   [
    "ncaaf:40065b11db334359a18c868e9af4d7cd",
@@ -30361,14 +30362,14 @@
    "player_rush_yds",
    0,
    0.68,
-   0.483166
+   0.483163
   ],
   [
    "ncaaf:208e919ada4f5cf6d27af719879d1880",
    "player_rush_yds",
    0,
    0.27,
-   0.534063
+   0.53406
   ],
   [
    "ncaaf:00f194290bfcdfebb1d8456057b20614",
@@ -30473,7 +30474,7 @@
    "player_rush_yds",
    0,
    0.56,
-   0.473116
+   0.473114
   ],
   [
    "ncaaf:00f194290bfcdfebb1d8456057b20614",
@@ -30571,14 +30572,14 @@
    "player_rush_yds",
    0,
    0.46,
-   0.537052
+   0.537049
   ],
   [
    "ncaaf:18f974d07f56507b33b9e50119c88e28",
    "player_rush_yds",
    0,
    0.61,
-   0.507195
+   0.507192
   ],
   [
    "ncaaf:18f974d07f56507b33b9e50119c88e28",
@@ -30767,70 +30768,70 @@
    "player_anytime_td",
    1,
    0.46,
-   0.320398
+   0.320389
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_anytime_td",
    0,
    0.25,
-   0.28583
+   0.285817
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_anytime_td",
    0,
    0.21,
-   0.290389
+   0.290377
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_anytime_td",
    0,
    0.54,
-   0.307835
+   0.307825
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_anytime_td",
    1,
    0.41,
-   0.302557
+   0.302546
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_reception_yds",
    0,
    0.54,
-   0.526541
+   0.526542
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_reception_yds",
    1,
    0.14,
-   0.486944
+   0.486946
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_reception_yds",
    1,
    0.29,
-   0.443296
+   0.443297
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_reception_yds",
    1,
    0.79,
-   0.525668
+   0.525669
   ],
   [
    "ncaaf:4f0efedf5f575715851efea9089f7ea6",
    "player_reception_yds",
    0,
    0.35,
-   0.534895
+   0.534897
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
@@ -30879,14 +30880,14 @@
    "player_pass_yds",
    0,
    0.72,
-   0.487774
+   0.487768
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
    "player_pass_yds",
    0,
    0.5,
-   0.481246
+   0.481241
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
@@ -30900,35 +30901,35 @@
    "player_rush_yds",
    1,
    0.35,
-   0.532996
+   0.532994
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
    "player_rush_yds",
    1,
    0.63,
-   0.524234
+   0.524231
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
    "player_rush_yds",
    0,
    0.53,
-   0.528945
+   0.528942
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
    "player_rush_yds",
    0,
    0.65,
-   0.528284
+   0.528283
   ],
   [
    "ncaaf:0842fcd69fdf5061f6751f876ead09f2",
    "player_rush_yds",
    1,
    0.63,
-   0.440896
+   0.440895
   ],
   [
    "ncaaf:61cf0b043d9d95f0a73d0838ff08a24b",
@@ -30942,14 +30943,14 @@
    "player_anytime_td",
    0,
    0.54,
-   0.323364
+   0.323355
   ],
   [
    "ncaaf:61cf0b043d9d95f0a73d0838ff08a24b",
    "player_anytime_td",
    0,
    0.27,
-   0.261483
+   0.261467
   ],
   [
    "ncaaf:61cf0b043d9d95f0a73d0838ff08a24b",
@@ -30970,14 +30971,14 @@
    "player_rush_yds",
    0,
    0.14,
-   0.32555
+   0.325548
   ],
   [
    "ncaaf:61cf0b043d9d95f0a73d0838ff08a24b",
    "player_rush_yds",
    0,
    0.58,
-   0.5223
+   0.522298
   ],
   [
    "ncaaf:4aac00e6cc06b8905659f911419540d2",
@@ -30991,14 +30992,14 @@
    "player_anytime_td",
    1,
    0.35,
-   0.296724
+   0.296713
   ],
   [
    "ncaaf:4aac00e6cc06b8905659f911419540d2",
    "player_anytime_td",
    1,
    0.43,
-   0.269035
+   0.26902
   ],
   [
    "ncaaf:4aac00e6cc06b8905659f911419540d2",
@@ -31019,35 +31020,35 @@
    "player_pass_yds",
    1,
    0.7,
-   0.510379
+   0.510373
   ],
   [
    "ncaaf:4aac00e6cc06b8905659f911419540d2",
    "player_reception_yds",
    1,
    0.7,
-   0.428626
+   0.428627
   ],
   [
    "ncaaf:4aac00e6cc06b8905659f911419540d2",
    "player_reception_yds",
    1,
    0.35,
-   0.414653
+   0.414655
   ],
   [
    "ncaaf:4aac00e6cc06b8905659f911419540d2",
    "player_rush_yds",
    0,
    0.7,
-   0.482514
+   0.482513
   ],
   [
    "ncaaf:2c3f80e228a486e04f6f7a38e4f00fb4",
    "player_anytime_td",
    0,
    0.55,
-   0.294235
+   0.294224
   ],
   [
    "ncaaf:2c3f80e228a486e04f6f7a38e4f00fb4",
@@ -31068,7 +31069,7 @@
    "player_reception_yds",
    0,
    0.65,
-   0.491752
+   0.491754
   ],
   [
    "ncaaf:1ef954bd3305a66136e52ea0786f1593",
@@ -31110,50 +31111,50 @@
    "player_anytime_td",
    1,
    0.58,
-   0.317383
+   0.317374
   ],
   [
    "ncaaf:1ef954bd3305a66136e52ea0786f1593",
    "player_pass_yds",
    1,
    0.58,
-   0.538124
+   0.538118
   ],
   [
    "ncaaf:1ef954bd3305a66136e52ea0786f1593",
    "player_reception_yds",
    0,
    0.73,
-   0.544258
+   0.544259
   ],
   [
    "ncaaf:1ef954bd3305a66136e52ea0786f1593",
    "player_rush_yds",
    0,
    0.5,
-   0.463939
+   0.463937
   ],
   [
    "ncaaf:1ef954bd3305a66136e52ea0786f1593",
    "player_rush_yds",
    1,
    0.5,
-   0.545193
+   0.545191
   ],
   [
    "ncaaf:1ef954bd3305a66136e52ea0786f1593",
    "player_rush_yds",
    1,
    0.65,
-   0.571871
+   0.571869
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
   "n": 8499,
-  "mean_d": 0.038329621367245895,
-  "t": 5.76782975794438,
-  "p": 7.184312631574877e-09,
+  "mean_d": 0.03832961228111565,
+  "t": 5.7678280629501675,
+  "p": 7.1843801981925736e-09,
   "clusters": 483,
   "verdict": "QUALIFIES",
   "leagues": [
