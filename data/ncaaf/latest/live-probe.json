@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-11-07T20:47:47Z",
+ "written_at": "2026-11-08T00:23:26Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -53,6 +53,7 @@
    "shortName",
    "status",
    "uid",
+   "weather",
    "week"
   ],
   "competition": [
@@ -73,6 +74,7 @@
    "notes",
    "playByPlayAvailable",
    "recent",
+   "situation",
    "startDate",
    "status",
    "timeValid",
@@ -106,8 +108,7 @@
    "statistics",
    "team",
    "type",
-   "uid",
-   "winner"
+   "uid"
   ],
   "team": [
    "abbreviation",
@@ -138,78 +139,78 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "post": 19,
-  "in": 18,
-  "pre": 26
+  "in": 12,
+  "post": 37,
+  "pre": 14
  },
- "in_progress": 18,
+ "in_progress": 12,
  "live_sample": [
   {
-   "id": "401858512",
-   "away": "UCLA Bruins",
-   "home": "Minnesota Golden Gophers",
-   "away_score": "34",
+   "id": "401858514",
+   "away": "Oregon Ducks",
+   "home": "Ohio State Buckeyes",
+   "away_score": "41",
+   "home_score": "28",
+   "state": "in",
+   "detail": "0:44 - 4th",
+   "clock": "0:44",
+   "period": 4,
+   "start": "2026-11-07T20:30Z"
+  },
+  {
+   "id": "401871076",
+   "away": "Western Kentucky Hilltoppers",
+   "home": "Middle Tennessee Blue Raiders",
+   "away_score": "42",
+   "home_score": "45",
+   "state": "in",
+   "detail": "0:01 - 4th",
+   "clock": "0:01",
+   "period": 4,
+   "start": "2026-11-07T20:30Z"
+  },
+  {
+   "id": "401856850",
+   "away": "UCF Knights",
+   "home": "Kansas Jayhawks",
+   "away_score": "33",
+   "home_score": "32",
+   "state": "in",
+   "detail": "End of 4th",
+   "clock": "0:00",
+   "period": 4,
+   "start": "2026-11-07T20:45Z"
+  },
+  {
+   "id": "401862821",
+   "away": "Rice Owls",
+   "home": "North Texas Mean Green",
+   "away_score": "17",
+   "home_score": "45",
+   "state": "in",
+   "detail": "3:19 - 4th",
+   "clock": "3:19",
+   "period": 4,
+   "start": "2026-11-07T21:00Z"
+  },
+  {
+   "id": "401871074",
+   "away": "Missouri State Bears",
+   "home": "Florida International Panthers",
+   "away_score": "17",
    "home_score": "20",
    "state": "in",
-   "detail": "1:34 - 4th",
-   "clock": "1:34",
+   "detail": "1:55 - 4th",
+   "clock": "1:55",
    "period": 4,
-   "start": "2026-11-07T17:00Z"
-  },
-  {
-   "id": "401858286",
-   "away": "Duke Blue Devils",
-   "home": "NC State Wolfpack",
-   "away_score": "41",
-   "home_score": "3",
-   "state": "in",
-   "detail": "4:59 - 4th",
-   "clock": "4:59",
-   "period": 4,
-   "start": "2026-11-07T17:30Z"
-  },
-  {
-   "id": "401858515",
-   "away": "Maryland Terrapins",
-   "home": "Purdue Boilermakers",
-   "away_score": "34",
-   "home_score": "29",
-   "state": "in",
-   "detail": "0:09 - 4th",
-   "clock": "0:09",
-   "period": 4,
-   "start": "2026-11-07T17:30Z"
-  },
-  {
-   "id": "401856738",
-   "away": "Arkansas Razorbacks",
-   "home": "Auburn Tigers",
-   "away_score": "16",
-   "home_score": "16",
-   "state": "in",
-   "detail": "8:32 - 4th",
-   "clock": "8:32",
-   "period": 4,
-   "start": "2026-11-07T17:45Z"
-  },
-  {
-   "id": "401856854",
-   "away": "Oklahoma State Cowboys",
-   "home": "Kansas State Wildcats",
-   "away_score": "63",
-   "home_score": "21",
-   "state": "in",
-   "detail": "3:19 - 3rd",
-   "clock": "3:19",
-   "period": 3,
-   "start": "2026-11-07T18:00Z"
+   "start": "2026-11-07T21:00Z"
   }
  ],
  "live_state_fields": {
-  "with a running clock": 18,
-  "with a period": 18,
-  "with both scores": 18,
-  "of": 18
+  "with a running clock": 12,
+  "with a period": 12,
+  "with both scores": 12,
+  "of": 12
  },
  "join": {
   "our_schedule_season": 2026,
@@ -291,20 +292,20 @@
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
  "refresh_check": {
   "seconds_apart": 45,
-  "live_games_compared": 18,
-  "games_whose_clock_or_period_changed": 13,
+  "live_games_compared": 12,
+  "games_whose_clock_or_period_changed": 5,
   "example": {
-   "id": "401858512",
-   "was": "1:34 Q4",
-   "now": "0:35 Q4"
+   "id": "401862821",
+   "was": "3:19 Q4",
+   "now": "2:30 Q4"
   },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 13 of 18 live games in 45s, so the feed is live enough for a polling tab"
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 5 of 12 live games in 45s, so the feed is live enough for a polling tab"
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=1",
+  "cache_control": "max-age=3",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "63 events via [groups=80 (FBS)], 18 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 16.6% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "63 events via [groups=80 (FBS)], 12 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 16.6% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
