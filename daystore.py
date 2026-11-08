@@ -58,11 +58,34 @@ def path(data, kind, when=None):
     return os.path.join(data, day, kind, hhmm + ".json.gz")
 
 
-def archive(doc, data, kind, log=print, when=None):
+def same_bytes(path, doc):
+    """The bytes of the gzip at `path` when it stores exactly `doc` (compared as
+    JSON stores it, so int keys read back as strings); None otherwise (no file,
+    unreadable, any difference). ⛔ Never raises."""
+    try:
+        with open(path, "rb") as fh:
+            buf = fh.read()
+        if json.loads(gzip.decompress(buf).decode("utf-8")) == json.loads(json.dumps(doc)):
+            return buf
+    except Exception:
+        pass
+    return None
+
+
+def archive(doc, data, kind, log=print, when=None, same_as=None):
     """Write `doc` to a dated path unless one is already there.
 
     -> (path, wrote?) — `wrote` False means an earlier reading from this
     same minute was LEFT ALONE, which is the point of the whole module.
+
+    🔴 `same_as` `[2026-11-08]`: the `latest/` gzip the caller has just written
+    `doc` to. When that file stores exactly `doc`, the archive is a copy of its
+    BYTES, so git stores one blob for the two paths. ⛔ A gzip carries its own
+    write time and temporary file name, so the same document dumped twice is two
+    different blobs: the dossier archive was a second full copy of
+    `latest/dossiers.json.gz` on every `card-fb` run (267 archives, 63.8 MB of
+    new gzip from 2026-10-25 to 11-08, every one sampled equal in content to the
+    latest file of its commit). Any difference, and it dumps `doc` as before.
     """
     p = path(data, kind, when)
     parts = os.path.normpath(p).split(os.sep)
@@ -75,6 +98,11 @@ def archive(doc, data, kind, log=print, when=None):
     if os.path.exists(p):
         log("daystore: %s already exists — left as it was" % p)
         return p, False
+    buf = same_bytes(same_as, doc) if same_as else None
+    if buf is not None:
+        with open(p, "wb") as fh:          # the write-once check is the one above, as for a dump
+            fh.write(buf)
+        return p, True
     with gzip.open(p, "wt") as fh:
         json.dump(doc, fh)
     return p, True
