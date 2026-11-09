@@ -1,32 +1,32 @@
 {
- "built_at": "2026-11-09T00:10:26Z",
+ "built_at": "2026-11-09T17:57:27Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 259,
-  "n": 494,
-  "pct": 52.4
+  "w": 273,
+  "n": 514,
+  "pct": 53.1
  },
  "board": {
-  "w": 328,
-  "n": 615,
-  "pct": 53.3
+  "w": 346,
+  "n": 645,
+  "pct": 53.6
  },
  "game_lines": {
-  "w": 69,
-  "n": 121,
-  "pct": 57.0,
+  "w": 73,
+  "n": 131,
+  "pct": 55.7,
   "overall": {
-   "w": 69,
-   "n": 121,
-   "pct": 57.0
+   "w": 73,
+   "n": 131,
+   "pct": 55.7
   },
-  "shown": 132,
+  "shown": 133,
   "voids": 1,
-  "pending": 10,
+  "pending": 1,
   "unresolved": 0,
   "from": "2026-10-04",
   "by_market": {
@@ -41,14 +41,14 @@
     "pct": 46.7
    },
    "alternate_spread": {
-    "w": 23,
-    "n": 46,
-    "pct": 50.0
+    "w": 27,
+    "n": 53,
+    "pct": 50.9
    },
    "total": {
     "w": 21,
-    "n": 29,
-    "pct": 72.4
+    "n": 32,
+    "pct": 65.6
    }
   },
   "by_basis": {
@@ -58,9 +58,9 @@
     "pct": 70.0
    },
    "MODEL": {
-    "w": 55,
-    "n": 101,
-    "pct": 54.5
+    "w": 59,
+    "n": 111,
+    "pct": 53.2
    }
   },
   "by_day": [
@@ -185,23 +185,31 @@
     "pending": 0
    },
    {
-    "w": 1,
-    "n": 1,
-    "pct": 100.0,
+    "w": 5,
+    "n": 11,
+    "pct": 45.5,
     "date": "2026-11-08",
     "voids": 0,
-    "pending": 10
+    "pending": 0
+   },
+   {
+    "w": 0,
+    "n": 0,
+    "pct": null,
+    "date": "2026-11-09",
+    "voids": 0,
+    "pending": 1
    }
   ]
  },
  "alt_spreads": {
   "basis": "MARKET + MODEL",
   "overall": {
-   "w": 23,
-   "n": 43,
-   "pct": 53.5
+   "w": 27,
+   "n": 49,
+   "pct": 55.1
   },
-  "shown": 52,
+  "shown": 53,
   "by_basis": {
    "MARKET": {
     "w": 14,
@@ -209,13 +217,13 @@
     "pct": 73.7
    },
    "MODEL": {
-    "w": 9,
-    "n": 24,
-    "pct": 37.5
+    "w": 13,
+    "n": 30,
+    "pct": 43.3
    }
   },
   "voids": 0,
-  "pending": 9,
+  "pending": 4,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -890,8 +898,8 @@
     "break_even": 43.9,
     "game": "Cleveland Browns @ New Orleans Saints",
     "commence": "2026-11-08T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-08",
@@ -935,8 +943,8 @@
     "break_even": 42.4,
     "game": "Houston Texans @ Los Angeles Chargers",
     "commence": "2026-11-08T21:05:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-08",
@@ -950,8 +958,8 @@
     "break_even": 44.4,
     "game": "Detroit Lions @ Miami Dolphins",
     "commence": "2026-11-08T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-11-08",
@@ -965,8 +973,8 @@
     "break_even": 47.6,
     "game": "New York Giants @ Philadelphia Eagles",
     "commence": "2026-11-08T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-08",
@@ -980,8 +988,8 @@
     "break_even": 41.3,
     "game": "New York Jets @ Kansas City Chiefs",
     "commence": "2026-11-08T18:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-11-08",
@@ -995,6 +1003,21 @@
     "break_even": 46.3,
     "game": "Denver Broncos @ Carolina Panthers",
     "commence": "2026-11-08T18:00:00Z",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "date": "2026-11-09",
+    "player": "Buffalo Bills",
+    "side": "away",
+    "line": -4.0,
+    "price": 105,
+    "book": "hardrockbet",
+    "confidence": 51,
+    "confidence_basis": "MODEL",
+    "break_even": 48.8,
+    "game": "Buffalo Bills @ Minnesota Vikings",
+    "commence": "2026-11-10T01:15:00Z",
     "won": null,
     "state": "pending"
    }
@@ -1007,14 +1030,14 @@
    "pct": 44.4
   },
   "player_pass_tds": {
-   "w": 19,
-   "n": 35,
-   "pct": 54.3
+   "w": 20,
+   "n": 36,
+   "pct": 55.6
   },
   "player_pass_yds": {
-   "w": 12,
-   "n": 25,
-   "pct": 48.0
+   "w": 14,
+   "n": 28,
+   "pct": 50.0
   },
   "player_reception_yds": {
    "w": 78,
@@ -1022,26 +1045,26 @@
    "pct": 53.4
   },
   "player_receptions": {
-   "w": 104,
-   "n": 184,
-   "pct": 56.5
+   "w": 110,
+   "n": 191,
+   "pct": 57.6
   },
   "player_rush_yds": {
-   "w": 38,
-   "n": 86,
-   "pct": 44.2
+   "w": 43,
+   "n": 95,
+   "pct": 45.3
   }
  },
  "by_side": {
   "over": {
-   "w": 135,
-   "n": 270,
-   "pct": 50.0
+   "w": 139,
+   "n": 275,
+   "pct": 50.5
   },
   "under": {
-   "w": 116,
-   "n": 206,
-   "pct": 56.3
+   "w": 126,
+   "n": 221,
+   "pct": 57.0
   },
   "yes": {
    "w": 8,
@@ -1051,35 +1074,42 @@
  },
  "by_book": {
   "draftkings": {
-   "w": 36,
-   "n": 67,
-   "pct": 53.7
+   "w": 42,
+   "n": 78,
+   "pct": 53.8
   },
   "fanduel": {
-   "w": 22,
-   "n": 43,
-   "pct": 51.2
+   "w": 27,
+   "n": 49,
+   "pct": 55.1
   },
   "hardrockbet": {
-   "w": 201,
-   "n": 384,
-   "pct": 52.3
+   "w": 204,
+   "n": 387,
+   "pct": 52.7
   }
  },
  "calibration": [
   {
    "bucket": "50-60%",
-   "stated": 53.9,
-   "w": 56,
-   "n": 110,
-   "pct": 50.9
+   "stated": 54.1,
+   "w": 66,
+   "n": 124,
+   "pct": 53.2
   },
   {
    "bucket": "60-70%",
-   "stated": 62.9,
-   "w": 2,
-   "n": 9,
-   "pct": 22.2
+   "stated": 62.8,
+   "w": 6,
+   "n": 14,
+   "pct": 42.9
+  },
+  {
+   "bucket": "70-80%",
+   "stated": 70.0,
+   "w": 0,
+   "n": 1,
+   "pct": 0.0
   }
  ],
  "card_method_current": "season-blend+props-own",
@@ -1205,17 +1235,24 @@
   "season-blend+props-own": [
    {
     "bucket": "50-60%",
-    "stated": 53.9,
-    "w": 56,
-    "n": 110,
-    "pct": 50.9
+    "stated": 54.1,
+    "w": 66,
+    "n": 124,
+    "pct": 53.2
    },
    {
     "bucket": "60-70%",
-    "stated": 62.9,
-    "w": 2,
-    "n": 9,
-    "pct": 22.2
+    "stated": 62.8,
+    "w": 6,
+    "n": 14,
+    "pct": 42.9
+   },
+   {
+    "bucket": "70-80%",
+    "stated": 70.0,
+    "w": 0,
+    "n": 1,
+    "pct": 0.0
    }
   ]
  },
@@ -1236,9 +1273,9 @@
    "pct": 71.4
   },
   "season-blend+props-own": {
-   "w": 58,
-   "n": 119,
-   "pct": 48.7
+   "w": 72,
+   "n": 139,
+   "pct": 51.8
   }
  },
  "by_day": [
@@ -1478,30 +1515,39 @@
   },
   {
    "date": "2026-11-08",
-   "w": 0,
-   "n": 0,
+   "w": 14,
+   "n": 20,
    "carded": 25,
    "voids": 0,
-   "unresolved": 25,
-   "owed": 25
+   "unresolved": 5,
+   "owed": 4
+  },
+  {
+   "date": "2026-11-09",
+   "w": 0,
+   "n": 0,
+   "carded": 5,
+   "voids": 0,
+   "unresolved": 5,
+   "owed": 4
   }
  ],
- "days_graded": 26,
- "cards_seen": 27,
+ "days_graded": 27,
+ "cards_seen": 28,
  "record_from": "2026-09-07",
  "cards_before_record_from": 0,
  "record_from_note": "Counting from 2026-09-07. No earlier cards were set aside.",
- "distinct_players": 195,
- "distinct_games": 98,
- "carded_rows": 537,
+ "distinct_players": 204,
+ "distinct_games": 108,
+ "carded_rows": 542,
  "voids": 0,
- "unresolved": 43,
- "coverage_note": "494 of 537 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 43 could not be settled at all.",
+ "unresolved": 28,
+ "coverage_note": "514 of 542 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 28 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
  "skipped": [
   {
-   "date": "2026-11-08",
+   "date": "2026-11-09",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
