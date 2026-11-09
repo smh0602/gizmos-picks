@@ -1376,7 +1376,9 @@ def build(league=None):
     # justifies dated-over-cumulative (560x, ledger rule 285) travels
     # with the code rather than being restated here.
     # ══════════════════════════════════════════════════════════════════
-    arch, _wrote = daystore.archive(doc, data, "dossiers", log=log)
+    # 💾 `[2026-11-08]` ...AS A COPY OF latest/'s BYTES (`same_as`), so git
+    #    stores the two paths as one blob instead of two full gzips.
+    arch, _wrote = daystore.archive(doc, data, "dossiers", log=log, same_as=p)
     un = collections.Counter(
         s["name"] for d in out for s in d["sections"]
         if s["state"] == "UNAVAILABLE")

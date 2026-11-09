@@ -144,6 +144,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #      going red for a different reason. Removing the return is what
 #      breaks write-once and nothing else.
 #
+# @vacuity 💾 [2026-11-08] the dated archive is latest/'s BYTES, so git stores one blob
+#   file: dossier_fb.py
+#   find:     arch, _wrote = daystore.archive(doc, data, "dossiers", log=log, same_as=p)
+#   with:     arch, _wrote = daystore.archive(doc, data, "dossiers", log=log)
+#
 # @vacuity nothing in the dossier is ever labelled MODEL
 #   file: dossier_fb.py
 #   find: MARKET, DESC = "MARKET", "DESCRIPTIVE"
@@ -1723,6 +1728,15 @@ if _arch9:
     ck(_load(_arch9[0]) == _load(_lat9),
        "   ...carrying the same document, not a summary of it",
        "⛔ an archive that drops fields is not an archive of this file")
+    # 💾 `[2026-11-08]` ...AND THE SAME BYTES, so git stores ONE blob for the two
+    #    paths. A second dump of the same document is a second full gzip (its
+    #    header carries a write time and a temporary name): 267 archives, 63.8 MB
+    #    in 14 days, each equal in content to its commit's latest/dossiers.json.gz.
+    _ab = open(_arch9[0], "rb").read()
+    _lb = open(_lat9, "rb").read()
+    ck(_ab == _lb,
+       "🔴 ...and the SAME BYTES as latest/, so git stores the two as one blob",
+       "%d vs %d bytes" % (len(_ab), len(_lb)))
     ck((_load(_arch9[0]).get("dossiers") or []) and
        len(_load(_arch9[0])["dossiers"][0].get("sections") or []) == _DFX.SECTIONS_DECLARED,
        "   ...with every declared section in it (%d game(s))"

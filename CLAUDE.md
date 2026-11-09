@@ -1750,6 +1750,11 @@ runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a
                   gzip, 560x) and never into `picks/`.
+                  `[2026-11-08]` An archive of a document also written to a
+                  latest/ gzip passes `same_as=` that file and is stored as
+                  ITS BYTES, one blob for git (the dossier archive was a
+                  second full copy every card-fb run: 63.8 MB in 14 days).
+                  `test_archive_same_bytes.py` finds every such pair.
 push_retry.sh     the ONE way a workflow lands its commits: rebase
                   favouring this run's files, abort + replay on a
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a
