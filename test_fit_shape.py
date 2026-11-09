@@ -211,7 +211,11 @@ ck("champion" not in _d0 and _d0["pricing"]["inputs"] == _IN and len(_IN) == 32,
    "🔴 no champion named: no `champion` key, and the input code's fingerprint in `pricing.inputs`", _d0)
 ck(_d1.get("champion") == _name and _d1["pricing"]["inputs"] == _IN,
    "🔴 %s named: `champion` says so" % _name, {k: _d1.get(k) for k in ("champion",)})
-ck(G.stored_fits(_d0, "ncaaf") == (_fits, None), "   ✅ a file stamped by this code is read back as used")
+# read back under the champion THIS code names (pr-tests' `champion` job names HC): a file stamped
+#    under another champion is refused, rightly (§3)
+_dw = F.stamp({"pricing": {"models": _fits}}, "ncaaf")
+ck(G.stored_fits(_dw, "ncaaf") == (_fits, None) and _dw.get("champion") == _was,
+   "   ✅ a file stamped by this code, under the champion it names (%s), is read back as used" % _was)
 
 _T = tempfile.mkdtemp(prefix="fitshape-")
 try:
