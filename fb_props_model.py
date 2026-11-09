@@ -194,6 +194,8 @@ class Sums:
 
 
 def s1_mean(m, x):
+    if not (len(x) == len(m["mu"]) == len(m["sd"]) == len(m["w"])):    # ⛔ fb_model.predict's rule
+        raise ValueError("a fit of %d inputs was asked about %d" % (len(m["mu"]), len(x)))
     return m["ybar"] + sum(m["w"][j] * (x[j] - m["mu"][j]) / m["sd"][j] for j in range(len(x)))
 
 

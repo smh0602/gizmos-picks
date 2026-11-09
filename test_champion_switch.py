@@ -5,7 +5,8 @@ HC won college's 11-02 contest, the first WINS, so its branch is the first champ
 code would run. Three questions were put to Sam, each with a default; he answered *"ok i approve
 of all 3"*:
 
-1. k keeps the champion: a switch never loosens the bar (college stays 0.01 / 13).
+1. k keeps the champion: a switch never loosens the bar (college stays 0.01 / 13, fewer only by a
+   withdrawal, §3h: with HC named, P's window is measured against HC and P is withdrawn, so 0.01 / 12).
 2. A challenger that would throw the champion's first input away (T, AT, ATC against H, HC, SM,
    SMC, and the class) is NOT APPLICABLE: never scored, never withdrawn, still one of k.
 3. The spread of results, the injury sizing and the email's "miss by" read the CHAMPION's own

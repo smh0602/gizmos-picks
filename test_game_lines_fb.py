@@ -37,6 +37,16 @@ its record keep Sam's rules (2026-09-24).
 #   find:             out.setdefault(g["key"], g)          # ⛔ the FIRST stored grade stands
 #   with:             out[g["key"]] = g
 #
+# @vacuity 🔴🔴 the tab reads the stored fits only through stored_fits (never an old champion's)
+#   file: game_lines_fb.py
+#   find:     models, refused = stored_fits(fm, lg)
+#   with:     models, refused = pricing.get("models") or {}, None
+#
+# @vacuity 🔴 ...and the file says why the % is missing
+#   file: game_lines_fb.py
+#   find:         doc["fits_refused"] = refused
+#   with:         pass
+#
 # @vacuity the check's market baseline is fitted on EARLIER weeks only
 #   file: fb_alt_lines.py
 #   find:         train = [r for r in rows if r["day"] < wk]
@@ -81,6 +91,7 @@ sys.path.insert(0, ROOT)
 import collect as K  # noqa: E402
 import card_fb  # noqa: E402
 import fb_alt_lines as A  # noqa: E402
+import fb_challengers as FC  # noqa: E402
 import fb_model as F  # noqa: E402
 import freshness as FR  # noqa: E402
 import game_lines_fb as G  # noqa: E402
@@ -317,7 +328,10 @@ _models = {"spread": {"mu": [0.0] * _k_sp, "sd": [1.0] * _k_sp, "w": [0.0, 1.0] 
            "total": {"mu": [0.0] * _k_to, "sd": [1.0] * _k_to, "w": [0.0, 1.0] + [0.0] * (_k_to - 1)}}
 wjs(os.path.join(_lg, "latest", "fb-model.json"),
     {"pricing": {"models": _models, "games": [_prow(g[0], "S" + g[0][1:], g[1], g[2], g[3]) for g in GAMES],
-                 "sigma": {"spread": 13.4, "total": 13.0}}})
+                 "sigma": {"spread": 13.4, "total": 13.0},
+                 "inputs": F.inputs_fingerprint()},     # made by this input code (fb_model.stamp)
+     # fitted by the champion this code names (fb_model.build writes it when one is named)
+     **({"champion": F.CHAMPION["nfl"]} if F.CHAMPION.get("nfl") else {})})
 wjs(os.path.join(_lg, "latest", "alt-lines-check.json"), _chk)
 wgz(os.path.join(_lg, "latest", "schedule-2026.json.gz"),
     {"games": [{"id": "S" + g[0][1:], "home": g[2], "away": g[3], "final": False} for g in GAMES]})
@@ -392,6 +406,27 @@ try:
        and "BetMGM" not in doc["games"][0]["main"],
        "   ✅ the fair line is the curve's centre (where the model says 50%), and the main lines are the "
        "three books only", g1["fair_spread"])
+
+    # ── `[2026-11-09]` a fit made for another champion is never asked (G.stored_fits) ──────
+    #    Between Sam's merge of a champion switch and the next card-fb, this tab is rebuilt from the
+    #    OLD fb-model.json: HC's 3 inputs against the 7-input college spread fit would have priced
+    #    every rung wrong.
+    _was = F.CHAMPION.get("nfl")
+    _other = next(n for n in sorted(FC.CHALLENGERS) if FC.CHALLENGERS[n]["league"] == "nfl" and n != _was)
+    F.CHAMPION["nfl"] = _other
+    try:
+        _sw = G.build_doc("nfl", root=_r, now=NOW)
+    finally:
+        F.CHAMPION["nfl"] = _was
+    _ps = [x["p"] for gg in _sw["games"] for x in gg["spread"] + gg["total"]]
+    ck(_ps and all(p is None for p in _ps)
+       and all(gg["fair_spread"] is None and gg["fair_total"] is None for gg in _sw["games"])
+       and "this code names %s" % _other in (_sw.get("fits_refused") or ""),
+       "🔴🔴 after a champion switch, before fb-model.json is rebuilt, no rung is priced with the old champion's "
+       "fit (no %, no fair line, and the file says why)", (_sw.get("fits_refused"), _ps[:4]))
+    ck(all(x["p"] is not None for gg in doc["games"] if gg["modelled"] for x in gg["spread"] + gg["total"])
+       and "fits_refused" not in doc,
+       "   ✅ ...and the fit its own champion made is used, with nothing refused")
 
     # ── the books' own chance `[Sam, 2026-09-25]` ──────────────────────
     dv = lambda a, b: F.devig(a, b)  # noqa: E731

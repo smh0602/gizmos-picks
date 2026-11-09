@@ -522,7 +522,10 @@ snap("2026-10-07", "2026-10-07T15:00:00Z", -4.5, 45.5, -130)
 
 class Lean:
     def model(self, wk, mk):        # p 0.88 everywhere: the lean is home / over
-        return {"mu": [0.0] * 8, "sd": [1.0] * 8, "w": [2.0] + [0.0] * 8}
+        # `[2026-11-09]` a fit of the market's OWN shape: fb_model.predict now refuses another length
+        #    (test_fit_shape.py); an 8-input fit had been asked about the 7-input total, silently.
+        k = len(FM.features(row("x", "nfl", "2026-10-07", "SEA", "NE"), mk))
+        return {"mu": [0.0] * k, "sd": [1.0] * k, "w": [2.0] + [0.0] * k}
 
 
 lm = R.line_moves([row("x", "nfl", "2026-10-07", "SEA", "NE")], Lean(), R.snapshots("nfl", T4))

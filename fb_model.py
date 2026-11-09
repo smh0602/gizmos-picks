@@ -705,6 +705,12 @@ def fit(X, y, ridge=RIDGE, iters=50, zmax=None):
 
 
 def predict(m, x):
+    # 🔴 `[2026-11-09]` A FIT ANSWERS ONLY THE QUESTION IT WAS FITTED ON. `range(len(x))` and `zip`
+    #    used to line up a vector of any other length without a word: after a champion switch the
+    #    alt ladders would have asked the stored 7-input college spread fit about HC's 3 inputs (a
+    #    wrong %, no error; game_lines_fb.stored_fits). ⛔ Any other length raises. test_fit_shape.py.
+    if not (len(x) == len(m["mu"]) == len(m["sd"]) == len(m["w"]) - 1):
+        raise ValueError("a fit of %d inputs was asked about %d" % (len(m["mu"]), len(x)))
     z = [1.0] + [(x[j] - m["mu"][j]) / m["sd"][j] for j in range(len(x))]
     zmax = m.get("zmax")
     if zmax is not None:
@@ -1279,6 +1285,31 @@ def win_chances(rows, now=None, scores=True):
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 
+@functools.lru_cache(maxsize=1)
+def inputs_fingerprint():
+    """The code that turns a row into a fit's inputs (`features` and every name it reaches,
+    `fb_challengers.extend` and its tables included) and the code that asks a fit (`predict`),
+    as 32 hex characters (record_grader's fingerprint: parsed, comments ignored).
+    🔴 `[2026-11-09]` A stored fit is asked with THIS code's inputs (game_lines_fb.stored_fits). A
+    champion switch changes them, and so does a change that keeps their number but not their
+    meaning: on 2026-10-11 the first input went from z(M)/7 to (own margin - line)/10, the same
+    length. The stamp tells a reader its fits were made by other input code."""
+    import record_grader
+    here = os.path.abspath(__file__)
+    return (record_grader.fingerprint(here, "features", follow=True)
+            + record_grader.fingerprint(here, "predict", follow=True))
+
+
+def stamp(doc, lg):
+    """What a reader of fb-model.json's stored fits must match (game_lines_fb.stored_fits): the
+    champion that fitted them (`champion`, written only when one is named) and the input code
+    (`pricing.inputs`). ⛔ The ONE writer of both. test_fit_shape.py, test_fb_model.py."""
+    if CHAMPION.get(lg):
+        doc["champion"] = CHAMPION[lg]
+    doc["pricing"]["inputs"] = inputs_fingerprint()
+    return doc
+
+
 def build(lg=None, root=None, out=None, extra_top=None, extra_players=None, now=None):
     lg = (lg or LEAGUE).lower()
     # `[Sam, 2026-10-26]` the build moment (the clock unless a test pins it): a college game
@@ -1327,8 +1358,7 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None, now=
            "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS},
            "pricing": pricing(rows),
            "win_chances": win_chances(rows)}
-    if CHAMPION.get(lg):                 # the card's method reads it ("+game-<name>")
-        doc["champion"] = CHAMPION[lg]
+    stamp(doc, lg)                       # the card's method reads "champion" ("+game-<name>")
     for mk in MARKETS:
         v = verdict(wf["closing"][mk])
         doc["record"][mk]["verdict"] = doc["closing_record"][mk]["verdict"] = v

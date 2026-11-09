@@ -218,6 +218,29 @@ def match_row(pricing, g, resolve):
 ND = statistics.NormalDist()
 
 
+def stored_fits(fm, lg):
+    """-> (fb-model.json's pricing fits, None), or ({}, why) when they were made for another
+    champion or by other input code than this. 🔴 `[2026-11-09]` The fits are stored so this tab
+    need not rebuild every row, and `curve` asks them with THIS code's inputs (`F.features`). In
+    the hours between a merge and the next `card-fb` (which rebuilds fb-model.json), the
+    `props-player` and `alt-lines` passes rebuild this tab from the OLD file. After a champion
+    switch, HC's 3 inputs against today's 7-input spread and 6-input total fits would have priced
+    every college rung wrong with no error; a change that keeps the inputs' number but not their
+    meaning (2026-10-11: the first input became the model's own margin) would too. ⛔ Such fits
+    are not used: the rungs carry no model % until fb-model.json is rebuilt (`fits_refused` says
+    why). The stamps are `fb_model.stamp`'s. The ONE reader of the stored fits (test_fit_shape.py's
+    census)."""
+    made, names = (fm or {}).get("champion"), F.CHAMPION.get(lg)
+    pricing = (fm or {}).get("pricing") or {}
+    fits = pricing.get("models") or {}
+    if fits and made != names:
+        return {}, "fb-model.json was fitted for champion %s; this code names %s" % (made, names)
+    if fits and pricing.get("inputs") != F.inputs_fingerprint():
+        return {}, ("fb-model.json's fits were made by other input code (stamp %s; this code %s)"
+                    % (pricing.get("inputs"), F.inputs_fingerprint()))
+    return fits, None
+
+
 def curve(models, row, market, main, sigma):
     """mu, the line where the model's chance is 50%, or None."""
     m = (models or {}).get(market)
@@ -312,7 +335,8 @@ def build_doc(lg, root=None, now=None):
     latest = os.path.join(_data(lg, root), "latest")
     fm = _json(os.path.join(latest, "fb-model.json")) or {}
     pricing = (fm.get("pricing") or {})
-    models, prow = pricing.get("models") or {}, pricing.get("games") or []
+    models, refused = stored_fits(fm, lg)
+    prow = pricing.get("games") or []
     sigma = pricing.get("sigma") or {}
     check = _json(os.path.join(latest, "alt-lines-check.json"))
     alts = alt_events(lg, root, now)
@@ -364,6 +388,8 @@ def build_doc(lg, root=None, now=None):
                     "Prices and break-evens are the books' (MARKET); the model's % "
                     "and edge are the game model's (MODEL), labelled by the "
                     "pre-registered alt-lines check.")}
+    if refused:                      # ⛔ stored_fits: no model % until fb-model.json is rebuilt
+        doc["fits_refused"] = refused
     doc["parlays"], doc["parlay_meta"] = parlays(doc, now)
     return doc
 
@@ -542,6 +568,8 @@ def build(lg=None, root=None, now=None, log=log):
     lg = (lg or LEAGUE).lower()
     now = now or _now()
     doc = build_doc(lg, root, now)
+    if doc.get("fits_refused"):
+        log("  ⚠️ game lines %s: no model %% on any rung (%s)" % (lg, doc["fits_refused"]))
     latest = os.path.join(_data(lg, root), "latest")
     path = os.path.join(latest, "game-lines.json.gz")
     tmp = path + ".tmp"
