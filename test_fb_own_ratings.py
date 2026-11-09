@@ -98,6 +98,12 @@ import fb_model as F  # noqa: E402
 import game_lines_fb as GLF  # noqa: E402
 import record_fb as R  # noqa: E402
 
+# `[2026-11-08]` §3j: this file tests TODAY's model on planted rows (its inputs, its predicted score, its
+#    spread of results), so it names no champion, whatever main names (a test asks the code, never the
+#    live constant; an NFL SM champion crashed it in pr-tests' `champion` job). A named champion's
+#    numbers: test_champion_switch.py.
+F.CHAMPION.update(nfl=None, ncaaf=None)
+
 TREES = []
 atexit.register(lambda: [shutil.rmtree(t, ignore_errors=True) for t in TREES])
 SIG = {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None, "def": None, "poss": None,

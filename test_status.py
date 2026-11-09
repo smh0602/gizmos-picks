@@ -268,14 +268,18 @@ def tell(findings, num=""):
     t = tempfile.mkdtemp(prefix="tell-")
     TREES.append(t)
     copy_module("watchdog", t, ROOT)
-    put(t, "data/latest/health.json", {"healthy": not findings, "checked_at": "2026-10-12T10:41Z", "repairs": [],
+    healthy = not findings
+    put(t, "data/latest/health.json", {"healthy": healthy, "checked_at": "2026-10-12T10:41Z", "repairs": [],
                                        "unrepairable": [], "findings": [dict(f, why="w", repair=None) for f in findings]})
     os.makedirs(os.path.join(t, "bin"))
     with open(os.path.join(t, "bin", "gh"), "w", encoding="utf-8", newline="\n") as fh:
         fh.write('#!/bin/bash\nprintf "%s\\n" "$*" >> gh.log\n[ "$1 $2" = "issue list" ] && echo "' + num + '"\nexit 0\n')
     os.chmod(os.path.join(t, "bin", "gh"), 0o755)
+    # ⚠️ `[2026-11-04]` the step acts only on the Watchdog step's verdict for THIS
+    #    run (test_alert_shapes.py), so it is expanded as GitHub would: to what
+    #    that step writes for this report. Left literal, the step gives no verdict.
     with open(os.path.join(t, "step.sh"), "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(TELL)
+        fh.write(TELL.replace("${{ steps.watchdog.outputs.healthy }}", str(healthy)))
     subprocess.run(["bash", "step.sh"], cwd=t, capture_output=True, timeout=300, env=dict(
         os.environ, TMPDIR=t.replace("\\", "/"), PYTHONUTF8="1", PATH=os.path.join(t, "bin") + os.pathsep + os.environ["PATH"]))
     log = os.path.join(t, "gh.log")

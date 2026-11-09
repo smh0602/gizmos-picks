@@ -1,86 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-02T19:59:05Z",
- "et_date": "2026-11-02",
+ "checked_at": "2026-11-09T00:28:54Z",
+ "et_date": "2026-11-08",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 2,
  "findings": [
   {
-   "key": "late:card-fb:ncaaf",
+   "key": "late:fb-record:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf card-fb was built 179 minutes after it was due",
-   "why": "due 2026-11-02T13:30Z, built 2026-11-02T16:29Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:cfb-probe:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 104 minutes after it was due",
-   "why": "due 2026-11-02T07:00Z, built 2026-11-02T08:44Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:gamelines:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf gamelines was built 326 minutes after it was due",
-   "why": "due 2026-11-02T11:00Z, built 2026-11-02T16:26Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:news:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf news was built 148 minutes after it was due",
-   "why": "due 2026-11-02T14:05Z, built 2026-11-02T16:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:alt-lines:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl alt-lines was built 93 minutes after it was due",
-   "why": "due 2026-11-02T15:00Z, built 2026-11-02T16:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 64 minutes after it was due",
-   "why": "due 2026-11-02T15:30Z, built 2026-11-02T16:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
+   "what": "ncaaf fb-record was built 150 minutes after it was due",
+   "why": "due 2026-11-03T13:00Z, built 2026-11-03T15:29Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
-   "what": "nfl fb-record was built 86 minutes after it was due",
-   "why": "due 2026-10-28T13:00Z, built 2026-10-28T14:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:news:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl news was built 149 minutes after it was due",
-   "why": "due 2026-11-02T14:05Z, built 2026-11-02T16:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 103 minutes after it was due",
-   "why": "due 2026-11-02T07:00Z, built 2026-11-02T08:43Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-board:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl props-board was built 93 minutes after it was due",
-   "why": "due 2026-11-02T15:00Z, built 2026-11-02T16:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-player:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl props-player was built 93 minutes after it was due",
-   "why": "due 2026-11-02T15:00Z, built 2026-11-02T16:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "what": "nfl fb-record was built 160 minutes after it was due",
+   "why": "due 2026-11-04T13:00Z, built 2026-11-04T15:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -89,15 +26,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19638,
-  "pulled_at": "2026-11-02T18:31:22Z",
+  "balance": 17421,
+  "pulled_at": "2026-11-08T23:12:24Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 1.5,
+  "reading_age_hours": 1.3,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-02T18:31:22Z",
-  "source": "data/nfl/2026-11-02/gamelines/1831.json.gz",
-  "readings_on_disk": 1354,
+  "newest_paid_pull": "2026-11-08T23:12:24Z",
+  "source": "data/ncaaf/2026-11-08/gamelines/2312.json.gz",
+  "readings_on_disk": 1523,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },

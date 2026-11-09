@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
- "written_at": "2026-11-02T00:08:39Z",
+ "written_at": "2026-11-09T00:27:49Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -11,17 +11,17 @@
    "variant": "default (what run 1 used)",
    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
    "http": 200,
-   "events": 14
+   "events": 15
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261101&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261108&limit=400",
    "http": 200,
-   "events": 12
+   "events": 13
   }
  ],
  "variant_used": "default (what run 1 used)",
- "events": 14,
+ "events": 15,
  "payload_shape": {
   "top_level": [
    "events",
@@ -39,6 +39,7 @@
    "season",
    "shortName",
    "status",
+   "tuneInPrompt",
    "uid",
    "weather",
    "week"
@@ -125,34 +126,34 @@
  "all_needed_fields_present": true,
  "by_state": {
   "in": 2,
-  "post": 10,
+  "post": 11,
   "pre": 2
  },
  "in_progress": 2,
  "live_sample": [
   {
-   "id": "401873033",
-   "away": "Kansas City Chiefs",
-   "home": "Denver Broncos",
-   "away_score": "24",
-   "home_score": "19",
+   "id": "401873046",
+   "away": "Houston Texans",
+   "home": "Los Angeles Chargers",
+   "away_score": "44",
+   "home_score": "22",
    "state": "in",
-   "detail": "8:55 - 4th",
-   "clock": "8:55",
+   "detail": "1:15 - 4th",
+   "clock": "1:15",
    "period": 4,
-   "start": "2026-11-01T21:25Z"
+   "start": "2026-11-08T21:05Z"
   },
   {
-   "id": "401873034",
-   "away": "New England Patriots",
-   "home": "Miami Dolphins",
-   "away_score": "24",
-   "home_score": "13",
+   "id": "401873049",
+   "away": "Green Bay Packers",
+   "home": "New England Patriots",
+   "away_score": "45",
+   "home_score": "21",
    "state": "in",
-   "detail": "6:41 - 4th",
-   "clock": "6:41",
+   "detail": "4:48 - 4th",
+   "clock": "4:48",
    "period": 4,
-   "start": "2026-11-01T21:25Z"
+   "start": "2026-11-08T21:25Z"
   }
  ],
  "live_state_fields": {
@@ -164,12 +165,12 @@
  "join": {
   "our_schedule_season": 2026,
   "our_games": 272,
-  "espn_events": 14,
+  "espn_events": 15,
   "join_field": "our `espn` vs ESPN `events[].id`",
   "matched_on_our_id": 0,
-  "matched_on_our_espn_column": 14,
+  "matched_on_our_espn_column": 15,
   "our_games_carrying_an_espn_column": 272,
-  "ids_in_common": 14,
+  "ids_in_common": 15,
   "pct_of_espn_events_matched": 100.0,
   "verdict": "EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all",
   "n_unmatched": 0,
@@ -181,7 +182,7 @@
   "counted_on": "our `espn`, ET slate day",
   "per_date": [
    {
-    "et_date": "2026-10-29",
+    "et_date": "2026-11-05",
     "espn_events": 1,
     "our_games": 1,
     "ours_that_espn_returned": 1,
@@ -190,16 +191,16 @@
     "missing_examples": []
    },
    {
-    "et_date": "2026-11-01",
-    "espn_events": 12,
-    "our_games": 12,
-    "ours_that_espn_returned": 12,
+    "et_date": "2026-11-08",
+    "espn_events": 13,
+    "our_games": 13,
+    "ours_that_espn_returned": 13,
     "ours_MISSING_from_espn": 0,
     "pct_of_ours_present": 100.0,
     "missing_examples": []
    },
    {
-    "et_date": "2026-11-02",
+    "et_date": "2026-11-09",
     "espn_events": 1,
     "our_games": 1,
     "ours_that_espn_returned": 1,
@@ -216,19 +217,19 @@
  "refresh_check": {
   "seconds_apart": 45,
   "live_games_compared": 2,
-  "games_whose_clock_or_period_changed": 1,
+  "games_whose_clock_or_period_changed": 2,
   "example": {
-   "id": "401873033",
-   "was": "8:55 Q4",
-   "now": "8:55 Q4"
+   "id": "401873046",
+   "was": "1:15 Q4",
+   "now": "1:07 Q4"
   },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 1 of 2 live games in 45s, so the feed is live enough for a polling tab"
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 2 of 2 live games in 45s, so the feed is live enough for a polling tab"
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=5",
+  "cache_control": "max-age=8",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "14 events via [default (what run 1 used)], 2 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
+ "conclusion": "15 events via [default (what run 1 used)], 2 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
 }

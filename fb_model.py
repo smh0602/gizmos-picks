@@ -564,6 +564,27 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ra
     return rows
 
 
+def is_history(r):
+    """`[Sam, 2026-11-08]` §3j: a history row (fb_challengers.history_rows: H / HC's older
+    seasons) TRAINS and is never scored, graded, counted or measured. ⛔ Every scorer skips it."""
+    return bool(r.get("history"))
+
+
+def own_score(r):
+    """`[Sam, 2026-11-08]` §3j, *"ok i approve of all 3"*: (margin, total) the CHAMPION predicts
+    from, today's own numbers (own_m, own_t) while none is named, else that champion's own
+    (fb_challengers.own_score: HC's history ratings, SM's score model, ...). The spread of results
+    (`score_sigma`, `total_sigma`), the injury sizing (`injury_fit`), the predicted total without a
+    line (`predicted_score`) and the Monday email's "miss by" (fb_refit.misses) read it, so after
+    a switch they measure the model that makes the picks. CHAMPION None: unchanged."""
+    s = r["sig"]
+    ch = CHAMPION.get(r.get("lg"))
+    if ch:
+        import fb_challengers
+        return fb_challengers.own_score(ch, r)
+    return s.get("own_m"), s.get("own_t")
+
+
 def features(r, market, M=None, T=None):
     """The fits' inputs: `base_features`, plus the CHAMPION's when one is named."""
     x = base_features(r, market, M, T)
@@ -851,10 +872,12 @@ def injury_fit(train):
     for r in train:
         s = r.get("sig") or {}
         inj = s.get("inj")
-        if (not r.get("final") or not inj or r.get("hs") is None or r.get("as") is None
-                or s.get("own_m") is None or s.get("own_t") is None):
+        if not r.get("final") or not inj or r.get("hs") is None or r.get("as") is None:
             continue
-        oh, oa = (s["own_t"] + s["own_m"]) / 2.0, (s["own_t"] - s["own_m"]) / 2.0
+        om, ot = own_score(r)            # §3j: the champion's own numbers (today's: own_m, own_t)
+        if om is None or ot is None:
+            continue
+        oh, oa = (ot + om) / 2.0, (ot - om) / 2.0
         X.append([1.0, inj["qb"][0], inj["off"][0], inj["def"][1]])
         y.append(float(r["hs"]) - oh)
         X.append([1.0, inj["qb"][1], inj["off"][1], inj["def"][0]])
@@ -1002,6 +1025,8 @@ def walk_forward(rows, rule="shown"):
         weeks[monday(r["day"])].append(r)
     out = {name: {mk: [] for mk in MARKETS} for name, _q in RECORDS}
     for wk in sorted(weeks):
+        if all(is_history(r) for r in weeks[wk]):    # §3j: training only, nothing to grade
+            continue
         train = [r for r in rows if r["day"] < wk]
         models = {}
         for mk in MARKETS:
@@ -1014,7 +1039,7 @@ def walk_forward(rows, rule="shown"):
             if not models[mk if rule == "fits" else "moneyline"]:     # the score needs the win chance
                 continue
             for r in weeks[wk]:
-                if not r["final"]:
+                if not r["final"] or is_history(r):
                     continue
                 if rule == "shown":
                     r = as_shown(r)                   # the report the site showed it with
@@ -1158,21 +1183,33 @@ def pricing(rows, now=None):
             "sigma": {"spread": score_sigma(rows), "total": total_sigma(rows)}}
 
 
+def _misses(rows, i, sign):
+    """(final margin or total) - the champion's own number (`own_score`), every final row that
+    has one: the 2025-26 games that champion has a number for. ⛔ §3j: never a history row (they
+    train only)."""
+    d = []
+    for r in rows:
+        if not r["final"] or r.get("hs") is None or r.get("as") is None or is_history(r):
+            continue
+        v = own_score(r)[i]
+        if v is not None:
+            d.append(float(r["hs"]) + sign * float(r["as"]) - v)
+    return d
+
+
 def score_sigma(rows):
     """The spread of real margins around the own margin: root-mean-square of
-    (final margin - own margin) over every final row that has one. None if none."""
-    d = [float(r["hs"]) - float(r["as"]) - r["sig"]["own_m"] for r in rows
-         if r["final"] and r.get("hs") is not None and r.get("as") is not None
-         and r["sig"].get("own_m") is not None]
+    (final margin - own margin) over every final row that has one. None if none.
+    `[Sam, 2026-11-08]` §3j: the CHAMPION's own margin (`own_score`; today's own_m while none)."""
+    d = _misses(rows, 0, -1.0)
     return math.sqrt(sum(x * x for x in d) / len(d)) if d else None
 
 
 def total_sigma(rows):
     """The spread of real totals around the own total: root-mean-square of
-    (final total - own total) over every final row that has one. None if none."""
-    d = [float(r["hs"]) + float(r["as"]) - r["sig"]["own_t"] for r in rows
-         if r["final"] and r.get("hs") is not None and r.get("as") is not None
-         and r["sig"].get("own_t") is not None]
+    (final total - own total) over every final row that has one. None if none.
+    `[Sam, 2026-11-08]` §3j: the CHAMPION's own total (`own_score`; today's own_t while none)."""
+    d = _misses(rows, 1, 1.0)
     return math.sqrt(sum(t * t for t in d) / len(d)) if d else None
 
 
@@ -1194,7 +1231,7 @@ def predicted_score(r, p_home, sigma, p_over=None, sigma_t=None):
     "Under 40.5"); with none, the own total as before."""
     T = r.get("T")
     ot = (T + sigma_t * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_over)))
-          if T is not None and p_over is not None and sigma_t else r["sig"].get("own_t"))
+          if T is not None and p_over is not None and sigma_t else own_score(r)[1])   # §3j
     if ot is None or p_home is None or not sigma:
         return None
     margin = sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))

@@ -89,6 +89,12 @@ import fb_refit as R  # noqa: E402
 import freshness as F  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
 
+# `[2026-11-08]` §3j: this file pins each challenger's inputs as DEFINED against today's model, so it
+#    names no champion, whatever main names (a test asks the code, never the live constant; #339's HC
+#    line crashed it on a correct branch). Against a named champion: test_champion_switch.py, and
+#    test_fb_refit.py section 10.
+FM.CHAMPION.update(nfl=None, ncaaf=None)
+
 TREES = []
 atexit.register(lambda: [shutil.rmtree(t, ignore_errors=True) for t in TREES])
 

@@ -2,19 +2,19 @@
  "league": "ncaaf",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-11-02T16:29:18Z",
+ "built_at": "2026-11-08T20:22:57Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
   "home_edge_points": 3.79,
   "matchup_points_per_unit": {
-   "pass_yds": -0.0143,
-   "rush_yds": -0.0022,
-   "plays": 0.0494
+   "pass_yds": -0.0133,
+   "rush_yds": -0.0007,
+   "plays": 0.0586
   },
   "sigma": {
-   "margin": 16.44,
-   "total": 16.44
+   "margin": 16.48,
+   "total": 16.45
   },
   "k": {
    "spread": 3.0,
@@ -24,2171 +24,2341 @@
  },
  "upcoming": [
   {
-   "game_id": "401866453",
-   "day": "2026-11-04",
-   "kick": "2026-11-04T00:00:00.000Z",
+   "game_id": "401866458",
+   "day": "2026-11-11",
+   "kick": "2026-11-11T00:00:00.000Z",
    "home": "Akron",
-   "away": "Ohio",
+   "away": "Western Michigan",
    "neutral": false,
    "score": {
-    "home": 21.1,
-    "away": 32.6
+    "home": 16.3,
+    "away": 30.6
    },
-   "margin": -11.6,
-   "total": 53.7,
+   "margin": -14.2,
+   "total": 46.9,
    "line": {
-    "spread": -13.5,
-    "total": 50.5
+    "spread": -14.0,
+    "total": 46.5
    },
    "score_curve": {
-    "spread": 54.7,
-    "total": 57.7,
-    "moneyline": 24.1
-   },
-   "calibrated": {
-    "spread": 51.6,
-    "total": 52.6,
-    "moneyline": 24.1
-   },
-   "fb_model": {
-    "spread": 51.9,
-    "total": 45.9,
-    "moneyline": 25.7
-   },
-   "fb_model_ml_curve_spread": 56.9
-  },
-  {
-   "game_id": "401866454",
-   "day": "2026-11-04",
-   "kick": "2026-11-04T01:00:00.000Z",
-   "home": "Miami (OH)",
-   "away": "Buffalo",
-   "neutral": false,
-   "score": {
-    "home": 29.3,
-    "away": 20.4
-   },
-   "margin": 8.9,
-   "total": 49.7,
-   "line": {
-    "spread": 6.5,
-    "total": 44.5
-   },
-   "score_curve": {
-    "spread": 55.8,
-    "total": 62.3,
-    "moneyline": 70.6
-   },
-   "calibrated": {
-    "spread": 51.9,
-    "total": 54.2,
-    "moneyline": 70.6
-   },
-   "fb_model": {
-    "spread": 52.2,
-    "total": 40.4,
-    "moneyline": 68.0
-   },
-   "fb_model_ml_curve_spread": 52.8
-  },
-  {
-   "game_id": "401866455",
-   "day": "2026-11-05",
-   "kick": "2026-11-05T00:00:00.000Z",
-   "home": "Massachusetts",
-   "away": "Ball State",
-   "neutral": false,
-   "score": {
-    "home": 29.1,
-    "away": 23.3
-   },
-   "margin": 5.7,
-   "total": 52.4,
-   "line": {
-    "spread": 3.5,
-    "total": 49.5
-   },
-   "score_curve": {
-    "spread": 55.4,
-    "total": 56.9,
-    "moneyline": 63.7
-   },
-   "calibrated": {
-    "spread": 51.8,
-    "total": 52.3,
-    "moneyline": 63.7
-   },
-   "fb_model": {
-    "spread": 53.8,
-    "total": 50.0,
-    "moneyline": 61.3
-   },
-   "fb_model_ml_curve_spread": 52.9
-  },
-  {
-   "game_id": "401866457",
-   "day": "2026-11-05",
-   "kick": "2026-11-05T00:00:00.000Z",
-   "home": "Sacramento State",
-   "away": "Toledo",
-   "neutral": false,
-   "score": {
-    "home": 19.4,
-    "away": 37.2
-   },
-   "margin": -17.8,
-   "total": 56.6,
-   "line": {
-    "spread": -26.0,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 69.1,
-    "total": 59.9,
-    "moneyline": 13.9
-   },
-   "calibrated": {
-    "spread": 56.6,
-    "total": 53.3,
-    "moneyline": 13.9
-   },
-   "fb_model": {
-    "spread": 49.3,
-    "total": 46.7,
-    "moneyline": 14.6
-   },
-   "fb_model_ml_curve_spread": 70.3
-  },
-  {
-   "game_id": "401866456",
-   "day": "2026-11-05",
-   "kick": "2026-11-05T00:30:00.000Z",
-   "home": "Eastern Michigan",
-   "away": "Central Michigan",
-   "neutral": true,
-   "score": {
-    "home": 20.3,
-    "away": 22.1
-   },
-   "margin": -1.8,
-   "total": 42.3,
-   "line": {
-    "spread": 1.5,
-    "total": 44.5
-   },
-   "score_curve": {
-    "spread": 42.1,
-    "total": 44.8,
-    "moneyline": 45.7
-   },
-   "calibrated": {
-    "spread": 47.3,
-    "total": 48.2,
-    "moneyline": 45.7
-   },
-   "fb_model": {
-    "spread": 53.1,
-    "total": 40.8,
-    "moneyline": 43.7
-   },
-   "fb_model_ml_curve_spread": 40.1
-  },
-  {
-   "game_id": "401862817",
-   "day": "2026-11-06",
-   "kick": "2026-11-06T00:30:00.000Z",
-   "home": "Florida Atlantic",
-   "away": "UTSA",
-   "neutral": false,
-   "score": {
-    "home": 33.8,
-    "away": 41.4
-   },
-   "margin": -7.6,
-   "total": 75.2,
-   "line": {
-    "spread": -6.5,
-    "total": 72.5
-   },
-   "score_curve": {
-    "spread": 47.3,
-    "total": 56.6,
-    "moneyline": 32.1
-   },
-   "calibrated": {
-    "spread": 49.1,
-    "total": 52.2,
-    "moneyline": 32.1
-   },
-   "fb_model": {
-    "spread": 49.9,
-    "total": 46.7,
-    "moneyline": 32.8
-   },
-   "fb_model_ml_curve_spread": 48.1
-  },
-  {
-   "game_id": "401869964",
-   "day": "2026-11-06",
-   "kick": "2026-11-06T01:00:00.000Z",
-   "home": "Southern Miss",
-   "away": "James Madison",
-   "neutral": false,
-   "score": {
-    "home": 23.8,
-    "away": 39.1
-   },
-   "margin": -15.3,
-   "total": 62.9,
-   "line": {
-    "spread": -14.5,
-    "total": 57.5
-   },
-   "score_curve": {
-    "spread": 48.2,
-    "total": 62.8,
-    "moneyline": 17.7
-   },
-   "calibrated": {
     "spread": 49.4,
-    "total": 54.3,
-    "moneyline": 17.7
-   },
-   "fb_model": {
-    "spread": 48.4,
-    "total": 47.9,
-    "moneyline": 17.8
-   },
-   "fb_model_ml_curve_spread": 48.6
-  },
-  {
-   "game_id": "401858288",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T00:00:00.000Z",
-   "home": "SMU",
-   "away": "Virginia Tech",
-   "neutral": false,
-   "score": {
-    "home": 32.5,
-    "away": 23.2
-   },
-   "margin": 9.3,
-   "total": 55.7,
-   "line": {
-    "spread": 6.5,
-    "total": 55.5
-   },
-   "score_curve": {
-    "spread": 56.7,
-    "total": 50.5,
-    "moneyline": 71.3
-   },
-   "calibrated": {
-    "spread": 52.2,
-    "total": 50.2,
-    "moneyline": 71.3
-   },
-   "fb_model": {
-    "spread": 52.7,
-    "total": 47.7,
-    "moneyline": 70.6
-   },
-   "fb_model_ml_curve_spread": 55.8
-  },
-  {
-   "game_id": "401862818",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T00:30:00.000Z",
-   "home": "East Carolina",
-   "away": "South Florida",
-   "neutral": false,
-   "score": {
-    "home": 21.7,
-    "away": 24.2
-   },
-   "margin": -2.5,
-   "total": 45.9,
-   "line": {
-    "spread": 1.5,
-    "total": 40.5
-   },
-   "score_curve": {
-    "spread": 40.3,
-    "total": 63.0,
-    "moneyline": 43.9
-   },
-   "calibrated": {
-    "spread": 46.8,
-    "total": 54.4,
-    "moneyline": 43.9
-   },
-   "fb_model": {
-    "spread": 49.7,
-    "total": 48.4,
-    "moneyline": 46.7
-   },
-   "fb_model_ml_curve_spread": 43.0
-  },
-  {
-   "game_id": "401858510",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T01:00:00.000Z",
-   "home": "Illinois",
-   "away": "Nebraska",
-   "neutral": false,
-   "score": {
-    "home": 23.9,
-    "away": 25.6
-   },
-   "margin": -1.6,
-   "total": 49.5,
-   "line": {
-    "spread": -4.5,
-    "total": 49.5
-   },
-   "score_curve": {
-    "spread": 57.0,
-    "total": 50.0,
-    "moneyline": 46.1
-   },
-   "calibrated": {
-    "spread": 52.3,
-    "total": 50.0,
-    "moneyline": 46.1
-   },
-   "fb_model": {
-    "spread": 51.0,
-    "total": 47.1,
-    "moneyline": 43.3
-   },
-   "fb_model_ml_curve_spread": 54.2
-  },
-  {
-   "game_id": "401864533",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T02:00:00.000Z",
-   "home": "Nevada",
-   "away": "New Mexico",
-   "neutral": false,
-   "score": {
-    "home": 17.2,
-    "away": 28.4
-   },
-   "margin": -11.2,
-   "total": 45.7,
-   "line": {
-    "spread": -10.5,
-    "total": 39.5
-   },
-   "score_curve": {
-    "spread": 48.3,
-    "total": 64.6,
-    "moneyline": 24.8
-   },
-   "calibrated": {
-    "spread": 49.4,
-    "total": 55.0,
-    "moneyline": 24.8
-   },
-   "fb_model": {
-    "spread": 50.6,
-    "total": 47.2,
-    "moneyline": 25.9
-   },
-   "fb_model_ml_curve_spread": 49.8
-  },
-  {
-   "game_id": "401856855",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T03:15:00.000Z",
-   "home": "Arizona",
-   "away": "TCU",
-   "neutral": false,
-   "score": {
-    "home": 25.0,
-    "away": 14.6
-   },
-   "margin": 10.4,
-   "total": 39.6,
-   "line": {
-    "spread": 9.5,
-    "total": 43.5
-   },
-   "score_curve": {
-    "spread": 52.1,
-    "total": 40.6,
-    "moneyline": 73.6
-   },
-   "calibrated": {
-    "spread": 50.7,
-    "total": 46.9,
-    "moneyline": 73.6
-   },
-   "fb_model": {
-    "spread": 50.6,
-    "total": 53.0,
-    "moneyline": 73.6
-   },
-   "fb_model_ml_curve_spread": 52.1
-  },
-  {
-   "game_id": "401856851",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T05:00:00.000Z",
-   "home": "Houston",
-   "away": "Cincinnati",
-   "neutral": false,
-   "score": {
-    "home": 35.6,
-    "away": 23.2
-   },
-   "margin": 12.4,
-   "total": 58.8,
-   "line": {
-    "spread": 10.5,
-    "total": 61.5
-   },
-   "score_curve": {
-    "spread": 54.7,
-    "total": 43.6,
-    "moneyline": 77.6
-   },
-   "calibrated": {
-    "spread": 51.6,
-    "total": 47.8,
-    "moneyline": 77.6
-   },
-   "fb_model": {
-    "spread": 50.9,
-    "total": 48.8,
-    "moneyline": 80.8
-   },
-   "fb_model_ml_curve_spread": 59.0
-  },
-  {
-   "game_id": "401856853",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T05:00:00.000Z",
-   "home": "Baylor",
-   "away": "Iowa State",
-   "neutral": false,
-   "score": {
-    "home": 31.2,
-    "away": 22.4
-   },
-   "margin": 8.8,
-   "total": 53.7,
-   "line": {
-    "spread": 9.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 48.3,
-    "total": 57.6,
-    "moneyline": 70.4
-   },
-   "calibrated": {
-    "spread": 49.4,
-    "total": 52.6,
-    "moneyline": 70.4
-   },
-   "fb_model": {
-    "spread": 50.3,
-    "total": 51.8,
-    "moneyline": 70.1
-   },
-   "fb_model_ml_curve_spread": 47.8
-  },
-  {
-   "game_id": "401858511",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T05:00:00.000Z",
-   "home": "Michigan",
-   "away": "Michigan State",
-   "neutral": false,
-   "score": {
-    "home": 26.2,
-    "away": 15.7
-   },
-   "margin": 10.5,
-   "total": 41.9,
-   "line": {
-    "spread": 12.5,
-    "total": 40.5
-   },
-   "score_curve": {
-    "spread": 45.3,
-    "total": 53.5,
-    "moneyline": 73.9
-   },
-   "calibrated": {
-    "spread": 48.4,
-    "total": 51.2,
-    "moneyline": 73.9
-   },
-   "fb_model": {
-    "spread": 51.6,
-    "total": 50.3,
-    "moneyline": 73.7
-   },
-   "fb_model_ml_curve_spread": 44.8
-  },
-  {
-   "game_id": "401858512",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T05:00:00.000Z",
-   "home": "Minnesota",
-   "away": "UCLA",
-   "neutral": false,
-   "score": {
-    "home": 20.9,
-    "away": 23.3
-   },
-   "margin": -2.5,
-   "total": 44.2,
-   "line": {
-    "spread": -5.5,
-    "total": 39.5
-   },
-   "score_curve": {
-    "spread": 57.3,
-    "total": 61.3,
-    "moneyline": 44.0
-   },
-   "calibrated": {
-    "spread": 52.4,
-    "total": 53.8,
-    "moneyline": 44.0
-   },
-   "fb_model": {
-    "spread": 52.7,
-    "total": 44.6,
-    "moneyline": 42.7
-   },
-   "fb_model_ml_curve_spread": 56.0
-  },
-  {
-   "game_id": "401858513",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T05:00:00.000Z",
-   "home": "Northwestern",
-   "away": "Iowa",
-   "neutral": false,
-   "score": {
-    "home": 22.6,
-    "away": 22.0
-   },
-   "margin": 0.6,
-   "total": 44.6,
-   "line": {
-    "spread": 1.5,
-    "total": 42.5
-   },
-   "score_curve": {
-    "spread": 47.8,
-    "total": 55.2,
-    "moneyline": 51.5
-   },
-   "calibrated": {
-    "spread": 49.3,
-    "total": 51.7,
-    "moneyline": 51.5
-   },
-   "fb_model": {
-    "spread": 49.3,
-    "total": 51.2,
-    "moneyline": 52.9
-   },
-   "fb_model_ml_curve_spread": 49.2
-  },
-  {
-   "game_id": "401858516",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T05:00:00.000Z",
-   "home": "Washington",
-   "away": "Penn State",
-   "neutral": false,
-   "score": {
-    "home": 25.1,
-    "away": 22.4
-   },
-   "margin": 2.7,
-   "total": 47.6,
-   "line": {
-    "spread": 2.5,
-    "total": 44.5
-   },
-   "score_curve": {
-    "spread": 50.4,
-    "total": 57.4,
-    "moneyline": 56.5
-   },
-   "calibrated": {
-    "spread": 50.1,
-    "total": 52.5,
-    "moneyline": 56.5
-   },
-   "fb_model": {
-    "spread": 50.8,
-    "total": 50.0,
-    "moneyline": 54.8
-   },
-   "fb_model_ml_curve_spread": 48.8
-  },
-  {
-   "game_id": "401856743",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "Missouri",
-   "away": "Texas",
-   "neutral": false,
-   "score": {
-    "home": 22.8,
-    "away": 21.8
-   },
-   "margin": 1.0,
-   "total": 44.7,
-   "line": {
-    "spread": -2.5,
-    "total": 44.5
-   },
-   "score_curve": {
-    "spread": 58.4,
-    "total": 50.4,
-    "moneyline": 52.4
-   },
-   "calibrated": {
-    "spread": 52.8,
-    "total": 50.1,
-    "moneyline": 52.4
-   },
-   "fb_model": {
-    "spread": 49.7,
-    "total": 51.4,
-    "moneyline": 53.0
-   },
-   "fb_model_ml_curve_spread": 59.0
-  },
-  {
-   "game_id": "401856849",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "Utah",
-   "away": "BYU",
-   "neutral": false,
-   "score": {
-    "home": 32.3,
-    "away": 20.2
-   },
-   "margin": 12.1,
-   "total": 52.5,
-   "line": {
-    "spread": 5.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 65.6,
-    "total": 62.0,
-    "moneyline": 76.9
-   },
-   "calibrated": {
-    "spread": 55.3,
-    "total": 54.1,
-    "moneyline": 76.9
-   },
-   "fb_model": {
-    "spread": 53.5,
-    "total": 49.6,
-    "moneyline": 74.8
-   },
-   "fb_model_ml_curve_spread": 63.0
-  },
-  {
-   "game_id": "401856854",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "Kansas State",
-   "away": "Oklahoma State",
-   "neutral": false,
-   "score": {
-    "home": 32.9,
-    "away": 30.3
-   },
-   "margin": 2.6,
-   "total": 63.3,
-   "line": {
-    "spread": -3.5,
-    "total": 61.5
-   },
-   "score_curve": {
-    "spread": 64.5,
-    "total": 54.3,
-    "moneyline": 56.3
-   },
-   "calibrated": {
-    "spread": 54.9,
-    "total": 51.4,
-    "moneyline": 56.3
-   },
-   "fb_model": {
-    "spread": 53.0,
-    "total": 63.6,
-    "moneyline": 55.5
-   },
-   "fb_model_ml_curve_spread": 63.8
-  },
-  {
-   "game_id": "401858285",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "Syracuse",
-   "away": "Clemson",
-   "neutral": false,
-   "score": {
-    "home": 24.6,
-    "away": 25.6
-   },
-   "margin": -1.0,
-   "total": 50.2,
-   "line": {
-    "spread": -2.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 53.7,
-    "total": 49.3,
-    "moneyline": 47.6
-   },
-   "calibrated": {
-    "spread": 51.2,
-    "total": 49.8,
-    "moneyline": 47.6
-   },
-   "fb_model": {
-    "spread": 50.9,
-    "total": 51.7,
-    "moneyline": 49.9
-   },
-   "fb_model_ml_curve_spread": 56.0
-  },
-  {
-   "game_id": "401858289",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "Boston College",
-   "away": "Florida State",
-   "neutral": false,
-   "score": {
-    "home": 23.2,
-    "away": 31.1
-   },
-   "margin": -7.9,
-   "total": 54.4,
-   "line": {
-    "spread": -6.5,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 46.6,
-    "total": 54.6,
-    "moneyline": 31.5
-   },
-   "calibrated": {
-    "spread": 48.9,
-    "total": 51.5,
-    "moneyline": 31.5
-   },
-   "fb_model": {
-    "spread": 47.9,
-    "total": 51.6,
-    "moneyline": 33.7
-   },
-   "fb_model_ml_curve_spread": 49.1
-  },
-  {
-   "game_id": "401858292",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "UConn",
-   "away": "North Carolina",
-   "neutral": false,
-   "score": {
-    "home": 26.8,
-    "away": 27.6
-   },
-   "margin": -0.8,
-   "total": 54.4,
-   "line": {
-    "spread": -7.0,
-    "total": 54.5
-   },
-   "score_curve": {
-    "spread": 64.8,
-    "total": 49.8,
-    "moneyline": 48.2
-   },
-   "calibrated": {
-    "spread": 55.0,
-    "total": 49.9,
-    "moneyline": 48.2
-   },
-   "fb_model": {
-    "spread": 49.9,
-    "total": 51.6,
-    "moneyline": 46.7
-   },
-   "fb_model_ml_curve_spread": 63.5
-  },
-  {
-   "game_id": "401862822",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:00:00.000Z",
-   "home": "Tulane",
-   "away": "Tulsa",
-   "neutral": false,
-   "score": {
-    "home": 24.7,
-    "away": 21.2
-   },
-   "margin": 3.5,
-   "total": 45.8,
-   "line": {
-    "spread": -1.5,
-    "total": 49.5
-   },
-   "score_curve": {
-    "spread": 61.9,
-    "total": 41.2,
-    "moneyline": 58.4
-   },
-   "calibrated": {
-    "spread": 54.0,
-    "total": 47.0,
-    "moneyline": 58.4
-   },
-   "fb_model": {
-    "spread": 52.1,
-    "total": 58.2,
-    "moneyline": 58.8
-   },
-   "fb_model_ml_curve_spread": 62.3
-  },
-  {
-   "game_id": "401858286",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:30:00.000Z",
-   "home": "NC State",
-   "away": "Duke",
-   "neutral": false,
-   "score": {
-    "home": 27.3,
-    "away": 28.5
-   },
-   "margin": -1.2,
-   "total": 55.8,
-   "line": {
-    "spread": -4.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 57.9,
-    "total": 62.7,
-    "moneyline": 47.0
-   },
-   "calibrated": {
-    "spread": 52.6,
-    "total": 54.3,
-    "moneyline": 47.0
-   },
-   "fb_model": {
-    "spread": 51.7,
-    "total": 45.8,
-    "moneyline": 46.4
-   },
-   "fb_model_ml_curve_spread": 57.3
-  },
-  {
-   "game_id": "401858515",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:30:00.000Z",
-   "home": "Purdue",
-   "away": "Maryland",
-   "neutral": false,
-   "score": {
-    "home": 35.2,
-    "away": 26.1
-   },
-   "margin": 9.0,
-   "total": 61.3,
-   "line": {
-    "spread": 6.5,
-    "total": 57.5
-   },
-   "score_curve": {
-    "spread": 56.1,
-    "total": 59.2,
-    "moneyline": 70.9
-   },
-   "calibrated": {
-    "spread": 52.0,
-    "total": 53.1,
-    "moneyline": 70.9
-   },
-   "fb_model": {
-    "spread": 50.2,
-    "total": 46.6,
-    "moneyline": 71.3
-   },
-   "fb_model_ml_curve_spread": 56.5
-  },
-  {
-   "game_id": "401858517",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:30:00.000Z",
-   "home": "Wisconsin",
-   "away": "Rutgers",
-   "neutral": false,
-   "score": {
-    "home": 32.1,
-    "away": 16.9
-   },
-   "margin": 15.3,
-   "total": 49.0,
-   "line": {
-    "spread": 17.5,
-    "total": 45.5
-   },
-   "score_curve": {
-    "spread": 44.6,
-    "total": 58.4,
-    "moneyline": 82.3
-   },
-   "calibrated": {
-    "spread": 48.2,
-    "total": 52.8,
-    "moneyline": 82.3
-   },
-   "fb_model": {
-    "spread": 53.1,
-    "total": 47.2,
-    "moneyline": 78.6
-   },
-   "fb_model_ml_curve_spread": 39.1
-  },
-  {
-   "game_id": "401856738",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T17:45:00.000Z",
-   "home": "Auburn",
-   "away": "Arkansas",
-   "neutral": false,
-   "score": {
-    "home": 29.6,
-    "away": 19.4
-   },
-   "margin": 10.2,
-   "total": 49.0,
-   "line": {
-    "spread": 10.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 49.3,
-    "total": 46.3,
-    "moneyline": 73.3
+    "total": 51.0,
+    "moneyline": 19.4
    },
    "calibrated": {
     "spread": 49.8,
-    "total": 48.8,
-    "moneyline": 73.3
+    "total": 50.3,
+    "moneyline": 19.4
    },
    "fb_model": {
-    "spread": 54.0,
-    "total": 49.8,
-    "moneyline": 69.9
+    "spread": 49.1,
+    "total": 51.2,
+    "moneyline": 20.6
    },
-   "fb_model_ml_curve_spread": 45.2
+   "fb_model_ml_curve_spread": 51.3
   },
   {
-   "game_id": "401869945",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T18:00:00.000Z",
-   "home": "Coastal Carolina",
-   "away": "Old Dominion",
+   "game_id": "401866459",
+   "day": "2026-11-11",
+   "kick": "2026-11-11T00:00:00.000Z",
+   "home": "Bowling Green",
+   "away": "Kent State",
    "neutral": false,
    "score": {
-    "home": 25.7,
-    "away": 20.0
+    "home": 26.0,
+    "away": 17.0
    },
-   "margin": 5.7,
-   "total": 45.7,
+   "margin": 9.0,
+   "total": 42.9,
    "line": {
-    "spread": 7.5,
+    "spread": 5.5,
     "total": 45.5
    },
    "score_curve": {
-    "spread": 45.6,
-    "total": 50.4,
-    "moneyline": 63.6
+    "spread": 58.5,
+    "total": 43.8,
+    "moneyline": 70.8
    },
    "calibrated": {
-    "spread": 48.5,
-    "total": 50.1,
-    "moneyline": 63.6
+    "spread": 52.8,
+    "total": 47.9,
+    "moneyline": 70.8
    },
    "fb_model": {
-    "spread": 49.7,
-    "total": 49.7,
-    "moneyline": 64.5
+    "spread": 49.3,
+    "total": 51.6,
+    "moneyline": 70.4
    },
-   "fb_model_ml_curve_spread": 46.5
+   "fb_model_ml_curve_spread": 58.0
   },
   {
-   "game_id": "401869927",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T19:30:00.000Z",
-   "home": "App State",
-   "away": "Georgia State",
+   "game_id": "401866460",
+   "day": "2026-11-11",
+   "kick": "2026-11-11T01:00:00.000Z",
+   "home": "Miami (OH)",
+   "away": "Ohio",
    "neutral": false,
    "score": {
-    "home": 31.0,
-    "away": 26.1
+    "home": 25.5,
+    "away": 25.6
    },
-   "margin": 4.9,
-   "total": 57.0,
+   "margin": -0.1,
+   "total": 51.0,
    "line": {
-    "spread": 4.5,
-    "total": 55.5
+    "spread": 1.5,
+    "total": 47.5
    },
    "score_curve": {
-    "spread": 50.9,
-    "total": 53.7,
-    "moneyline": 61.7
+    "spread": 46.1,
+    "total": 58.5,
+    "moneyline": 49.7
    },
    "calibrated": {
-    "spread": 50.3,
-    "total": 51.2,
-    "moneyline": 61.7
+    "spread": 48.7,
+    "total": 52.9,
+    "moneyline": 49.7
    },
    "fb_model": {
-    "spread": 52.6,
-    "total": 46.3,
-    "moneyline": 58.3
+    "spread": 50.7,
+    "total": 48.2,
+    "moneyline": 47.7
    },
-   "fb_model_ml_curve_spread": 47.4
+   "fb_model_ml_curve_spread": 44.1
   },
   {
-   "game_id": "401856744",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:00:00.000Z",
-   "home": "South Carolina",
-   "away": "Texas A&M",
+   "game_id": "401866461",
+   "day": "2026-11-12",
+   "kick": "2026-11-12T00:30:00.000Z",
+   "home": "Ball State",
+   "away": "Buffalo",
    "neutral": false,
    "score": {
-    "home": 28.0,
-    "away": 25.8
+    "home": 27.5,
+    "away": 29.1
    },
-   "margin": 2.2,
-   "total": 53.8,
+   "margin": -1.6,
+   "total": 56.6,
    "line": {
-    "spread": 7.5,
-    "total": 51.5
+    "spread": -2.5,
+    "total": 50.5
    },
    "score_curve": {
-    "spread": 37.4,
-    "total": 55.6,
-    "moneyline": 55.4
-   },
-   "calibrated": {
-    "spread": 45.7,
-    "total": 51.9,
-    "moneyline": 55.4
-   },
-   "fb_model": {
     "spread": 52.1,
-    "total": 44.3,
-    "moneyline": 53.0
+    "total": 64.5,
+    "moneyline": 46.0
    },
-   "fb_model_ml_curve_spread": 35.0
+   "calibrated": {
+    "spread": 50.7,
+    "total": 54.9,
+    "moneyline": 46.0
+   },
+   "fb_model": {
+    "spread": 50.2,
+    "total": 47.9,
+    "moneyline": 45.4
+   },
+   "fb_model_ml_curve_spread": 51.5
   },
   {
-   "game_id": "401869936",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:00:00.000Z",
-   "home": "Arkansas State",
-   "away": "UL Monroe",
+   "game_id": "401866462",
+   "day": "2026-11-12",
+   "kick": "2026-11-12T00:30:00.000Z",
+   "home": "Central Michigan",
+   "away": "Sacramento State",
    "neutral": false,
    "score": {
-    "home": 35.4,
-    "away": 17.8
+    "home": 30.6,
+    "away": 15.2
    },
-   "margin": 17.6,
-   "total": 53.2,
+   "margin": 15.3,
+   "total": 45.8,
+   "line": {
+    "spread": 15.5,
+    "total": 43.5
+   },
+   "score_curve": {
+    "spread": 49.6,
+    "total": 55.6,
+    "moneyline": 82.4
+   },
+   "calibrated": {
+    "spread": 49.9,
+    "total": 51.9,
+    "moneyline": 82.4
+   },
+   "fb_model": {
+    "spread": 51.9,
+    "total": 49.4,
+    "moneyline": 79.9
+   },
+   "fb_model_ml_curve_spread": 45.7
+  },
+  {
+   "game_id": "401866463",
+   "day": "2026-11-12",
+   "kick": "2026-11-12T00:30:00.000Z",
+   "home": "Toledo",
+   "away": "Massachusetts",
+   "neutral": false,
+   "score": {
+    "home": 36.6,
+    "away": 17.5
+   },
+   "margin": 19.2,
+   "total": 54.1,
    "line": {
     "spread": 14.5,
     "total": 52.5
    },
    "score_curve": {
-    "spread": 57.5,
-    "total": 51.7,
-    "moneyline": 85.8
+    "spread": 61.1,
+    "total": 53.8,
+    "moneyline": 87.7
    },
    "calibrated": {
-    "spread": 52.5,
-    "total": 50.6,
-    "moneyline": 85.8
+    "spread": 53.8,
+    "total": 51.3,
+    "moneyline": 87.7
    },
    "fb_model": {
-    "spread": 54.6,
-    "total": 51.3,
-    "moneyline": 84.1
+    "spread": 53.5,
+    "total": 47.3,
+    "moneyline": 86.4
    },
-   "fb_model_ml_curve_spread": 54.5
+   "fb_model_ml_curve_spread": 58.5
   },
   {
-   "game_id": "401871073",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:00:00.000Z",
-   "home": "Kennesaw State",
-   "away": "Delaware",
+   "game_id": "401862824",
+   "day": "2026-11-13",
+   "kick": "2026-11-13T01:00:00.000Z",
+   "home": "South Florida",
+   "away": "Memphis",
    "neutral": false,
    "score": {
     "home": 28.9,
-    "away": 26.2
-   },
-   "margin": 2.7,
-   "total": 55.1,
-   "line": {
-    "spread": -2.5,
-    "total": 55.5
-   },
-   "score_curve": {
-    "spread": 62.4,
-    "total": 49.0,
-    "moneyline": 56.5
-   },
-   "calibrated": {
-    "spread": 54.2,
-    "total": 49.7,
-    "moneyline": 56.5
-   },
-   "fb_model": {
-    "spread": 53.3,
-    "total": 50.7,
-    "moneyline": 55.4
-   },
-   "fb_model_ml_curve_spread": 61.4
-  },
-  {
-   "game_id": "401856740",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:30:00.000Z",
-   "home": "LSU",
-   "away": "Alabama",
-   "neutral": false,
-   "score": {
-    "home": 29.5,
-    "away": 26.1
+    "away": 25.5
    },
    "margin": 3.4,
-   "total": 55.6,
+   "total": 54.4,
    "line": {
-    "spread": 5.5,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 45.0,
-    "total": 57.4,
-    "moneyline": 58.3
-   },
-   "calibrated": {
-    "spread": 48.3,
-    "total": 52.5,
-    "moneyline": 58.3
-   },
-   "fb_model": {
-    "spread": 50.0,
-    "total": 59.2,
-    "moneyline": 60.8
-   },
-   "fb_model_ml_curve_spread": 47.5
-  },
-  {
-   "game_id": "401858514",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:30:00.000Z",
-   "home": "Ohio State",
-   "away": "Oregon",
-   "neutral": false,
-   "score": {
-    "home": 29.9,
-    "away": 20.8
-   },
-   "margin": 9.1,
-   "total": 50.6,
-   "line": {
-    "spread": 7.5,
+    "spread": -6.5,
     "total": 48.5
    },
    "score_curve": {
-    "spread": 53.9,
-    "total": 55.2,
-    "moneyline": 71.1
+    "spread": 72.5,
+    "total": 64.0,
+    "moneyline": 58.1
    },
    "calibrated": {
-    "spread": 51.3,
-    "total": 51.7,
-    "moneyline": 71.1
+    "spread": 57.9,
+    "total": 54.8,
+    "moneyline": 58.1
+   },
+   "fb_model": {
+    "spread": 53.0,
+    "total": 47.3,
+    "moneyline": 51.4
+   },
+   "fb_model_ml_curve_spread": 66.7
+  },
+  {
+   "game_id": "401869969",
+   "day": "2026-11-13",
+   "kick": "2026-11-13T02:00:00.000Z",
+   "home": "UL Monroe",
+   "away": "Louisiana",
+   "neutral": false,
+   "score": {
+    "home": 18.2,
+    "away": 31.5
+   },
+   "margin": -13.3,
+   "total": 49.8,
+   "line": {
+    "spread": -11.5,
+    "total": 48.5
+   },
+   "score_curve": {
+    "spread": 45.7,
+    "total": 53.1,
+    "moneyline": 21.1
+   },
+   "calibrated": {
+    "spread": 48.6,
+    "total": 51.0,
+    "moneyline": 21.1
+   },
+   "fb_model": {
+    "spread": 46.3,
+    "total": 44.6,
+    "moneyline": 22.1
+   },
+   "fb_model_ml_curve_spread": 47.3
+  },
+  {
+   "game_id": "401858293",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T00:00:00.000Z",
+   "home": "Pittsburgh",
+   "away": "Florida State",
+   "neutral": false,
+   "score": {
+    "home": 31.2,
+    "away": 26.2
+   },
+   "margin": 5.0,
+   "total": 57.4,
+   "line": {
+    "spread": 3.5,
+    "total": 53.5
+   },
+   "score_curve": {
+    "spread": 53.6,
+    "total": 59.5,
+    "moneyline": 61.9
+   },
+   "calibrated": {
+    "spread": 51.2,
+    "total": 53.2,
+    "moneyline": 61.9
+   },
+   "fb_model": {
+    "spread": 49.6,
+    "total": 49.9,
+    "moneyline": 60.3
+   },
+   "fb_model_ml_curve_spread": 51.9
+  },
+  {
+   "game_id": "401858526",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T02:00:00.000Z",
+   "home": "UCLA",
+   "away": "Illinois",
+   "neutral": false,
+   "score": {
+    "home": 27.6,
+    "away": 20.2
+   },
+   "margin": 7.4,
+   "total": 47.9,
+   "line": {
+    "spread": 8.5,
+    "total": 45.5
+   },
+   "score_curve": {
+    "spread": 47.4,
+    "total": 55.7,
+    "moneyline": 67.4
+   },
+   "calibrated": {
+    "spread": 49.1,
+    "total": 51.9,
+    "moneyline": 67.4
+   },
+   "fb_model": {
+    "spread": 49.9,
+    "total": 45.1,
+    "moneyline": 66.7
+   },
+   "fb_model_ml_curve_spread": 46.5
+  },
+  {
+   "game_id": "401856860",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T03:15:00.000Z",
+   "home": "Colorado",
+   "away": "Houston",
+   "neutral": false,
+   "score": {
+    "home": 15.4,
+    "away": 29.5
+   },
+   "margin": -14.1,
+   "total": 44.9,
+   "line": {
+    "spread": -10.5,
+    "total": 49.5
+   },
+   "score_curve": {
+    "spread": 41.3,
+    "total": 39.1,
+    "moneyline": 19.6
+   },
+   "calibrated": {
+    "spread": 47.1,
+    "total": 46.3,
+    "moneyline": 19.6
+   },
+   "fb_model": {
+    "spread": 48.0,
+    "total": 54.1,
+    "moneyline": 19.6
+   },
+   "fb_model_ml_curve_spread": 41.5
+  },
+  {
+   "game_id": "401856857",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "UCF",
+   "away": "Arizona State",
+   "neutral": false,
+   "score": {
+    "home": 30.9,
+    "away": 24.4
+   },
+   "margin": 6.5,
+   "total": 55.3,
+   "line": {
+    "spread": 3.25,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 57.9,
+    "total": 59.2,
+    "moneyline": 65.4
+   },
+   "calibrated": {
+    "spread": 52.7,
+    "total": 53.1,
+    "moneyline": 65.4
+   },
+   "fb_model": {
+    "spread": 53.6,
+    "total": 50.5,
+    "moneyline": 61.6
+   },
+   "fb_model_ml_curve_spread": 53.9
+  },
+  {
+   "game_id": "401856858",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "BYU",
+   "away": "Baylor",
+   "neutral": false,
+   "score": {
+    "home": 27.8,
+    "away": 22.9
+   },
+   "margin": 4.9,
+   "total": 50.7,
+   "line": {
+    "spread": 7.0,
+    "total": 48.5
+   },
+   "score_curve": {
+    "spread": 44.8,
+    "total": 55.4,
+    "moneyline": 61.6
+   },
+   "calibrated": {
+    "spread": 48.3,
+    "total": 51.8,
+    "moneyline": 61.6
+   },
+   "fb_model": {
+    "spread": 51.1,
+    "total": 50.7,
+    "moneyline": 61.6
+   },
+   "fb_model_ml_curve_spread": 44.8
+  },
+  {
+   "game_id": "401856859",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Iowa State",
+   "away": "Cincinnati",
+   "neutral": false,
+   "score": {
+    "home": 32.0,
+    "away": 28.4
+   },
+   "margin": 3.5,
+   "total": 60.4,
+   "line": {
+    "spread": 1.5,
+    "total": 61.5
+   },
+   "score_curve": {
+    "spread": 54.8,
+    "total": 47.3,
+    "moneyline": 58.4
+   },
+   "calibrated": {
+    "spread": 51.6,
+    "total": 49.1,
+    "moneyline": 58.4
+   },
+   "fb_model": {
+    "spread": 50.7,
+    "total": 52.7,
+    "moneyline": 61.5
+   },
+   "fb_model_ml_curve_spread": 57.9
+  },
+  {
+   "game_id": "401856861",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "West Virginia",
+   "away": "Kansas",
+   "neutral": false,
+   "score": {
+    "home": 36.6,
+    "away": 33.3
+   },
+   "margin": 3.3,
+   "total": 69.9,
+   "line": {
+    "spread": 2.5,
+    "total": 65.5
+   },
+   "score_curve": {
+    "spread": 51.9,
+    "total": 60.5,
+    "moneyline": 57.9
+   },
+   "calibrated": {
+    "spread": 50.6,
+    "total": 53.5,
+    "moneyline": 57.9
    },
    "fb_model": {
     "spread": 51.2,
-    "total": 45.6,
-    "moneyline": 73.9
+    "total": 47.7,
+    "moneyline": 50.6
    },
-   "fb_model_ml_curve_spread": 57.3
+   "fb_model_ml_curve_spread": 44.6
   },
   {
-   "game_id": "401862819",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:30:00.000Z",
-   "home": "UAB",
-   "away": "Charlotte",
+   "game_id": "401856862",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "TCU",
+   "away": "Kansas State",
    "neutral": false,
    "score": {
-    "home": 34.0,
-    "away": 21.2
+    "home": 28.6,
+    "away": 18.7
    },
-   "margin": 12.7,
-   "total": 55.2,
+   "margin": 9.9,
+   "total": 47.3,
+   "line": {
+    "spread": 9.5,
+    "total": 46.5
+   },
+   "score_curve": {
+    "spread": 51.0,
+    "total": 51.9,
+    "moneyline": 72.6
+   },
+   "calibrated": {
+    "spread": 50.3,
+    "total": 50.6,
+    "moneyline": 72.6
+   },
+   "fb_model": {
+    "spread": 51.0,
+    "total": 52.5,
+    "moneyline": 71.8
+   },
+   "fb_model_ml_curve_spread": 49.9
+  },
+  {
+   "game_id": "401856863",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Oklahoma State",
+   "away": "Texas Tech",
+   "neutral": false,
+   "score": {
+    "home": 33.0,
+    "away": 35.0
+   },
+   "margin": -2.1,
+   "total": 68.0,
+   "line": {
+    "spread": -1.5,
+    "total": 64.0
+   },
+   "score_curve": {
+    "spread": 48.6,
+    "total": 59.6,
+    "moneyline": 45.0
+   },
+   "calibrated": {
+    "spread": 49.5,
+    "total": 53.2,
+    "moneyline": 45.0
+   },
+   "fb_model": {
+    "spread": 47.8,
+    "total": 56.3,
+    "moneyline": 46.4
+   },
+   "fb_model_ml_curve_spread": 50.1
+  },
+  {
+   "game_id": "401856864",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Arizona",
+   "away": "Utah",
+   "neutral": false,
+   "score": {
+    "home": 25.4,
+    "away": 29.3
+   },
+   "margin": -3.9,
+   "total": 54.8,
+   "line": {
+    "spread": -1.5,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 44.1,
+    "total": 57.9,
+    "moneyline": 40.6
+   },
+   "calibrated": {
+    "spread": 48.0,
+    "total": 52.6,
+    "moneyline": 40.6
+   },
+   "fb_model": {
+    "spread": 48.0,
+    "total": 50.0,
+    "moneyline": 43.0
+   },
+   "fb_model_ml_curve_spread": 46.6
+  },
+  {
+   "game_id": "401856883",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Georgia",
+   "away": "Missouri",
+   "neutral": false,
+   "score": {
+    "home": 32.9,
+    "away": 17.1
+   },
+   "margin": 15.8,
+   "total": 50.1,
+   "line": {
+    "spread": 14.5,
+    "total": 47.5
+   },
+   "score_curve": {
+    "spread": 53.1,
+    "total": 56.2,
+    "moneyline": 83.1
+   },
+   "calibrated": {
+    "spread": 51.0,
+    "total": 52.1,
+    "moneyline": 83.1
+   },
+   "fb_model": {
+    "spread": 52.1,
+    "total": 45.2,
+    "moneyline": 81.7
+   },
+   "fb_model_ml_curve_spread": 50.8
+  },
+  {
+   "game_id": "401856884",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Kentucky",
+   "away": "Florida",
+   "neutral": false,
+   "score": {
+    "home": 29.7,
+    "away": 25.4
+   },
+   "margin": 4.3,
+   "total": 55.1,
+   "line": {
+    "spread": 3.0,
+    "total": 52.5
+   },
+   "score_curve": {
+    "spread": 53.0,
+    "total": 56.2,
+    "moneyline": 60.2
+   },
+   "calibrated": {
+    "spread": 51.0,
+    "total": 52.1,
+    "moneyline": 60.2
+   },
+   "fb_model": {
+    "spread": 48.9,
+    "total": 44.6,
+    "moneyline": 58.5
+   },
+   "fb_model_ml_curve_spread": 51.2
+  },
+  {
+   "game_id": "401856885",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "LSU",
+   "away": "Texas",
+   "neutral": false,
+   "score": {
+    "home": 26.9,
+    "away": 23.5
+   },
+   "margin": 3.4,
+   "total": 50.4,
+   "line": {
+    "spread": 4.0,
+    "total": 46.5
+   },
+   "score_curve": {
+    "spread": 48.6,
+    "total": 59.4,
+    "moneyline": 58.2
+   },
+   "calibrated": {
+    "spread": 49.5,
+    "total": 53.2,
+    "moneyline": 58.2
+   },
+   "fb_model": {
+    "spread": 50.4,
+    "total": 49.5,
+    "moneyline": 59.7
+   },
+   "fb_model_ml_curve_spread": 50.1
+  },
+  {
+   "game_id": "401856887",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Oklahoma",
+   "away": "Ole Miss",
+   "neutral": false,
+   "score": {
+    "home": 24.3,
+    "away": 25.1
+   },
+   "margin": -0.8,
+   "total": 49.5,
+   "line": {
+    "spread": -2.5,
+    "total": 49.5
+   },
+   "score_curve": {
+    "spread": 54.1,
+    "total": 50.0,
+    "moneyline": 48.1
+   },
+   "calibrated": {
+    "spread": 51.4,
+    "total": 50.0,
+    "moneyline": 48.1
+   },
+   "fb_model": {
+    "spread": 49.4,
+    "total": 48.4,
+    "moneyline": 48.2
+   },
+   "fb_model_ml_curve_spread": 54.3
+  },
+  {
+   "game_id": "401856888",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Texas A&M",
+   "away": "Tennessee",
+   "neutral": false,
+   "score": {
+    "home": 22.4,
+    "away": 24.3
+   },
+   "margin": -1.9,
+   "total": 46.7,
+   "line": {
+    "spread": -3.0,
+    "total": 42.5
+   },
+   "score_curve": {
+    "spread": 52.8,
+    "total": 60.1,
+    "moneyline": 45.5
+   },
+   "calibrated": {
+    "spread": 50.9,
+    "total": 53.4,
+    "moneyline": 45.5
+   },
+   "fb_model": {
+    "spread": 49.5,
+    "total": 46.4,
+    "moneyline": 48.2
+   },
+   "fb_model_ml_curve_spread": 55.5
+  },
+  {
+   "game_id": "401858298",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "North Carolina",
+   "away": "Louisville",
+   "neutral": false,
+   "score": {
+    "home": 27.2,
+    "away": 29.8
+   },
+   "margin": -2.6,
+   "total": 57.1,
+   "line": {
+    "spread": -3.0,
+    "total": 59.5
+   },
+   "score_curve": {
+    "spread": 51.0,
+    "total": 44.1,
+    "moneyline": 43.7
+   },
+   "calibrated": {
+    "spread": 50.3,
+    "total": 48.0,
+    "moneyline": 43.7
+   },
+   "fb_model": {
+    "spread": 51.6,
+    "total": 52.9,
+    "moneyline": 43.0
+   },
+   "fb_model_ml_curve_spread": 50.3
+  },
+  {
+   "game_id": "401858299",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T05:00:00.000Z",
+   "home": "Virginia Tech",
+   "away": "Stanford",
+   "neutral": false,
+   "score": {
+    "home": 35.8,
+    "away": 21.7
+   },
+   "margin": 14.1,
+   "total": 57.5,
+   "line": {
+    "spread": 16.5,
+    "total": 60.0
+   },
+   "score_curve": {
+    "spread": 44.2,
+    "total": 44.0,
+    "moneyline": 80.4
+   },
+   "calibrated": {
+    "spread": 48.1,
+    "total": 48.0,
+    "moneyline": 80.4
+   },
+   "fb_model": {
+    "spread": 52.3,
+    "total": 49.1,
+    "moneyline": 78.7
+   },
+   "fb_model_ml_curve_spread": 41.7
+  },
+  {
+   "game_id": "401856886",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "Mississippi State",
+   "away": "Auburn",
+   "neutral": false,
+   "score": {
+    "home": 27.5,
+    "away": 26.2
+   },
+   "margin": 1.3,
+   "total": 53.8,
+   "line": {
+    "spread": -3.5,
+    "total": 50.0
+   },
+   "score_curve": {
+    "spread": 61.5,
+    "total": 59.0,
+    "moneyline": 53.2
+   },
+   "calibrated": {
+    "spread": 53.9,
+    "total": 53.0,
+    "moneyline": 53.2
+   },
+   "fb_model": {
+    "spread": 51.5,
+    "total": 46.0,
+    "moneyline": 53.1
+   },
+   "fb_model_ml_curve_spread": 61.5
+  },
+  {
+   "game_id": "401858296",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "Miami",
+   "away": "Duke",
+   "neutral": false,
+   "score": {
+    "home": 35.6,
+    "away": 20.7
+   },
+   "margin": 14.9,
+   "total": 56.3,
+   "line": {
+    "spread": 14.0,
+    "total": 54.0
+   },
+   "score_curve": {
+    "spread": 52.3,
+    "total": 55.5,
+    "moneyline": 81.7
+   },
+   "calibrated": {
+    "spread": 50.8,
+    "total": 51.9,
+    "moneyline": 81.7
+   },
+   "fb_model": {
+    "spread": 55.4,
+    "total": 49.1,
+    "moneyline": 80.5
+   },
+   "fb_model_ml_curve_spread": 50.2
+  },
+  {
+   "game_id": "401858300",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "NC State",
+   "away": "Syracuse",
+   "neutral": false,
+   "score": {
+    "home": 30.7,
+    "away": 26.4
+   },
+   "margin": 4.3,
+   "total": 57.1,
+   "line": {
+    "spread": -2.5,
+    "total": 56.0
+   },
+   "score_curve": {
+    "spread": 66.0,
+    "total": 52.7,
+    "moneyline": 60.2
+   },
+   "calibrated": {
+    "spread": 55.5,
+    "total": 50.9,
+    "moneyline": 60.2
+   },
+   "fb_model": {
+    "spread": 53.3,
+    "total": 46.1,
+    "moneyline": 56.7
+   },
+   "fb_model_ml_curve_spread": 62.6
+  },
+  {
+   "game_id": "401858301",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "SMU",
+   "away": "Wake Forest",
+   "neutral": false,
+   "score": {
+    "home": 27.0,
+    "away": 32.7
+   },
+   "margin": -5.7,
+   "total": 59.7,
+   "line": {
+    "spread": -2.5,
+    "total": 61.5
+   },
+   "score_curve": {
+    "spread": 42.2,
+    "total": 45.5,
+    "moneyline": 36.4
+   },
+   "calibrated": {
+    "spread": 47.4,
+    "total": 48.5,
+    "moneyline": 36.4
+   },
+   "fb_model": {
+    "spread": 52.2,
+    "total": 50.2,
+    "moneyline": 36.8
+   },
+   "fb_model_ml_curve_spread": 42.6
+  },
+  {
+   "game_id": "401858520",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "Maryland",
+   "away": "Wisconsin",
+   "neutral": false,
+   "score": {
+    "home": 17.7,
+    "away": 26.0
+   },
+   "margin": -8.3,
+   "total": 43.7,
+   "line": {
+    "spread": -7.5,
+    "total": 43.5
+   },
+   "score_curve": {
+    "spread": 48.1,
+    "total": 50.4,
+    "moneyline": 30.7
+   },
+   "calibrated": {
+    "spread": 49.4,
+    "total": 50.1,
+    "moneyline": 30.7
+   },
+   "fb_model": {
+    "spread": 48.9,
+    "total": 50.5,
+    "moneyline": 30.1
+   },
+   "fb_model_ml_curve_spread": 47.4
+  },
+  {
+   "game_id": "401858522",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "Ohio State",
+   "away": "Northwestern",
+   "neutral": false,
+   "score": {
+    "home": 30.7,
+    "away": 19.1
+   },
+   "margin": 11.6,
+   "total": 49.7,
    "line": {
     "spread": 10.5,
     "total": 47.5
    },
    "score_curve": {
-    "spread": 55.4,
-    "total": 68.0,
-    "moneyline": 78.1
+    "spread": 52.7,
+    "total": 55.4,
+    "moneyline": 76.0
    },
    "calibrated": {
-    "spread": 51.8,
-    "total": 56.2,
-    "moneyline": 78.1
-   },
-   "fb_model": {
-    "spread": 51.5,
-    "total": 49.6,
-    "moneyline": 80.5
-   },
-   "fb_model_ml_curve_spread": 58.6
-  },
-  {
-   "game_id": "401862820",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:30:00.000Z",
-   "home": "Navy",
-   "away": "Temple",
-   "neutral": false,
-   "score": {
-    "home": 30.2,
-    "away": 20.4
-   },
-   "margin": 9.8,
-   "total": 50.6,
-   "line": {
-    "spread": 7.5,
-    "total": 53.5
-   },
-   "score_curve": {
-    "spread": 55.6,
-    "total": 43.1,
-    "moneyline": 72.5
-   },
-   "calibrated": {
-    "spread": 51.9,
-    "total": 47.7,
-    "moneyline": 72.5
-   },
-   "fb_model": {
-    "spread": 52.8,
-    "total": 52.0,
-    "moneyline": 72.2
-   },
-   "fb_model_ml_curve_spread": 55.1
-  },
-  {
-   "game_id": "401869951",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:30:00.000Z",
-   "home": "Georgia Southern",
-   "away": "Marshall",
-   "neutral": false,
-   "score": {
-    "home": 30.5,
-    "away": 20.3
-   },
-   "margin": 10.2,
-   "total": 50.8,
-   "line": {
-    "spread": 10.0,
-    "total": 54.5
-   },
-   "score_curve": {
-    "spread": 50.4,
-    "total": 41.2,
-    "moneyline": 73.2
-   },
-   "calibrated": {
-    "spread": 50.1,
-    "total": 47.0,
-    "moneyline": 73.2
-   },
-   "fb_model": {
-    "spread": 52.6,
-    "total": 52.6,
-    "moneyline": 73.7
-   },
-   "fb_model_ml_curve_spread": 50.9
-  },
-  {
-   "game_id": "401871076",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:30:00.000Z",
-   "home": "Middle Tennessee",
-   "away": "Western Kentucky",
-   "neutral": false,
-   "score": {
-    "home": 26.9,
-    "away": 27.2
-   },
-   "margin": -0.4,
-   "total": 54.1,
-   "line": {
-    "spread": 0.0,
-    "total": 53.5
-   },
-   "score_curve": {
-    "spread": 49.1,
-    "total": 51.5,
-    "moneyline": 49.1
-   },
-   "calibrated": {
-    "spread": 49.7,
-    "total": 50.5,
-    "moneyline": 49.1
+    "spread": 50.9,
+    "total": 51.8,
+    "moneyline": 76.0
    },
    "fb_model": {
     "spread": 53.8,
-    "total": 41.5,
-    "moneyline": 50.8
+    "total": 49.9,
+    "moneyline": 76.6
    },
-   "fb_model_ml_curve_spread": 50.8
+   "fb_model_ml_curve_spread": 53.5
   },
   {
-   "game_id": "401856850",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T20:45:00.000Z",
-   "home": "Kansas",
-   "away": "UCF",
+   "game_id": "401861967",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:00:00.000Z",
+   "home": "UConn",
+   "away": "James Madison",
    "neutral": false,
    "score": {
-    "home": 29.5,
-    "away": 25.5
+    "home": 27.8,
+    "away": 36.8
    },
-   "margin": 4.0,
-   "total": 55.0,
+   "margin": -9.0,
+   "total": 64.7,
    "line": {
-    "spread": 2.5,
+    "spread": -2.75,
+    "total": 57.0
+   },
+   "score_curve": {
+    "spread": 35.2,
+    "total": 68.0,
+    "moneyline": 29.3
+   },
+   "calibrated": {
+    "spread": 45.0,
+    "total": 56.2,
+    "moneyline": 29.3
+   },
+   "fb_model": {
+    "spread": 48.8,
+    "total": 46.5,
+    "moneyline": 26.7
+   },
+   "fb_model_ml_curve_spread": 32.4
+  },
+  {
+   "game_id": "401858297",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:30:00.000Z",
+   "home": "Clemson",
+   "away": "Georgia Tech",
+   "neutral": false,
+   "score": {
+    "home": 31.1,
+    "away": 17.7
+   },
+   "margin": 13.4,
+   "total": 48.9,
+   "line": {
+    "spread": 13.5,
     "total": 47.5
    },
    "score_curve": {
+    "spread": 49.8,
+    "total": 53.4,
+    "moneyline": 79.2
+   },
+   "calibrated": {
+    "spread": 49.9,
+    "total": 51.1,
+    "moneyline": 79.2
+   },
+   "fb_model": {
+    "spread": 47.6,
+    "total": 51.3,
+    "moneyline": 77.4
+   },
+   "fb_model_ml_curve_spread": 47.2
+  },
+  {
+   "game_id": "401858525",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:30:00.000Z",
+   "home": "Rutgers",
+   "away": "Nebraska",
+   "neutral": false,
+   "score": {
+    "home": 22.1,
+    "away": 34.2
+   },
+   "margin": -12.2,
+   "total": 56.3,
+   "line": {
+    "spread": -13.5,
+    "total": 53.5
+   },
+   "score_curve": {
+    "spread": 53.2,
+    "total": 56.8,
+    "moneyline": 23.0
+   },
+   "calibrated": {
+    "spread": 51.1,
+    "total": 52.3,
+    "moneyline": 23.0
+   },
+   "fb_model": {
+    "spread": 46.0,
+    "total": 42.0,
+    "moneyline": 23.2
+   },
+   "fb_model_ml_curve_spread": 53.6
+  },
+  {
+   "game_id": "401856889",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T17:45:00.000Z",
+   "home": "Vanderbilt",
+   "away": "Alabama",
+   "neutral": false,
+   "score": {
+    "home": 19.3,
+    "away": 34.3
+   },
+   "margin": -15.0,
+   "total": 53.6,
+   "line": {
+    "spread": -19.5,
+    "total": 54.5
+   },
+   "score_curve": {
+    "spread": 60.8,
+    "total": 47.8,
+    "moneyline": 18.2
+   },
+   "calibrated": {
     "spread": 53.6,
-    "total": 67.6,
-    "moneyline": 59.6
+    "total": 49.3,
+    "moneyline": 18.2
+   },
+   "fb_model": {
+    "spread": 47.7,
+    "total": 45.9,
+    "moneyline": 19.1
+   },
+   "fb_model_ml_curve_spread": 62.4
+  },
+  {
+   "game_id": "401862825",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T18:00:00.000Z",
+   "home": "Charlotte",
+   "away": "East Carolina",
+   "neutral": false,
+   "score": {
+    "home": 18.0,
+    "away": 32.7
+   },
+   "margin": -14.7,
+   "total": 50.7,
+   "line": {
+    "spread": -11.5,
+    "total": 45.0
+   },
+   "score_curve": {
+    "spread": 42.3,
+    "total": 63.6,
+    "moneyline": 18.6
+   },
+   "calibrated": {
+    "spread": 47.4,
+    "total": 54.6,
+    "moneyline": 18.6
+   },
+   "fb_model": {
+    "spread": 45.6,
+    "total": 50.6,
+    "moneyline": 19.2
+   },
+   "fb_model_ml_curve_spread": 43.2
+  },
+  {
+   "game_id": "401862829",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T18:00:00.000Z",
+   "home": "Temple",
+   "away": "UAB",
+   "neutral": false,
+   "score": {
+    "home": 28.8,
+    "away": 22.6
+   },
+   "margin": 6.2,
+   "total": 51.3,
+   "line": {
+    "spread": 3.0,
+    "total": 50.5
+   },
+   "score_curve": {
+    "spread": 57.7,
+    "total": 52.0,
+    "moneyline": 64.7
+   },
+   "calibrated": {
+    "spread": 52.6,
+    "total": 50.7,
+    "moneyline": 64.7
+   },
+   "fb_model": {
+    "spread": 52.7,
+    "total": 49.1,
+    "moneyline": 59.2
+   },
+   "fb_model_ml_curve_spread": 52.0
+  },
+  {
+   "game_id": "401869937",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T18:00:00.000Z",
+   "home": "Coastal Carolina",
+   "away": "Arkansas State",
+   "neutral": false,
+   "score": {
+    "home": 26.0,
+    "away": 23.0
+   },
+   "margin": 3.0,
+   "total": 49.0,
+   "line": {
+    "spread": 1.5,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 53.7,
+    "total": 44.0,
+    "moneyline": 57.3
    },
    "calibrated": {
     "spread": 51.2,
-    "total": 56.1,
-    "moneyline": 59.6
+    "total": 48.0,
+    "moneyline": 57.3
    },
    "fb_model": {
-    "spread": 50.9,
-    "total": 49.8,
-    "moneyline": 63.3
+    "spread": 50.5,
+    "total": 52.9,
+    "moneyline": 54.1
+   },
+   "fb_model_ml_curve_spread": 50.5
+  },
+  {
+   "game_id": "401862828",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T19:00:00.000Z",
+   "home": "Rice",
+   "away": "Tulane",
+   "neutral": false,
+   "score": {
+    "home": 23.8,
+    "away": 24.0
+   },
+   "margin": -0.1,
+   "total": 47.8,
+   "line": {
+    "spread": 1.5,
+    "total": 49.0
+   },
+   "score_curve": {
+    "spread": 46.1,
+    "total": 47.1,
+    "moneyline": 49.7
+   },
+   "calibrated": {
+    "spread": 48.7,
+    "total": 49.0,
+    "moneyline": 49.7
+   },
+   "fb_model": {
+    "spread": 48.8,
+    "total": 59.6,
+    "moneyline": 47.8
+   },
+   "fb_model_ml_curve_spread": 44.2
+  },
+  {
+   "game_id": "401870769",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T19:00:00.000Z",
+   "home": "Sam Houston",
+   "away": "Kennesaw State",
+   "neutral": false,
+   "score": {
+    "home": 20.6,
+    "away": 27.1
+   },
+   "margin": -6.5,
+   "total": 47.7,
+   "line": {
+    "spread": -9.0,
+    "total": 47.0
+   },
+   "score_curve": {
+    "spread": 56.1,
+    "total": 51.7,
+    "moneyline": 34.7
+   },
+   "calibrated": {
+    "spread": 52.0,
+    "total": 50.6,
+    "moneyline": 34.7
+   },
+   "fb_model": {
+    "spread": 49.6,
+    "total": 50.7,
+    "moneyline": 35.9
    },
    "fb_model_ml_curve_spread": 57.4
   },
   {
-   "game_id": "401862821",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T21:00:00.000Z",
-   "home": "North Texas",
-   "away": "Rice",
+   "game_id": "401870796",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:00:00.000Z",
+   "home": "Missouri State",
+   "away": "New Mexico State",
    "neutral": false,
    "score": {
-    "home": 45.6,
-    "away": 24.5
+    "home": 26.9,
+    "away": 22.5
    },
-   "margin": 21.1,
-   "total": 70.1,
+   "margin": 4.4,
+   "total": 49.4,
    "line": {
-    "spread": 16.5,
-    "total": 64.5
-   },
-   "score_curve": {
-    "spread": 60.9,
-    "total": 63.3,
-    "moneyline": 90.0
-   },
-   "calibrated": {
-    "spread": 53.7,
-    "total": 54.5,
-    "moneyline": 90.0
-   },
-   "fb_model": {
-    "spread": 53.6,
-    "total": 41.2,
-    "moneyline": 88.1
-   },
-   "fb_model_ml_curve_spread": 56.7
-  },
-  {
-   "game_id": "401864534",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T21:00:00.000Z",
-   "home": "San Jos\u00e9 State",
-   "away": "Northern Illinois",
-   "neutral": false,
-   "score": {
-    "home": 30.0,
-    "away": 17.8
-   },
-   "margin": 12.2,
-   "total": 47.8,
-   "line": {
-    "spread": 10.0,
-    "total": 51.5
-   },
-   "score_curve": {
-    "spread": 55.3,
-    "total": 41.1,
-    "moneyline": 77.1
-   },
-   "calibrated": {
-    "spread": 51.8,
-    "total": 47.0,
-    "moneyline": 77.1
-   },
-   "fb_model": {
-    "spread": 52.3,
-    "total": 49.2,
-    "moneyline": 75.3
-   },
-   "fb_model_ml_curve_spread": 52.9
-  },
-  {
-   "game_id": "401871074",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T21:00:00.000Z",
-   "home": "Florida International",
-   "away": "Missouri State",
-   "neutral": false,
-   "score": {
-    "home": 26.8,
-    "away": 21.6
-   },
-   "margin": 5.1,
-   "total": 48.4,
-   "line": {
-    "spread": 4.5,
-    "total": 49.5
-   },
-   "score_curve": {
-    "spread": 51.6,
-    "total": 47.4,
-    "moneyline": 62.3
-   },
-   "calibrated": {
-    "spread": 50.5,
-    "total": 49.1,
-    "moneyline": 62.3
-   },
-   "fb_model": {
-    "spread": 51.7,
-    "total": 50.0,
-    "moneyline": 64.6
-   },
-   "fb_model_ml_curve_spread": 54.0
-  },
-  {
-   "game_id": "401871098",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T21:00:00.000Z",
-   "home": "Troy",
-   "away": "Louisiana Tech",
-   "neutral": false,
-   "score": {
-    "home": 20.7,
-    "away": 26.3
-   },
-   "margin": -5.6,
-   "total": 47.0,
-   "line": {
-    "spread": -4.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 47.3,
-    "total": 48.8,
-    "moneyline": 36.7
-   },
-   "calibrated": {
-    "spread": 49.1,
-    "total": 49.6,
-    "moneyline": 36.7
-   },
-   "fb_model": {
-    "spread": 51.0,
-    "total": 49.8,
-    "moneyline": 37.8
-   },
-   "fb_model_ml_curve_spread": 48.6
-  },
-  {
-   "game_id": "401856742",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T21:15:00.000Z",
-   "home": "Mississippi State",
-   "away": "Vanderbilt",
-   "neutral": false,
-   "score": {
-    "home": 31.2,
-    "away": 25.5
-   },
-   "margin": 5.7,
-   "total": 56.6,
-   "line": {
-    "spread": 3.0,
-    "total": 48.5
-   },
-   "score_curve": {
-    "spread": 56.5,
-    "total": 69.0,
-    "moneyline": 63.6
-   },
-   "calibrated": {
-    "spread": 52.2,
-    "total": 56.5,
-    "moneyline": 63.6
-   },
-   "fb_model": {
-    "spread": 53.3,
-    "total": 45.8,
-    "moneyline": 61.3
-   },
-   "fb_model_ml_curve_spread": 54.2
-  },
-  {
-   "game_id": "401869968",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T22:00:00.000Z",
-   "home": "Louisiana",
-   "away": "South Alabama",
-   "neutral": false,
-   "score": {
-    "home": 35.7,
-    "away": 26.6
-   },
-   "margin": 9.1,
-   "total": 62.3,
-   "line": {
-    "spread": 8.5,
-    "total": 57.5
-   },
-   "score_curve": {
-    "spread": 51.4,
-    "total": 61.4,
-    "moneyline": 71.0
-   },
-   "calibrated": {
-    "spread": 50.5,
-    "total": 53.9,
-    "moneyline": 71.0
-   },
-   "fb_model": {
-    "spread": 52.6,
-    "total": 48.7,
-    "moneyline": 70.0
-   },
-   "fb_model_ml_curve_spread": 50.2
-  },
-  {
-   "game_id": "401860911",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T23:00:00.000Z",
-   "home": "Colorado State",
-   "away": "Boise State",
-   "neutral": false,
-   "score": {
-    "home": 28.8,
-    "away": 44.5
-   },
-   "margin": -15.7,
-   "total": 73.3,
-   "line": {
-    "spread": -17.5,
-    "total": 68.5
-   },
-   "score_curve": {
-    "spread": 54.3,
-    "total": 61.5,
-    "moneyline": 16.9
-   },
-   "calibrated": {
-    "spread": 51.4,
-    "total": 53.9,
-    "moneyline": 16.9
-   },
-   "fb_model": {
-    "spread": 53.2,
-    "total": 46.7,
-    "moneyline": 16.7
-   },
-   "fb_model_ml_curve_spread": 54.2
-  },
-  {
-   "game_id": "401856745",
-   "day": "2026-11-07",
-   "kick": "2026-11-07T23:15:00.000Z",
-   "home": "Tennessee",
-   "away": "Kentucky",
-   "neutral": false,
-   "score": {
-    "home": 31.1,
-    "away": 24.1
-   },
-   "margin": 7.0,
-   "total": 55.2,
-   "line": {
-    "spread": 5.5,
+    "spread": 2.5,
     "total": 50.5
    },
    "score_curve": {
-    "spread": 53.6,
-    "total": 61.3,
-    "moneyline": 66.4
+    "spread": 54.5,
+    "total": 47.3,
+    "moneyline": 60.4
    },
    "calibrated": {
-    "spread": 51.2,
-    "total": 53.8,
-    "moneyline": 66.4
+    "spread": 51.5,
+    "total": 49.1,
+    "moneyline": 60.4
    },
    "fb_model": {
-    "spread": 53.0,
+    "spread": 48.9,
     "total": 47.0,
-    "moneyline": 65.3
+    "moneyline": 59.7
    },
-   "fb_model_ml_curve_spread": 52.3
+   "fb_model_ml_curve_spread": 53.7
   },
   {
-   "game_id": "401871075",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:00:00.000Z",
-   "home": "Jacksonville State",
-   "away": "Sam Houston",
+   "game_id": "401871060",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:00:00.000Z",
+   "home": "Delaware",
+   "away": "Florida International",
    "neutral": false,
    "score": {
-    "home": 31.6,
-    "away": 14.8
+    "home": 29.4,
+    "away": 22.9
    },
-   "margin": 16.8,
-   "total": 46.4,
+   "margin": 6.5,
+   "total": 52.3,
    "line": {
-    "spread": 16.5,
-    "total": 48.5
+    "spread": 5.75,
+    "total": 55.0
    },
    "score_curve": {
-    "spread": 50.7,
-    "total": 44.9,
-    "moneyline": 84.6
+    "spread": 51.9,
+    "total": 43.5,
+    "moneyline": 65.4
    },
    "calibrated": {
-    "spread": 50.2,
-    "total": 48.3,
-    "moneyline": 84.6
+    "spread": 50.6,
+    "total": 47.8,
+    "moneyline": 65.4
    },
    "fb_model": {
-    "spread": 50.9,
-    "total": 45.7,
-    "moneyline": 83.1
+    "spread": 49.8,
+    "total": 55.1,
+    "moneyline": 61.7
    },
    "fb_model_ml_curve_spread": 47.9
   },
   {
-   "game_id": "401856741",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:30:00.000Z",
-   "home": "Ole Miss",
-   "away": "Georgia",
-   "neutral": false,
-   "score": {
-    "home": 30.7,
-    "away": 30.3
-   },
-   "margin": 0.4,
-   "total": 61.0,
-   "line": {
-    "spread": -2.5,
-    "total": 53.5
-   },
-   "score_curve": {
-    "spread": 57.1,
-    "total": 67.5,
-    "moneyline": 51.1
-   },
-   "calibrated": {
-    "spread": 52.4,
-    "total": 56.0,
-    "moneyline": 51.1
-   },
-   "fb_model": {
-    "spread": 49.9,
-    "total": 35.3,
-    "moneyline": 48.1
-   },
-   "fb_model_ml_curve_spread": 54.2
-  },
-  {
-   "game_id": "401856852",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:30:00.000Z",
-   "home": "Arizona State",
-   "away": "Colorado",
-   "neutral": false,
-   "score": {
-    "home": 31.5,
-    "away": 21.7
-   },
-   "margin": 9.8,
-   "total": 53.2,
-   "line": {
-    "spread": 3.5,
-    "total": 48.5
-   },
-   "score_curve": {
-    "spread": 64.9,
-    "total": 61.2,
-    "moneyline": 72.4
-   },
-   "calibrated": {
-    "spread": 55.1,
-    "total": 53.8,
-    "moneyline": 72.4
-   },
-   "fb_model": {
-    "spread": 49.8,
-    "total": 45.1,
-    "moneyline": 71.0
-   },
-   "fb_model_ml_curve_spread": 63.2
-  },
-  {
-   "game_id": "401858287",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:30:00.000Z",
-   "home": "Georgia Tech",
-   "away": "Louisville",
-   "neutral": false,
-   "score": {
-    "home": 26.2,
-    "away": 37.3
-   },
-   "margin": -11.1,
-   "total": 63.5,
-   "line": {
-    "spread": -14.5,
-    "total": 60.5
-   },
-   "score_curve": {
-    "spread": 58.3,
-    "total": 57.3,
-    "moneyline": 25.1
-   },
-   "calibrated": {
-    "spread": 52.8,
-    "total": 52.5,
-    "moneyline": 25.1
-   },
-   "fb_model": {
-    "spread": 51.7,
-    "total": 48.5,
-    "moneyline": 26.8
-   },
-   "fb_model_ml_curve_spread": 60.5
-  },
-  {
-   "game_id": "401858291",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:30:00.000Z",
+   "game_id": "401858294",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
    "home": "Notre Dame",
-   "away": "Miami",
+   "away": "Boston College",
    "neutral": false,
    "score": {
-    "home": 32.3,
-    "away": 29.1
+    "home": 42.2,
+    "away": 10.0
    },
-   "margin": 3.2,
-   "total": 61.4,
+   "margin": 32.2,
+   "total": 52.2,
+   "line": {
+    "spread": 31.0,
+    "total": 53.0
+   },
+   "score_curve": {
+    "spread": 52.9,
+    "total": 48.1,
+    "moneyline": 97.5
+   },
+   "calibrated": {
+    "spread": 51.0,
+    "total": 49.4,
+    "moneyline": 97.5
+   },
+   "fb_model": {
+    "spread": 56.1,
+    "total": 52.1,
+    "moneyline": 95.3
+   },
+   "fb_model_ml_curve_spread": 41.3
+  },
+  {
+   "game_id": "401858295",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Virginia",
+   "away": "California",
+   "neutral": false,
+   "score": {
+    "home": 31.6,
+    "away": 15.4
+   },
+   "margin": 16.3,
+   "total": 47.0,
+   "line": {
+    "spread": 12.5,
+    "total": 47.5
+   },
+   "score_curve": {
+    "spread": 59.1,
+    "total": 48.8,
+    "moneyline": 83.8
+   },
+   "calibrated": {
+    "spread": 53.0,
+    "total": 49.6,
+    "moneyline": 83.8
+   },
+   "fb_model": {
+    "spread": 53.1,
+    "total": 51.7,
+    "moneyline": 81.4
+   },
+   "fb_model_ml_curve_spread": 55.1
+  },
+  {
+   "game_id": "401858518",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Indiana",
+   "away": "USC",
+   "neutral": false,
+   "score": {
+    "home": 32.9,
+    "away": 18.5
+   },
+   "margin": 14.5,
+   "total": 51.4,
+   "line": {
+    "spread": 7.5,
+    "total": 49.5
+   },
+   "score_curve": {
+    "spread": 66.4,
+    "total": 54.6,
+    "moneyline": 81.0
+   },
+   "calibrated": {
+    "spread": 55.6,
+    "total": 51.5,
+    "moneyline": 81.0
+   },
+   "fb_model": {
+    "spread": 53.7,
+    "total": 41.7,
+    "moneyline": 78.6
+   },
+   "fb_model_ml_curve_spread": 63.1
+  },
+  {
+   "game_id": "401858523",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Oregon",
+   "away": "Michigan",
+   "neutral": false,
+   "score": {
+    "home": 30.0,
+    "away": 14.2
+   },
+   "margin": 15.8,
+   "total": 44.3,
+   "line": {
+    "spread": 10.5,
+    "total": 40.5
+   },
+   "score_curve": {
+    "spread": 62.6,
+    "total": 59.1,
+    "moneyline": 83.1
+   },
+   "calibrated": {
+    "spread": 54.3,
+    "total": 53.1,
+    "moneyline": 83.1
+   },
+   "fb_model": {
+    "spread": 54.7,
+    "total": 47.4,
+    "moneyline": 81.6
+   },
+   "fb_model_ml_curve_spread": 60.2
+  },
+  {
+   "game_id": "401862826",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Tulsa",
+   "away": "Florida Atlantic",
+   "neutral": false,
+   "score": {
+    "home": 41.2,
+    "away": 31.0
+   },
+   "margin": 10.1,
+   "total": 72.2,
    "line": {
     "spread": 5.5,
-    "total": 57.5
+    "total": 71.0
    },
    "score_curve": {
-    "spread": 44.5,
-    "total": 59.3,
-    "moneyline": 57.8
+    "spread": 61.0,
+    "total": 52.9,
+    "moneyline": 73.0
    },
    "calibrated": {
-    "spread": 48.2,
-    "total": 53.1,
-    "moneyline": 57.8
+    "spread": 53.7,
+    "total": 51.0,
+    "moneyline": 73.0
    },
    "fb_model": {
-    "spread": 51.6,
-    "total": 49.6,
-    "moneyline": 55.6
-   },
-   "fb_model_ml_curve_spread": 42.3
-  },
-  {
-   "game_id": "401862823",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:30:00.000Z",
-   "home": "Army",
-   "away": "Air Force",
-   "neutral": false,
-   "score": {
-    "home": 33.1,
-    "away": 25.2
-   },
-   "margin": 7.9,
-   "total": 58.3,
-   "line": {
-    "spread": 3.5,
-    "total": 45.5
-   },
-   "score_curve": {
-    "spread": 60.6,
-    "total": 78.1,
-    "moneyline": 68.5
-   },
-   "calibrated": {
-    "spread": 53.6,
-    "total": 60.2,
-    "moneyline": 68.5
-   },
-   "fb_model": {
-    "spread": 53.8,
-    "total": 49.3,
-    "moneyline": 65.9
+    "spread": 50.1,
+    "total": 52.8,
+    "moneyline": 70.3
    },
    "fb_model_ml_curve_spread": 57.8
   },
   {
-   "game_id": "401856739",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T00:45:00.000Z",
-   "home": "Florida",
-   "away": "Oklahoma",
+   "game_id": "401864536",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Northern Illinois",
+   "away": "Nevada",
    "neutral": false,
    "score": {
-    "home": 27.3,
-    "away": 20.9
+    "home": 20.0,
+    "away": 27.2
    },
-   "margin": 6.4,
-   "total": 48.3,
+   "margin": -7.2,
+   "total": 47.2,
    "line": {
-    "spread": 6.5,
-    "total": 45.5
-   },
-   "score_curve": {
-    "spread": 49.8,
-    "total": 56.7,
-    "moneyline": 65.2
-   },
-   "calibrated": {
-    "spread": 49.9,
-    "total": 52.2,
-    "moneyline": 65.2
-   },
-   "fb_model": {
-    "spread": 53.5,
-    "total": 50.2,
-    "moneyline": 64.2
-   },
-   "fb_model_ml_curve_spread": 48.7
-  },
-  {
-   "game_id": "401870795",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T01:00:00.000Z",
-   "home": "New Mexico State",
-   "away": "Liberty",
-   "neutral": false,
-   "score": {
-    "home": 16.6,
-    "away": 30.1
-   },
-   "margin": -13.5,
-   "total": 46.7,
-   "line": {
-    "spread": -16.5,
+    "spread": -9.5,
     "total": 46.5
    },
    "score_curve": {
-    "spread": 57.1,
-    "total": 50.6,
-    "moneyline": 20.5
+    "spread": 55.6,
+    "total": 51.8,
+    "moneyline": 33.2
    },
    "calibrated": {
-    "spread": 52.4,
-    "total": 50.2,
-    "moneyline": 20.5
+    "spread": 51.9,
+    "total": 50.6,
+    "moneyline": 33.2
    },
    "fb_model": {
-    "spread": 52.1,
-    "total": 47.0,
-    "moneyline": 20.2
+    "spread": 48.1,
+    "total": 51.1,
+    "moneyline": 33.2
    },
-   "fb_model_ml_curve_spread": 56.9
+   "fb_model_ml_curve_spread": 55.7
   },
   {
-   "game_id": "401856856",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T02:30:00.000Z",
-   "home": "Texas Tech",
-   "away": "West Virginia",
+   "game_id": "401869952",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Georgia State",
+   "away": "Georgia Southern",
    "neutral": false,
    "score": {
-    "home": 42.4,
-    "away": 23.4
+    "home": 28.4,
+    "away": 29.0
    },
-   "margin": 19.0,
-   "total": 65.8,
+   "margin": -0.6,
+   "total": 57.4,
    "line": {
-    "spread": 17.0,
-    "total": 63.5
+    "spread": -5.5,
+    "total": 56.0
    },
    "score_curve": {
-    "spread": 54.9,
-    "total": 55.5,
-    "moneyline": 87.6
+    "spread": 61.8,
+    "total": 53.5,
+    "moneyline": 48.6
    },
    "calibrated": {
-    "spread": 51.6,
-    "total": 51.8,
-    "moneyline": 87.6
+    "spread": 54.0,
+    "total": 51.2,
+    "moneyline": 48.6
    },
    "fb_model": {
-    "spread": 51.2,
-    "total": 57.2,
-    "moneyline": 85.6
+    "spread": 52.5,
+    "total": 46.7,
+    "moneyline": 46.5
    },
-   "fb_model_ml_curve_spread": 51.0
+   "fb_model_ml_curve_spread": 59.7
   },
   {
-   "game_id": "401860913",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T02:30:00.000Z",
-   "home": "Utah State",
+   "game_id": "401870752",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Western Kentucky",
+   "away": "Jacksonville State",
+   "neutral": false,
+   "score": {
+    "home": 24.7,
+    "away": 30.4
+   },
+   "margin": -5.8,
+   "total": 55.1,
+   "line": {
+    "spread": -6.5,
+    "total": 53.0
+   },
+   "score_curve": {
+    "spread": 51.7,
+    "total": 55.1,
+    "moneyline": 36.3
+   },
+   "calibrated": {
+    "spread": 50.6,
+    "total": 51.7,
+    "moneyline": 36.3
+   },
+   "fb_model": {
+    "spread": 49.5,
+    "total": 39.4,
+    "moneyline": 35.3
+   },
+   "fb_model_ml_curve_spread": 50.7
+  },
+  {
+   "game_id": "401871061",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T20:30:00.000Z",
+   "home": "Liberty",
+   "away": "Middle Tennessee",
+   "neutral": false,
+   "score": {
+    "home": 38.3,
+    "away": 15.5
+   },
+   "margin": 22.8,
+   "total": 53.8,
+   "line": {
+    "spread": 21.0,
+    "total": 53.0
+   },
+   "score_curve": {
+    "spread": 54.4,
+    "total": 51.8,
+    "moneyline": 91.7
+   },
+   "calibrated": {
+    "spread": 51.5,
+    "total": 50.6,
+    "moneyline": 91.7
+   },
+   "fb_model": {
+    "spread": 51.6,
+    "total": 50.9,
+    "moneyline": 89.5
+   },
+   "fb_model_ml_curve_spread": 49.0
+  },
+  {
+   "game_id": "401860916",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T21:00:00.000Z",
+   "home": "Texas State",
    "away": "Fresno State",
    "neutral": false,
    "score": {
-    "home": 18.9,
-    "away": 20.9
+    "home": 33.3,
+    "away": 25.1
    },
-   "margin": -2.1,
-   "total": 39.8,
+   "margin": 8.2,
+   "total": 58.4,
    "line": {
-    "spread": -2.5,
-    "total": 42.5
+    "spread": 7.5,
+    "total": 58.5
    },
    "score_curve": {
-    "spread": 51.1,
-    "total": 43.4,
-    "moneyline": 45.0
+    "spread": 51.7,
+    "total": 49.8,
+    "moneyline": 69.1
    },
    "calibrated": {
-    "spread": 50.4,
-    "total": 47.8,
-    "moneyline": 45.0
+    "spread": 50.6,
+    "total": 49.9,
+    "moneyline": 69.1
    },
    "fb_model": {
-    "spread": 50.6,
-    "total": 52.7,
-    "moneyline": 41.6
+    "spread": 50.0,
+    "total": 51.4,
+    "moneyline": 66.1
    },
-   "fb_model_ml_curve_spread": 47.6
+   "fb_model_ml_curve_spread": 48.3
   },
   {
-   "game_id": "401864532",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T02:30:00.000Z",
-   "home": "UTEP",
-   "away": "Hawai'i",
+   "game_id": "401858521",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T21:15:00.000Z",
+   "home": "Michigan State",
+   "away": "Washington",
    "neutral": false,
    "score": {
     "home": 22.0,
-    "away": 29.0
+    "away": 23.9
    },
-   "margin": -7.0,
-   "total": 51.1,
+   "margin": -1.9,
+   "total": 45.8,
    "line": {
-    "spread": -9.5,
-    "total": 48.5
+    "spread": -3.5,
+    "total": 44.5
    },
    "score_curve": {
-    "spread": 55.9,
-    "total": 56.2,
-    "moneyline": 33.4
+    "spread": 53.9,
+    "total": 53.3,
+    "moneyline": 45.4
    },
    "calibrated": {
-    "spread": 52.0,
-    "total": 52.1,
-    "moneyline": 33.4
+    "spread": 51.3,
+    "total": 51.1,
+    "moneyline": 45.4
    },
    "fb_model": {
-    "spread": 53.4,
-    "total": 46.5,
-    "moneyline": 28.1
+    "spread": 49.0,
+    "total": 51.1,
+    "moneyline": 44.2
    },
-   "fb_model_ml_curve_spread": 50.0
+   "fb_model_ml_curve_spread": 52.7
   },
   {
-   "game_id": "401860912",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T03:30:00.000Z",
-   "home": "Oregon State",
-   "away": "Texas State",
+   "game_id": "401871099",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T22:00:00.000Z",
+   "home": "Louisiana Tech",
+   "away": "Southern Miss",
    "neutral": false,
    "score": {
-    "home": 36.6,
-    "away": 32.7
+    "home": 38.5,
+    "away": 19.6
    },
-   "margin": 3.9,
-   "total": 69.3,
+   "margin": 18.9,
+   "total": 58.1,
    "line": {
-    "spread": 6.5,
-    "total": 71.5
+    "spread": 18.0,
+    "total": 55.0
    },
    "score_curve": {
-    "spread": 43.6,
-    "total": 44.6,
-    "moneyline": 59.3
+    "spread": 52.3,
+    "total": 57.6,
+    "moneyline": 87.5
    },
    "calibrated": {
-    "spread": 47.9,
-    "total": 48.2,
-    "moneyline": 59.3
+    "spread": 50.8,
+    "total": 52.5,
+    "moneyline": 87.5
    },
    "fb_model": {
-    "spread": 49.8,
-    "total": 50.9,
-    "moneyline": 64.7
+    "spread": 50.2,
+    "total": 45.1,
+    "moneyline": 85.4
    },
-   "fb_model_ml_curve_spread": 49.2
+   "fb_model_ml_curve_spread": 48.2
   },
   {
-   "game_id": "401864535",
-   "day": "2026-11-08",
-   "kick": "2026-11-08T03:30:00.000Z",
-   "home": "UNLV",
-   "away": "Wyoming",
+   "game_id": "401860914",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T23:00:00.000Z",
+   "home": "Boise State",
+   "away": "Oregon State",
    "neutral": false,
    "score": {
-    "home": 25.2,
-    "away": 15.5
+    "home": 38.4,
+    "away": 26.4
    },
-   "margin": 9.6,
-   "total": 40.7,
+   "margin": 12.0,
+   "total": 64.8,
    "line": {
-    "spread": 6.5,
+    "spread": 10.0,
+    "total": 64.5
+   },
+   "score_curve": {
+    "spread": 54.8,
+    "total": 50.8,
+    "moneyline": 76.7
+   },
+   "calibrated": {
+    "spread": 51.6,
+    "total": 50.3,
+    "moneyline": 76.7
+   },
+   "fb_model": {
+    "spread": 50.9,
+    "total": 53.3,
+    "moneyline": 73.4
+   },
+   "fb_model_ml_curve_spread": 50.6
+  },
+  {
+   "game_id": "401869928",
+   "day": "2026-11-14",
+   "kick": "2026-11-14T23:00:00.000Z",
+   "home": "Marshall",
+   "away": "App State",
+   "neutral": false,
+   "score": {
+    "home": 27.5,
+    "away": 27.1
+   },
+   "margin": 0.4,
+   "total": 54.6,
+   "line": {
+    "spread": -2.5,
+    "total": 54.0
+   },
+   "score_curve": {
+    "spread": 57.0,
+    "total": 51.4,
+    "moneyline": 51.0
+   },
+   "calibrated": {
+    "spread": 52.3,
+    "total": 50.5,
+    "moneyline": 51.0
+   },
+   "fb_model": {
+    "spread": 48.9,
+    "total": 50.3,
+    "moneyline": 50.0
+   },
+   "fb_model_ml_curve_spread": 56.0
+  },
+  {
+   "game_id": "401858524",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T00:00:00.000Z",
+   "home": "Penn State",
+   "away": "Minnesota",
+   "neutral": false,
+   "score": {
+    "home": 28.1,
+    "away": 18.7
+   },
+   "margin": 9.4,
+   "total": 46.8,
+   "line": {
+    "spread": 7.5,
+    "total": 42.5
+   },
+   "score_curve": {
+    "spread": 54.7,
+    "total": 60.4,
+    "moneyline": 71.7
+   },
+   "calibrated": {
+    "spread": 51.6,
+    "total": 53.5,
+    "moneyline": 71.7
+   },
+   "fb_model": {
+    "spread": 51.1,
+    "total": 48.7,
+    "moneyline": 71.9
+   },
+   "fb_model_ml_curve_spread": 54.8
+  },
+  {
+   "game_id": "401864538",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T00:00:00.000Z",
+   "home": "Air Force",
+   "away": "San Jos\u00e9 State",
+   "neutral": false,
+   "score": {
+    "home": 31.3,
+    "away": 17.3
+   },
+   "margin": 14.0,
+   "total": 48.6,
+   "line": {
+    "spread": 11.5,
     "total": 47.5
    },
    "score_curve": {
-    "spread": 57.6,
-    "total": 34.0,
-    "moneyline": 72.1
+    "spread": 56.0,
+    "total": 52.6,
+    "moneyline": 80.2
    },
    "calibrated": {
-    "spread": 52.5,
-    "total": 44.5,
-    "moneyline": 72.1
+    "spread": 52.0,
+    "total": 50.9,
+    "moneyline": 80.2
    },
    "fb_model": {
-    "spread": 53.6,
-    "total": 54.3,
-    "moneyline": 72.5
+    "spread": 50.6,
+    "total": 49.5,
+    "moneyline": 78.4
    },
-   "fb_model_ml_curve_spread": 57.9
+   "fb_model_ml_curve_spread": 53.4
+  },
+  {
+   "game_id": "401871100",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T00:00:00.000Z",
+   "home": "South Alabama",
+   "away": "Troy",
+   "neutral": false,
+   "score": {
+    "home": 32.3,
+    "away": 27.0
+   },
+   "margin": 5.3,
+   "total": 59.3,
+   "line": {
+    "spread": 2.75,
+    "total": 56.5
+   },
+   "score_curve": {
+    "spread": 56.1,
+    "total": 56.6,
+    "moneyline": 62.6
+   },
+   "calibrated": {
+    "spread": 52.0,
+    "total": 52.2,
+    "moneyline": 62.6
+   },
+   "fb_model": {
+    "spread": 49.5,
+    "total": 46.1,
+    "moneyline": 61.8
+   },
+   "fb_model_ml_curve_spread": 55.3
+  },
+  {
+   "game_id": "401858519",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T00:30:00.000Z",
+   "home": "Iowa",
+   "away": "Purdue",
+   "neutral": false,
+   "score": {
+    "home": 35.5,
+    "away": 14.7
+   },
+   "margin": 20.7,
+   "total": 50.2,
+   "line": {
+    "spread": 16.5,
+    "total": 45.5
+   },
+   "score_curve": {
+    "spread": 60.2,
+    "total": 61.2,
+    "moneyline": 89.6
+   },
+   "calibrated": {
+    "spread": 53.4,
+    "total": 53.8,
+    "moneyline": 89.6
+   },
+   "fb_model": {
+    "spread": 53.7,
+    "total": 47.8,
+    "moneyline": 86.7
+   },
+   "fb_model_ml_curve_spread": 54.2
+  },
+  {
+   "game_id": "401864539",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T00:30:00.000Z",
+   "home": "New Mexico",
+   "away": "UNLV",
+   "neutral": false,
+   "score": {
+    "home": 34.5,
+    "away": 17.0
+   },
+   "margin": 17.6,
+   "total": 51.5,
+   "line": {
+    "spread": 13.5,
+    "total": 47.5
+   },
+   "score_curve": {
+    "spread": 59.7,
+    "total": 59.5,
+    "moneyline": 85.7
+   },
+   "calibrated": {
+    "spread": 53.3,
+    "total": 53.2,
+    "moneyline": 85.7
+   },
+   "fb_model": {
+    "spread": 52.6,
+    "total": 46.0,
+    "moneyline": 83.2
+   },
+   "fb_model_ml_curve_spread": 55.5
+  },
+  {
+   "game_id": "401856882",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T00:45:00.000Z",
+   "home": "Arkansas",
+   "away": "South Carolina",
+   "neutral": false,
+   "score": {
+    "home": 24.7,
+    "away": 30.8
+   },
+   "margin": -6.1,
+   "total": 55.6,
+   "line": {
+    "spread": -7.5,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 53.4,
+    "total": 59.8,
+    "moneyline": 35.6
+   },
+   "calibrated": {
+    "spread": 51.1,
+    "total": 53.3,
+    "moneyline": 35.6
+   },
+   "fb_model": {
+    "spread": 49.8,
+    "total": 45.6,
+    "moneyline": 35.8
+   },
+   "fb_model_ml_curve_spread": 53.7
+  },
+  {
+   "game_id": "401862827",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T02:00:00.000Z",
+   "home": "UTSA",
+   "away": "North Texas",
+   "neutral": false,
+   "score": {
+    "home": 37.4,
+    "away": 41.1
+   },
+   "margin": -3.6,
+   "total": 78.5,
+   "line": {
+    "spread": -1.5,
+    "total": 77.5
+   },
+   "score_curve": {
+    "spread": 44.9,
+    "total": 52.5,
+    "moneyline": 41.3
+   },
+   "calibrated": {
+    "spread": 48.3,
+    "total": 50.8,
+    "moneyline": 41.3
+   },
+   "fb_model": {
+    "spread": 50.3,
+    "total": 46.6,
+    "moneyline": 39.8
+   },
+   "fb_model_ml_curve_spread": 43.4
+  },
+  {
+   "game_id": "401860915",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T02:30:00.000Z",
+   "home": "San Diego State",
+   "away": "Utah State",
+   "neutral": false,
+   "score": {
+    "home": 22.0,
+    "away": 21.8
+   },
+   "margin": 0.2,
+   "total": 43.7,
+   "line": {
+    "spread": -2.5,
+    "total": 44.0
+   },
+   "score_curve": {
+    "spread": 56.5,
+    "total": 49.4,
+    "moneyline": 50.5
+   },
+   "calibrated": {
+    "spread": 52.2,
+    "total": 49.8,
+    "moneyline": 50.5
+   },
+   "fb_model": {
+    "spread": 52.5,
+    "total": 55.1,
+    "moneyline": 48.3
+   },
+   "fb_model_ml_curve_spread": 54.4
+  },
+  {
+   "game_id": "401864540",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T03:00:00.000Z",
+   "home": "UTEP",
+   "away": "Wyoming",
+   "neutral": false,
+   "score": {
+    "home": 18.8,
+    "away": 27.1
+   },
+   "margin": -8.3,
+   "total": 45.9,
+   "line": {
+    "spread": -9.5,
+    "total": 41.5
+   },
+   "score_curve": {
+    "spread": 52.8,
+    "total": 60.6,
+    "moneyline": 30.7
+   },
+   "calibrated": {
+    "spread": 50.9,
+    "total": 53.6,
+    "moneyline": 30.7
+   },
+   "fb_model": {
+    "spread": 51.8,
+    "total": 49.3,
+    "moneyline": 28.6
+   },
+   "fb_model_ml_curve_spread": 50.6
+  },
+  {
+   "game_id": "401860917",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T03:30:00.000Z",
+   "home": "Washington State",
+   "away": "Colorado State",
+   "neutral": false,
+   "score": {
+    "home": 36.8,
+    "away": 27.1
+   },
+   "margin": 9.8,
+   "total": 63.9,
+   "line": {
+    "spread": 7.5,
+    "total": 63.5
+   },
+   "score_curve": {
+    "spread": 55.5,
+    "total": 50.9,
+    "moneyline": 72.4
+   },
+   "calibrated": {
+    "spread": 51.8,
+    "total": 50.3,
+    "moneyline": 72.4
+   },
+   "fb_model": {
+    "spread": 50.3,
+    "total": 51.2,
+    "moneyline": 73.5
+   },
+   "fb_model_ml_curve_spread": 56.8
+  },
+  {
+   "game_id": "401864537",
+   "day": "2026-11-15",
+   "kick": "2026-11-15T04:00:00.000Z",
+   "home": "Hawai'i",
+   "away": "North Dakota State",
+   "neutral": false,
+   "score": {
+    "home": 13.5,
+    "away": 26.5
+   },
+   "margin": -13.1,
+   "total": 40.0,
+   "line": {
+    "spread": -7.5,
+    "total": 40.5
+   },
+   "score_curve": {
+    "spread": 36.8,
+    "total": 48.7,
+    "moneyline": 21.4
+   },
+   "calibrated": {
+    "spread": 45.5,
+    "total": 49.6,
+    "moneyline": 21.4
+   },
+   "fb_model": {
+    "spread": 45.1,
+    "total": 49.4,
+    "moneyline": 24.1
+   },
+   "fb_model_ml_curve_spread": 40.3
   }
  ],
  "backtest": {
-  "games_predicted": 1260,
+  "games_predicted": 1322,
   "first": "2025-08-30",
-  "last": "2026-11-01",
+  "last": "2026-11-08",
   "point_error": {
-   "games": 1168,
+   "games": 1230,
    "margin": {
     "score_model": {
-     "mae": 12.94,
-     "rmse": 16.37
+     "mae": 12.97,
+     "rmse": 16.42
     },
     "fb_model_own_ratings": {
-     "mae": 12.89,
-     "rmse": 16.3
+     "mae": 12.92,
+     "rmse": 16.36
     },
     "closing_line": {
-     "mae": 11.77,
-     "rmse": 14.89
+     "mae": 11.79,
+     "rmse": 14.96
     }
    },
    "total": {
     "score_model": {
-     "mae": 13.12,
-     "rmse": 16.29
+     "mae": 13.15,
+     "rmse": 16.3
     },
     "fb_model_own_ratings": {
-     "mae": 13.2,
+     "mae": 13.23,
      "rmse": 16.39
     },
     "closing_line": {
-     "mae": 12.32,
-     "rmse": 15.39
+     "mae": 12.35,
+     "rmse": 15.42
     }
    }
   },
   "log_loss": {
    "spread": {
-    "score_curve": 0.7327,
-    "calibrated": 0.7073,
-    "fb_model": 0.7,
-    "ml_curve": 0.7403,
-    "ml_curve_games": 1028,
-    "fb_model_on_ml_curve_games": 0.7,
-    "games": 1028
+    "score_curve": 0.7325,
+    "calibrated": 0.707,
+    "fb_model": 0.7001,
+    "ml_curve": 0.74,
+    "ml_curve_games": 1089,
+    "fb_model_on_ml_curve_games": 0.7001,
+    "games": 1089
    },
    "total": {
-    "score_curve": 0.7367,
-    "calibrated": 0.7075,
-    "fb_model": 0.699,
-    "games": 1043
+    "score_curve": 0.736,
+    "calibrated": 0.707,
+    "fb_model": 0.6981,
+    "games": 1105
    },
    "moneyline": {
-    "score_curve": 0.5627,
-    "calibrated": 0.5627,
-    "fb_model": 0.5692,
-    "books_devigged": 0.5235,
-    "games": 1043
+    "score_curve": 0.5659,
+    "calibrated": 0.5659,
+    "fb_model": 0.5722,
+    "books_devigged": 0.5274,
+    "games": 1105
    }
   },
   "calibration": {
@@ -2196,47 +2366,47 @@
     "score_curve": [
      {
       "band": "50-55",
-      "games": 331,
+      "games": 359,
       "stated": 52.3,
-      "hit": 53.8
+      "hit": 52.9
      },
      {
       "band": "55-60",
-      "games": 278,
+      "games": 298,
       "stated": 57.3,
-      "hit": 48.6
-     },
-     {
-      "band": "60-65",
-      "games": 198,
-      "stated": 62.4,
       "hit": 48.0
      },
      {
+      "band": "60-65",
+      "games": 207,
+      "stated": 62.4,
+      "hit": 47.8
+     },
+     {
       "band": "65-70",
-      "games": 101,
+      "games": 104,
       "stated": 67.2,
-      "hit": 51.5
+      "hit": 51.9
      },
      {
       "band": "70+",
-      "games": 120,
-      "stated": 77.2,
-      "hit": 50.0
+      "games": 121,
+      "stated": 77.1,
+      "hit": 49.6
      }
     ],
     "calibrated": [
      {
       "band": "50-55",
-      "games": 731,
+      "games": 787,
       "stated": 52.1,
-      "hit": 50.8
+      "hit": 50.1
      },
      {
       "band": "55-60",
-      "games": 184,
+      "games": 189,
       "stated": 56.9,
-      "hit": 52.2
+      "hit": 52.4
      },
      {
       "band": "60-65",
@@ -2260,9 +2430,9 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 692,
+      "games": 753,
       "stated": 52.2,
-      "hit": 48.6
+      "hit": 48.1
      },
      {
       "band": "55-60",
@@ -2292,33 +2462,33 @@
     "ml_curve": [
      {
       "band": "50-55",
-      "games": 323,
+      "games": 350,
       "stated": 52.5,
-      "hit": 50.8
+      "hit": 50.0
      },
      {
       "band": "55-60",
-      "games": 300,
+      "games": 321,
       "stated": 57.3,
-      "hit": 51.3
+      "hit": 51.1
      },
      {
       "band": "60-65",
-      "games": 179,
-      "stated": 62.3,
-      "hit": 45.8
+      "games": 189,
+      "stated": 62.4,
+      "hit": 44.4
      },
      {
       "band": "65-70",
-      "games": 98,
+      "games": 100,
       "stated": 67.2,
-      "hit": 44.9
+      "hit": 46.0
      },
      {
       "band": "70+",
-      "games": 128,
-      "stated": 77.5,
-      "hit": 52.3
+      "games": 129,
+      "stated": 77.4,
+      "hit": 51.9
      }
     ]
    },
@@ -2326,53 +2496,53 @@
     "score_curve": [
      {
       "band": "50-55",
-      "games": 307,
+      "games": 322,
       "stated": 52.5,
-      "hit": 55.0
+      "hit": 53.7
      },
      {
       "band": "55-60",
-      "games": 292,
-      "stated": 57.4,
-      "hit": 42.1
+      "games": 316,
+      "stated": 57.3,
+      "hit": 43.0
      },
      {
       "band": "60-65",
-      "games": 220,
+      "games": 232,
       "stated": 62.3,
-      "hit": 47.3
+      "hit": 48.3
      },
      {
       "band": "65-70",
-      "games": 135,
-      "stated": 67.4,
-      "hit": 44.4
+      "games": 144,
+      "stated": 67.3,
+      "hit": 43.1
      },
      {
       "band": "70+",
-      "games": 89,
+      "games": 91,
       "stated": 74.5,
-      "hit": 50.6
+      "hit": 50.5
      }
     ],
     "calibrated": [
      {
       "band": "50-55",
-      "games": 743,
+      "games": 794,
       "stated": 52.3,
       "hit": 48.5
      },
      {
       "band": "55-60",
-      "games": 202,
+      "games": 212,
       "stated": 56.6,
-      "hit": 45.0
+      "hit": 43.9
      },
      {
       "band": "60-65",
-      "games": 41,
+      "games": 42,
       "stated": 62.0,
-      "hit": 56.1
+      "hit": 57.1
      },
      {
       "band": "65-70",
@@ -2390,21 +2560,21 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 832,
+      "games": 882,
       "stated": 52.0,
-      "hit": 50.6
+      "hit": 51.0
      },
      {
       "band": "55-60",
-      "games": 142,
+      "games": 152,
       "stated": 56.8,
-      "hit": 48.6
+      "hit": 48.7
      },
      {
       "band": "60-65",
-      "games": 46,
-      "stated": 62.1,
-      "hit": 43.5
+      "games": 48,
+      "stated": 62.2,
+      "hit": 45.8
      },
      {
       "band": "65-70",
@@ -2424,96 +2594,96 @@
     "score_curve": [
      {
       "band": "50-55",
-      "games": 140,
-      "stated": 52.4,
-      "hit": 56.4
+      "games": 150,
+      "stated": 52.5,
+      "hit": 55.3
      },
      {
       "band": "55-60",
-      "games": 146,
+      "games": 157,
       "stated": 57.7,
-      "hit": 56.8
+      "hit": 55.4
      },
      {
       "band": "60-65",
-      "games": 147,
+      "games": 153,
       "stated": 62.5,
-      "hit": 68.7
+      "hit": 68.0
      },
      {
       "band": "65-70",
-      "games": 142,
+      "games": 148,
       "stated": 67.6,
-      "hit": 64.8
+      "hit": 64.2
      },
      {
       "band": "70+",
-      "games": 468,
-      "stated": 81.7,
-      "hit": 82.9
+      "games": 497,
+      "stated": 81.4,
+      "hit": 82.7
      }
     ],
     "calibrated": [
      {
       "band": "50-55",
-      "games": 140,
-      "stated": 52.4,
-      "hit": 56.4
+      "games": 150,
+      "stated": 52.5,
+      "hit": 55.3
      },
      {
       "band": "55-60",
-      "games": 146,
+      "games": 157,
       "stated": 57.7,
-      "hit": 56.8
+      "hit": 55.4
      },
      {
       "band": "60-65",
-      "games": 147,
+      "games": 153,
       "stated": 62.5,
-      "hit": 68.7
+      "hit": 68.0
      },
      {
       "band": "65-70",
-      "games": 142,
+      "games": 148,
       "stated": 67.6,
-      "hit": 64.8
+      "hit": 64.2
      },
      {
       "band": "70+",
-      "games": 468,
-      "stated": 81.7,
-      "hit": 82.9
+      "games": 497,
+      "stated": 81.4,
+      "hit": 82.7
      }
     ],
     "fb_model": [
      {
       "band": "50-55",
-      "games": 132,
+      "games": 142,
       "stated": 52.5,
-      "hit": 48.5
+      "hit": 49.3
      },
      {
       "band": "55-60",
-      "games": 132,
+      "games": 141,
       "stated": 57.6,
-      "hit": 54.5
+      "hit": 53.9
      },
      {
       "band": "60-65",
-      "games": 173,
+      "games": 182,
       "stated": 62.4,
-      "hit": 68.8
+      "hit": 67.0
      },
      {
       "band": "65-70",
-      "games": 139,
+      "games": 146,
       "stated": 67.3,
-      "hit": 66.9
+      "hit": 66.4
      },
      {
       "band": "70+",
-      "games": 467,
-      "stated": 80.7,
+      "games": 494,
+      "stated": 80.5,
       "hit": 81.6
      }
     ]
@@ -2523,157 +2693,157 @@
    "spread": {
     "books": {
      "score_curve": {
-      "picks": 477,
-      "wins": 233,
-      "hit_rate": 48.8,
-      "roi": -5.5,
+      "picks": 539,
+      "wins": 259,
+      "hit_rate": 48.1,
+      "roi": -7.1,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 475,
-      "wins": 229,
-      "hit_rate": 48.2,
-      "roi": -6.5,
+      "picks": 537,
+      "wins": 255,
+      "hit_rate": 47.5,
+      "roi": -7.9,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 476,
-      "wins": 219,
-      "hit_rate": 46.0,
-      "roi": -10.7,
+      "picks": 537,
+      "wins": 244,
+      "hit_rate": 45.4,
+      "roi": -11.9,
       "price_assumed": 0
      },
      "ml_curve": {
-      "picks": 477,
-      "wins": 229,
-      "hit_rate": 48.0,
-      "roi": -7.2,
+      "picks": 539,
+      "wins": 255,
+      "hit_rate": 47.3,
+      "roi": -8.6,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 1015,
-      "wins": 519,
-      "hit_rate": 51.1,
-      "roi": -2.4,
-      "price_assumed": 1015
+      "picks": 1076,
+      "wins": 542,
+      "hit_rate": 50.4,
+      "roi": -3.8,
+      "price_assumed": 1076
      },
      "calibrated": {
-      "picks": 1015,
-      "wins": 519,
-      "hit_rate": 51.1,
-      "roi": -2.4,
-      "price_assumed": 1015
+      "picks": 1076,
+      "wins": 542,
+      "hit_rate": 50.4,
+      "roi": -3.8,
+      "price_assumed": 1076
      },
      "fb_model": {
-      "picks": 1015,
-      "wins": 509,
-      "hit_rate": 50.1,
-      "roi": -4.3,
-      "price_assumed": 1015
+      "picks": 1076,
+      "wins": 536,
+      "hit_rate": 49.8,
+      "roi": -4.9,
+      "price_assumed": 1076
      },
      "ml_curve": {
-      "picks": 1015,
-      "wins": 507,
-      "hit_rate": 50.0,
-      "roi": -4.6,
-      "price_assumed": 1015
+      "picks": 1076,
+      "wins": 532,
+      "hit_rate": 49.4,
+      "roi": -5.6,
+      "price_assumed": 1076
      }
     }
    },
    "total": {
     "books": {
      "score_curve": {
-      "picks": 491,
-      "wins": 241,
-      "hit_rate": 49.1,
-      "roi": -6.0,
+      "picks": 553,
+      "wins": 271,
+      "hit_rate": 49.0,
+      "roi": -6.1,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 491,
-      "wins": 238,
-      "hit_rate": 48.5,
-      "roi": -6.7,
+      "picks": 553,
+      "wins": 267,
+      "hit_rate": 48.3,
+      "roi": -7.0,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 491,
-      "wins": 255,
-      "hit_rate": 51.9,
-      "roi": 0.4,
+      "picks": 553,
+      "wins": 290,
+      "hit_rate": 52.4,
+      "roi": 1.4,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 1067,
-      "wins": 511,
-      "hit_rate": 47.9,
-      "roi": -8.6,
-      "price_assumed": 1067
+      "picks": 1129,
+      "wins": 538,
+      "hit_rate": 47.7,
+      "roi": -9.0,
+      "price_assumed": 1129
      },
      "calibrated": {
-      "picks": 1067,
-      "wins": 511,
-      "hit_rate": 47.9,
-      "roi": -8.6,
-      "price_assumed": 1067
+      "picks": 1129,
+      "wins": 538,
+      "hit_rate": 47.7,
+      "roi": -9.0,
+      "price_assumed": 1129
      },
      "fb_model": {
-      "picks": 1067,
-      "wins": 534,
-      "hit_rate": 50.0,
-      "roi": -4.5,
-      "price_assumed": 1067
+      "picks": 1129,
+      "wins": 567,
+      "hit_rate": 50.2,
+      "roi": -4.1,
+      "price_assumed": 1129
      }
     }
    },
    "moneyline": {
     "books": {
      "score_curve": {
-      "picks": 1046,
-      "wins": 745,
-      "hit_rate": 71.2,
-      "roi": -1.3,
+      "picks": 1108,
+      "wins": 782,
+      "hit_rate": 70.6,
+      "roi": -2.2,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 1046,
-      "wins": 745,
-      "hit_rate": 71.2,
-      "roi": -1.3,
+      "picks": 1108,
+      "wins": 782,
+      "hit_rate": 70.6,
+      "roi": -2.2,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 1046,
-      "wins": 732,
-      "hit_rate": 70.0,
-      "roi": -3.3,
+      "picks": 1108,
+      "wins": 771,
+      "hit_rate": 69.6,
+      "roi": -3.7,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 1042,
-      "wins": 741,
-      "hit_rate": 71.1,
-      "roi": -1.6,
+      "picks": 1104,
+      "wins": 778,
+      "hit_rate": 70.5,
+      "roi": -2.5,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 1042,
-      "wins": 741,
-      "hit_rate": 71.1,
-      "roi": -1.6,
+      "picks": 1104,
+      "wins": 778,
+      "hit_rate": 70.5,
+      "roi": -2.5,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 1042,
-      "wins": 728,
-      "hit_rate": 69.9,
-      "roi": -3.5,
+      "picks": 1104,
+      "wins": 767,
+      "hit_rate": 69.5,
+      "roi": -4.1,
       "price_assumed": 0
      }
     }
@@ -2682,19 +2852,19 @@
   "coin_flip_log_loss": 0.6931,
   "coherence": {
    "score_curve": {
-    "games": 1043,
+    "games": 1105,
     "cover_above_win": 0
    },
    "calibrated": {
-    "games": 1043,
-    "cover_above_win": 68
+    "games": 1105,
+    "cover_above_win": 73
    },
    "fb_model": {
-    "games": 1043,
-    "cover_above_win": 162
+    "games": 1105,
+    "cover_above_win": 169
    },
    "ml_curve": {
-    "games": 1043,
+    "games": 1105,
     "cover_above_win": 0
    }
   }
@@ -2713,17 +2883,17 @@
  },
  "fb_model_opposite_picks": {
   "books": {
-   "games_with_both": 182,
+   "games_with_both": 204,
    "cannot_both_hit": 0,
    "games": []
   },
   "closing": {
-   "games_with_both": 356,
+   "games_with_both": 372,
    "cannot_both_hit": 0,
    "games": []
   },
   "this_week": {
-   "games_with_both": 18,
+   "games_with_both": 21,
    "cannot_both_hit": 0,
    "games": []
   }

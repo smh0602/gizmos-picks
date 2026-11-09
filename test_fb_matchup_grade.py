@@ -213,6 +213,12 @@ import fb_model as FM  # noqa: E402
 import fb_refit as R  # noqa: E402
 from tcheck import ck, eq, note, section  # noqa: E402
 
+# `[2026-11-08]` §3j: this file pins each challenger's inputs as DEFINED against today's model, so it
+#    names no champion, whatever main names (a test asks the code, never the live constant; #339's HC
+#    line crashed it on a correct branch). Against a named champion: test_champion_switch.py, and
+#    test_fb_refit.py section 10.
+FM.CHAMPION.update(nfl=None, ncaaf=None)
+
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 11, 2, 11, 17, tzinfo=UTC)     # a Monday
 NEW = {"nfl": ["CL", "WL", "MC", "AJ"], "ncaaf": ["CLC", "WLC", "MCC", "AJC"]}

@@ -1,6 +1,17 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: the relay keeps an MLB run alive across deadlines `[2026-10-06]`
+## Current: the two alerts leave their issue alone when they could not look `[2026-11-04]`
+
+Every click and the commit message are in
+**`docs/upload/UPLOAD-collect-alerts.md`**. One file, no cron change.
+
+---
+
+## ~~Current:~~ Done: the relay keeps an MLB run alive across deadlines `[2026-10-06]`
+
+✅ Uploaded: commit c2191c73 on 2026-10-06. On 2026-11-04, before the alerts
+change above was staged, the live `collect.yml` matched the staged copy byte
+for byte.
 
 **Do this after you merge the pull request "collect: an MLB run hands the
 hold to its successor, and a late build leaves a record" (its description
@@ -354,6 +365,9 @@ workflows: pin ubuntu-24.04, Node 24 actions, pinned Python (no cron change)
 
 ## Changelog
 
+- **2026-11-04:** new section on top pointing to `UPLOAD-collect-alerts.md`;
+  the 2026-10-06 relay section is marked done (uploaded in c2191c73), not
+  deleted.
 - **2026-09-28:** the watchdog's repair loop runs `converge-off`;
   verify_card's output and the watchdog report no longer use fixed `/tmp`
   files. The 2026-09-25 section is marked done (uploaded in eb5bc2a4),

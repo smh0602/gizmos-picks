@@ -1,0 +1,2278 @@
+{
+ "date": "2026-11-05",
+ "league": "nfl",
+ "generated_at": "2026-11-05T21:51:14Z",
+ "generated_by": "card_fb.py",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-11-05T15:50:30Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": 0.5,
+ "denominator": "games at >= 50% of team snaps",
+ "min_games": 6,
+ "n_gated_by_measurement": 0,
+ "rate_gates": null,
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Baltimore Ravens",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": 9.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -102,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "break_even": 50.5,
+   "edge": 1.0,
+   "why": [
+    "The game model gives Baltimore Ravens 52% to cover +9.5; the price -102 needs 50.5%."
+   ],
+   "priced_at": "2026-11-05T20:10:32Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Baltimore Ravens",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": 13.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "hardrockbet",
+   "price": -150,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "break_even": 60.0,
+   "edge": 3.0,
+   "why": [
+    "The game model gives Baltimore Ravens 63% to cover +13.5; the best price, -150 at Hard Rock, needs 60.0%."
+   ],
+   "priced_at": "2026-11-05T20:10:32Z",
+   "main_line": 10.0,
+   "sched_id": "2026_09_JAX_BAL",
+   "rank": 2
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Baltimore Ravens",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": 13.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "hardrockbet",
+   "price": -150,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "break_even": 60.0,
+   "edge": 3.0,
+   "why": [
+    "The game model gives Baltimore Ravens 63% to cover +13.5; the best price, -150 at Hard Rock, needs 60.0%.",
+    "The model's predicted score: Jacksonville Jaguars 24, Baltimore Ravens 16 (total 40).",
+    "The Jacksonville Jaguars score 28 and allow 15.9 points a game this season (7 games).",
+    "The Baltimore Ravens score 22.4 and allow 25.4 points a game this season (8 games).",
+    "Against teams the model rates above average this season: Jacksonville Jaguars 2-2, Baltimore Ravens 0-2."
+   ],
+   "priced_at": "2026-11-05T20:10:32Z",
+   "main_line": 10.0,
+   "sched_id": "2026_09_JAX_BAL",
+   "rank": 1,
+   "why_card": [
+    "The game model gives Baltimore Ravens 63% to cover +13.5; the best price, -150 at Hard Rock, needs 60.0%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-11-05",
+  "card_slate": "2026-11-05",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-11-05T21:51:02Z",
+  "ladder_built_at": "2026-11-05T21:51:04Z",
+  "alt_spreads": 1
+ },
+ "scores_shown": [
+  {
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "score": {
+    "home": 16,
+    "away": 24
+   }
+  },
+  {
+   "away": "Cincinnati Bengals",
+   "home": "Atlanta Falcons",
+   "score": {
+    "home": 21,
+    "away": 31
+   }
+  },
+  {
+   "away": "Cleveland Browns",
+   "home": "New Orleans Saints",
+   "score": {
+    "home": 20,
+    "away": 23
+   }
+  },
+  {
+   "away": "Dallas Cowboys",
+   "home": "Indianapolis Colts",
+   "score": {
+    "home": 27,
+    "away": 29
+   }
+  },
+  {
+   "away": "Denver Broncos",
+   "home": "Carolina Panthers",
+   "score": {
+    "home": 20,
+    "away": 24
+   }
+  },
+  {
+   "away": "Detroit Lions",
+   "home": "Miami Dolphins",
+   "score": {
+    "home": 26,
+    "away": 29
+   }
+  },
+  {
+   "away": "Los Angeles Rams",
+   "home": "Washington Commanders",
+   "score": {
+    "home": 25,
+    "away": 27
+   }
+  },
+  {
+   "away": "New York Giants",
+   "home": "Philadelphia Eagles",
+   "score": {
+    "home": 17,
+    "away": 21
+   }
+  },
+  {
+   "away": "New York Jets",
+   "home": "Kansas City Chiefs",
+   "score": {
+    "home": 28,
+    "away": 22
+   }
+  },
+  {
+   "away": "Houston Texans",
+   "home": "Los Angeles Chargers",
+   "score": {
+    "home": 15,
+    "away": 23
+   }
+  },
+  {
+   "away": "Las Vegas Raiders",
+   "home": "San Francisco 49ers",
+   "score": {
+    "home": 30,
+    "away": 22
+   }
+  },
+  {
+   "away": "Arizona Cardinals",
+   "home": "Seattle Seahawks",
+   "score": {
+    "home": 25,
+    "away": 16
+   }
+  },
+  {
+   "away": "Green Bay Packers",
+   "home": "New England Patriots",
+   "score": {
+    "home": 25,
+    "away": 21
+   }
+  },
+  {
+   "away": "Tampa Bay Buccaneers",
+   "home": "Chicago Bears",
+   "score": {
+    "home": 24,
+    "away": 25
+   }
+  },
+  {
+   "away": "Buffalo Bills",
+   "home": "Minnesota Vikings",
+   "score": {
+    "home": 20,
+    "away": 24
+   }
+  },
+  {
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "score": {
+    "home": 26,
+    "away": 22
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 1 pick(s) for 2026-11-05 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "RECORD + MARKET \u2014 his own rate",
+   "player": "Travis Hunter",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 9.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -113,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019023%232346591407_13L88808Q1-111707543Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "RECORD",
+   "confidence": 68,
+   "raw": "7 of 7",
+   "record": "7 of 7",
+   "rate": 68,
+   "break_even": 53.1,
+   "edge": 14.9,
+   "season_detail": {
+    "h25": 7,
+    "n25": 7,
+    "h26": 0,
+    "n26": 0,
+    "w25": 1.0,
+    "p0": 0.5,
+    "weighted_n": 7.0,
+    "mean_all": 42.571
+   },
+   "confidence_note": "His record at this exact line, reading this season first: 0 of 0 in 2026, with his 2025 record (7 of 7) counting 1 per game, pulled toward the 50% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more.",
+   "own_mean": 42.57,
+   "projection": 42.6,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 42.6 rec yds a game.",
+   "why": [
+    "<b>Travis Hunter</b> went over 9.5 rec yds in <b>7 of 7 games</b> in 2025, when he played at least half the snaps."
+   ],
+   "role": {
+    "snap": 0.1067,
+    "tgt_share": 0.0609,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 1
+  }
+ ],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 1,
+  "same_game_already_listed": 54,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 56,
+  "cap": 10,
+  "distinct_games": 1,
+  "shared_with_board_head": 1,
+  "board_head_size": 10
+ },
+ "top_plays_rule": "The 1 most likely to hit for 2026-11-05 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 54 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "parlays": {
+  "2": [],
+  "3": [],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 22,
+  "rated_legs": 56,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 3,
+    "taken": 3
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 46,
+    "taken": 12
+   },
+   {
+    "decimal": "2-3",
+    "available": 7,
+    "taken": 7
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 9086,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "56 rated legs, 22 in the stratified pool. Rejected: 9086 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [
+   {
+    "legs": [
+     "Travis Hunter o9.5 rec yds",
+     "Over 39.5 total"
+    ],
+    "game": "Jacksonville Jaguars @ Baltimore Ravens",
+    "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -113,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -110,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.599,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 68,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     68
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Travis Hunter o1.5 rec",
+     "Over 39.5 total"
+    ],
+    "game": "Jacksonville Jaguars @ Baltimore Ravens",
+    "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     182,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -110,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 5.384,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 63,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     63
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Travis Hunter o9.5 rec yds",
+     "Josh Cuevas o0.5 rec",
+     "Over 39.5 total"
+    ],
+    "game": "Jacksonville Jaguars @ Baltimore Ravens",
+    "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -113,
+     -206,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -110,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.345,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 59,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     68,
+     59
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Travis Hunter o9.5 rec yds",
+     "Justice Hill u14.5 rush yds",
+     "Over 39.5 total"
+    ],
+    "game": "Jacksonville Jaguars @ Baltimore Ravens",
+    "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -113,
+     -114,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -110,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.755,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     68,
+     57
+    ],
+    "band_floor": 3.0
+   }
+  ]
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 1,
+  "games_with_a_line_row": 1,
+  "games_used": 1,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 20,
+   "mixed_book": 144,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {
+  "Brenton Strange|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Brian Thomas Jr|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Derrick Henry|player_anytime_td|yes|None": {
+   "v": 1.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 1.1 TD a game."
+  },
+  "Jakobi Meyers|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Mark Andrews|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Parker Washington|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Rashod Bateman|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Travis Hunter|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Trevor Lawrence|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Zay Flowers|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Trevor Lawrence|player_pass_tds|over|1.5": {
+   "v": 2.0,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 2.0 pass TD a game."
+  },
+  "Trevor Lawrence|player_pass_tds|under|1.5": {
+   "v": 2.0,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 2.0 pass TD a game."
+  },
+  "Trevor Lawrence|player_pass_yds|over|233.5": {
+   "v": 236.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 236.2 pass yds a game."
+  },
+  "Trevor Lawrence|player_pass_yds|under|233.5": {
+   "v": 236.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 236.2 pass yds a game."
+  },
+  "Trevor Lawrence|player_pass_yds|over|234.5": {
+   "v": 236.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 236.2 pass yds a game."
+  },
+  "Trevor Lawrence|player_pass_yds|under|234.5": {
+   "v": 236.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 236.2 pass yds a game."
+  },
+  "Trevor Lawrence|player_pass_yds|over|235.5": {
+   "v": 236.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 236.2 pass yds a game."
+  },
+  "Trevor Lawrence|player_pass_yds|under|235.5": {
+   "v": 236.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 236.2 pass yds a game."
+  },
+  "Brenton Strange|player_reception_yds|over|35.5": {
+   "v": 45.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.3 rec yds a game."
+  },
+  "Brenton Strange|player_reception_yds|under|35.5": {
+   "v": 45.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.3 rec yds a game."
+  },
+  "Brian Thomas Jr|player_reception_yds|over|12.5": {
+   "v": 41.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 41.9 rec yds a game."
+  },
+  "Brian Thomas Jr|player_reception_yds|under|12.5": {
+   "v": 41.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 41.9 rec yds a game."
+  },
+  "Brian Thomas Jr|player_reception_yds|over|13.5": {
+   "v": 41.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 41.9 rec yds a game."
+  },
+  "Brian Thomas Jr|player_reception_yds|under|13.5": {
+   "v": 41.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 41.9 rec yds a game."
+  },
+  "Derrick Henry|player_reception_yds|over|6.5": {
+   "v": 7.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 7.9 rec yds a game."
+  },
+  "Derrick Henry|player_reception_yds|under|6.5": {
+   "v": 7.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 7.9 rec yds a game."
+  },
+  "Derrick Henry|player_reception_yds|over|7.5": {
+   "v": 7.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 7.9 rec yds a game."
+  },
+  "Derrick Henry|player_reception_yds|under|7.5": {
+   "v": 7.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 7.9 rec yds a game."
+  },
+  "Jakobi Meyers|player_reception_yds|over|38.5": {
+   "v": 48.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 48.5 rec yds a game."
+  },
+  "Jakobi Meyers|player_reception_yds|under|38.5": {
+   "v": 48.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 48.5 rec yds a game."
+  },
+  "Jakobi Meyers|player_reception_yds|over|39.5": {
+   "v": 48.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 48.5 rec yds a game."
+  },
+  "Jakobi Meyers|player_reception_yds|under|39.5": {
+   "v": 48.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 48.5 rec yds a game."
+  },
+  "Mark Andrews|player_reception_yds|over|18.5": {
+   "v": 26.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 26.0 rec yds a game."
+  },
+  "Mark Andrews|player_reception_yds|under|18.5": {
+   "v": 26.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 26.0 rec yds a game."
+  },
+  "Parker Washington|player_reception_yds|over|63.5": {
+   "v": 65.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game."
+  },
+  "Parker Washington|player_reception_yds|under|63.5": {
+   "v": 65.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game."
+  },
+  "Parker Washington|player_reception_yds|over|64.5": {
+   "v": 65.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game."
+  },
+  "Parker Washington|player_reception_yds|under|64.5": {
+   "v": 65.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game."
+  },
+  "Parker Washington|player_reception_yds|over|65.5": {
+   "v": 65.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game."
+  },
+  "Parker Washington|player_reception_yds|under|65.5": {
+   "v": 65.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game."
+  },
+  "Rashod Bateman|player_reception_yds|over|13.5": {
+   "v": 24.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game."
+  },
+  "Rashod Bateman|player_reception_yds|under|13.5": {
+   "v": 24.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game."
+  },
+  "Rashod Bateman|player_reception_yds|over|14.5": {
+   "v": 24.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game."
+  },
+  "Rashod Bateman|player_reception_yds|under|14.5": {
+   "v": 24.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game."
+  },
+  "Rashod Bateman|player_reception_yds|over|15.5": {
+   "v": 24.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game."
+  },
+  "Rashod Bateman|player_reception_yds|under|15.5": {
+   "v": 24.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game."
+  },
+  "Travis Hunter|player_reception_yds|over|9.5": {
+   "v": 42.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 42.6 rec yds a game."
+  },
+  "Travis Hunter|player_reception_yds|under|9.5": {
+   "v": 42.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 42.6 rec yds a game."
+  },
+  "Zay Flowers|player_reception_yds|over|48.5": {
+   "v": 72.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 72.0 rec yds a game."
+  },
+  "Zay Flowers|player_reception_yds|under|48.5": {
+   "v": 72.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 72.0 rec yds a game."
+  },
+  "Zay Flowers|player_reception_yds|over|49.5": {
+   "v": 72.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 72.0 rec yds a game."
+  },
+  "Zay Flowers|player_reception_yds|under|49.5": {
+   "v": 72.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 72.0 rec yds a game."
+  },
+  "Brenton Strange|player_receptions|over|3.5": {
+   "v": 3.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.9 rec a game."
+  },
+  "Brenton Strange|player_receptions|under|3.5": {
+   "v": 3.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.9 rec a game."
+  },
+  "Brian Thomas Jr|player_receptions|over|1.5": {
+   "v": 2.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 2.9 rec a game."
+  },
+  "Brian Thomas Jr|player_receptions|under|1.5": {
+   "v": 2.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 2.9 rec a game."
+  },
+  "Derrick Henry|player_receptions|over|1.5": {
+   "v": 1.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 1.1 rec a game."
+  },
+  "Derrick Henry|player_receptions|under|1.5": {
+   "v": 1.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 1.1 rec a game."
+  },
+  "Jakobi Meyers|player_receptions|over|3.5": {
+   "v": 4.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 4.1 rec a game."
+  },
+  "Jakobi Meyers|player_receptions|under|3.5": {
+   "v": 4.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 4.1 rec a game."
+  },
+  "Mark Andrews|player_receptions|over|2.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Mark Andrews|player_receptions|under|2.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Parker Washington|player_receptions|over|4.5": {
+   "v": 4.4,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 4.4 rec a game."
+  },
+  "Parker Washington|player_receptions|under|4.5": {
+   "v": 4.4,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 4.4 rec a game."
+  },
+  "Rashod Bateman|player_receptions|over|1.5": {
+   "v": 1.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 1.9 rec a game."
+  },
+  "Rashod Bateman|player_receptions|under|1.5": {
+   "v": 1.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 1.9 rec a game."
+  },
+  "Travis Hunter|player_receptions|over|1.5": {
+   "v": 4.0,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 4.0 rec a game."
+  },
+  "Travis Hunter|player_receptions|under|1.5": {
+   "v": 4.0,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 4.0 rec a game."
+  },
+  "Zay Flowers|player_receptions|over|4.5": {
+   "v": 5.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 5.3 rec a game."
+  },
+  "Zay Flowers|player_receptions|under|4.5": {
+   "v": 5.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 5.3 rec a game."
+  },
+  "Derrick Henry|player_rush_yds|over|67.5": {
+   "v": 92.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 92.9 rush yds a game."
+  },
+  "Derrick Henry|player_rush_yds|under|67.5": {
+   "v": 92.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 92.9 rush yds a game."
+  },
+  "Derrick Henry|player_rush_yds|over|68.5": {
+   "v": 92.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 92.9 rush yds a game."
+  },
+  "Derrick Henry|player_rush_yds|under|68.5": {
+   "v": 92.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 92.9 rush yds a game."
+  },
+  "Trevor Lawrence|player_rush_yds|over|11.5": {
+   "v": 18.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 18.8 rush yds a game."
+  },
+  "Trevor Lawrence|player_rush_yds|under|11.5": {
+   "v": 18.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 18.8 rush yds a game."
+  },
+  "Trevor Lawrence|player_rush_yds|over|12.5": {
+   "v": 18.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 18.8 rush yds a game."
+  },
+  "Trevor Lawrence|player_rush_yds|under|12.5": {
+   "v": 18.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 18.8 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.931,
+ "n_priced": 56,
+ "single_day": true,
+ "slate_date": "2026-11-05",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 56,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-11-05 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": null,
+ "short_reason": null,
+ "coverage": "56 priced football rows for 2026-11-05 across 1 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 51.4% against a claimed 53.9% (-2.5 pts, n=107). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 107 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": null,
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "RECORD + MARKET \u2014 his own rate",
+   "player": "Travis Hunter",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 9.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -113,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019023%232346591407_13L88808Q1-111707543Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "RECORD",
+   "confidence": 68,
+   "raw": "7 of 7",
+   "record": "7 of 7",
+   "rate": 68,
+   "break_even": 53.1,
+   "edge": 14.9,
+   "season_detail": {
+    "h25": 7,
+    "n25": 7,
+    "h26": 0,
+    "n26": 0,
+    "w25": 1.0,
+    "p0": 0.5,
+    "weighted_n": 7.0,
+    "mean_all": 42.571
+   },
+   "confidence_note": "His record at this exact line, reading this season first: 0 of 0 in 2026, with his 2025 record (7 of 7) counting 1 per game, pulled toward the 50% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more.",
+   "own_mean": 42.57,
+   "projection": 42.6,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 42.6 rec yds a game.",
+   "why": [
+    "<b>Travis Hunter</b> went over 9.5 rec yds in <b>7 of 7 games</b> in 2025, when he played at least half the snaps."
+   ],
+   "role": {
+    "snap": 0.1067,
+    "tgt_share": 0.0609,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "RECORD + MARKET \u2014 his own rate",
+   "player": "Travis Hunter",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 1.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": 182,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621970819&selectionId=59968675",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "RECORD",
+   "confidence": 63,
+   "raw": "6 of 7",
+   "record": "6 of 7",
+   "rate": 63,
+   "break_even": 35.5,
+   "edge": 27.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 0,
+    "n26": 0,
+    "w25": 1.0,
+    "p0": 0.5,
+    "weighted_n": 7.0,
+    "mean_all": 4.0
+   },
+   "confidence_note": "His record at this exact line, reading this season first: 0 of 0 in 2026, with his 2025 record (6 of 7) counting 1 per game, pulled toward the 50% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more.",
+   "own_mean": 4.0,
+   "projection": 4.0,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 4.0 rec a game.",
+   "why": [
+    "<b>Travis Hunter</b> went over 1.5 rec in <b>6 of 7 games</b> in 2025, when he played at least half the snaps."
+   ],
+   "role": {
+    "snap": 0.1067,
+    "tgt_share": 0.0609,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Josh Cuevas",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 0.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -206,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019185%232346158052_13L88808Q11748027846Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 59,
+   "model_p": 59.3,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 67.3,
+   "edge": -8.3,
+   "role": {
+    "snap": 0.29,
+    "tgt_share": 0.1088,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 3,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Justice Hill",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 14.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -114,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019287%232346163870_13L88808Q11128589181Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 57,
+   "model_p": 56.9,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 3.7,
+   "role": {
+    "snap": 0.4567,
+    "tgt_share": 0.174,
+    "car": 2.0,
+    "n": 3
+   },
+   "rank": 4
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nate Boerkircher",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 0.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -219,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019053%232346157431_13L88808Q11748027846Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 57,
+   "model_p": 57.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 68.7,
+   "edge": -11.7,
+   "role": {
+    "snap": 0.5067,
+    "tgt_share": 0.0534,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 5,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ja'Kobi Lane",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 1.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -108,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869059&selectionId=102523756",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 56,
+   "model_p": 55.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 51.9,
+   "edge": 4.1,
+   "role": {
+    "snap": 0.6267,
+    "tgt_share": 0.1156,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 6
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rashod Bateman",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 1.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": 116,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869057&selectionId=41197689",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "10 of 19",
+   "record": "10 of 19",
+   "rate": 72,
+   "break_even": 46.3,
+   "edge": 8.7,
+   "season_detail": {
+    "h25": 6,
+    "n25": 13,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.86,
+    "weighted_n": 11.2,
+    "mean_all": 1.895
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.46,
+   "projection": 1.9,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 1.9 rec a game.",
+   "why": [
+    "<b>Rashod Bateman</b> went over 1.5 rec in <b>4 of 6 games</b> in 2026 and 6 of 13 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 54.7,
+   "role": {
+    "snap": 0.5967,
+    "tgt_share": 0.0884,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joe Fagnano",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 158.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385018822%232349308631_13L88808Q1-2137073582Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 55,
+   "model_p": 54.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.8,
+   "edge": 2.2,
+   "role": {
+    "snap": 0.4,
+    "tgt_share": 0.0,
+    "car": 3.0,
+    "n": 1
+   },
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Matthew Hibner",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 0.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622871830&selectionId=103817578",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 55,
+   "model_p": 54.9,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.8,
+   "edge": 2.2,
+   "role": {
+    "snap": 0.46,
+    "tgt_share": 0.0358,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Parker Washington",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 65.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -114,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385018899%232346928057_13L88808Q135203530Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "9 of 18",
+   "record": "9 of 18",
+   "rate": 63,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 11,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.725,
+    "weighted_n": 11.0,
+    "mean_all": 65.889
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 68.55,
+   "projection": 65.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 65.9 rec yds a game.",
+   "why": [
+    "<b>Parker Washington</b> went under 65.5 rec yds in <b>4 of 7 games</b> in 2026 and 5 of 11 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 54.7,
+   "role": {
+    "snap": 0.74,
+    "tgt_share": 0.2076,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 10
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Josh Cuevas",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 7.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622222446&selectionId=104051763",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 54,
+   "model_p": 53.5,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": 0.9,
+   "role": {
+    "snap": 0.29,
+    "tgt_share": 0.1088,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 11
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rashod Bateman",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 13.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869037&selectionId=41197689",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "10 of 19",
+   "record": "10 of 19",
+   "rate": 75,
+   "break_even": 53.1,
+   "edge": 0.9,
+   "season_detail": {
+    "h25": 5,
+    "n25": 13,
+    "h26": 5,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.871,
+    "weighted_n": 11.2,
+    "mean_all": 24.526
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 17.23,
+   "projection": 24.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 24.5 rec yds a game.",
+   "why": [
+    "<b>Rashod Bateman</b> went over 13.5 rec yds in <b>5 of 6 games</b> in 2026 and 5 of 13 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.9,
+   "role": {
+    "snap": 0.5967,
+    "tgt_share": 0.0884,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Derrick Henry",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 6.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -102,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869038&selectionId=12073825",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "8 of 18",
+   "record": "8 of 18",
+   "rate": 63,
+   "break_even": 50.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 5,
+    "n25": 11,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.807,
+    "weighted_n": 11.0,
+    "mean_all": 7.944
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 6.82,
+   "projection": 7.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 7.9 rec yds a game.",
+   "why": [
+    "<b>Derrick Henry</b> went over 6.5 rec yds in <b>3 of 7 games</b> in 2026 and 5 of 11 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.8,
+   "role": {
+    "snap": 0.5133,
+    "tgt_share": 0.056,
+    "car": 15.0,
+    "n": 3
+   },
+   "rank": 13
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Zay Flowers",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 4.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -108,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869056&selectionId=41182052",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "14 of 22",
+   "record": "14 of 22",
+   "rate": 50,
+   "break_even": 51.9,
+   "edge": 1.1,
+   "season_detail": {
+    "h25": 10,
+    "n25": 17,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.328,
+    "weighted_n": 12.56,
+    "mean_all": 5.273
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.06,
+   "projection": 5.3,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 5.3 rec a game.",
+   "why": [
+    "<b>Zay Flowers</b> went over 4.5 rec in <b>4 of 5 games</b> in 2026 and 10 of 17 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.0,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.2902,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 14
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Zay Flowers",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 49.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019168%232346617941_13L88808Q1760815535Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "17 of 22",
+   "record": "17 of 22",
+   "rate": 60,
+   "break_even": 52.8,
+   "edge": 0.2,
+   "season_detail": {
+    "h25": 13,
+    "n25": 17,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.405,
+    "weighted_n": 12.56,
+    "mean_all": 72.045
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 71.24,
+   "projection": 72.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 72.0 rec yds a game.",
+   "why": [
+    "<b>Zay Flowers</b> went over 49.5 rec yds in <b>4 of 5 games</b> in 2026 and 13 of 17 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.7,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.2902,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 15
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ja'Kobi Lane",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 15.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869039&selectionId=102523756",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.9,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": -0.1,
+   "role": {
+    "snap": 0.6267,
+    "tgt_share": 0.1156,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Matthew Hibner",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 3.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": 126,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.622871828&selectionId=103817578",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.2,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 44.2,
+   "edge": 7.8,
+   "role": {
+    "snap": 0.46,
+    "tgt_share": 0.0358,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 17
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joe Fagnano",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "side": "under",
+   "line": 0.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": 100,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019113%232346230866_13L88808Q1262864673Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 50.0,
+   "edge": 2.0,
+   "role": {
+    "snap": 0.4,
+    "tgt_share": 0.0,
+    "car": 3.0,
+    "n": 1
+   },
+   "rank": 18
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nate Boerkircher",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 8.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385018317%232349350870_13L88808Q1362015947Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 51.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 51.9,
+   "edge": 0.1,
+   "role": {
+    "snap": 0.5067,
+    "tgt_share": 0.0534,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 19
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Justice Hill",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 14.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869034&selectionId=16552642",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": -1.1,
+   "role": {
+    "snap": 0.4567,
+    "tgt_share": 0.174,
+    "car": 2.0,
+    "n": 3
+   },
+   "rank": 20,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mark Andrews",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 18.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869035&selectionId=16602460",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "14 of 22",
+   "record": "14 of 22",
+   "rate": 68,
+   "break_even": 53.1,
+   "edge": -1.1,
+   "season_detail": {
+    "h25": 8,
+    "n25": 14,
+    "h26": 6,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.682,
+    "weighted_n": 12.67,
+    "mean_all": 26.045
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 25.36,
+   "projection": 26.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 26.0 rec yds a game.",
+   "why": [
+    "<b>Mark Andrews</b> went over 18.5 rec yds in <b>6 of 8 games</b> in 2026 and 8 of 14 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.1,
+   "role": {
+    "snap": 0.62,
+    "tgt_share": 0.1228,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Derrick Henry",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621866656&selectionId=12073826",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "6 of 18",
+   "record": "6 of 18",
+   "rate": 49,
+   "break_even": 53.1,
+   "edge": -1.1,
+   "season_detail": {
+    "h25": 3,
+    "n25": 11,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.593,
+    "weighted_n": 11.0,
+    "mean_all": 92.889
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 99.36,
+   "projection": 92.9,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 92.9 rush yds a game.",
+   "why": [
+    "<b>Derrick Henry</b> went under 68.5 rush yds in <b>3 of 7 games</b> in 2026 and 3 of 11 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.8,
+   "role": {
+    "snap": 0.5133,
+    "tgt_share": 0.056,
+    "car": 15.0,
+    "n": 3
+   },
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mark Andrews",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -124,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385018433%232346156939_13L88808Q1-2107084182Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "14 of 22",
+   "record": "14 of 22",
+   "rate": 68,
+   "break_even": 55.4,
+   "edge": -3.4,
+   "season_detail": {
+    "h25": 7,
+    "n25": 14,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.611,
+    "weighted_n": 12.67,
+    "mean_all": 3.136
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.86,
+   "projection": 3.1,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 3.1 rec a game.",
+   "why": [
+    "<b>Mark Andrews</b> went over 2.5 rec in <b>7 of 8 games</b> in 2026 and 7 of 14 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.4,
+   "role": {
+    "snap": 0.62,
+    "tgt_share": 0.1228,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Parker Washington",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "hardrockbet",
+   "price": -125,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8174181326367359370",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "9 of 18",
+   "record": "9 of 18",
+   "rate": 60,
+   "break_even": 55.6,
+   "edge": -3.6,
+   "season_detail": {
+    "h25": 5,
+    "n25": 11,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.672,
+    "weighted_n": 11.0,
+    "mean_all": 4.389
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.73,
+   "projection": 4.4,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 4.4 rec a game.",
+   "why": [
+    "<b>Parker Washington</b> went under 4.5 rec in <b>4 of 7 games</b> in 2026 and 5 of 11 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.5,
+   "role": {
+    "snap": 0.74,
+    "tgt_share": 0.2076,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Trevor Lawrence",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "side": "over",
+   "line": 1.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -128,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621857698&selectionId=22336735",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "14 of 25",
+   "record": "14 of 25",
+   "rate": 53,
+   "break_even": 56.1,
+   "edge": -4.1,
+   "season_detail": {
+    "h25": 9,
+    "n25": 18,
+    "h26": 5,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.445,
+    "weighted_n": 13.55,
+    "mean_all": 1.96
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.78,
+   "projection": 2.0,
+   "projection_unit": "pass TD",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 25 games this record is built from \u2014 2.0 pass TD a game.",
+   "why": [
+    "<b>Trevor Lawrence</b> went over 1.5 pass TD in <b>5 of 7 games</b> in 2026 and 9 of 18 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.5,
+   "role": {
+    "snap": 0.9367,
+    "tgt_share": 0.0,
+    "car": 3.0,
+    "n": 3
+   },
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Justice Hill",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 14.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -114,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385019287%232346163870_13L88808Q11128589181Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "Over his last 3 games he has played 46% of the snaps and 2 carries a game.",
+    "The Jacksonville Jaguars allow 57.7 rushing yards a game to running backs.",
+    "The model gives it <b>57%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "confidence": 57,
+   "model_p": 56.9,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 3.7,
+   "role": {
+    "snap": 0.4567,
+    "tgt_share": 0.174,
+    "car": 2.0,
+    "n": 3
+   },
+   "rank": 1,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Joe Fagnano",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 158.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA385018822%232349308631_13L88808Q1-2137073582Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "In his last game he played 40% of the snaps.",
+    "The Jacksonville Jaguars allow 262 passing yards a game to quarterbacks.",
+    "The model gives it <b>55%</b>; at -112 it needs 52.8% to pay."
+   ],
+   "confidence": 55,
+   "model_p": 54.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.8,
+   "edge": 2.2,
+   "role": {
+    "snap": 0.4,
+    "tgt_share": 0.0,
+    "car": 3.0,
+    "n": 1
+   },
+   "rank": 2,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Zay Flowers",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 4.5,
+   "game": "Jacksonville Jaguars @ Baltimore Ravens",
+   "game_id": "c75744790b7acf6260c78ba5e739c0e5",
+   "away": "Jacksonville Jaguars",
+   "home": "Baltimore Ravens",
+   "commence": "2026-11-06T01:15:00Z",
+   "book": "fanduel",
+   "price": -108,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.621869056&selectionId=41182052",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "14 of 22",
+   "record": "14 of 22",
+   "rate": 50,
+   "break_even": 51.9,
+   "edge": 1.1,
+   "season_detail": {
+    "h25": 10,
+    "n25": 17,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.328,
+    "weighted_n": 12.56,
+    "mean_all": 5.273
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.06,
+   "projection": 5.3,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 5.3 rec a game.",
+   "why": [
+    "Over his last 3 games he has played 85% of the snaps and 29% of the team's targets.",
+    "<b>Zay Flowers</b> went over 4.5 rec in <b>4 of 5 games</b> in 2026 and 10 of 17 in 2025, when he played at least half the snaps.",
+    "The Jacksonville Jaguars allow 13.6 catches a game to wide receivers.",
+    "The model gives it <b>53%</b>; at -108 it needs 51.9% to pay."
+   ],
+   "model_p": 53.0,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.2902,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 3,
+   "why_card": [
+    "<b>Zay Flowers</b> went over 4.5 rec in <b>4 of 5 games</b> in 2026 and 10 of 17 in 2025, when he played at least half the snaps."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 6,
+ "price_ceiling": 400,
+ "market_max_share": null,
+ "board_mixed": false,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}

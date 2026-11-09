@@ -226,7 +226,12 @@ failed recurring runs, i would like to avoid that"*. So:
    finding beside a missing part is added to the issue, never written over it,
    and the run goes red (`test_vacuity_merge.py`). An empty state or an empty
    report is "could not look" in every three-state watcher (`test_budget_watch.py`
-   §2); `collect.yml`'s two alerts are another shape and are not covered.
+   §2); ~~`collect.yml`'s two alerts are another shape and are not covered~~
+   `[2026-11-04]` and in every other step that can close or overwrite an issue,
+   whatever its shape: with no result (an empty rc, no watchdog verdict, an
+   unreadable report, an empty body) it touches no issue. A new such step that is
+   not given a shape fails (`test_alert_shapes.py`). Live after Sam uploads
+   `collect.yml` (`docs/upload/UPLOAD-collect-alerts.md`).
    `[2026-09-25]` One more job, `staged`, applies every workflow staged in
    `docs/upload/` to its own checkout and runs the `rest` shard again:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's
@@ -237,6 +242,11 @@ failed recurring runs, i would like to avoid that"*. So:
    (`offseason.py`) and runs the `rest` shard, in every season: a test that
    needs a game fails at its PR, not the day a league goes dark (#298, #301,
    and #329's two red days, the MLB season's end). `test_offseason.py`.
+   `[2026-11-08]` And `champion` names a champion in every league that names
+   none (`champions_named.py`: NFL SM, college HC) and runs the `rest` shard: a
+   test that assumes no champion fails at its PR, not on Sam's switch (#339 was
+   red on four such files). A test of today's model pins
+   `FM.CHAMPION.update(nfl=None, ncaaf=None)` itself. `test_pr_champion.py`.
    ⛔ Tell Sam a PR is ready only after reading its checks green yourself:
    #329 merged with 2 red ones (my fixed dates) and kept collect red.
 2. ⛔ **A workflow file with a `cron:` block is never changed in a PR.**
@@ -362,6 +372,14 @@ note boxes, tags and the stale bar now require their absence.
   `mean_d_exact`, never the 6 printed decimals). After a switch the eighteen do not
   restart; the eight do. `history` / `scored` stay in the report for information. The email
   reads the floor from the report (`floor`), never a 300 of its own. `test_fb_refit_counted.py`.
+  `[Sam, 2026-11-08]` §3j, AFTER A SWITCH, *"ok i approve of all 3"*: the champion stays one of k
+  (`verdicts(res, champion)`); T, AT and ATC (the class, `fb_challengers.FIRST`) are NOT APPLICABLE
+  against a champion whose first input is not today's own number (H, HC, SM, SMC; MCC for T, TS); the
+  spread of results, the injury sizing, the line-less total and the email's "miss by" read the
+  champion's own numbers (`fb_model.own_score`). ⛔ History rows (`fb_model.is_history`) TRAIN and
+  are never scored, graded, counted or measured, anywhere; a module that builds rows calls
+  `is_history` (census). An OWN_SCORE challenger (H, HC, SM, SMC) never trains on another's history
+  rows. With no champion named every output is byte for byte as before. `test_champion_switch.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
   *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
   ... only show confidence score on each pick that the model picks, BASED ON THE
@@ -1564,6 +1582,11 @@ offseason.py      THE TREE WITH NO GAME ANYWHERE (Sam, 2026-10-30): empties
                   pick lists, on pr-tests' throwaway `offseason` checkout.
                   ⛔ Cards and graded records stay: nothing rewrites them when
                   a season ends. Needs `--yes`; never on the real tree.
+champions_named.py THE TREE ONCE A CHAMPION SWITCH MERGES (2026-11-08): names
+                  NFL SM and college HC in every league that names none
+                  (fb_refit.set_champion), on pr-tests' throwaway `champion`
+                  checkout, so a test that assumes no champion fails at its
+                  PR (#339's reds). ⛔ Keeps a named one. Needs `--yes`.
 liveprobe.py      can the football scores tab ever be live?
 verify_nfl.py     the football data-layer verifier
 
@@ -1727,6 +1750,11 @@ runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a
                   gzip, 560x) and never into `picks/`.
+                  `[2026-11-08]` An archive of a document also written to a
+                  latest/ gzip passes `same_as=` that file and is stored as
+                  ITS BYTES, one blob for git (the dossier archive was a
+                  second full copy every card-fb run: 63.8 MB in 14 days).
+                  `test_archive_same_bytes.py` finds every such pair.
 push_retry.sh     the ONE way a workflow lands its commits: rebase
                   favouring this run's files, abort + replay on a
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a

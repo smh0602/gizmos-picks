@@ -55,7 +55,7 @@ def logloss_pair(F, rows, lg):
         if b:
             fits.append((wk, [round(x, 2) for x in b]))
         for r in weeks[wk]:
-            if not r["final"]:
+            if not r["final"] or F.is_history(r):      # §3j: history rows train, never scored
                 continue
             scs = {}
             for tag, on in (("without", False), ("with", True)):
