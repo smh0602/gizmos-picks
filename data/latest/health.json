@@ -1,18 +1,11 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-09T18:01:47Z",
+ "checked_at": "2026-11-09T19:01:34Z",
  "et_date": "2026-11-09",
  "healthy": false,
  "broken": 0,
- "degraded": 14,
+ "degraded": 12,
  "findings": [
-  {
-   "key": "fresh:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf tabs are showing data older than promised (cfb-injuries)",
-   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
   {
    "key": "stopped:mlb",
    "severity": "DEGRADED",
@@ -39,13 +32,6 @@
    "severity": "DEGRADED",
    "what": "ncaaf fb-scores was built 66 minutes after it was due",
    "why": "due 2026-11-09T08:00Z, built 2026-11-09T09:06Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:gamelines:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf gamelines was built 415 minutes after it was due",
-   "why": "due 2026-11-09T11:00Z, built 2026-11-09T17:55Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -110,15 +96,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17367,
-  "pulled_at": "2026-11-09T18:00:42Z",
+  "balance": 17361,
+  "pulled_at": "2026-11-09T19:00:56Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-09T18:00:38Z",
-  "source": "data/nfl/2026-11-09/alt-lines/1800.json.gz",
-  "readings_on_disk": 1534,
+  "newest_paid_pull": "2026-11-09T19:00:56Z",
+  "source": "data/ncaaf/2026-11-09/gamelines/1900.json.gz",
+  "readings_on_disk": 1535,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
