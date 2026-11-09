@@ -1,16 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-09T19:01:34Z",
+ "checked_at": "2026-11-09T20:25:37Z",
  "et_date": "2026-11-09",
  "healthy": false,
  "broken": 0,
- "degraded": 12,
+ "degraded": 13,
  "findings": [
   {
-   "key": "stopped:mlb",
+   "key": "late:lineups:mlb",
    "severity": "DEGRADED",
-   "what": "mlb has not updated since Mon 13:18Z",
-   "why": "lineups, weather are past due with no collect run for mlb since then (oldest: lineups, due 2026-11-09T14:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "what": "mlb lineups was built 364 minutes after it was due",
+   "why": "due 2026-11-09T14:00Z, built 2026-11-09T20:04Z. GitHub started the run late; there is nothing to repair, and this clears when the next lineups build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:weather:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb weather was built 364 minutes after it was due",
+   "why": "due 2026-11-09T14:00Z, built 2026-11-09T20:04Z. GitHub started the run late; there is nothing to repair, and this clears when the next weather build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -97,14 +104,14 @@
  "credits": {
   "state": "HEALTHY",
   "balance": 17361,
-  "pulled_at": "2026-11-09T19:00:56Z",
+  "pulled_at": "2026-11-09T20:04:06Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.4,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-09T19:00:56Z",
-  "source": "data/ncaaf/2026-11-09/gamelines/1900.json.gz",
-  "readings_on_disk": 1535,
+  "newest_paid_pull": "2026-11-09T20:04:06Z",
+  "source": "data/2026-11-09/props-pitcher/2004.json.gz",
+  "readings_on_disk": 1538,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
