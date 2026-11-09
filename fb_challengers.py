@@ -172,6 +172,18 @@ A_STEP = 64.0                # WL / WLC's solve: the longest step on the home ed
 # ⛔ §3f: AJ, AJC, MC and MCC replace inputs at fixed places in today's lists, so they build
 #    only against no champion or one that only appends; otherwise NOT APPLICABLE (Sam's to decide).
 APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC")
+# `[Sam, 2026-11-08]` §3j, after a champion switch. OWN_SCORE: inputs that are the challenger's
+#    OWN predicted margin and total and nothing of the champion's (H, HC, SM, SMC). As champion
+#    they make their own predicted score; as challenger they train on their own rows only.
+OWN_SCORE = HIST + SCORE
+# FIRST: {market: the number} a challenger puts in place of the champion's FIRST input, a number
+#    defined against today's own margin or total (T, TS: the talent margin; MC, MCC: the capped
+#    margin; AT, ATC: today's own total blended with Sam's). Against a champion whose first input
+#    there is neither today's own number nor that same number, it would throw the champion's
+#    prediction away, so it is NOT APPLICABLE (§3j, Sam: *"ok i approve of all 3"*).
+FIRST = {"T": {"spread": "tal_m", "moneyline": "tal_m"}, "TS": {"spread": "tal_m", "moneyline": "tal_m"},
+         "MC": {"spread": "mc", "moneyline": "mc"}, "MCC": {"spread": "mc", "moneyline": "mc"},
+         "AT": {"total": "sam_t"}, "ATC": {"total": "sam_t"}}
 
 
 
@@ -508,7 +520,7 @@ def history_rows(lg, root=None):
                 or (lg == "ncaaf" and not (g.get("home_class") == "fbs" and g.get("away_class") == "fbs"))):
             continue
         M, T, pml = FM.training_line(g, None, cfb)
-        out.append({"id": "hist:%s" % g.get("id"), "lg": lg, "season": g.get("season"),
+        out.append({"id": "hist:%s" % g.get("id"), "lg": lg, "season": g.get("season"), "history": True,
                     "day": k.strftime("%Y-%m-%d"), "kick": g["start"], "week": g.get("week"),
                     "home": g["home"], "away": g["away"], "final": True,
                     "hs": g["home_score"], "as": g["away_score"], "M": M, "T": T, "pml": pml,
@@ -840,12 +852,43 @@ def applies(name, r):
     `[Sam, 2026-10-26]` T72 (§3f): AJ, AJC, MC and MCC replace inputs at fixed places in
     today's lists, so they build only against no champion or one that only appends
     (APPEND_ONLY); CL, CLC, WL and WLC only append, so they always build."""
+    ch = FM.CHAMPION.get(r.get("lg") or CHALLENGERS[name]["league"])
     if name in CAPPED + ADJUSTED:
-        ch = FM.CHAMPION.get(r.get("lg") or CHALLENGERS[name]["league"])
         return ch is None or ch in APPEND_ONLY
+    if name in FIRST and not all(first_own(ch, mk, k) for mk, k in FIRST[name].items()):    # §3j
+        return False
     if name not in KEEP:
         return True
     return all(max(KEEP[name][mk]) < len(FM.features(r, mk)) for mk in CHALLENGERS[name]["markets"])
+
+
+def first_own(champion, market, number=None):
+    """§3j: may a challenger replace `champion`'s first input in `market` with its `number`? Yes
+    when that input is built from today's own margin or total (None, today's model, and every
+    champion that keeps it) or from the same `number` already (T against TS). No against H, HC,
+    SM, SMC (OWN_SCORE: their own predicted score) or a champion that put another number there."""
+    return champion is None or (champion not in OWN_SCORE and FIRST.get(champion, {}).get(market) in (None, number))
+
+
+def own_score(name, r):
+    """`[Sam, 2026-11-08]` §3j: (margin, total), the predicted margin and total challenger `name`
+    predicts from as CHAMPION, the numbers its first inputs are built from (None: none). Today's
+    model (None) and every champion that keeps today's own numbers: (own_m, own_t). H, HC: the
+    history ratings' (h_own); SM, SMC: the score model's (score); T, TS: the talent margin; MC,
+    MCC: the capped margin; AT, ATC: today's own total blended with Sam's, as their input is."""
+    s = r["sig"]
+    m, t = s.get("own_m"), s.get("own_t")
+    if name in HIST:
+        return tuple(s.get("h_own") or (None, None))
+    if name in SCORE:
+        return tuple(s.get("score") or (None, None))
+    if name in ("T", "TS"):
+        m = s.get("tal_m")
+    elif name in CAPPED:
+        m = s.get("mc")
+    elif name in AT and t is not None and s.get("sam_t") is not None:
+        t = (t + s["sam_t"]) / 2.0
+    return m, t
 
 
 def extend(name, r, market, x, M=None, T=None):

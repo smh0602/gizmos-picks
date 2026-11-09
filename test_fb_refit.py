@@ -192,13 +192,13 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 T71: league() itself builds SM's input
 #   file: fb_refit.py
-#   find:         FC.attach(n, lg, rows, root)
-#   with:         FC.attach(n, lg, rows, root) if n != "SM" else None
+#   find:         FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
+#   with:         FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root) if n != "SM" else None
 #
 # @vacuity 🔴 T71: ...for SMC too (league() is run for college as well)
 #   file: fb_refit.py
-#   find:         FC.attach(n, lg, rows, root)
-#   with:         FC.attach(n, lg, rows, root) if n != "SMC" else None
+#   find:         FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
+#   with:         FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root) if n != "SMC" else None
 #
 # @vacuity 🔴 T71: ...and SM is fitted on the input built BEFORE the contest, never on zeros
 #   file: fb_refit.py
@@ -245,7 +245,7 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:         if not own_branch(br, x["name"]):
 #   with:         if False:
 #
-# @vacuity 🔴 R1: the challenger is asked only for the champion's games (no history Monday is fitted)
+# @vacuity 🔴 R1: the challenger is asked only for the champion's games (no Monday the champion does not price is fitted)
 #   file: fb_refit.py
 #   find:         for gid, (p_x, y, wk, _r) in fits.predictions(mk, lambda r: r["id"] in a).items():
 #   with:         for gid, (p_x, y, wk, _r) in fits.predictions(mk).items():
@@ -291,6 +291,7 @@ import gzip
 import json
 import os
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -307,6 +308,13 @@ import freshness as F  # noqa: E402
 import status as S  # noqa: E402
 import watchdog as W  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
+
+# `[2026-11-08]` §3j: this file tests the contest and the model with the champions IT names (planted),
+#    so it starts from none, whatever main names (a test asks the code, never the live constant; #339's
+#    HC line turned it red on a correct branch). `MAIN_CHAMPION` keeps main's own for the one check about it.
+#    Against every named champion: test_champion_switch.py, and test_fb_refit.py section 10.
+MAIN_CHAMPION = dict(FM.CHAMPION)
+FM.CHAMPION.update(nfl=None, ncaaf=None)
 
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 11, 2, 11, 17, tzinfo=UTC)     # a Monday
@@ -535,7 +543,13 @@ def sh(*a, cwd=None):
 
 sh("init", "--bare", ORIGIN)
 sh("clone", ORIGIN, WORK)
-shutil.copy(os.path.join(ROOT, "fb_model.py"), os.path.join(WORK, "fb_model.py"))
+# `[2026-11-08]` §3j: the planted repo's fb_model.py names no champion, whatever main names (a test asks
+#    the code, never the live constant: #339's HC line turned this red on a correct branch push).
+_src5 = open(os.path.join(ROOT, "fb_model.py"), encoding="utf-8").read()
+_src5, _n5 = re.subn(r'(?m)^CHAMPION = \{.*\}$', 'CHAMPION = {"nfl": None, "ncaaf": None}', _src5)
+assert _n5 == 1, "the CHAMPION line is not in fb_model.py once"
+with open(os.path.join(WORK, "fb_model.py"), "w", encoding="utf-8", newline="\n") as _fh:
+    _fh.write(_src5)
 sh("add", "fb_model.py", cwd=WORK)
 sh("commit", "-m", "base", cwd=WORK)
 sh("push", "origin", "HEAD:refs/heads/main", cwd=WORK)
@@ -556,7 +570,13 @@ eq((again, sorted(sh("for-each-ref", "--format=%(refname:short)", "refs/heads", 
 # ══════════════════════════════════════════════════════════════════════
 section("6. 🔴 CHAMPION None CHANGES NOTHING; A NAMED ONE ADDS ITS INPUT AND ITS METHOD")
 # ══════════════════════════════════════════════════════════════════════
-eq(FM.CHAMPION, {"nfl": None, "ncaaf": None}, "🔴 main's champions are today's models")
+# ~~eq(FM.CHAMPION, {"nfl": None, "ncaaf": None}, "🔴 main's champions are today's models")~~
+#    `[2026-11-08]` §3j: a merged switch names one (HC), and the check reddened a correct branch. What
+#    stays true on main: each league's champion is None or a registered challenger of that league.
+ck(set(MAIN_CHAMPION) == {"nfl", "ncaaf"} and all(c is None or FC.CHALLENGERS.get(c, {}).get("league") == lg
+                                                  for lg, c in MAIN_CHAMPION.items()),
+   "🔴 main names each league's champion as None (today's model) or one of that league's challengers",
+   MAIN_CHAMPION)
 r = row("x", "nfl", "2026-10-07", "SEA", "NE")
 r["sig"]["epa_m"] = 7.0
 eq([FM.features(r, mk) for mk in FM.MARKETS], [FM.base_features(r, mk) for mk in FM.MARKETS],
@@ -583,7 +603,7 @@ finally:
     FM.CHAMPION["nfl"] = None
 eq((card_fb.game_method({"champion": "E"}), card_fb.game_method({})), ("+game-E", ""),
    "🔴 the card's method gains \"+game-E\", and nothing with no champion")
-eq(F.champion_inputs("nfl"), [], "   ...and no champion adds no freshness row")
+eq(F.champion_inputs("nfl", {"nfl": None}), [], "   ...and no champion adds no freshness row")   # §3j: named, never main's
 _ci = F.champion_inputs
 F.champion_inputs = lambda lg: _ci(lg, {"nfl": "E"})
 try:
@@ -812,13 +832,20 @@ for _lg in ("nfl", "ncaaf"):
 eq(_crash, [], "🔴 against every champion, every other challenger's inputs build in all three markets")
 # `[Sam, 2026-10-26]` ~~exactly S and TS against H, HC, SM, SMC~~: T72 (§3f) adds AJ, AJC, MC and MCC, which
 #    replace inputs at fixed places, against every champion that does more than append.
+# `[Sam, 2026-11-08]` §3j, *"ok i approve of all 3"*: T, AT and ATC too, against a champion whose first
+#    input is not today's own number (H, HC, SM, SMC; and MCC for T and TS), eight pairs more. Sam changed the
+#    requirement: the list is rewritten to it, never loosened (every pair that was NOT APPLICABLE still is).
 eq(sorted(_na), [("AJ", "MC"), ("AJC", "MCC"), ("AT", "AJ"), ("AT", "MC"), ("ATC", "AJC"), ("ATC", "MCC"),
-                 ("H", "AJ"), ("H", "MC"), ("H", "S"), ("HC", "AJC"), ("HC", "MCC"), ("HC", "TS"),
-                 ("MC", "AJ"), ("MCC", "AJC"), ("S", "AJ"), ("S", "MC"), ("SM", "AJ"), ("SM", "MC"), ("SM", "S"),
-                 ("SMC", "AJC"), ("SMC", "MCC"), ("SMC", "TS"), ("T", "AJC"), ("T", "MCC"),
+                 ("H", "AJ"), ("H", "AT"), ("H", "MC"), ("H", "S"), ("HC", "AJC"), ("HC", "ATC"), ("HC", "MCC"),
+                 ("HC", "T"), ("HC", "TS"),
+                 ("MC", "AJ"), ("MCC", "AJC"), ("MCC", "T"), ("MCC", "TS"), ("S", "AJ"), ("S", "MC"), ("SM", "AJ"), ("SM", "AT"),
+                 ("SM", "MC"), ("SM", "S"),
+                 ("SMC", "AJC"), ("SMC", "ATC"), ("SMC", "MCC"), ("SMC", "T"), ("SMC", "TS"), ("T", "AJC"), ("T", "MCC"),
                  ("TS", "AJC"), ("TS", "MCC")],
    "🔴 ...or it is NOT APPLICABLE: S and TS against a champion with shorter lists (H, HC, SM, SMC); AJ, AJC, "
-   "MC and MCC against one that does more than append (S, TS, T, AT, ATC, H, HC, SM, SMC, and each other)")
+   "MC and MCC against one that does more than append (S, TS, T, AT, ATC, H, HC, SM, SMC, and each other); "
+   "T, TS, AT and ATC against one whose first input is not today's own number (H, HC, SM, SMC, and MCC for T "
+   "and TS)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("11. 🔴 SM AND SMC ARE PINNED: #275's NUMBERS ON A PLANTED LEAGUE WITH PLAYER LOGS")
@@ -923,10 +950,13 @@ finally:
     FM.CHAMPION["nfl"] = _old
 _bys = {x["name"]: x for x in _lgs["challengers"]}
 # `[Sam, 2026-10-26]` ~~S alone, 0.01 / 8~~: T72 (§3f): beside SM, AJ and MC are NOT APPLICABLE too.
-ck(all(_bys[n]["verdict"] == "NOT APPLICABLE" and _bys[n]["alpha"] == 0.01 / 12 for n in ("S", "MC", "AJ"))
-   and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n not in ("S", "MC", "AJ")),
-   "🔴 with SM champion, S, MC and AJ are NOT APPLICABLE (still in the divisor, 0.01 / 12) and the rest are "
-   "scored, no crash", {n: x.get("verdict") for n, x in _bys.items()})
+# `[Sam, 2026-11-08]` §3j, *"ok i approve of all 3"*: ~~0.01 / 12~~ SM, the champion, is still one of k, so
+#    0.01 / 13; and AT (it would replace SM's own total with today's) is NOT APPLICABLE too.
+_na11 = ("S", "MC", "AJ", "AT")
+ck(all(_bys[n]["verdict"] == "NOT APPLICABLE" and _bys[n]["alpha"] == 0.01 / 13 for n in _na11)
+   and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n not in _na11),
+   "🔴 with SM champion, S, MC, AJ and AT are NOT APPLICABLE (still in the divisor, 0.01 / 13 with SM) and the "
+   "rest are scored, no crash", {n: x.get("verdict") for n, x in _bys.items()})
 _sum = S.refit_summary(_lgs, "NFL", NOW)
 _s_line = _sum[_sum.find("Challenger S (fewer inputs):"):].split(". Challenger")[0]
 ck(_s_line.startswith("Challenger S (fewer inputs): not applicable against the current champion")
@@ -1066,10 +1096,21 @@ FC.attach("H", "nfl", _rows16, T16)
 
 
 class _AllFits(R.Fits):
-    """Fits as before R1: every row priced, the champion's or not."""
+    """Fits as before R1: every row priced, the champion's or not, history rows too.
+    `[2026-11-08]` ~~R.Fits.predictions(self, mk)~~: §3j's `is_history` skip is in it now, so the
+    control replays the old loop itself (else it skips the Mondays it exists to show being fitted)."""
 
     def predictions(self, mk, keep=None):
-        return R.Fits.predictions(self, mk)
+        out = {}
+        for r in self.rows:
+            y = FM.label(r, mk)
+            if y is None:
+                continue
+            wk = FM.monday(r["day"])
+            m = self.model(wk, mk)
+            if m:
+                out[r["id"]] = (FM.predict(m, self.feat(r, mk)), y, wk, r)
+        return out
 
 
 _new = R.challenger_fits(_rows16, "H", "nfl", T16)
@@ -1086,6 +1127,15 @@ _mon = lambda f: sorted({wk for wk, _mk in f.models})  # noqa: E731
 ck(any(w < "2025" for w in _mon(_was)) and not any(w < "2025" for w in _mon(_new)),
    "🔴 ...and none of those Mondays is fitted any more (each was a fit nobody scored)",
    (_mon(_was)[:3], _mon(_new)[:3], len(_was.models), len(_new.models)))
+# `[2026-11-08]` §3j: every scorer now skips history rows (`is_history`), so the check above holds without R1
+#    too. What R1 still does on its own: H is asked only for the games the CHAMPION prices, so it fits no
+#    2025-26 Monday the champion has no fit for (its history rows bring it to 150 games weeks earlier).
+_ch16 = R.Fits(_rows16, FM.features)
+_priced = {wk for mk in FM.MARKETS for _p, _y, wk, _r in _ch16.predictions(mk).values()}
+_early = sorted({wk for wk, _mk in _was.models if wk >= "2025" and wk not in _priced})
+ck(_early and set(_mon(_new)) <= _priced,
+   "🔴 ...and H fits no 2025-26 Monday the champion does not price (R1: it is asked only for the champion's games)",
+   (_early[:3], sorted(set(_mon(_new)) - _priced)[:3]))
 
 # ══════════════════════════════════════════════════════════════════════
 section("17. 🔴 T72 (§3f): CL, WL, MC AND AJ ARE PINNED ON A PLANTED LEAGUE (A CHANGE IS A NEW CHALLENGER)")

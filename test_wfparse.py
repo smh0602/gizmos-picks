@@ -28,6 +28,11 @@ runner, so on the machine that matters they assert nothing about the parse.
 #   file: wfparse.py
 #   find:         col = min(e[1] for e in dashes)
 #   with:         col = 8
+#
+# @vacuity 🔴 a job's env is its own, never the next job's (the §3j review)
+#   file: wfparse.py
+#   find:             if not jb.start <= lineno < jb.end:
+#   with:             if not jb.start <= lineno:
 """
 import glob
 import io
@@ -137,6 +142,22 @@ ck("⚠️ the step column is DERIVED, so a legally re-indented list still parse
    len(W.steps(_IND, "alpha")) >= 2,
    "⛔ rule 293: a column hardcoded from today's formatting is a claim "
    "about the world. got %d step(s)" % len(W.steps(_IND, "alpha")))
+
+# `[2026-11-08]` job_env: a job's own job-level env, never a step's and never the next job's. Three
+#    tests read pr-tests' `offseason` / `staged` env as the text down to the `render:` job; a new job in
+#    between carried its own SUITE_SHARD, which passed the check for a job that had lost its own.
+_ENV = ("jobs:\n"
+        "  first:\n    runs-on: x\n    env:\n      SUITE_SHARD: rest\n      OTHER: \"1\"\n"
+        "    steps:\n      - run: echo a\n        env:\n          STEP_ONLY: x\n"
+        "  second:\n    runs-on: x\n    steps:\n      - run: echo b\n"
+        "  third:\n    runs-on: x\n    env:\n      SUITE_SHARD: rest\n    steps:\n      - run: echo c\n")
+ck("🔴 job_env reads each job's own env block, and a step's env is not the job's",
+   W.job_env(_ENV) == {"first": {"SUITE_SHARD": "rest", "OTHER": "1"}, "second": {}, "third": {"SUITE_SHARD": "rest"}},
+   "got %r" % (W.job_env(_ENV),))
+_LOST = _ENV.replace("    env:\n      SUITE_SHARD: rest\n      OTHER: \"1\"\n", "")
+ck("🔴 ...so a job that LOSES its env reads empty, though a later job still carries the same line",
+   W.job_env(_LOST)["first"] == {} and W.job_env(_LOST)["third"] == {"SUITE_SHARD": "rest"},
+   "got %r" % (W.job_env(_LOST),))
 
 # ════════════════════════════════════════════════════════════════════════
 section("2. ✅ AND COMPARED TO PyYAML ON THE REAL FILES, WHERE IT EXISTS")

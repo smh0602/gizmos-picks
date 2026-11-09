@@ -67,6 +67,12 @@ os.environ.setdefault("LEAGUE", "ncaaf")
 import fb_model as FM  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
 
+# `[2026-11-08]` §3j: this file's planted cases are built for TODAY's model (its record and its list),
+#    so it names no champion, whatever main names (a test asks the code, never the live constant; #339's
+#    HC line turned it red on a correct branch). Against every named champion:
+#    test_champion_switch.py, and test_fb_refit.py section 10.
+FM.CHAMPION.update(nfl=None, ncaaf=None)
+
 PUR, WASH, TEX, FLA = "Purdue Boilermakers", "Washington Huskies", "Texas Longhorns", "Florida Gators"
 NOW, KICK, DAY = "2026-10-16T08:00:00Z", "2026-10-17T19:30:00Z", "2026-10-17"
 FIN = [{"id": "f%d" % i, "day": "2026-10-06", "final": True, "hs": hs, "as": as_, "T": None, "M": None,

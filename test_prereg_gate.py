@@ -68,6 +68,16 @@ claim that can be wrong (rule 166).
 #   find:   champion's when the two predicted probabilities are not equal, by any amount. There is no
 #   with:   champion's when the two predicted probabilities differ by 0.001 or more. There is no
 #
+# @vacuity 🔴 §3j [Sam, 2026-11-08]: any edit to "k keeps the champion" goes red
+#   file: research/fb_refit_spec.md
+#   find:   league", still counts a challenger that has become the champion. A switch never loosens the
+#   with:   league", no longer counts a challenger that has become the champion. A switch never loosens the
+#
+# @vacuity 🔴 §3j: ...and to history rows staying training only
+#   file: research/fb_refit_spec.md
+#   find: - **History rows train; they are never scored.** The rows H and HC add (§3d's older seasons)
+#   with: - **History rows train; they are scored too.** The rows H and HC add (§3d's older seasons)
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -223,7 +233,13 @@ FROZEN = {
     # [Sam, 2026-10-27] "set up the monday contest to train it on 25-26", then "build as
     # written": section 3i (T74), a contest for the PROPS model, written before any result
     # under it; it edits nothing above it, and everything before it is pinned below.
-    "fb_refit_spec.md": "ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10",
+    # ~~"ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10"~~
+    # [Sam, 2026-11-08] "ok i approve of all 3": section 3j (after a champion switch: the champion
+    # stays one of k; a challenger that would throw the champion's first input away is NOT
+    # APPLICABLE; the spread of results, injury sizing and "miss by" read the champion's own
+    # numbers; history rows train and are never scored), written before any contest under it; it
+    # edits nothing above it, and everything before it is pinned below. ⛔ Sam's answers.
+    "fb_refit_spec.md": "280d3576ae1d6db18a5052e28a77408e0f1d83e7b83d73bc4548438ce95f20df",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -237,6 +253,7 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3g. ", "97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c"),
                  ("fb_refit_spec.md", "\n## 3h. ", "f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3"),
                  ("fb_refit_spec.md", "\n## 3i. ", "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd"),
+                 ("fb_refit_spec.md", "\n## 3j. ", "ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10"),
                  ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 

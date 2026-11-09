@@ -349,6 +349,54 @@ jobs:
           fi
 
   # ══════════════════════════════════════════════════════════════════════
+  # 🔴🔴 THE SUITE WITH A CHAMPION NAMED. `[2026-11-08]`
+  # #339, college's first champion switch (HC), turned the tests job red on
+  # files whose checks were right but assumed no league names a champion
+  # (research/fb_refit_spec.md §3j). That shows only the day a switch merges.
+  # So this job names one in every league that names none, on its own
+  # throwaway checkout (`champions_named.py`: NFL SM, college HC, committed
+  # locally, never pushed), and runs the `rest` shard: a test that leans on
+  # "no champion" fails at its PR. `test_pr_champion.py`.
+  # ⛔ NOT A THIRD COPY OF THE LOOP (rule 117): the `tests` job's own Tests
+  # step, read out of this file by wfparse at run time, as `offseason` does.
+  # ══════════════════════════════════════════════════════════════════════
+  champion:
+    name: tests (a champion named)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      SUITE_SHARD: rest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Name a champion in every league (locally, never pushed)
+        run: |
+          python champions_named.py --yes
+          git add fb_model.py
+          git diff --cached --quiet || git -c user.name=pr-tests -c user.email=pr-tests@localhost commit -q -m "pr-tests: champions named (local only)"
+
+      - name: Tests, with a champion named
+        run: |
+          # Its own loop file, as in `staged` and `offseason` (test_step_tmp.py).
+          chloop=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/champion-loop.XXXXXX")
+          trap 'rm -f "$chloop"' EXIT
+          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > "$chloop"
+          grep -q "run_one" "$chloop" || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
+          bash -e "$chloop"
+
+      - name: The tests must not have modified the tree
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::the test step modified the working tree"
+            git status --porcelain
+            exit 1
+          fi
+
+  # ══════════════════════════════════════════════════════════════════════
   # 🔴 BROWSER.YML'S RENDER TESTS, ON BOTH IMAGES. `[added 2026-09-24]`
   # ⚠️ `playwright install --with-deps` installs Ubuntu PACKAGES by name,
   # and package names change between Ubuntu releases — it is the step most

@@ -38,6 +38,7 @@ silently). An empty list is still the key, so §3 holds in any season.
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -78,8 +79,8 @@ ck(not any(s.cond for s in (EMPTY, TESTS, TREE)),
    "🔴 ...none behind an `if:`: it runs in every season, on every PR")
 ck(W.permissions(PR) == {"contents": "read"} and not _jobs["offseason"].permissions,
    "   read-only: its local commit can never be pushed")
-ck("SUITE_SHARD: rest" in PR.split("  offseason:")[1].split("\n  render:")[0],
-   "   ...as the `rest` shard")
+ck(W.job_env(PR).get("offseason", {}).get("SUITE_SHARD") == "rest",
+   "   ...as the `rest` shard (its own env, wfparse.job_env: never the next job's)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. blank(): WHAT A REAL OFF-SEASON EMPTIES, AND NOTHING ELSE")
@@ -176,8 +177,10 @@ try:
     ck(rc_now == 0, "the `tests` job's loop is GREEN while the board has a game (how it passed all season)",
        shown(_log[-300:]))
     trc, krc, log = job(d)
-    ck(trc != 0 and "test_live.js" in log,
-       "🔴🔴 the `offseason` job is RED and names the test that needs a game", shown(log[-400:]))
+    ck(trc != 0 and re.search(r"(?m)^failed=.*\btest_live\.js\b", log),
+       "🔴🔴 the `offseason` job is RED and its `failed=` line names the test that needs a game "
+       "(`[2026-11-08]` the §3j review: the name every file prints before it runs is not enough)",
+       shown(log[-400:]))
     ck(krc == 0, "   ...and its local commit left the tree clean", shown(log[-300:]))
 finally:
     shutil.rmtree(d, ignore_errors=True)

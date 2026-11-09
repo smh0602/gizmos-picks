@@ -201,14 +201,17 @@ ck(not F.S9_GAME["ncaaf"] and not M.S9_PROPS["ncaaf"] and not card_fb.S9_CARD["n
 _rows = [{"lg": "ncaaf", "M": 3.0, "T": 50.0, "pml": 0.5,
           "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None, "def": None, "poss": None,
                   "out": None, "neutral": 0.0, "dome": 0.0, "vac_h": 0.4, "vac_a": 0.1}}]
-_old = dict(F.S9_GAME)
+_old, _champ = dict(F.S9_GAME), dict(F.CHAMPION)
 F.S9_GAME.update({"nfl": True, "ncaaf": False})
+F.CHAMPION.update(nfl=None, ncaaf=None)     # `[2026-11-08]` §3j: today's model's inputs, whatever main names
 try:
     _n_col = len(F.features(_rows[0], "spread"))
     _n_nfl = len(F.features(dict(_rows[0], lg="nfl"), "spread"))
 finally:
     F.S9_GAME.clear()
     F.S9_GAME.update(_old)
+    F.CHAMPION.clear()
+    F.CHAMPION.update(_champ)
 ck(_n_col == 7 and _n_nfl == 8,
    "🔴 the switch is PER LEAGUE: NFL on adds the input, college stays without it",
    "got college %d, nfl %d inputs" % (_n_col, _n_nfl))

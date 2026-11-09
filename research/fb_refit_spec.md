@@ -484,6 +484,52 @@ The six rules, as Sam approved them:
    progress counts, the earlier weeks of the season included: the walk-forward never sees a game
    before predicting it.
 
+## 3j. After a champion switch (frozen)
+
+Sam, 2026-11-08. HC won college's 2026-11-02 contest, the first WINS, so its branch is the first
+switch the code would run. Three questions the sections above leave open were put to him, each
+with a default, explained one by one; he answered *"ok i approve of all 3"*. This section adds to
+§2, §3, §3d, §3g, §3h and §4 by name; nothing above it is edited. Written before any contest was
+run under the rules below. (While scoping, the contest was run once under HC as the code then
+stood: it counted HC's 2023-2024 training games and withdrew P and T. Those numbers are what the
+first, fourth and fifth bullets correct.)
+
+- **k keeps the champion.** §3's count, "the challengers registered, not withdrawn, in that
+  league", still counts a challenger that has become the champion. A switch never loosens the
+  bar: with HC as champion college stays at 0.01 / 13, fewer only by a withdrawal (§3h).
+- **A first input the champion does not have.** T and TS put the talent margin, and MC and MCC
+  the capped margin, in place of the champion's first spread and moneyline input; AT and ATC put
+  today's own total blended with Sam's in place of its first total input. Each was defined
+  against today's model, whose first input there is its own margin or total. Against a champion
+  whose first input there is neither today's own number nor that same number, it would throw the
+  champion's prediction away and test a model nobody registered. There it is NOT APPLICABLE
+  (§4): never scored, never WITHDRAWN, never a WINS, still one of k, built again if the champion
+  changes. Those champions: H, HC, SM and SMC in every market (their inputs are their own
+  predicted score); T, TS, MC and MCC on spread and moneyline; AT and ATC on totals. Against
+  today's model and every other champion, nothing changes. Sam's answer named T, AT and ATC
+  against H, HC, SM and SMC; the same reason covers T and TS against MCC as champion, so the
+  rule is written for the class. (MC and MCC as challengers are already NOT APPLICABLE against every
+  champion that does more than append, by §4's T72 rule, which stays.)
+- **The champion's own numbers.** Wherever the model measures itself against its own predicted
+  margin or total, it reads the CHAMPION's own numbers (`fb_model.own_score`). That covers the
+  spread of results that turns a predicted score into a chance (`score_sigma`, `total_sigma`),
+  the injury sizing (`injury_fit`), the predicted total of a game with no total line
+  (`predicted_score`) and the Monday email's "miss by" (`fb_refit.misses`). With no champion
+  named, those are today's own margin and total. Otherwise they are H and HC's history ratings,
+  SM and SMC's score model, T and TS's talent margin, MC and MCC's capped margin, and AT and
+  ATC's blended total, each the number its first input is built from. The games measured are
+  the 2025-2026 final games the champion has its own number for (HC has one for some early
+  games today's model has none for), never a history row.
+- **History rows train; they are never scored.** The rows H and HC add (§3d's older seasons)
+  are training rows only. They are not `fb_model.schedule_games` (§2) and not `fb_model.SEASONS`
+  (§3g), so no contest prediction, counted week, history or withdrawal window (§3h), scoreboard,
+  graded record, alt-lines check (`fb_alt_lines`), lambda report (`fb_model_lambda`) or measured
+  spread (above) ever includes one.
+- **Who trains on them.** A history champion trains on them, and so does every challenger built
+  on the champion's inputs: it is "the champion plus one input", so it trains as the champion
+  does. A challenger with only its own inputs (H, HC, SM, SMC) trains on the 2025-2026 rows plus
+  its own history rows, never another's.
+
 ## 4. How it is built (not frozen)
 
 - `[2026-10-27]` §3i T74 rides the same Monday job: `fb_refit.props_contest` runs
@@ -611,6 +657,15 @@ The six rules, as Sam approved them:
   checks found no stored row Monday of that shape (each league's first holds a non-neutral
   game that was not a home win).
 
+- `[2026-11-08]` §3j is built as: `fb_model.is_history` (the `history` flag
+  `fb_challengers.history_rows` sets) skipped by every scorer (`fb_refit.Fits.predictions`,
+  `fb_model.walk_forward`, `_misses`, `fb_refit.misses`, `fb_alt_lines.score`,
+  `fb_model_lambda`); `fb_challengers.OWN_SCORE`, `FIRST`, `first_own` and `own_score`;
+  `fb_refit.verdicts(results, champion)`; `fb_refit.challenger_fits` and the attach in `league`
+  (an OWN_SCORE challenger never reads the champion's history rows). With no champion named every
+  output is byte for byte what it was (measured on the stored data, both leagues).
+  `test_champion_switch.py`.
+
 ## Changelog
 
 - 2026-10-12 — written from the rule as pre-registered by Cowork 05:48Z, with
@@ -631,3 +686,4 @@ The six rules, as Sam approved them:
 - 2026-10-27 — §4 after a second review: the tie-break reading on the printed 6 decimals struck (it could give the branch to the smaller mean d; the order now reads the unrounded numbers, §3g's own rule); the email's no-branch and tie sentences corrected; two readings flagged for Sam ("differs" once any training row has an input; a withdrawal recomputed after a switch), code unchanged for both. §2 to §3g unchanged and pinned.
 - 2026-10-27 — §3h added at Sam's instruction (*"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*), answering the two readings flagged above: a withdrawal is permanent (carried by the weekly report, `withdrawn_since`), and "differs" stays exact. Written before any result under it; §2 to §3g unchanged and pinned. §4 records how it is built.
 - 2026-10-27 — §3i T74 added at Sam's instruction (*"set up the monday contest to train it on 25-26"*, then *"build as written"*): a weekly contest for the PROPS model, the champion (every stored season) against P2526 (last season plus this one, rolling), per league, 500 paired predictions, lower log loss at one-sided p < 0.01; a win pushes one branch for Sam. Written before any result under it; §2 to §3h unchanged and pinned.
+- 2026-11-08 — §3j added at Sam's instruction (*"ok i approve of all 3"*), answering three questions about the first champion switch (HC, college): the champion stays one of k; T, AT and ATC (and the class: a first input replaced by a number defined against today's own margin or total) are NOT APPLICABLE against a champion whose first input is not today's own number; the spread of results, the injury sizing and the email's "miss by" read the champion's own numbers. It also names every place history rows stay training only. Written before any contest under it; §2 to §3i unchanged and pinned.
