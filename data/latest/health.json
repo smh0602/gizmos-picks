@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-09T07:42:36Z",
+ "checked_at": "2026-11-09T09:06:09Z",
  "et_date": "2026-11-09",
  "healthy": false,
  "broken": 0,
- "degraded": 2,
+ "degraded": 4,
  "findings": [
   {
    "key": "late:fb-record:ncaaf",
@@ -14,10 +14,24 @@
    "repair": null
   },
   {
+   "key": "late:fb-scores:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf fb-scores was built 66 minutes after it was due",
+   "why": "due 2026-11-09T08:00Z, built 2026-11-09T09:06Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-record was built 160 minutes after it was due",
    "why": "due 2026-11-04T13:00Z, built 2026-11-04T15:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:fb-scores:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl fb-scores was built 66 minutes after it was due",
+   "why": "due 2026-11-09T08:00Z, built 2026-11-09T09:05Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -30,7 +44,7 @@
   "pulled_at": "2026-11-08T23:12:24Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 8.5,
+  "reading_age_hours": 9.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-08T23:12:24Z",
   "source": "data/ncaaf/2026-11-08/gamelines/2312.json.gz",
