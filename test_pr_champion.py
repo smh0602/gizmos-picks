@@ -13,6 +13,11 @@ test that leans on "no champion" is green in the `tests` loop and red in this jo
 ⛔ A TEST ASKS THE CODE: every verdict is on a planted tree or on fb_model.py's text, never on what
 main names today (the bench's own fb_model.py names none, whatever main names).
 
+# @vacuity 🔴🔴 the edit is never shadowed by fb_model's stale bytecode (PR #344's first run)
+#   file: champions_named.py
+#   find:     drop_bytecode(os.getcwd())          # ⛔ never let a stale compiled fb_model shadow the edit
+#   with:     pass
+#
 # @vacuity 🔴 name() really names a champion
 #   file: champions_named.py
 #   find:             src = fb_refit.set_champion(src, lg, n)
@@ -141,17 +146,27 @@ def sh(d, body):
     try:
         step = os.path.join(sd, "step.sh")
         open(step, "w", encoding="utf-8", newline="\n").write(body)
+        # bytecode ON, as on the runner (a machine may set PYTHONDONTWRITEBYTECODE; this one does), so
+        #    the stale-bytecode case `job` sets up is real everywhere
+        env = {k: v for k, v in os.environ.items() if k not in ("PYTHONDONTWRITEBYTECODE", "PYTHONPYCACHEPREFIX")}
         p = subprocess.run(["bash", "-e", step], cwd=d, capture_output=True, text=True, timeout=600,
-                           env=dict(os.environ, SUITE_SHARD="rest", GITHUB_OUTPUT=os.devnull))
+                           env=dict(env, SUITE_SHARD="rest", GITHUB_OUTPUT=os.devnull))
     finally:
         shutil.rmtree(sd, ignore_errors=True)
     return p.returncode, p.stdout + p.stderr
 
 
 def job(d):
+    """The champion job's three steps on bench `d`. ⚠️ Between naming and the tests, fb_model.py's
+    mtime is set back to what it was: the edit then lands in the SAME second as the bytecode compiled
+    from the old file (the size is the same too: None -> "SM"), the case that left PR #344's first
+    run testing no champion. Deterministic on every OS, however fast the runner is."""
+    fm = os.path.join(d, "fb_model.py")
+    before = os.stat(fm)
     rc, log = sh(d, NAME.run)
     if rc:
         return rc, None, log
+    os.utime(fm, ns=(before.st_atime_ns, before.st_mtime_ns))
     trc, tlog = sh(d, TESTS.run)
     krc, klog = sh(d, TREE.run)
     return trc, krc, log + tlog + klog

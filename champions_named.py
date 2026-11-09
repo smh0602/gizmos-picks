@@ -14,10 +14,24 @@ NFL `SM` (the score model: its own predicted score, one input) and college `HC` 
 the switch that is waiting). ⛔ A league that already names one keeps it. Never on the real tree:
 it refuses a tree it is not told it may change (`--yes`).
 """
+import glob
 import os
 import sys
 
 NAMED = {"nfl": "SM", "ncaaf": "HC"}
+
+
+def drop_bytecode(root):
+    """Remove every compiled copy of fb_model.py under `root` (-> the paths removed).
+    🔴 `[2026-11-08]` PR #344's first run: this script imports fb_model (through fb_refit) BEFORE it
+    rewrites it, and None -> "SM" / "HC" keeps the file's size. Rewritten in the same second, the
+    cached bytecode still matched the file's (mtime, size), so every test in the job imported the OLD
+    module: the job ran with no champion named and stayed green. test_pr_champion.py's bench caught
+    it on the Linux runner."""
+    gone = sorted(glob.glob(os.path.join(root, "__pycache__", "fb_model.*.pyc")))
+    for p in gone:
+        os.remove(p)
+    return gone
 
 
 def name(src):
@@ -41,6 +55,7 @@ if __name__ == "__main__":
         src, got = name(fh.read())
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(src)
+    drop_bytecode(os.getcwd())          # ⛔ never let a stale compiled fb_model shadow the edit
     print("champions named: %s" % (", ".join("%s %s" % (lg, NAMED[lg]) for lg in got) or
                                    "none (every league already names one)"))
     sys.exit(0)
