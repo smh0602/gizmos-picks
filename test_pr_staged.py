@@ -93,8 +93,8 @@ ck(TESTS and "step_name='Tests', job='tests'" in (TESTS.run or "")
    "of the loop (rule 117)")
 eq([TESTS and TESTS.cond, TREE and TREE.cond], ["steps.apply.outputs.n != '0'"] * 2,
    "   it runs the suite whenever something staged differs from what is live")
-ck("SUITE_SHARD: rest" in PR.split("  staged:")[1].split("\n  render:")[0],
-   "   ...as the `rest` shard (the sweep does not read workflow files)")
+ck(W.job_env(PR).get("staged", {}).get("SUITE_SHARD") == "rest",
+   "   ...as the `rest` shard (the sweep does not read workflow files; its own env, wfparse.job_env)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. WHAT COUNTS AS A STAGED CHANGE")

@@ -62,6 +62,8 @@ def score(rows):
         weeks[F.monday(r["day"])].append(r)
     units = []
     for wk in sorted(weeks):
+        if all(F.is_history(r) for r in weeks[wk]):     # §3j: history rows train, never scored
+            continue
         train = [r for r in rows if r["day"] < wk]
         for mk in MARKETS:
             lab = [r for r in train if F.label(r, mk) is not None]
@@ -74,7 +76,8 @@ def score(rows):
             if not sigma:
                 continue
             for r in weeks[wk]:
-                if not r["final"] or r["hs"] is None or r["as"] is None or _main(r, mk) is None:
+                if (not r["final"] or r["hs"] is None or r["as"] is None or _main(r, mk) is None
+                        or F.is_history(r)):
                     continue
                 for dl in DELTAS:
                     line = _main(r, mk) + dl

@@ -119,6 +119,26 @@ planted leagues with a pinned clock; nothing here reads the live data tree.
 #   file: fb_score_model.py
 #   find: lays = lambda k: k["line"] == 0 or (k["line"] > 0) == (k["side"] == "home")  # noqa: E731
 #   with: lays = lambda k: True  # noqa: E731
+#
+# @vacuity 🔴 §3j: under a history champion fb_model's fits train on its history rows
+#   file: fb_score_model.py
+#   find:     fits = fb_model_fits(model_rows)
+#   with:     fits = fb_model_fits(rows)
+#
+# @vacuity 🔴 §3j: ...and so do its graded picks
+#   file: fb_score_model.py
+#   find:     wf = F.walk_forward(model_rows)
+#   with:     wf = F.walk_forward(rows)
+#
+# @vacuity 🔴 §3j: the score model itself never plays a history row
+#   file: fb_score_model.py
+#   find:             if r.get("season") in F.SEASONS and not F.is_history(r) and (r["final"] or r["day"] <= horizon)]
+#   with:             if (r.get("season") in F.SEASONS or F.is_history(r)) and (r["final"] or r["day"] <= horizon)]
+#
+# @vacuity 🔴 §3j: the point errors read the champion's own numbers
+#   file: fb_score_model.py
+#   find:         om, ot = F.own_score(r)          # §3j: the champion's own numbers (today's own_m, own_t while none)
+#   with:         om, ot = r["sig"].get("own_m"), r["sig"].get("own_t")
 """
 import ast
 import atexit
@@ -451,3 +471,53 @@ _op = S.opposite_picks(_pk)
 eq((_op["games_with_both"], _op["cannot_both_hit"], [g["game_id"] for g in _op["games"]]), (3, 1, ["g1"]),
    "🔴 away -1.5 beside home to win at 103% is counted; away +7 beside home to win (both can hit) is not")
 ck("fb_model_opposite_picks" in _doc and "coherence" in _doc["backtest"], "...and both counts are in the report")
+
+section("9. 🔴 §3j: UNDER A HISTORY CHAMPION, FB_MODEL'S SIDE TRAINS ON ITS HISTORY ROWS; THE SCORE MODEL NEVER SEES ONE")
+# `[Sam, 2026-11-08]` §3j: "A history champion trains on them". The report compares the score model with
+#    the site's model, so fb_model's fits, live fit, graded picks and this week's picks must train as the
+#    site's do (history rows included) while the score model plays only 2025-26 games.
+H9 = tempfile.mkdtemp(prefix="fbsm-h-")
+TREES.append(H9)
+shutil.copytree(LG, H9, dirs_exist_ok=True)
+with gzip.open(os.path.join(LG, "data", "nfl", "latest", "schedule-2025.json.gz"), "rt", encoding="utf-8") as _fh:
+    _g25 = [g for g in json.load(_fh)["games"] if g["final"]]
+os.makedirs(os.path.join(H9, "data", "nfl", "history"))
+jgz(os.path.join(H9, "data", "nfl", "history", "schedule-2019.json.gz"), {"season": 2019, "games": [
+    dict(g, id="h%d" % i, start=str(int(g["start"][:4]) - 6) + g["start"][4:]) for i, g in enumerate(_g25)]})
+_seen9 = {}
+
+
+def _spy(name, fn, at):
+    def call(*a, **k):
+        _seen9[name] = any(F.is_history(r) for r in a[at])
+        return fn(*a, **k)
+    return call
+
+
+_saved9 = (S.walk_forward, S.fb_model_fits, S.upcoming, F.walk_forward, F.current_picks)
+_was9 = F.CHAMPION["nfl"]
+try:
+    S.walk_forward = _spy("score model", S.walk_forward, 0)
+    S.fb_model_fits = _spy("fb_model fits", S.fb_model_fits, 0)
+    S.upcoming = _spy("live fit", S.upcoming, 1)
+    F.walk_forward = _spy("fb_model graded picks", F.walk_forward, 0)
+    F.current_picks = _spy("this week", F.current_picks, 1)
+    F.CHAMPION["nfl"] = "H"
+    _doc9 = S.build("nfl", root=H9, now=NOW, out=os.path.join(H9, "fsm.json"))
+finally:
+    S.walk_forward, S.fb_model_fits, S.upcoming, F.walk_forward, F.current_picks = _saved9
+eq(_seen9, {"score model": False, "fb_model fits": True, "live fit": True, "fb_model graded picks": True,
+            "this week": True},
+   "🔴 under H: every fb_model fit in the report trains on H's history rows; the score model plays none")
+try:
+    _rows9 = [r for r in F.build_rows("nfl", root=H9) if not F.is_history(r) and (r["final"] or r["day"] <= "2026-11-27")]
+    _done9 = S.walk_forward(_rows9, FM.Tables("nfl", H9))
+    _pe_h = S.point_errors(_done9)
+    F.CHAMPION["nfl"] = None
+    _pe_n = S.point_errors(_done9)
+finally:
+    F.CHAMPION["nfl"] = _was9
+ck(_pe_h["games"] and _pe_h["margin"]["score_model"] == _pe_n["margin"]["score_model"]
+   and _pe_h["margin"]["fb_model_own_ratings"] != _pe_n["margin"]["fb_model_own_ratings"],
+   "🔴 ...and its point errors measure the champion's own numbers (H's), the score model's unchanged",
+   (_pe_h["margin"], _pe_n["margin"]))

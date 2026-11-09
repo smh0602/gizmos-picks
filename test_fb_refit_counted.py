@@ -244,6 +244,12 @@ import fb_refit as R  # noqa: E402
 import status as S  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
 
+# `[2026-11-08]` §3j: this file tests the contest and the model with the champions IT names (planted),
+#    so it starts from none, whatever main names (a test asks the code, never the live constant; #339's
+#    HC line turned it red on a correct branch). Against every named champion:
+#    test_champion_switch.py, and test_fb_refit.py section 10.
+FM.CHAMPION.update(nfl=None, ncaaf=None)
+
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 11, 2, 11, 17, tzinfo=UTC)          # a Monday, after the 09:47Z run
 TREES = []

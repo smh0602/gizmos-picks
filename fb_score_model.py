@@ -142,7 +142,7 @@ def fb_model_fits(rows):
     """{(Monday, market): fb_model's own fit on games before that Monday} — the
     training `fb_model.walk_forward` grades with."""
     out = {}
-    for wk in sorted({F.monday(r["day"]) for r in rows}):
+    for wk in sorted({F.monday(r["day"]) for r in rows if not F.is_history(r)}):   # §3j: history rows train only
         train = [r for r in rows if r["day"] < wk]
         for mk in F.MARKETS:
             data = [(F.features(r, mk), y) for r in train if (y := F.label(r, mk)) is not None]
@@ -225,11 +225,12 @@ def point_errors(done):
     got = []
     for p in done:
         r, c = p["row"], p["row"].get("close") or {}
-        if not p["sides"] or r["sig"].get("own_m") is None or not c.get("spread") or not c.get("total"):
+        om, ot = F.own_score(r)          # §3j: the champion's own numbers (today's own_m, own_t while none)
+        if not p["sides"] or om is None or ot is None or not c.get("spread") or not c.get("total"):
             continue
         hs, as_ = float(r["hs"]), float(r["as"])
-        got.append({"margin": (p["err_m"], hs - as_ - r["sig"]["own_m"], hs - as_ - c["spread"][0][0]),
-                    "total": (p["err_t"], hs + as_ - r["sig"]["own_t"], hs + as_ - c["total"][0][0])})
+        got.append({"margin": (p["err_m"], hs - as_ - om, hs - as_ - c["spread"][0][0]),
+                    "total": (p["err_t"], hs + as_ - ot, hs + as_ - c["total"][0][0])})
     out = {"games": len(got)}
     for key in ("margin", "total"):
         out[key] = {name: {"mae": round(sum(abs(g[key][i]) for g in got) / len(got), 2) if got else None,
@@ -347,11 +348,15 @@ def build(lg=None, root=None, out=None, now=None):
     lg = (lg or LEAGUE).lower()
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     horizon = (datetime.date.fromisoformat(now[:10]) + datetime.timedelta(days=F.PRICING_DAYS)).isoformat()
-    rows = [r for r in F.build_rows(lg, root)
-            if r.get("season") in F.SEASONS and (r["final"] or r["day"] <= horizon)]
+    every = F.build_rows(lg, root)
+    rows = [r for r in every              # §3j: the games the score model plays, never a history row
+            if r.get("season") in F.SEASONS and not F.is_history(r) and (r["final"] or r["day"] <= horizon)]
+    # §3j: fb_model's side of the report trains as the site's model does, a history champion's
+    #    history rows included (fb_model scores none of them); with no champion it is `rows` itself.
+    model_rows = rows + [r for r in every if F.is_history(r)]
     tables = FM.Tables(lg, root)
     done = walk_forward(rows, tables)
-    fits = fb_model_fits(rows)
+    fits = fb_model_fits(model_rows)
     last = done[-1] if done else {"beta": [0.0] * len(MATCH_UNITS), "sigma": {}, "k": {}}
     season = max(FM.seasons(lg, root), default=None)
     doc = {"league": lg, "kind": "MODEL", "report_only": True, "built_at": now, "design": DESIGN,
@@ -360,15 +365,15 @@ def build(lg=None, root=None, out=None, now=None):
                         "matchup_points_per_unit": {u: round(b, 4) for u, b in zip(MATCH_UNITS, last["beta"])},
                         "sigma": {k: round(v, 2) if v else None for k, v in last["sigma"].items()},
                         "k": last["k"]},
-           "upcoming": upcoming(done, rows, now),
+           "upcoming": upcoming(done, model_rows, now),
            "backtest": backtest(done, fits),
            "tables_reconcile": FM.reconcile(tables, lg, season, root) if season else None}
-    wf = F.walk_forward(rows)
+    wf = F.walk_forward(model_rows)
     doc["fb_model_opposite_picks"] = dict(
         {name: opposite_picks([dict(k, market=mk) for mk in F.MARKETS for k in wf[name][mk]])
          for name, _q in F.RECORDS},
         this_week=opposite_picks([dict(k, p=k["model_probability"]["value"] / 100.0, line=k["line"]["value"])
-                                  for k in F.current_picks(lg, rows, root, now)]))
+                                  for k in F.current_picks(lg, model_rows, root, now)]))
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-score-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)

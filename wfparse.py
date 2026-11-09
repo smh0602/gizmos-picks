@@ -316,6 +316,26 @@ def job_timeouts(src):
 _JOB_NAME = re.compile(r'''^("[^"]*"|'[^']*'|.*?)(?:\s+#.*)?$''')
 
 
+def job_env(src):
+    """{job: {name: value}}: each job's OWN job-level `env:` block, never a step's and never the
+    next job's. `[2026-11-08]` Three tests had read a job's env as the text from its header down to
+    the `render:` job; pr-tests' new `champion` job then sat inside the `offseason` span, and its
+    SUITE_SHARD would have passed that check for a job that had lost its own (the review of PR §3j)."""
+    lines = read(src).splitlines()
+    out = {}
+    for jb in jobs(src):
+        env, inside = {}, False
+        for lineno, indent, key, val, _b in _scan(lines):
+            if not jb.start <= lineno < jb.end:
+                continue
+            if indent <= 4:
+                inside = indent == 4 and key == "env"
+            elif inside and indent == 6:
+                env[key] = _JOB_NAME.match(val).group(1).strip("\"'")
+        out[jb.name] = env
+    return out
+
+
 def job_names(src):
     """{job: its own `name:` as written, or None when GitHub lists it by id}."""
     lines = read(src).splitlines()

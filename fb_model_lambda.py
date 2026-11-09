@@ -84,8 +84,8 @@ def weekly_fits(rows, market, grid=GRID):
                 if F.label(r, market) is not None]
         X, y = [x for x, _ in data], [t for _, t in data]
         models = {lam: F.fit(X, y, ridge=lam) for lam in grid}
-        own = [(F.features(r, market), F.label(r, market)) for r in weeks[wk]
-               if F.label(r, market) is not None]
+        own = [(F.features(r, market), F.label(r, market)) for r in weeks[wk]   # §3j: never a
+               if F.label(r, market) is not None and not F.is_history(r)]      # history row
         out.append((wk, models, own))
     return out
 
@@ -139,11 +139,12 @@ def score_league(lg, rows):
             if models.get(FIXED) is None:
                 continue                              # today's model makes no prediction
             lam, _means = choose(fits, wk)
-            if any(r["final"] for r in weeks[wk]):     # a week not yet played has no choice to report
+            if any(r["final"] and not F.is_history(r) for r in weeks[wk]):   # a week not yet played
+                # (or only history rows, §3j) has no choice to report
                 lambdas[mk].append([wk, lam])
             m = {"fixed": models[FIXED], "self": models.get(lam)}
             for r in weeks[wk]:
-                if not r["final"]:
+                if not r["final"] or F.is_history(r):
                     continue
                 # the decision set: every final game with a closing line
                 for _b, line, _pa, _pb, _assumed in F.closing_quotes(r, mk)[:1]:

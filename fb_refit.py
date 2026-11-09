@@ -92,7 +92,7 @@ class Fits:
         out = {}
         for r in self.rows:
             y = FM.label(r, mk)
-            if y is None or not keep(r):
+            if y is None or FM.is_history(r) or not keep(r):     # §3j: history rows only train
                 continue
             wk = FM.monday(r["day"])
             m = self.model(wk, mk)
@@ -102,9 +102,13 @@ class Fits:
 
 
 def challenger_fits(rows, name, lg, root=ROOT):
-    """A challenger's walk-forward fits; §3d's H / HC also train on the history rows."""
+    """A challenger's walk-forward fits; §3d's H / HC also train on the history rows.
+    `[2026-11-08]` §3j: a challenger built on the champion's inputs trains on the champion's rows
+    (a history champion's included: "the champion plus one input"); one with only its own inputs
+    (OWN_SCORE: H, HC, SM, SMC) on the 2025-26 rows and its own history rows, never another's."""
+    own = [r for r in rows if not FM.is_history(r)] if name in FC.OWN_SCORE else list(rows)
     extra = FC.history_rows(lg, root) if FC.CHALLENGERS[name].get("history") else []
-    return Fits(list(rows) + extra, challenger_feat(name))
+    return Fits(own + extra, challenger_feat(name))
 
 
 def challenger_feat(name):
@@ -214,12 +218,14 @@ def contest(rows, champ, name, start, registered, fits=None, entered=True, withd
     return out
 
 
-def verdicts(results):
+def verdicts(results, champion=None):
     """§2: WINS needs ~~MIN_SCORED predictions~~, mean d > 0 and p < ALPHA / the
     number of challengers registered and not withdrawn in the league (k, unchanged).
     `[Sam, 2026-10-26]` §3g: on the COUNTED predictions (contest), at least MIN_SCORED
-    of them differing from the champion's; the test itself runs over all of them."""
-    k = sum(1 for x in results if x["registered"] and not x.get("withdrawn"))
+    of them differing from the champion's; the test itself runs over all of them.
+    `[Sam, 2026-11-08]` §3j: a champion that was a registered challenger is still one of k
+    (it is not in `results`), so a switch never loosens the bar."""
+    k = sum(1 for x in results if x["registered"] and not x.get("withdrawn")) + (1 if champion else 0)
     for x in results:
         if not x["registered"]:
             continue
@@ -283,19 +289,21 @@ def gap(preds, mk):
 
 
 def misses(rows):
-    """Mean |own number - final| beside mean |the books' line - final|."""
-    ok = [r for r in rows if r["season"] == SEASON and r["final"] and r["hs"] is not None and None not in (
-        r["M"], r["T"], r["sig"].get("own_m"), r["sig"].get("own_t"))]
+    """Mean |own number - final| beside mean |the books' line - final|.
+    `[Sam, 2026-11-08]` §3j: the CHAMPION's own numbers (`FM.own_score`; today's while none)."""
+    ok = [(r, FM.own_score(r)) for r in rows if r["season"] == SEASON and r["final"] and r["hs"] is not None
+          and not FM.is_history(r) and r["M"] is not None and r["T"] is not None]
+    ok = [(r, o) for r, o in ok if None not in o]
     if not ok:
         return {"games": 0}
     mean = lambda v: round(sum(v) / len(v), 2)  # noqa: E731
-    mg = [float(r["hs"]) - float(r["as"]) for r in ok]
-    tt = [float(r["hs"]) + float(r["as"]) for r in ok]
+    mg = [float(r["hs"]) - float(r["as"]) for r, _o in ok]
+    tt = [float(r["hs"]) + float(r["as"]) for r, _o in ok]
     return {"games": len(ok),
-            "margin_model": mean([abs(r["sig"]["own_m"] - m) for r, m in zip(ok, mg)]),
-            "margin_books": mean([abs(r["M"] - m) for r, m in zip(ok, mg)]),
-            "total_model": mean([abs(r["sig"]["own_t"] - t) for r, t in zip(ok, tt)]),
-            "total_books": mean([abs(r["T"] - t) for r, t in zip(ok, tt)])}
+            "margin_model": mean([abs(o[0] - m) for (_r, o), m in zip(ok, mg)]),
+            "margin_books": mean([abs(r["M"] - m) for (r, _o), m in zip(ok, mg)]),
+            "total_model": mean([abs(o[1] - t) for (_r, o), t in zip(ok, tt)]),
+            "total_books": mean([abs(r["T"] - t) for (r, _o), t in zip(ok, tt)])}
 
 
 def snapshots(lg, root=ROOT):
@@ -379,8 +387,8 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     rows = FM.build_rows(lg, root) if rows is None else rows
     champion = FM.CHAMPION.get(lg)
     names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == lg and n != champion]
-    for n in names:
-        FC.attach(n, lg, rows, root)
+    for n in names:                     # §3j: one with only its own inputs never reads history rows
+        FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
     since = (prev or {}).get("champion_since")
     if prev is not None and prev.get("champion") != champion:
         since = monday_on_or_after(today)          # §2: scored weeks restart at the next Monday
@@ -416,7 +424,17 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
             "champion_since": since, "season": SEASON, "floor": MIN_SCORED,
             "scoreboard": sb, "miss": misses(rows),
             "line_moves": line_moves(rows, champ, snapshots(lg, root)),
-            "challengers": verdicts(res)}
+            "challengers": verdicts(res, champion)}
+
+
+# The ONE pattern for "this league names no champion" in fb_model.py's text: set_champion edits it and
+#    champions_named.py (pr-tests' `champion` job) asks it (rule 117: one copy, `[2026-11-08]` review).
+NONE_NAMED = r'(?m)^(CHAMPION = \{.*"%s": )None\b'
+
+
+def names_none(src, lg):
+    """Does fb_model.py's text name NO champion for `lg` (the entry set_champion would edit)?"""
+    return bool(re.search(NONE_NAMED % lg, src))
 
 
 def set_champion(src, lg, name):
@@ -426,7 +444,7 @@ def set_champion(src, lg, name):
     put a model on the site that was never scored (push_branch's NEEDS SAM)."""
     if re.search(r'(?m)^CHAMPION = \{.*"%s": "[A-Z]+"' % lg, src):
         raise RuntimeError("fb_model.py already names a %s CHAMPION: NEEDS SAM, no switch" % lg)
-    out, n = re.subn(r'(?m)^(CHAMPION = \{.*"%s": )None\b' % lg, r'\g<1>"%s"' % name, src)
+    out, n = re.subn(NONE_NAMED % lg, r'\g<1>"%s"' % name, src)
     if n != 1:
         raise RuntimeError("CHAMPION line not found once in fb_model.py")
     return out

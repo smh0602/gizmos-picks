@@ -165,6 +165,12 @@ import record_fb as RF  # noqa: E402
 from jsblock import js_block  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
 
+# `[2026-11-08]` §3j: this file tests TODAY's model on planted rows (its inputs, its predicted score, its
+#    spread of results), so it names no champion, whatever main names (a test asks the code, never the
+#    live constant; an NFL SM champion crashed it in pr-tests' `champion` job). A named champion's
+#    numbers: test_champion_switch.py.
+FM.CHAMPION.update(nfl=None, ncaaf=None)
+
 PAGE = os.path.join(ROOT, "index.html")
 SIG = {"spread": 13.4, "total": 13.0}
 ROW = {"id": "S1", "lg": "nfl", "season": 2026, "day": "2026-10-18", "home": "DEN", "away": "SEA",

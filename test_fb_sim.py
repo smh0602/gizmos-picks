@@ -105,6 +105,12 @@ eq([round(v, 6) for v in S.team_cover(close, "home", -3)], [round(v, 6) for v in
 section("2. 🔴 A SIM PICK: THE SCORE'S SIDE, THE SIM'S CHANCE, A PUSH RETURNS THE STAKE")
 # ══════════════════════════════════════════════════════════════════════
 import fb_model as FM  # noqa: E402
+
+# `[2026-11-08]` §3j: this file tests TODAY's model on planted rows (its inputs, its predicted score, its
+#    spread of results), so it names no champion, whatever main names (a test asks the code, never the
+#    live constant; an NFL SM champion crashed it in pr-tests' `champion` job). A named champion's
+#    numbers: test_champion_switch.py.
+FM.CHAMPION.update(nfl=None, ncaaf=None)
 _q = lambda *qs: (lambda r, mk: list(qs))  # noqa: E731
 SC = {"home": 24.9, "away": 23.9}
 pk = FM.sim_pick({}, "spread", SC, close, quotes=_q(("fd", 3.0, 110, 110, False)))
