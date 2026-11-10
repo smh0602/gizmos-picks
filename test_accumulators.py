@@ -24,7 +24,7 @@ import subprocess
 import sys
 import tempfile
 
-from tcheck import ck, note, section, copy_module, shown
+from tcheck import ck, note, section, copy_module, shown, copy_latest
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -219,7 +219,7 @@ OFFLINE = (
 
 def tree():
     d = tempfile.mkdtemp(prefix="accum-")
-    shutil.copytree(os.path.join(ROOT, "data", "nfl"),
+    copy_latest(os.path.join(ROOT, "data", "nfl"),
                     os.path.join(d, "data", "nfl"))
     for _rel in PRODUCED + (NETWORK_BAIT,):
         _p = os.path.join(d, _rel)

@@ -30,6 +30,16 @@ silently). An empty list is still the key, so §3 holds in any season.
 #   find:           bash -e "$offloop"
 #   with:           true
 #
+# @vacuity 🔴 [2026-11-10] a heartbeat file it rewrites keeps the stamps its readers saw
+#   file: offseason.py
+#   find:                 doc = _F.with_heartbeat(path, doc)
+#   with:                 pass
+#
+# @vacuity ⚠️ [2026-11-10] ...and the heartbeat, void on the new bytes, goes
+#   file: offseason.py
+#   find:                 _F.drop_heartbeat(path)
+#   with:                 pass
+#
 # @vacuity ⛔ a graded record is never emptied: it stays when a season ends
 #   file: offseason.py
 #   find:     "board.json": ("games",),
@@ -105,6 +115,23 @@ try:
     eq((read(t, "data/latest/record.json"), read(t, "picks/fb-nfl-latest.json")),
        ({"games": [1]}, {"games": [1]}),
        "⛔ a graded record and a published card are untouched: nothing rewrites them at a season's end")
+    # `[2026-11-10]` a heartbeat file (dossiers, game lines): blank keeps the stamps its readers saw
+    #    (the heartbeat's), and drops the heartbeat its new bytes void
+    import collect as _C
+    import freshness as _F
+    _gl = os.path.join(t, "data", "nfl", "latest", "game-lines.json.gz")
+    _C.write(_gl, {"games": [1], "parlays": [2], "built_at": "2026-11-09T15:00:00Z"}, compress=True,
+             heartbeat=True)
+    _C.write(_gl, {"games": [1], "parlays": [2], "built_at": "2026-11-10T15:00:00Z"}, compress=True,
+             heartbeat=True)
+    ck(os.path.exists(_F.heartbeat_path(_gl)), "(planted: game lines kept by a heartbeat, built 11-10 15:00Z)")
+    O.blank(t)
+    _after = read(t, "data/nfl/latest/game-lines.json.gz")
+    eq((_after["games"], _after["parlays"], _after["built_at"]), ([], [], "2026-11-10T15:00:00Z"),
+       "🔴 a heartbeat file blank() empties keeps the stamps its readers saw (not the gzip's older own)")
+    ck(not os.path.exists(_F.heartbeat_path(_gl)), "   ...and the heartbeat its new bytes void is gone")
+    eq(_F.stamp_of(_gl).strftime("%Y-%m-%dT%H:%M:%SZ"), "2026-11-10T15:00:00Z",
+       "   ...so the contract reads the same age before and after the job empties it")
 finally:
     shutil.rmtree(t, ignore_errors=True)
 _r = subprocess.run([sys.executable, os.path.join(ROOT, "offseason.py")], capture_output=True, text=True, cwd=ROOT)

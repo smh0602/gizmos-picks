@@ -37,7 +37,7 @@ import os
 import subprocess
 import sys
 
-from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+from tcheck import ck, note, copy_module, copy_latest  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
 #                                 fixture went red on all four harnesses at once
 #                                 the day card_fb.py gained one import
 
@@ -448,7 +448,7 @@ print("\n═══ 6. 🔴 THE SENTENCE THE CARD SHOWS A READER ═══")
 import shutil                                     # noqa: E402
 import tempfile                                   # noqa: E402
 _tmp = tempfile.mkdtemp()
-shutil.copytree("data/ncaaf", os.path.join(_tmp, "data/ncaaf"))
+copy_latest("data/ncaaf", os.path.join(_tmp, "data/ncaaf"))
 os.makedirs(os.path.join(_tmp, "picks"), exist_ok=True)
 copy_module("card_fb", _tmp)
 _r = subprocess.run([sys.executable, "card_fb.py"], cwd=_tmp,

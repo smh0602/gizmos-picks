@@ -59,13 +59,23 @@ def path(data, kind, when=None):
 
 
 def same_bytes(path, doc):
-    """The bytes of the gzip at `path` when it stores exactly `doc` (compared as
-    JSON stores it, so int keys read back as strings); None otherwise (no file,
-    unreadable, any difference). ⛔ Never raises."""
+    """The bytes of the gzip at `path` when it stores `doc` apart from its stamps
+    (freshness.same_but_stamps, the heartbeat's own compare: as JSON stores it, so int
+    keys read back as strings); None otherwise (no file, unreadable, any other
+    difference, at any depth). ⛔ Never raises.
+    🔴 `[2026-11-10]` ~~exactly `doc`~~ APART FROM ITS STAMPS. The latest file is written
+    by `collect.write`, which adds `written_at`, and a run whose document moved only its
+    stamps keeps the latest gzip and writes its heartbeat: compared exactly, the archive
+    would dump a second full gzip on every such run (the copy exists to stop that). The
+    archive then carries latest's file stamps; its own time is its dated path, and no
+    reader takes a stamp from an archive (shadow_fb reads `dossiers`)."""
     try:
+        import freshness as _F
         with open(path, "rb") as fh:
             buf = fh.read()
-        if json.loads(gzip.decompress(buf).decode("utf-8")) == json.loads(json.dumps(doc)):
+        stored = json.loads(gzip.decompress(buf).decode("utf-8"))
+        if stored == json.loads(json.dumps(doc)) or (
+                isinstance(stored, dict) and isinstance(doc, dict) and _F.same_but_stamps(stored, doc)):
             return buf
     except Exception:
         pass

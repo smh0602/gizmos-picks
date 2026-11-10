@@ -823,16 +823,20 @@ def main():
     os.makedirs(LATEST, exist_ok=True)
     with open(f"{LATEST}/record.json", "w") as fh:
         json.dump(doc, fh, indent=1)
-    with gzip.open(f"{LATEST}/record-detail.json.gz", "wt") as fh:
-        json.dump({"built_at": doc["built_at"], "league": LEAGUE,
-                   "kind": "DESCRIPTIVE",
-                   "note": ("Every published row with its verdict and the "
-                            "actual number. `won` is null on anything not "
-                            "settled, and those are in no percentage."),
-                   "days": {d["date"]: d["rows"] for d in days},
-                   # `[Sam, 2026-10-17]` the game-lines tracker's rows, by ET kickoff day
-                   "game_lines": {d: [x for x in _gl.get("rows") or [] if x["date"] == d]
-                                  for d in sorted({x["date"] for x in _gl.get("rows") or [] if x["date"]})}}, fh)
+    # 💾 `[2026-11-10]` THROUGH collect.write's HEARTBEAT, as MLB's record-detail already is:
+    #    101 of 137 rewrites 11-03 -> 11-10 moved only `built_at` (test_heartbeat.py §4).
+    import collect as _C
+    _C.write(f"{LATEST}/record-detail.json.gz",
+             {"built_at": doc["built_at"], "league": LEAGUE,
+              "kind": "DESCRIPTIVE",
+              "note": ("Every published row with its verdict and the "
+                       "actual number. `won` is null on anything not "
+                       "settled, and those are in no percentage."),
+              "days": {d["date"]: d["rows"] for d in days},
+              # `[Sam, 2026-10-17]` the game-lines tracker's rows, by ET kickoff day
+              "game_lines": {d: [x for x in _gl.get("rows") or [] if x["date"] == d]
+                             for d in sorted({x["date"] for x in _gl.get("rows") or [] if x["date"]})}},
+             compress=True, heartbeat=True)
 
     log(f"record_fb[{LEAGUE}]: {len(days)} card(s), {len(A)}/{carded} rows "
         f"graded, {doc['overall']['w']}/{doc['overall']['n']} won, "

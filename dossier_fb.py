@@ -1355,9 +1355,12 @@ def build(league=None):
             % (len(bad), [(p_, v) for p_, _k, v in bad[:6]]))
         return 1
     p = os.path.join(data, "latest", "dossiers.json.gz")
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    with gzip.open(p, "wt") as fh:
-        json.dump(doc, fh)
+    # 💾 `[2026-11-10]` THROUGH collect.write's HEARTBEAT: a run whose dossiers moved only
+    #    their stamps (37 of 66 NFL and 50 of 71 college rewrites, 11-03 -> 11-10, 15.3 MB)
+    #    keeps the gzip and writes `dossiers.json.gz.beat.json`; every reader of its stamps
+    #    goes through freshness.with_heartbeat (test_heartbeat.py §4).
+    import collect as _C                 # here, not at the top: collect imports this module
+    _C.write(p, doc, compress=True, heartbeat=True)
     # ══════════════════════════════════════════════════════════════════
     # 🔴🔴 AND A DATED, WRITE-ONCE COPY. `[2026-09-17]`
     # ⛔ `latest/` IS OVERWRITTEN ON EVERY ONE OF THE EIGHT DAILY

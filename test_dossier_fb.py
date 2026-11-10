@@ -44,7 +44,7 @@ import subprocess
 import sys
 import tempfile
 
-from tcheck import ck, note, section, copy_module
+from tcheck import ck, note, section, copy_module, copy_latest
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -427,7 +427,7 @@ def tree(with_dossier=True, extras=False):
     and FIXTURE_N real games planted at the front of its board."""
     d = tempfile.mkdtemp(prefix="dossier-", dir=_RUN_TMP)
     _MADE.append(d)
-    shutil.copytree(os.path.join(ROOT, "data", "nfl"),
+    copy_latest(os.path.join(ROOT, "data", "nfl"),
                     os.path.join(d, "data", "nfl"))
     # ══════════════════════════════════════════════════════════════════
     # 🔴 A PLAYERS FILE BUILT BEFORE SIGNAL 7 GETS THE BLOCK A NEW BUILD
@@ -1807,6 +1807,25 @@ if _arch9:
        % len(_planted),
        "⛔ WRITE-ONCE. A later run overwriting it destroys the very "
        "history this exists to keep. Rewritten: %s" % _hit)
+    # 💾 `[2026-11-10]` ...AND A SECOND PASS WHOSE DOSSIERS MOVED ONLY THEIR STAMPS KEEPS latest's
+    #    BYTES (collect.write's heartbeat): 37 of 66 NFL and 50 of 71 college rewrites 11-03 ->
+    #    11-10 were stamp-only, 15.3 MB. Asked both ways, so it never passes having checked nothing:
+    #    the same content keeps the bytes and writes the heartbeat; changed content is a full write.
+    import freshness as _frx
+    _lb2 = open(_lat9, "rb").read()
+    _doc1 = json.loads(gzip.decompress(_lb).decode("utf-8"))
+    _doc2 = _frx.with_heartbeat(_lat9, json.loads(gzip.decompress(_lb2).decode("utf-8")))
+    _hbx = os.path.exists(_frx.heartbeat_path(_lat9))
+    if _frx.same_but_stamps(_doc1, _doc2):
+        ck(_lb2 == _lb and _hbx and _doc2.get("built_at") != _doc1.get("built_at"),
+           "🔴🔴 ...and the second pass, its dossiers the same apart from their stamps, kept latest/'s "
+           "BYTES and wrote the heartbeat (its readers see the new built_at)",
+           "%s bytes equal, heartbeat %s, built_at %s -> %s"
+           % (_lb2 == _lb, _hbx, _doc1.get("built_at"), _doc2.get("built_at")))
+    else:
+        ck(_lb2 != _lb and not _hbx,
+           "🔴 ...and the second pass, its dossiers changed, rewrote latest/ in full (no heartbeat)",
+           "bytes equal %s, heartbeat %s" % (_lb2 == _lb, _hbx))
     ck(os.path.getsize(_lat9) > 200,
        "   ...while `latest/` is refreshed as normal (%d bytes)"
        % os.path.getsize(_lat9),

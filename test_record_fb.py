@@ -87,7 +87,7 @@ import re
 import sys
 import unicodedata
 from datetime import datetime, timedelta
-from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+from tcheck import ck, note, copy_module, copy_latest  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
 #                                 fixture went red on all four harnesses at once
 #                                 the day card_fb.py gained one import
 
@@ -202,7 +202,7 @@ import fb_why  # noqa: E402  (season_of: the season a card's date belongs to, as
 import shutil      # noqa: E402
 import tempfile    # noqa: E402
 _tmp = tempfile.mkdtemp()
-shutil.copytree(f"{ROOT}/data/ncaaf", f"{_tmp}/data/ncaaf")
+copy_latest(f"{ROOT}/data/ncaaf", f"{_tmp}/data/ncaaf")
 shutil.copytree(f"{ROOT}/picks", f"{_tmp}/picks")
 _cwd = os.getcwd()
 try:

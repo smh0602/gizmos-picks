@@ -26,8 +26,13 @@ one of 27 sampled equal in content to its own commit's latest file.
 #
 # @vacuity 🔴 a latest file that stores another document is not copied
 #   file: daystore.py
-#   find:         if json.loads(gzip.decompress(buf).decode("utf-8")) == json.loads(json.dumps(doc)):
-#   with:         if True:
+#   find:         if stored == json.loads(json.dumps(doc)) or (
+#   with:         if True or (
+#
+# @vacuity 🔴 [2026-11-10] a latest file that differs only in its stamps is copied (a stamp-only run)
+#   file: daystore.py
+#   find:                 isinstance(stored, dict) and isinstance(doc, dict) and _F.same_but_stamps(stored, doc)):
+#   with:                 False):
 #
 # @vacuity 🔴 the census finds a latest/ write beside an archive of the same document
 #   file: dossier_fb.py
@@ -89,11 +94,44 @@ ck(blob(_ap2) != blob(_lp) and json.load(gzip.open(_ap2, "rt")) == json.load(gzi
    "   (control) the same document dumped again is a DIFFERENT blob: the defect, measured here",
    "if this ever passes as equal bytes, the check above proves nothing")
 
-_r3 = os.path.join(TMP, "other")
-_lp3 = latest(_r3, dict(DOC, built_at="2026-11-04T16:00:00Z"))
+# `[2026-11-10]` ~~a stamp apart is ANOTHER document, not copied~~. THE REQUIREMENT CHANGED: the
+#    latest file is now collect.write's, which adds `written_at`, and keeps its bytes on a run that
+#    moved only its stamps (its heartbeat carries them). Compared exactly, every such run would dump
+#    a second full gzip again. The archive's CONTENT is still this document's, at every depth;
+#    its stamps are latest's file's, and its time is its dated path (no reader takes a stamp
+#    from an archive: shadow_fb reads `dossiers`).
+_r3 = os.path.join(TMP, "stamps")
+_lp3 = latest(_r3, dict(DOC, built_at="2026-11-04T16:00:00Z", written_at="2026-11-04T16:00:05Z"))
 _ap3, _ = D.archive(DOC, _r3, "dossiers", log=lambda *a: None, when=WHEN, same_as=_lp3)
-eq(json.load(gzip.open(_ap3, "rt")), json.loads(json.dumps(DOC)),
-   "🔴 a latest file that stores ANOTHER document (a stamp apart) is not copied: the archive is this doc")
+ck(blob(_ap3) == blob(_lp3),
+   "🔴 a latest file that stores this document APART FROM ITS STAMPS is copied: one blob (a stamp-only "
+   "run, and collect.write's written_at)")
+for _i, (_what, _other) in enumerate((
+        ("a top-level field", dict(DOC, league="ncaaf")),
+        ("a value inside a section", dict(DOC, dossiers=[{"board_id": 7, "sections": [1]}])),
+        ("a key it lacks", dict(DOC, extra=1)),
+        ("a stamp-named key BELOW the top", dict(DOC, dossiers=[{"board_id": 7, "sections": [],
+                                                              "built_at": "2026-11-04T16:00:00Z"}])))):
+    _ro = os.path.join(TMP, "other-%d" % _i)
+    _lpo = latest(_ro, _other)
+    _apo, _ = D.archive(DOC, _ro, "dossiers", log=lambda *a: None, when=WHEN, same_as=_lpo)
+    eq(json.load(gzip.open(_apo, "rt")), json.loads(json.dumps(DOC)),
+       "🔴 a latest file whose CONTENT differs (%s) is not copied: the archive is this doc" % _what)
+
+# ...and the run it is for: collect.write keeps latest on a stamp-only run, and the archive of
+#    that run is the same blob, so the run adds no gzip at all
+import collect as _C  # noqa: E402
+import freshness as _F  # noqa: E402
+_r5 = os.path.join(TMP, "kept")
+_lp5 = os.path.join(_r5, "latest", "dossiers.json.gz")
+_C.write(_lp5, dict(DOC, built_at="2026-11-04T16:00:00Z"), compress=True, heartbeat=True)
+_first = blob(_lp5)
+_C.write(_lp5, dict(DOC, built_at="2026-11-04T17:10:00Z"), compress=True, heartbeat=True)
+ck(blob(_lp5) == _first and os.path.exists(_F.heartbeat_path(_lp5)),
+   "(a stamp-only run through collect.write: latest kept, its heartbeat written)")
+_ap5, _ = D.archive(dict(DOC, built_at="2026-11-04T17:10:00Z"), _r5, "dossiers", log=lambda *a: None,
+                    when=WHEN, same_as=_lp5)
+ck(blob(_ap5) == blob(_lp5), "🔴🔴 ...and that run's archive is latest's bytes: the run adds no new blob")
 for _name, _make in (("missing", None), ("corrupt", b"not a gzip"), ("truncated", None)):
     _rr = os.path.join(TMP, _name)
     os.makedirs(os.path.join(_rr, "latest"))
