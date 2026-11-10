@@ -346,7 +346,8 @@ try:
     ck(fp_with("t60r.py", '    s = (g.get("start") or "")[:10]', '    s = (g.get("start") or "")[:7]')[0]
        != _CODE["fb_model.py"],
        "🔴 ...and code reached through another module's import (t60r.kick, read as FM.t60r.kick too)")
-    ck(fp_with("card_fb.py", 'PROPS_SEASONS = {\n    "nfl": "all",', 'PROPS_SEASONS = {\n    "nfl": "last+this",',
+    # ⛔ whatever the switch holds (test_props_switch_branch.py runs this file on a switched branch too)
+    ck(fp_with("card_fb.py", "PROPS_SEASONS = {", 'PROPS_SEASONS = {"planted": "a changed switch",',
                of=_PMF)[0] != _CODE["fb_props_model.py"],
        "🔴🔴 a merged PROPS switch (T74: card_fb.PROPS_SEASONS) changes the props model's")
     ck(fp_with("fb_model.py", "def build(lg=None, root=None, out=None, extra_top=None, extra_players=None, now=None):",
