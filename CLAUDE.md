@@ -352,8 +352,9 @@ note boxes, tags and the stale bar now require their absence.
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
   you" tell Sam. ⛔ Merging is Sam's; a champion adds "+game-<name>" to the card's
-  method. `[Sam, 2026-11-10]` A merged model change is live at the next football pass, not the
-  next morning's card (`freshness.code_moves`, `built_by`). A report over 8 days old is DEGRADED. `[R1, 2026-10-18]` A report that never lands
+  method. `[Sam, 2026-11-10]` A merged model change (the game model's or the props model's, a
+  props-seasons switch included) is live at the next football pass, not the next morning's card
+  (`freshness.code_moves`, `built_by`). A report over 8 days old is DEGRADED. `[R1, 2026-10-18]` A report that never lands
   is DEGRADED too (`watchdog.check_learner_landing`). While the league already names a
   CHAMPION, a WINS pushes nothing and its report carries NEEDS SAM; a second switch (an
   ordered CHAMPION list) is Sam's, §3 unchanged. `test_fb_refit.py`. `[Sam, 2026-10-26]` T73
@@ -1309,10 +1310,12 @@ record_grader.py  the fingerprint of the MLB grading code: collect_record
                   `winners_fingerprint`), FOLLOWED into the other modules it
                   reads (collect.VOID_STATES, fb_ledger, daystore); a module
                   it reaches that it cannot find raises, never "matches".
-                  `[2026-11-10]` Also fb_model.build's (`fb_model_fingerprint`,
-                  fb-model.json's `built_by`). A name a module IMPORTS, read
-                  through it (`FM.t60r.kick`), is followed into its own module
-                  (~~raised "defines no build"~~); only a missing entry raises.
+                  `[2026-11-10]` Also each football model's `build`
+                  (`builder_fingerprint`; `built_by`, the stamp that never costs
+                  the file: None when it cannot be computed). A name a module
+                  IMPORTS, read through it (`FM.t60r.kick`, `from M import X;
+                  X.f`), is followed into its own module (~~raised "defines no
+                  build"~~); only a missing entry raises.
 verify_board.py   checks data/latest/board.json -- implied runs vs the
                   moneyline, run-line attribution, and whether the PAGE
                   can tell two records for one matchup apart. ⛔ Runs on
@@ -1407,7 +1410,8 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   replay by it.
                   `[2026-11-10]` `stamp` also writes `built_by`, the code that
                   built the file (`builder_fingerprint`); freshness.code_moves
-                  rebuilds a file another code built at the next pass.
+                  rebuilds a file another code built at the next pass. So does
+                  fb_props_model.build.
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   stat distribution from the stored logs 2021-26 (`[Sam,
                   2026-10-27]` or last season plus this one once a §3i switch
@@ -1636,14 +1640,17 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `[2026-10-27, review 2]` the retry is PLANNED
                   (`injury_retry`, like `slate_moves`), never a deadline;
                   `[Sam, 2026-11-10]` so is `code_moves`: a football
-                  fb-model.json whose `built_by` is not this code's
-                  (`CODE_BUILT`, record_grader.fb_model_fingerprint) plans
-                  `card-fb` at the next pass ("Yes, build it": a merged model
-                  change is live within the hour). Parsed, never imported;
-                  no fb_model.py beside it plans nothing. test_code_moves.py.
+                  model file (`CODE_BUILT`: fb-model.json, fb-props-model.json)
+                  whose `built_by` is not this code's
+                  (record_grader.builder_fingerprint) plans `card-fb` at the
+                  next pass ("Yes, build it": a merged model change is live
+                  within the hour). Parsed, never imported; no model file
+                  beside it plans nothing. test_code_moves.py.
                   `health` also judges both leagues' slot logs (the last 2
                   slots read nothing, any cause).
-                  ⛔ It imports no other repo module (sandboxes copy it alone):
+                  ⛔ It imports no other repo module ~~(none at all)~~ at load
+                  (sandboxes copy it alone; `[2026-11-10]` one, record_grader,
+                  lazily in `code_fingerprint`, only beside a model's file):
                   the US DST rule `_us_eastern_offset` lives here, fb_weather
                   reads it from here `[2026-10-26]`.
                   `[2026-10-27]` ✅ Every other deadline stays at a FIXED UTC-4

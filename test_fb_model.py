@@ -321,9 +321,9 @@ ck(_on_disk["pricing"].get("inputs") == F.inputs_fingerprint() and _on_disk.get(
    (_on_disk["pricing"].get("inputs"), _on_disk.get("champion")))
 # `[2026-11-10]` and the code that built the whole file (freshness.code_moves plans card-fb on another)
 import record_grader as _RG
-ck(_on_disk.get("built_by") == F.builder_fingerprint() == _RG.fb_model_fingerprint(F.__file__)
+ck(_on_disk.get("built_by") == F.builder_fingerprint() == _RG.builder_fingerprint(F.__file__)
    and len(_on_disk.get("built_by") or "") == 16,
-   "🔴 the built file names the code that built it (record_grader's fingerprint of fb_model.build)",
+   "🔴 the built file names the code that built it (record_grader.builder_fingerprint of fb_model.py)",
    (_on_disk.get("built_by"), F.builder_fingerprint()))
 _hs = _doc["record"]["spread"]
 _cs = _doc["closing_record"]["spread"]

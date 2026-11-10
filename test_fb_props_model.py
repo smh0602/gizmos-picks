@@ -2,6 +2,11 @@
 """test_fb_props_model.py — the football props model keeps the promises
 in `research/fb_props_design.md` (Sam, 2026-09-24).
 
+# @vacuity 🔴 the built fb-props-model.json names the code that built it (freshness.code_moves reads it)
+#   file: fb_props_model.py
+#   find:     doc["built_by"] = builder_fingerprint()
+#   with:     pass
+#
 # @vacuity the remembered share_before answers per (team, day), not per team
 #   file: fb_props_model.py
 #   find:         k = (team, day)
@@ -275,6 +280,7 @@ try:
     M.current_picks = lambda *a, **k: list(_fake_live)
     M.log = lambda m: None
     _docb = M.build("nfl", root=_tmpb, out=os.path.join(_tmpb, "fbp.json"))
+    _disk = json.load(open(os.path.join(_tmpb, "fbp.json"), encoding="utf-8"))
 finally:
     M.walk_forward, M.current_picks, M.log = _ow, _oc, _ol
     shutil.rmtree(_tmpb, ignore_errors=True)
@@ -282,6 +288,12 @@ ck(len(_docb["picks"]) == 40 and _docb["picks_total"] == 40 and "more_picks" not
    "🔴 no cap on model picks: all 40 are written, none held back",
    "⛔ Sam, 2026-09-24: 'No cap on model picks. Only the Gizmo's Picks card keeps its limit.' got %d"
    % len(_docb["picks"]))
+# `[Sam, 2026-11-10]` the code that built the file: freshness.code_moves plans card-fb on another
+import record_grader as _RG  # noqa: E402
+ck(_disk.get("built_by") == M.builder_fingerprint() == _RG.builder_fingerprint(M.__file__)
+   and len(_disk.get("built_by") or "") == 16,
+   "🔴 the built file names the code that built it (record_grader.builder_fingerprint of fb_props_model.py)",
+   (_disk.get("built_by"), M.builder_fingerprint()))
 
 
 # ⚠️ `History.share_before` REMEMBERS `possession.share_before`. `[2026-09-25]`

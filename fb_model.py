@@ -1303,11 +1303,11 @@ def inputs_fingerprint():
 @functools.lru_cache(maxsize=1)
 def builder_fingerprint():
     """`[Sam, 2026-11-10]` The code that builds this file: `build` and every name it reaches, in
-    every module (record_grader.fb_model_fingerprint, the ONE recipe). freshness.code_moves plans
+    every module (record_grader.builder_fingerprint, the ONE recipe). freshness.code_moves plans
     `card-fb` at the next pass when fb-model.json's `built_by` is not this, so a merged model
     change is live within the hour, not at the next morning's deadline."""
     import record_grader
-    return record_grader.fb_model_fingerprint(os.path.abspath(__file__))
+    return record_grader.built_by(os.path.abspath(__file__))     # ⛔ None, never a raise
 
 
 def stamp(doc, lg):
