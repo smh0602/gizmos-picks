@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-10T20:14:59Z",
+ "checked_at": "2026-11-10T20:17:42Z",
  "et_date": "2026-11-10",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 12,
  "findings": [
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (cfb-injuries, news)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:lineups:mlb",
    "severity": "DEGRADED",
