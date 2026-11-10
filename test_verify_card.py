@@ -250,7 +250,11 @@ def section39(doc, rows):
 
 import mlb_pitcher_cal as _MPC  # noqa: E402
 _S39_NAME = "every pitcher row prints the number its stored correction gives"
-_MAP = {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08],
+# `[2026-11-09]` the planted mapping has the SHIPPED method's own shape (C1: the blend alone; C2: the
+#    blend and the price): fb_model.predict now refuses another length (test_fit_shape.py). Since C1
+#    shipped (Sam, 2026-10-11) this 2-input C2 map had been asked about C1's one input, silently.
+_K = len(_MPC.features({"blend": 0.6, "be": 0.6}, _MPC.SHIPPED)) if _MPC.SHIPPED else 2
+_MAP = {"mu": [0.65, 0.22][:_K], "sd": [0.40, 0.23][:_K], "w": [0.07, 0.14, 0.08][:_K + 1],
         "n_train": 400, "before": "2026-09-29"}
 _ROUND = {"pitcher": "Planted Blend", "market": "outs", "kind": "pitcher",
           "blend": 69.5, "confidence": 69, "confidence_method": "BLEND",

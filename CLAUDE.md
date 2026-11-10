@@ -1549,6 +1549,17 @@ game_lines_fb.py  THE ALT LADDERS (~~THE GAME LINES TAB~~: `[Sam, 2026-10-01]`
                   ⛔ Never touches the card. Data: the paid `alt-lines`
                   pull in collect.py (one pull per game, capped at
                   1,500 credits a month, bill measured per call).
+                  `[2026-11-09]` It prices from the fits STORED in
+                  fb-model.json, asked with this code's inputs: after a
+                  merge (a champion switch, or any change to the inputs)
+                  the props-player / alt-lines passes rebuild it from the
+                  OLD file until the next card-fb. ⛔ `stored_fits` is the
+                  ONE reader and uses them only when `fb_model.stamp`'s
+                  `champion` and `pricing.inputs` (the fingerprint of
+                  `features` + `predict`) match this code; else no model %
+                  (`fits_refused`). `fb_model.predict` and
+                  `fb_props_model.s1_mean` raise on a vector of another
+                  length (they used to zip it silently). test_fit_shape.py.
 fb_agreement.py   card vs props model (Sam, 2026-09-25): every card row and
                   props-model pick labelled AGREE / SPLIT / ONE SOURCE
                   against its break-even, frozen per card run, graded

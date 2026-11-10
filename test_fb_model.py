@@ -2,6 +2,11 @@
 """test_fb_model.py — the football pick model keeps the promises in
 `research/fb_model_design.md` (Sam, 2026-09-23).
 
+# @vacuity 🔴 the built fb-model.json carries both stamps (game_lines_fb.stored_fits reads them)
+#   file: fb_model.py
+#   find:     stamp(doc, lg)                       # the card's method reads "champion" ("+game-<name>")
+#   with:     pass
+#
 # @vacuity a snapshot pulled after kickoff is never a price
 #   file: fb_model.py
 #   find:             if not pulled or not commence or pulled >= commence:
@@ -303,6 +308,12 @@ try:
     _doc = F.build("nfl", out=_tmp)
 finally:
     F.build_rows, F.current_picks, F.log = _orig_rows, _orig_cur, _orig_log
+# `[2026-11-09]` the stamps a reader of the stored fits must match (fb_model.stamp,
+#    game_lines_fb.stored_fits): the champion that fitted them and the input code's fingerprint
+_on_disk = json.load(open(_tmp, encoding="utf-8"))
+ck(_on_disk["pricing"].get("inputs") == F.inputs_fingerprint() and _on_disk.get("champion") == F.CHAMPION.get("nfl"),
+   "🔴 the built file carries the input code's fingerprint and the champion that fitted it (none: no key)",
+   (_on_disk["pricing"].get("inputs"), _on_disk.get("champion")))
 _hs = _doc["record"]["spread"]
 _cs = _doc["closing_record"]["spread"]
 ck(_hs["picks"]["value"] == 0 and _cs["picks"]["value"] > 0,
