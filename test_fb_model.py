@@ -2,6 +2,11 @@
 """test_fb_model.py — the football pick model keeps the promises in
 `research/fb_model_design.md` (Sam, 2026-09-23).
 
+# @vacuity 🔴 the built fb-model.json names the code that built it (freshness.code_moves reads it)
+#   file: fb_model.py
+#   find:     doc["built_by"] = builder_fingerprint()
+#   with:     pass
+#
 # @vacuity 🔴 the built fb-model.json carries both stamps (game_lines_fb.stored_fits reads them)
 #   file: fb_model.py
 #   find:     stamp(doc, lg)                       # the card's method reads "champion" ("+game-<name>")
@@ -314,6 +319,12 @@ _on_disk = json.load(open(_tmp, encoding="utf-8"))
 ck(_on_disk["pricing"].get("inputs") == F.inputs_fingerprint() and _on_disk.get("champion") == F.CHAMPION.get("nfl"),
    "🔴 the built file carries the input code's fingerprint and the champion that fitted it (none: no key)",
    (_on_disk["pricing"].get("inputs"), _on_disk.get("champion")))
+# `[2026-11-10]` and the code that built the whole file (freshness.code_moves plans card-fb on another)
+import record_grader as _RG
+ck(_on_disk.get("built_by") == F.builder_fingerprint() == _RG.fb_model_fingerprint(F.__file__)
+   and len(_on_disk.get("built_by") or "") == 16,
+   "🔴 the built file names the code that built it (record_grader's fingerprint of fb_model.build)",
+   (_on_disk.get("built_by"), F.builder_fingerprint()))
 _hs = _doc["record"]["spread"]
 _cs = _doc["closing_record"]["spread"]
 ck(_hs["picks"]["value"] == 0 and _cs["picks"]["value"] > 0,

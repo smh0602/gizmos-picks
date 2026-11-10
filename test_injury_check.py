@@ -599,10 +599,14 @@ try:
        sorted(CARD_MODES))
 
     def fresh_card(root, lg, t):
-        """Every card-fb row's file built a minute ago (cwd = root: the card path is relative)."""
+        """Every card-fb row's file built a minute ago (cwd = root: the card path is relative),
+        `[2026-11-10]` by THIS code where the file names its builder (freshness.CODE_BUILT): a
+        model file another code built is rebuilt at the next pass (test_code_moves.py)."""
         for m, (_k, p), *_ in F.contract("data/" + lg, "picks", t):
             if m == "card-fb":
-                put(p, {"built_at": iso(t - M)})
+                put(p, dict({"built_at": iso(t - M)}, **{
+                    "built_by": F.code_fingerprint(mod, rec) for _m, name, mod, rec in F.CODE_BUILT
+                    if _m == m and p.replace(os.sep, "/").endswith("/latest/" + name)}))
 
     for _lg, _day in (("nfl", "2026-10-25"), ("ncaaf", "2026-10-24")):
         P = tree()
