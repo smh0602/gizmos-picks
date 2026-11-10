@@ -21,6 +21,7 @@ picked, and a rung with no outcome in the logs is not graded.
 import collections
 import contextlib
 import datetime
+import functools
 import glob
 import gzip
 import json
@@ -955,6 +956,14 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
     return out
 
 
+@functools.lru_cache(maxsize=1)
+def builder_fingerprint():
+    """`[Sam, 2026-11-10]` The code that builds fb-props-model.json: `build` and every name it
+    reaches (record_grader.builder_fingerprint, the ONE recipe; fb_model.builder_fingerprint's twin)."""
+    import record_grader
+    return record_grader.built_by(os.path.abspath(__file__))     # ⛔ None, never a raise
+
+
 def build(lg=None, root=None, out=None, logs=None, now=None):
     lg = (lg or LEAGUE).lower()
     logs = train_logs(lg, root, now) if logs is None else logs
@@ -1010,6 +1019,9 @@ def build(lg=None, root=None, out=None, logs=None, now=None):
     # `[Sam, 2026-10-09]` the board it priced: the card takes these % only for it.
     doc["board_pulled_at"] = B.get("pulled_at")
     doc["picks_total"] = len(live)
+    # `[Sam, 2026-11-10]` the code that built this file: freshness.code_moves plans card-fb at the
+    #    next pass when it is not the code's (a merged props switch, T74's PROPS_SEASONS included)
+    doc["built_by"] = builder_fingerprint()
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-props-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)

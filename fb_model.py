@@ -1300,13 +1300,26 @@ def inputs_fingerprint():
             + record_grader.fingerprint(here, "predict", follow=True))
 
 
+@functools.lru_cache(maxsize=1)
+def builder_fingerprint():
+    """`[Sam, 2026-11-10]` The code that builds this file: `build` and every name it reaches, in
+    every module (record_grader.builder_fingerprint, the ONE recipe). freshness.code_moves plans
+    `card-fb` at the next pass when fb-model.json's `built_by` is not this, so a merged model
+    change is live within the hour, not at the next morning's deadline."""
+    import record_grader
+    return record_grader.built_by(os.path.abspath(__file__))     # ⛔ None, never a raise
+
+
 def stamp(doc, lg):
     """What a reader of fb-model.json's stored fits must match (game_lines_fb.stored_fits): the
     champion that fitted them (`champion`, written only when one is named) and the input code
-    (`pricing.inputs`). ⛔ The ONE writer of both. test_fit_shape.py, test_fb_model.py."""
+    (`pricing.inputs`); and the code that built the whole file (`built_by`, read by
+    freshness.code_moves). ⛔ The ONE writer of all three. test_fit_shape.py, test_fb_model.py,
+    test_code_moves.py."""
     if CHAMPION.get(lg):
         doc["champion"] = CHAMPION[lg]
     doc["pricing"]["inputs"] = inputs_fingerprint()
+    doc["built_by"] = builder_fingerprint()
     return doc
 
 

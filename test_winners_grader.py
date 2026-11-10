@@ -49,8 +49,8 @@ to 20-23), since a football void is a tie.
 #
 # @vacuity ⛔ a module it cannot find is "cannot tell", never "it matches"
 #   file: record_grader.py
-#   find: elif top not in sys.stdlib_module_names:
-#   with: elif False:
+#   find: if top in sys.stdlib_module_names:
+#   with: if True:
 #
 # @vacuity ✅ the stamp is the GRADING, not the whole builder (a display edit costs no rebuild)
 #   file: record_grader.py

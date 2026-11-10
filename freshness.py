@@ -1154,9 +1154,10 @@ def _us_eastern_offset(naive):
     no tz database is assumed on the runner.
     `[2026-10-26]` ⛔ THE ONE COPY (rule 117), moved here unchanged from
     fb_weather.py, which reads it from here (and cfb_injuries from fb_weather).
-    ⛔ freshness.py imports no other repo module: tests and the gate copy it into
-    sandboxes by itself, and the first build of the injury check, importing this
-    from fb_weather, killed every football contract there (test_injury_check.py)."""
+    ⛔ freshness.py imports no other repo module ~~(none at all)~~ at load (`[2026-11-10]` one,
+    record_grader, lazily inside `code_fingerprint` and only beside a model's file): tests and
+    the gate copy it into sandboxes by itself, and the first build of the injury check, importing
+    this from fb_weather, killed every football contract there (test_injury_check.py)."""
     y = naive.year
     mar = datetime.datetime(y, 3, 8) + datetime.timedelta(days=(6 - datetime.datetime(y, 3, 8).weekday()) % 7)
     nov = datetime.datetime(y, 11, 1) + datetime.timedelta(days=(6 - datetime.datetime(y, 11, 1).weekday()) % 7)
@@ -2694,6 +2695,75 @@ def every_pass(data="data", now=None):
     return {m for m, days in (EVERY_PASS.get(lg) or {}).items() if day in days}
 
 
+# 🔴 `[Sam, 2026-11-10]` A MERGED MODEL CHANGE IS LIVE AT THE NEXT PASS, NOT AT THE NEXT
+#    DEADLINE. Asked "Should a model change go live at the next hourly pass instead of the next
+#    morning's build?", Sam: "Yes, build it". fb-model.json is rebuilt only by `card-fb`, due once
+#    a morning: college's switch to HC (#339) merged 11-10 01:18Z, and with GitHub starting that
+#    evening's crons 6-10 hours late it was not live by 02:40Z and would not be before 13:30Z.
+#    Until then the card's game lines were the old model's and the ladder refused its fits.
+#    ✅ EVERY FOOTBALL MODEL FILE NAMES THE CODE THAT BUILT IT: `built_by`, the fingerprint of
+#    its module's `build` and every name it reaches in every module (record_grader's ONE recipe,
+#    `builder_fingerprint`; parsed, comments ignored). The game model (fb-model.json) and the
+#    props model (fb-props-model.json: the card's confidence; T74's season switch, a Monday
+#    branch like HC's, lives in card_fb.PROPS_SEASONS, which its build reaches). A football league
+#    whose file names other code -> `card-fb`, which rebuilds both, the card and its whys.
+#    `test_code_moves.py` fails a module that writes `built_by` and is not in CODE_BUILT.
+#    ⛔ PLANNED, NEVER MARKED STALE, like `slate_moves`: the deadline is unchanged. A model build
+#    that fails is caught in run_mode, so it is no new red run; any other card-fb failure is red at
+#    once, as it would be at the deadline. Past the deadline the row is late, as it is today.
+#    ⚠️ A build that keeps failing is planned again every pass, as a late row already is.
+#    ⛔ PARSED, NEVER IMPORTED (fb_model drags in card_fb, which exits under LEAGUE=mlb).
+#    A missing file is its own row's business. A file whose stamp cannot be read was not
+#    provably built by this code, so it is rebuilt. A fingerprint that cannot be computed plans
+#    nothing and says so; the model's own stamp is then None (record_grader.built_by never costs
+#    the file), so the deadline still rebuilds it. test_code_moves.py computes the real ones.
+#    (mode, the file under latest/, the module whose `build` writes it)
+CODE_BUILT = (("card-fb", "fb-model.json", "fb_model.py"),
+              ("card-fb", "fb-props-model.json", "fb_props_model.py"))
+
+
+def code_fingerprint(module, root=None):
+    """record_grader.builder_fingerprint of `module` beside this file (or under `root`, a planted
+    copy). ⚠️ `[2026-11-10]` freshness's ONE repo import, lazy: record_grader, reached only when the
+    module's file is beside this one (code_moves), so a sandbox holding freshness.py alone imports
+    nothing; one without record_grader.py plans nothing and says so (test_code_moves.py)."""
+    key = (os.path.abspath(root or os.path.dirname(os.path.abspath(__file__))), module)
+    if key not in _CODE_FP:
+        import record_grader
+        _CODE_FP[key] = record_grader.builder_fingerprint(os.path.join(key[0], module))
+    return _CODE_FP[key]
+
+
+_CODE_FP = {}     # the code does not change inside one process
+
+
+def code_moves(data="data", root=None):
+    """The modes that rebuild a file this league's code would build differently (CODE_BUILT)."""
+    lg = data.replace(os.sep, "/").rstrip("/").split("/")[-1]
+    if lg not in FB_TIMES:               # MLB builds no football model file
+        return set()
+    out = set()
+    here = os.path.abspath(root or os.path.dirname(os.path.abspath(__file__)))
+    for mode, name, module in CODE_BUILT:
+        path = os.path.join(data, "latest", name)
+        if not os.path.exists(path) or not os.path.exists(os.path.join(here, module)):
+            continue                     # ⛔ a sandbox holding freshness.py alone imports nothing
+        try:
+            code = code_fingerprint(module, root)
+        except Exception as e:
+            print(f"⚠️ {name}: the code that builds it could not be fingerprinted "
+                  f"({type(e).__name__}: {str(e)[:160]}); it waits for its deadline")
+            continue
+        try:
+            with open(path, encoding="utf-8") as fh:
+                made = json.load(fh).get("built_by")
+        except (OSError, ValueError, AttributeError):
+            made = None
+        if made != code:
+            out.add(mode)
+    return out
+
+
 def plan(data="data", picks="picks", now=None, allow_paid=True):
     """The ordered list of modes needed to meet every deadline that has
     passed. Order is the contract's order, which is dependency order."""
@@ -2712,7 +2782,8 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
             and (allow_paid or not r["paid"])
             and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH)} \
-        | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now)
+        | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now) \
+        | code_moves(data)
     changed = True
     while changed:
         changed = False

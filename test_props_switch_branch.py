@@ -35,7 +35,8 @@ from tcheck import ck, eq, section, shown  # noqa: E402
 
 import fb_refit as R  # noqa: E402
 
-SWITCH_TESTS = ("test_fb_props_seasons.py", "test_fb_props_confidence.py")
+SWITCH_TESTS = ("test_fb_props_seasons.py", "test_fb_props_confidence.py",
+                "test_code_moves.py")     # `[2026-11-10]` the switch changes the props model's built_by
 
 section("1. every test that reads the props switch is named here")
 _readers = sorted(os.path.basename(p) for p in glob.glob(os.path.join(ROOT, "test_*.py"))
