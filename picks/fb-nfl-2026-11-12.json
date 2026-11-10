@@ -1,0 +1,374 @@
+{
+ "date": "2026-11-12",
+ "league": "nfl",
+ "generated_at": "2026-11-10T06:28:22Z",
+ "generated_by": "card_fb.py",
+ "kind": "RECORD + MARKET",
+ "odds_pulled_at": "2026-11-09T18:00:38Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": 0.5,
+ "denominator": "games at >= 50% of team snaps",
+ "min_games": 6,
+ "n_gated_by_measurement": 0,
+ "rate_gates": null,
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "New York Giants",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Washington Commanders @ New York Giants",
+   "game_id": "74d39e19225caf211ad2c8eb4110179f",
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "commence": "2026-11-13T01:15:00Z",
+   "book": "fanduel",
+   "price": -124,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 55.4,
+   "edge": 4.0,
+   "why": [
+    "The game model gives New York Giants 59% to win; the price -124 needs 55.4%."
+   ],
+   "priced_at": "2026-11-10T01:46:34Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 42.5,
+   "game": "Washington Commanders @ New York Giants",
+   "game_id": "74d39e19225caf211ad2c8eb4110179f",
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "commence": "2026-11-13T01:15:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 51.2,
+   "edge": 8.2,
+   "why": [
+    "The game model gives Over 59% at 42.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-11-10T01:46:34Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "New York Giants",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -1.5,
+   "game": "Washington Commanders @ New York Giants",
+   "game_id": "74d39e19225caf211ad2c8eb4110179f",
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "commence": "2026-11-13T01:15:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 52.4,
+   "edge": 2.4,
+   "why": [
+    "The game model gives New York Giants 55% to cover -1.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-10T01:46:34Z",
+   "rank": 3
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 42.5,
+   "game": "Washington Commanders @ New York Giants",
+   "game_id": "74d39e19225caf211ad2c8eb4110179f",
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "commence": "2026-11-13T01:15:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 51.2,
+   "edge": 8.2,
+   "why": [
+    "The game model gives Over 59% at 42.5; the price -105 needs 51.2%.",
+    "The model's predicted score: Washington Commanders 21, New York Giants 24 (total 45).",
+    "The Washington Commanders score 21.5 and allow 25.2 points a game this season (8 games).",
+    "The New York Giants score 22.8 and allow 21.5 points a game this season (8 games).",
+    "Against teams the model rates above average this season: Washington Commanders 1-2, New York Giants 1-1."
+   ],
+   "priced_at": "2026-11-10T01:46:34Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives Over 59% at 42.5; the price -105 needs 51.2%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-11-12",
+  "card_slate": "2026-11-12",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-11-10T06:28:11Z",
+  "ladder_built_at": "2026-11-10T06:28:13Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "score": {
+    "home": 24,
+    "away": 21
+   }
+  },
+  {
+   "away": "New England Patriots",
+   "home": "Detroit Lions",
+   "score": {
+    "home": 22,
+    "away": 26
+   }
+  },
+  {
+   "away": "Buffalo Bills",
+   "home": "New York Jets",
+   "score": {
+    "home": 19,
+    "away": 30
+   }
+  },
+  {
+   "away": "Carolina Panthers",
+   "home": "New Orleans Saints",
+   "score": {
+    "home": 24,
+    "away": 25
+   }
+  },
+  {
+   "away": "Houston Texans",
+   "home": "Cleveland Browns",
+   "score": {
+    "home": 17,
+    "away": 23
+   }
+  },
+  {
+   "away": "Jacksonville Jaguars",
+   "home": "Tennessee Titans",
+   "score": {
+    "home": 17,
+    "away": 30
+   }
+  },
+  {
+   "away": "Kansas City Chiefs",
+   "home": "Atlanta Falcons",
+   "score": {
+    "home": 22,
+    "away": 27
+   }
+  },
+  {
+   "away": "Miami Dolphins",
+   "home": "Indianapolis Colts",
+   "score": {
+    "home": 20,
+    "away": 21
+   }
+  },
+  {
+   "away": "Minnesota Vikings",
+   "home": "Green Bay Packers",
+   "score": {
+    "home": 23,
+    "away": 21
+   }
+  },
+  {
+   "away": "Los Angeles Rams",
+   "home": "Arizona Cardinals",
+   "score": {
+    "home": 18,
+    "away": 25
+   }
+  },
+  {
+   "away": "Seattle Seahawks",
+   "home": "Las Vegas Raiders",
+   "score": {
+    "home": 16,
+    "away": 26
+   }
+  },
+  {
+   "away": "San Francisco 49ers",
+   "home": "Dallas Cowboys",
+   "score": {
+    "home": 28,
+    "away": 30
+   }
+  },
+  {
+   "away": "Pittsburgh Steelers",
+   "home": "Cincinnati Bengals",
+   "score": {
+    "home": 26,
+    "away": 24
+   }
+  },
+  {
+   "away": "Los Angeles Chargers",
+   "home": "Baltimore Ravens",
+   "score": {
+    "home": 20,
+    "away": 19
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 3 pick(s) for 2026-11-12 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 0,
+  "same_game_already_listed": 0,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 0,
+  "cap": 10,
+  "distinct_games": 0,
+  "shared_with_board_head": 0,
+  "board_head_size": 0
+ },
+ "top_plays_rule": "No top plays for 2026-11-12. Nothing is priced for this day yet, so there was nothing to rank. \u26a0\ufe0f When rows do arrive, only those carrying a record are ranked \u2014 ranking by price would be ranking by which bet pays worst while calling it 'most likely to hit'.",
+ "parlays": {
+  "2": [],
+  "3": [],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 0,
+  "rated_legs": 0,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "2-3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 0,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "0 rated legs, 0 in the stratified pool. Rejected: 0 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [],
+  "3": []
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 0,
+  "games_with_a_line_row": 1,
+  "games_used": 0,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 0,
+   "mixed_book": 0,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "0 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {},
+ "name_match_rate": null,
+ "n_priced": 0,
+ "single_day": true,
+ "slate_date": "2026-11-12",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 0,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-11-12 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": "No NFL picks for 2026-11-12. Nothing is priced for this day yet. An empty board on a day with no games is the correct result, not a failure \u2014 the card was built and it found nothing to show.",
+ "short_reason": null,
+ "coverage": "0 priced football rows for 2026-11-12 across 0 board games; 0 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 53.1% against a claimed 54.1% (-1 pts, n=128). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 128 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": null,
+ "picks": [],
+ "liked": [],
+ "n_longshots_excluded": 0,
+ "price_ceiling": 400,
+ "market_max_share": 0.34,
+ "board_mixed": true,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}
