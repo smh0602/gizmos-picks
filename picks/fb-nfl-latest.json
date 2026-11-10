@@ -1,7 +1,7 @@
 {
  "date": "2026-11-12",
  "league": "nfl",
- "generated_at": "2026-11-10T15:57:23Z",
+ "generated_at": "2026-11-10T19:01:22Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-10T15:56:48Z",
@@ -146,7 +146,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-11-10T15:57:10Z",
-  "ladder_built_at": "2026-11-10T15:57:13Z",
+  "ladder_built_at": "2026-11-10T19:01:10Z",
   "alt_spreads": 0
  },
  "scores_shown": [
@@ -310,7 +310,7 @@
    "why": [
     "<b>Theo Johnson</b> went over 0.5 rec in <b>14 of 15 games</b> in 2025, when he played at least half the snaps."
    ],
-   "model_p": 59.3,
+   "model_p": 59.2,
    "role": {
     "snap": 0.3633,
     "tgt_share": 0.0724,
@@ -382,7 +382,7 @@
    {
     "legs": [
      "Theo Johnson o0.5 rec",
-     "Jayden Daniels u35.5 rush yds"
+     "Over 41.5 total"
     ],
     "game": "Washington Commanders @ New York Giants",
     "game_id": "74d39e19225caf211ad2c8eb4110179f",
@@ -390,13 +390,79 @@
     "book": "draftkings",
     "prices": [
      -167,
-     -114
+     -105
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.001,
+    "n_line_legs": 1,
+    "multiplier": 3.121,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 59,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     59
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Jayden Daniels u35.5 rush yds",
+     "Over 41.5 total"
+    ],
+    "game": "Washington Commanders @ New York Giants",
+    "game_id": "74d39e19225caf211ad2c8eb4110179f",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -114,
+     -105
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.665,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 58,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Theo Johnson o0.5 rec",
+     "Jayden Daniels u35.5 rush yds",
+     "Over 41.5 total"
+    ],
+    "game": "Washington Commanders @ New York Giants",
+    "game_id": "74d39e19225caf211ad2c8eb4110179f",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -167,
+     -114,
+     -105
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.86,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -409,12 +475,13 @@
      59,
      58
     ],
-    "band_floor": 1.8
+    "band_floor": 3.0
    },
    {
     "legs": [
      "Jayden Daniels u35.5 rush yds",
-     "Theo Johnson o4.5 rec yds"
+     "Theo Johnson o4.5 rec yds",
+     "Over 41.5 total"
     ],
     "game": "Washington Commanders @ New York Giants",
     "game_id": "74d39e19225caf211ad2c8eb4110179f",
@@ -422,13 +489,14 @@
     "book": "draftkings",
     "prices": [
      -114,
-     -113
+     -113,
+     -105
     ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.538,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.908,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -441,90 +509,18 @@
      58,
      57
     ],
-    "band_floor": 1.8
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "Jayden Daniels u35.5 rush yds",
-     "Theo Johnson o4.5 rec yds",
-     "J.J. McCarthy u18.5 rush yds"
-    ],
-    "game": "Washington Commanders @ New York Giants",
-    "game_id": "74d39e19225caf211ad2c8eb4110179f",
-    "same_game": true,
-    "book": "draftkings",
-    "prices": [
-     -114,
-     -113,
-     -111
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 6.726,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     58,
-     57,
-     56
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Theo Johnson o4.5 rec yds",
-     "J.J. McCarthy u18.5 rush yds",
-     "Austin Ekeler u26.5 rush yds"
-    ],
-    "game": "Washington Commanders @ New York Giants",
-    "game_id": "74d39e19225caf211ad2c8eb4110179f",
-    "same_game": true,
-    "book": "draftkings",
-    "prices": [
-     -113,
-     -111,
-     -115
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 6.699,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     57,
-     56,
-     56
-    ],
     "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
   "games_with_rated_legs": 1,
-  "games_with_a_line_row": 0,
+  "games_with_a_line_row": 1,
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 68,
-   "mixed_book": 78,
+   "same_player": 76,
+   "mixed_book": 103,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -532,7 +528,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "1 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -1176,7 +1172,7 @@
  "empty_reason": null,
  "short_reason": null,
  "coverage": "58 priced football rows for 2026-11-12 across 1 board games; 25 shown.",
- "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 53.1% against a claimed 54.1% (-1 pts, n=128). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 128 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 53.8% against a claimed 54.1% (-0.3 pts, n=132). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 132 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
  "picks": [
@@ -1225,7 +1221,7 @@
    "why": [
     "<b>Theo Johnson</b> went over 0.5 rec in <b>14 of 15 games</b> in 2025, when he played at least half the snaps."
    ],
-   "model_p": 59.3,
+   "model_p": 59.2,
    "role": {
     "snap": 0.3633,
     "tgt_share": 0.0724,
@@ -1280,7 +1276,7 @@
    "why": [
     "<b>Jayden Daniels</b> went under 34.5 rush yds in <b>4 of 6 games</b> in 2026 and 2 of 7 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 58.0,
+   "model_p": 57.9,
    "role": {
     "snap": 1.0,
     "tgt_share": 0.0,
@@ -1375,7 +1371,7 @@
     "h26": 1,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.602,
+    "p0": 0.603,
     "weighted_n": 8.67,
     "mean_all": 17.0
    },
@@ -1388,7 +1384,7 @@
    "why": [
     "<b>J.J. McCarthy</b> went under 18.5 rush yds in <b>1 of 2 games</b> in 2026 and 5 of 10 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 56.3,
+   "model_p": 56.2,
    "role": {
     "snap": 0.6933,
     "tgt_share": 0.0,
@@ -1419,7 +1415,7 @@
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 56,
-   "model_p": 56.1,
+   "model_p": 56.0,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 2.7,
@@ -1463,7 +1459,7 @@
     "h26": 2,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.557,
+    "p0": 0.558,
     "weighted_n": 8.67,
     "mean_all": 0.917
    },
@@ -1476,7 +1472,7 @@
    "why": [
     "<b>J.J. McCarthy</b> went under 1.5 pass TD in <b>2 of 2 games</b> in 2026 and 6 of 10 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 56.5,
+   "model_p": 56.4,
    "role": {
     "snap": 0.6933,
     "tgt_share": 0.0,
@@ -1599,60 +1595,6 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Cam Skattebo",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 7.5,
-   "game": "Washington Commanders @ New York Giants",
-   "game_id": "74d39e19225caf211ad2c8eb4110179f",
-   "away": "Washington Commanders",
-   "home": "New York Giants",
-   "commence": "2026-11-13T01:15:00Z",
-   "book": "draftkings",
-   "price": -105,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387480147%232357393782_13L88808Q12113801461Q20",
-   "n_books": 3,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "raw": "10 of 12",
-   "record": "10 of 12",
-   "rate": 78,
-   "break_even": 51.2,
-   "edge": 2.8,
-   "season_detail": {
-    "h25": 6,
-    "n25": 6,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.785,
-    "weighted_n": 8.4,
-    "mean_all": 21.083
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 29.5,
-   "projection": 21.1,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 12 games this record is built from \u2014 21.1 rec yds a game.",
-   "why": [
-    "<b>Cam Skattebo</b> went over 7.5 rec yds in <b>4 of 6 games</b> in 2026 and 6 of 6 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 53.5,
-   "role": {
-    "snap": 0.61,
-    "tgt_share": 0.0431,
-    "car": 16.0,
-    "n": 3
-   },
-   "rank": 9
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Antonio Williams",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
@@ -1681,7 +1623,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 10
+   "rank": 9
   },
   {
    "kind": "fb",
@@ -1735,7 +1677,7 @@
     "car": 2.3,
     "n": 3
    },
-   "rank": 11
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -1769,7 +1711,7 @@
     "h26": 4,
     "n26": 6,
     "w25": 0.4,
-    "p0": 0.734,
+    "p0": 0.735,
     "weighted_n": 12.0,
     "mean_all": 3.381
    },
@@ -1789,7 +1731,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 12,
+   "rank": 11,
    "below_price": true
   },
   {
@@ -1838,6 +1780,60 @@
     "<b>Cam Skattebo</b> went over 1.5 rec in <b>3 of 6 games</b> in 2026 and 6 of 6 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.8,
+   "role": {
+    "snap": 0.61,
+    "tgt_share": 0.0431,
+    "car": 16.0,
+    "n": 3
+   },
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Cam Skattebo",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 7.5,
+   "game": "Washington Commanders @ New York Giants",
+   "game_id": "74d39e19225caf211ad2c8eb4110179f",
+   "away": "Washington Commanders",
+   "home": "New York Giants",
+   "commence": "2026-11-13T01:15:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387480147%232357393782_13L88808Q12113801461Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "10 of 12",
+   "record": "10 of 12",
+   "rate": 78,
+   "break_even": 51.2,
+   "edge": 1.8,
+   "season_detail": {
+    "h25": 6,
+    "n25": 6,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.785,
+    "weighted_n": 8.4,
+    "mean_all": 21.083
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 29.5,
+   "projection": 21.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 21.1 rec yds a game.",
+   "why": [
+    "<b>Cam Skattebo</b> went over 7.5 rec yds in <b>4 of 6 games</b> in 2026 and 6 of 6 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.4,
    "role": {
     "snap": 0.61,
     "tgt_share": 0.0431,
@@ -1966,7 +1962,7 @@
     "h26": 4,
     "n26": 8,
     "w25": 0.333,
-    "p0": 0.703,
+    "p0": 0.702,
     "weighted_n": 8.0,
     "mean_all": 36.0
    },
@@ -2130,7 +2126,7 @@
     "h26": 4,
     "n26": 7,
     "w25": 0.364,
-    "p0": 0.671,
+    "p0": 0.672,
     "weighted_n": 12.82,
     "mean_all": 4.783
    },
@@ -2198,7 +2194,7 @@
    "why": [
     "<b>Malachi Fields</b> went over 2.5 rec in <b>2 of 8 games</b> in 2026, when he played at least half the snaps."
    ],
-   "model_p": 52.4,
+   "model_p": 52.3,
    "role": {
     "snap": 0.84,
     "tgt_share": 0.1855,
@@ -2229,7 +2225,7 @@
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 52,
-   "model_p": 52.5,
+   "model_p": 52.4,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 45.7,
    "edge": 6.3,
@@ -2342,7 +2338,7 @@
     "h26": 5,
     "n26": 8,
     "w25": 0.333,
-    "p0": 0.215,
+    "p0": 0.214,
     "weighted_n": 9.0,
     "mean_all": 6.273
    },
@@ -2434,7 +2430,7 @@
     "h26": 1,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.602,
+    "p0": 0.603,
     "weighted_n": 8.67,
     "mean_all": 17.0
    },
@@ -2450,7 +2446,7 @@
     "The Washington Commanders allow 20.2 rushing yards a game to quarterbacks (5th most of 32).",
     "The model gives it <b>56%</b>; at -111 it needs 52.6% to pay."
    ],
-   "model_p": 56.3,
+   "model_p": 56.2,
    "role": {
     "snap": 0.6933,
     "tgt_share": 0.0,
@@ -2488,7 +2484,7 @@
     "The model gives it <b>56%</b>; at -114 it needs 53.3% to pay."
    ],
    "confidence": 56,
-   "model_p": 56.1,
+   "model_p": 56.0,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 2.7,
@@ -2593,7 +2589,7 @@
     "h26": 4,
     "n26": 8,
     "w25": 0.333,
-    "p0": 0.703,
+    "p0": 0.702,
     "weighted_n": 8.0,
     "mean_all": 36.0
    },
