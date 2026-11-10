@@ -608,18 +608,49 @@ REPO_DECIDED = {
 
 
 def _mode_writes(n):
-    """Does a gzip.open / GzipFile call open for writing (a w/a/x mode, or one it cannot read)?"""
-    m = n.args[1] if (getattr(n.func, "attr", "") == "open" and len(n.args) > 1) else None
+    """Does a gzip open / GzipFile call open for writing (a w/a/x mode, or one it cannot read)?
+    `[review]` GzipFile's mode is its second positional argument too."""
+    m = n.args[1] if len(n.args) > 1 else None
     m = next((k.value for k in n.keywords if k.arg == "mode"), m)
     if m is None:
         return False                                    # the default mode reads
     return not isinstance(m, ast.Constant) or str(m.value)[:1] in "wax"
 
 
+def gzip_names(tree):
+    """`[review]` (names bound to the gzip module, {name: gzip function} bound by `from gzip
+    import ...`): `import gzip as _gz` is the repo's own spelling (nfl.py, cfb.py)."""
+    mods, funcs = set(), {}
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            mods |= {a.asname or a.name for a in n.names if a.name == "gzip"}
+        elif isinstance(n, ast.ImportFrom) and n.module == "gzip":
+            funcs.update({a.asname or a.name: a.name for a in n.names})
+    return mods, funcs
+
+
 def gz_sites(path, rel):
-    """{"module:function": [heartbeat?]} of every gzip write in a module but collect.py."""
+    """{"module:function": [heartbeat?]} of every gzip write in a module but collect.py: a gzip
+    open / GzipFile for writing and gzip.compress, through any name the module gives gzip; a
+    collect.write whose compress is not a literal False, through any name it gives collect or
+    its `write`. Module-level statements are scope "<module>"."""
     tree = _parse_mod(path)
     al, out = collect_aliases(tree), {}
+    gmods, gfuncs = gzip_names(tree)
+    cw_names = {a.asname or a.name for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)
+                and n.module == "collect" for a in n.names if a.name == "write"}
+
+    def gz_call(n):
+        f = n.func
+        what = (f.attr if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) and f.value.id in gmods
+                else gfuncs.get(f.id) if isinstance(f, ast.Name) else None)
+        return what == "compress" or (what in ("open", "GzipFile") and _mode_writes(n))
+
+    def cw_call(n):
+        if not (is_collect_write(n, rel, al) or (isinstance(n.func, ast.Name) and n.func.id in cw_names)):
+            return False
+        c = next((k.value for k in n.keywords if k.arg == "compress"), n.args[2] if len(n.args) > 2 else None)
+        return c is not None and not (isinstance(c, ast.Constant) and c.value in (False, None, 0))
     def own(fn):                                         # the function's own nodes, not a nested def's
         nodes, stack = [], list(ast.iter_child_nodes(fn))
         while stack:
@@ -628,18 +659,14 @@ def gz_sites(path, rel):
                 nodes.append(x)
                 stack.extend(ast.iter_child_nodes(x))
         return nodes
-    for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
-        for n in own(fn):
+    for sc in [tree] + [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+        for n in own(sc):
             if not isinstance(n, ast.Call):
                 continue
-            f = n.func
-            gz = (isinstance(f, ast.Attribute) and f.attr in ("open", "GzipFile")
-                  and isinstance(f.value, ast.Name) and f.value.id == "gzip" and _mode_writes(n))
             kw = {k.arg: k.value for k in n.keywords}
-            cw = (is_collect_write(n, rel, al) and isinstance(kw.get("compress"), ast.Constant)
-                  and kw["compress"].value is True)
-            if gz or cw:
-                out.setdefault("%s:%s" % (rel, fn.name), []).append(
+            cw = cw_call(n)
+            if gz_call(n) or cw:
+                out.setdefault("%s:%s" % (rel, getattr(sc, "name", "<module>")), []).append(
                     bool(cw and isinstance(kw.get("heartbeat"), ast.Constant) and kw["heartbeat"].value is True))
     return out
 
@@ -652,8 +679,22 @@ with open(os.path.join(_pa, "writer.py"), "w", encoding="utf-8") as fh:
     fh.write("import gzip, json\n\ndef a(p):\n    with gzip.open(p, 'wt') as fh:\n        json.dump({}, fh)\n\n"
              "def b(p, m):\n    return gzip.open(p, m)\n\ndef c(p):\n    return gzip.GzipFile(p, mode='wb')\n\n"
              "def d(p):\n    return json.load(gzip.open(p, 'rt'))\n\ndef e(p):\n    return gzip.open(p)\n")
+with open(os.path.join(_pa, "spell.py"), "w", encoding="utf-8") as fh:   # `[review]` every other spelling
+    fh.write("import gzip as _gz\nfrom gzip import GzipFile as GF, open as gopen\nimport collect as K\n"
+             "from collect import write as W\n_gz.open('m.json.gz', 'wt')\n\n"
+             "def f(p):\n    return _gz.open(p, 'wt')\n\ndef g(p):\n    return _gz.GzipFile(p, 'wb')\n\n"
+             "def h(p):\n    return GF(p, 'wb')\n\ndef i(p):\n    return gopen(p, 'at')\n\n"
+             "def j(b):\n    return _gz.compress(b)\n\ndef k(p, d):\n    W(p, d, compress=True)\n\n"
+             "def l(p, d, z):\n    K.write(p, d, z)\n\ndef m(p):\n    return _gz.open(p, 'rt')\n\n"
+             "def n(p, d):\n    K.write(p, d, compress=False)\n")
 eq(sorted(gz_sites(os.path.join(_pa, "writer.py"), "writer.py")), ["writer.py:a", "writer.py:b", "writer.py:c"],
    "   (planted) a w mode, a mode it cannot read and a GzipFile are writes; a read is not")
+eq(sorted(gz_sites(os.path.join(_pa, "spell.py"), "spell.py")),
+   ["spell.py:<module>", "spell.py:f", "spell.py:g", "spell.py:h", "spell.py:i", "spell.py:j", "spell.py:k",
+    "spell.py:l"],
+   "   (planted, review) an aliased gzip, a from-import, GzipFile's positional mode, gzip.compress, a "
+   "module-level write, `from collect import write` and a computed compress are writes too; a read and "
+   "compress=False are not")
 
 
 # 4c. EVERY scope (module body or function) in every .py here that NAMES a
@@ -885,11 +926,15 @@ def keepers(root):
                     continue
                 if (getattr(n.func, "attr", None) or getattr(n.func, "id", None)) == "keep_with_heartbeat":
                     out.append((rel, getattr(sc, "name", "<module>"), "keep_with_heartbeat"))
-                # `[2026-11-10]` ~~any heartbeat= outside collect.py~~ a heartbeat= on anything
-                #    but collect.write: collect.write's calls from any module are §4a's list
-                if not is_collect_write(n, rel, collect_aliases(tree)) and any(
-                        k.arg == "heartbeat" and not (isinstance(k.value, ast.Constant) and k.value.value is False)
-                        for k in n.keywords):
+                # `[2026-11-10]` ~~any heartbeat= outside collect.py~~ a heartbeat= on anything but
+                #    a collect.write call §4a LISTS (a literal compress=True and heartbeat=True):
+                #    `[review]` a positional or computed compress makes a heartbeat no list holds
+                kw = {k.arg: k.value for k in n.keywords}
+                listed = (is_collect_write(n, rel, collect_aliases(tree))
+                          and isinstance(kw.get("compress"), ast.Constant) and kw["compress"].value is True
+                          and isinstance(kw.get("heartbeat"), ast.Constant) and kw["heartbeat"].value is True)
+                if not listed and "heartbeat" in kw and not (
+                        isinstance(kw["heartbeat"], ast.Constant) and kw["heartbeat"].value is False):
                     out.append((rel, getattr(sc, "name", "<module>"), "heartbeat="))
     return out
 
@@ -902,10 +947,13 @@ os.makedirs(_kp)
 with open(os.path.join(_kp, "other.py"), "w", encoding="utf-8") as fh:
     fh.write("import collect, freshness as F\n\ndef save(p, d):\n    return F.keep_with_heartbeat(p, d)\n\n"
              "def put(p, d):\n    collect.write(p, d, compress=True, heartbeat=True)\n\n"
-             "def own(p, d):\n    mywrite(p, d, heartbeat=True)\n")
-eq(sorted(keepers(_kp)), [("other.py", "own", "heartbeat="), ("other.py", "save", "keep_with_heartbeat")],
-   "   (planted) a module keeping its own gzip, either way, is flagged; collect.write's own call is "
-   "§4a's (listed there, not here)")
+             "def own(p, d):\n    mywrite(p, d, heartbeat=True)\n\n"
+             "def pos(p, d):\n    collect.write(p, d, True, heartbeat=True)\n\n"
+             "def var(p, d, gz):\n    collect.write(p, d, compress=gz, heartbeat=True)\n")
+eq(sorted(keepers(_kp)), [("other.py", "own", "heartbeat="), ("other.py", "pos", "heartbeat="),
+                          ("other.py", "save", "keep_with_heartbeat"), ("other.py", "var", "heartbeat=")],
+   "   (planted) a module keeping its own gzip, either way, is flagged, and so is a collect.write "
+   "heartbeat §4a cannot list (a positional or computed compress); §4a's own form is listed there")
 
 # 4d. A TEST TREE COPIED FROM latest/ STARTS WITH ITS HEARTBEATS SETTLED.
 #     Measured on a planted post-merge tree (live heartbeats beside the six
@@ -971,8 +1019,9 @@ def path_of(node, env, depth=0):
 
 
 _HB_RX = re.compile(r"(^|/)latest/(%s)$" % "|".join(re.escape(h) for h in HEARTBEAT))
-# `[2026-11-10]` and a league's data/<lg>(/latest): its dossiers, game lines and record-detail
-_TREE_RX = re.compile(r"(^|/)data(/(nfl|ncaaf))?(/latest)?/?$")
+# `[2026-11-10]` and a league's data/<lg>(/latest): its dossiers, game lines and record-detail;
+#    `[review]` a league spelled as a variable (`*`, path_of's unknown) too
+_TREE_RX = re.compile(r"(^|/)data(/(nfl|ncaaf|\*))?(/latest)?/?$")
 
 
 def copies(paths):
@@ -1014,13 +1063,15 @@ with open(os.path.join(_pl, "test_bad.py"), "w", encoding="utf-8") as fh:
              "shutil.copy(os.path.join(ROOT, 'tmp', 'hitters.json.gz'), 'u')\n"
              "shutil.copytree(os.path.join(ROOT, 'data', 'ncaaf', 'latest'), 's')\n"
              "shutil.copy(os.path.join(ROOT, 'data', 'nfl', 'latest', 'dossiers.json.gz'), 't')\n"
-             "shutil.copytree(os.path.join(ROOT, 'data', 'nfl', '2026-11-10'), 'r')\n")
+             "shutil.copytree(os.path.join(ROOT, 'data', 'nfl', '2026-11-10'), 'r')\n"
+             "shutil.copytree(os.path.join(ROOT, 'data', lg), 'q')\n")
 eq(copies([os.path.join(_pl, "test_bad.py")]),
-   (["test_bad.py:8", "test_bad.py:9", "test_bad.py:10", "test_bad.py:12"],
+   (["test_bad.py:8", "test_bad.py:9", "test_bad.py:10", "test_bad.py:12", "test_bad.py:15"],
     ["test_bad.py:4", "test_bad.py:5", "test_bad.py:6", "test_bad.py:7", "test_bad.py:13"]),
    "   (planted) every spelling is flagged: a join, a literal, an f-string, a LATEST name, a copy of "
-   "data/; `[2026-11-10]` a football data/<lg> tree, its latest/ and one of its heartbeat files too "
-   "(~~are not~~); a file outside latest/ and a league's dated folder are not")
+   "data/; `[2026-11-10]` a football data/<lg> tree (its league literal or a variable), its latest/ "
+   "and one of its heartbeat files too (~~are not~~); a file outside latest/ and a league's dated "
+   "folder are not")
 
 # ══════════════════════════════════════════════════════════════════════
 section("4e. THE PAGE NEVER READS A HEARTBEAT FILE'S STAMP")

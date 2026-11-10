@@ -1146,7 +1146,9 @@ note boxes, tags and the stale bar now require their absence.
   latest/ tree in a test, a league's `data/<lg>` included, only with `tcheck.copy_latest` (§4d).
   ~~⚠️ §4b decides every gzip write in collect.py only: the other modules' gzip writers are the
   football follow-up.~~ `[2026-11-10]` Every gzip write decides: collect.py's in §4b, every other
-  module's in §4b' (`REPO_DECIDED`: heartbeat, or a reason; a new writer is red until it has one).
+  module's in §4b' (`REPO_DECIDED`: heartbeat, or a reason; a new writer is red until it has one,
+  in any spelling: an aliased gzip, a from-import, GzipFile, gzip.compress, module level, a
+  computed compress on collect.write).
   `freshness.same_but_stamps` is the one WHOLE-DOCUMENT stamp-aside compare (nfl, cfb and
   `daystore.same_bytes` call it; cfb_injuries' per-report `fetched_at` compare is another
   question). Opted in: the MLB pitchers, hitters, scores, lineups, weather and record-detail files;
@@ -1803,7 +1805,12 @@ daystore.py       the one dated, write-once archive writer. ⛔ Never
                   now, which adds `written_at` and keeps its bytes on a
                   stamp-only run. The archive then carries latest's file
                   stamps; its own time is its dated path (no reader takes a
-                  stamp from an archive). Any content difference still dumps.
+                  stamp from a DOSSIER archive, the one same_as caller; other
+                  kinds' archives are read for `pulled_at`, so a new caller
+                  is a decision: test_archive_same_bytes §2). Any content
+                  difference still dumps. ⚠️ winners.graded reaches
+                  same_bytes, so an edit to it (or to same_but_stamps) moves
+                  the winners grader's stamp: one free rebuild.
 push_retry.sh     the ONE way a workflow lands its commits: rebase
                   favouring this run's files, abort + replay on a
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a

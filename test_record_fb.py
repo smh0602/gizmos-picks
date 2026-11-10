@@ -942,7 +942,7 @@ def _regrade(lg):
     (rule 202: read the OUTPUT, not the exit code).
     """
     d = _tf.mkdtemp(prefix="recfb-%s-" % lg)
-    _sh.copytree("%s/data/%s" % (ROOT, lg), "%s/data/%s" % (d, lg))
+    copy_latest("%s/data/%s" % (ROOT, lg), "%s/data/%s" % (d, lg))
     _sh.copytree("%s/picks" % ROOT, "%s/picks" % d)
     # ⚠️ `_HELPERS` IS NOW A SEED LIST, NOT A DEPENDENCY LIST. Each
     #    entry arrives WITH the repo-local modules it imports, so the day a

@@ -11,8 +11,9 @@ on origin/main, 2026-10-25 to 11-08: 267 archives, 63.8 MB of new gzip; every
 one of 27 sampled equal in content to its own commit's latest file.
 
   §1  daystore.archive(..., same_as=latest) copies latest's BYTES when that file
-      stores exactly the document, and dumps it as before on any difference;
-      write-once and the picks/ refusal are unchanged.
+      stores the document (~~exactly~~ `[2026-11-10]` apart from its top-level
+      stamps), and dumps it as before on any other difference; write-once and the
+      picks/ refusal are unchanged.
   §2  the CLASS: every function in this repo that writes a document to a
       latest/ gzip AND archives that same document passes `same_as`. A new
       one is red until it does (the dossier is the only one today).
@@ -94,12 +95,15 @@ ck(blob(_ap2) != blob(_lp) and json.load(gzip.open(_ap2, "rt")) == json.load(gzi
    "   (control) the same document dumped again is a DIFFERENT blob: the defect, measured here",
    "if this ever passes as equal bytes, the check above proves nothing")
 
-# `[2026-11-10]` ~~a stamp apart is ANOTHER document, not copied~~. THE REQUIREMENT CHANGED: the
-#    latest file is now collect.write's, which adds `written_at`, and keeps its bytes on a run that
-#    moved only its stamps (its heartbeat carries them). Compared exactly, every such run would dump
-#    a second full gzip again. The archive's CONTENT is still this document's, at every depth;
-#    its stamps are latest's file's, and its time is its dated path (no reader takes a stamp
-#    from an archive: shadow_fb reads `dossiers`).
+# `[2026-11-10]` ~~a stamp apart is ANOTHER document, not copied~~. #343's exact-match rule is
+#    RELAXED for top-level stamps, on purpose (my rule of 11-08, not one Sam set; the PR puts the
+#    choice to him): the latest file is now collect.write's, which adds `written_at`, and keeps its
+#    bytes on a run that moved only its stamps (its heartbeat carries them). Compared exactly,
+#    EVERY run would dump a second full gzip again. ⚠️ What is given up: a stamp-only run's
+#    archive carries the built_at / written_at of that content's first build, which can be days
+#    before its dated path. Nothing reads a stamp from a dossier archive (shadow_fb picks by file
+#    name and reads `dossiers`); §2 holds the dossier to being the only such caller. The content
+#    rule is unchanged: any difference below the top-level stamps still dumps.
 _r3 = os.path.join(TMP, "stamps")
 _lp3 = latest(_r3, dict(DOC, built_at="2026-11-04T16:00:00Z", written_at="2026-11-04T16:00:05Z"))
 _ap3, _ = D.archive(DOC, _r3, "dossiers", log=lambda *a: None, when=WHEN, same_as=_lp3)
@@ -244,6 +248,13 @@ ck(any(m.startswith("dossier_fb.py:build ") for m in _mem),
    "⚠️ the census finds the dossier's latest write and its archive (%s)" % _mem,
    "⛔ if it finds nothing, 'none flagged' below checks nothing (rule 67)")
 eq(_flag, [], "🔴🔴 every latest/ gzip that is also archived is archived as its own bytes (same_as)")
+# `[2026-11-10]` ...and the dossier is the ONLY such caller: its archive carries latest's stamps when
+#    only they moved, which is safe because no reader takes a stamp from a dossier archive. Other
+#    kinds' archives are read for `pulled_at` (props snapshots, the alt-line units), so a new
+#    caller is a decision: name it here, with who reads its archive's stamps.
+eq(sorted({m.split(" ")[0] for m in _mem}), ["dossier_fb.py:build"],
+   "⛔ the only latest/ gzip archived through same_as is the dossier (a new one says who reads "
+   "its archive's stamps)")
 
 # rule 67: the census bites on planted modules
 _pl = os.path.join(TMP, "census")
