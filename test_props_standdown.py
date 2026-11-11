@@ -56,7 +56,7 @@ as it ran. Nothing reads production data.
 #
 # @vacuity 🔴 ...only for a row that survey found inside contract
 #   file: freshness.py
-#   find:                 or not rec or rec.get("stale") is not False or not t):
+#   find:                 or not rec or then is not False or not t):
 #   with:                 or not rec or not t):
 #
 # @vacuity 🔴 the gate says so in words

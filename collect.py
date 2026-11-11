@@ -6224,9 +6224,13 @@ def converge(explicit=(), allow_paid=True):
     #    concurrency group, running from its own checkout while this pass runs: a
     #    catch-up buying here could buy the same deadline twice (review, 11-11). A
     #    paid row that falls due mid-pass is that cron's, and the gate's as before.
+    end_rows = end_at = None            # the survey freshness.json was written from before
+    caught_now = set()                  # ...the catch-up existed, and what it then ran
     for _round in range(CATCH_UP_ROUNDS + 1):
         _at = now()
         rows2 = _fresh.survey(data=DATA, picks=PICKS, now=_at)
+        if _round == 0:
+            end_rows, end_at = rows2, _at
         _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
         todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted,
                                  before=rows)
@@ -6238,7 +6242,10 @@ def converge(explicit=(), allow_paid=True):
             + ", ".join(dict.fromkeys(f"{r['mode']} due {r['due_at']}" for r in rows2
                                       if r["stale"] and r["mode"] in todo and r.get("due_at"))))
         run_modes(todo)
+        caught_now.update(todo)
         looked = _at
+    # ⛔ a longer pass must not cost a row it did not build the 10-19 rule (last_looks)
+    rows2 = _fresh.last_looks(rows2, end_rows, end_at, caught_now)
     _record_lateness(rows2)
     # 🔴 EVERY STALE ROW COUNTS, NOT EACH MODE'S LAST ONE. `[2026-10-17]`
     #    ~~`{mode: row}`~~ kept one row per mode, the last in the contract, so
