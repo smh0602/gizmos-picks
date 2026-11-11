@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-11-10T21:51:07Z",
+ "built_at": "2026-11-11T07:08:34Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
@@ -139,25 +139,25 @@
    "margin": -0.1,
    "total": 52.5,
    "line": {
-    "spread": 1.25,
+    "spread": 2.25,
     "total": 48.5
    },
    "score_curve": {
-    "spread": 46.0,
+    "spread": 43.0,
     "total": 61.1,
     "moneyline": 49.8
    },
    "calibrated": {
-    "spread": 48.7,
+    "spread": 47.7,
     "total": 53.7,
     "moneyline": 49.8
    },
    "fb_model": {
-    "spread": 48.4,
+    "spread": 48.8,
     "total": 54.8,
     "moneyline": 48.1
    },
-   "fb_model_ml_curve_spread": 44.3
+   "fb_model_ml_curve_spread": 41.4
   },
   {
    "game_id": "2026_10_HOU_CLE",
@@ -275,25 +275,25 @@
    "margin": 4.2,
    "total": 43.8,
    "line": {
-    "spread": 2.5,
-    "total": 40.5
+    "spread": 3.25,
+    "total": 38.5
    },
    "score_curve": {
-    "spread": 55.2,
-    "total": 59.1,
+    "spread": 52.9,
+    "total": 64.4,
     "moneyline": 62.5
    },
    "calibrated": {
-    "spread": 51.7,
-    "total": 53.0,
+    "spread": 51.0,
+    "total": 54.9,
     "moneyline": 62.0
    },
    "fb_model": {
-    "spread": 46.5,
-    "total": 54.1,
+    "spread": 46.6,
+    "total": 52.8,
     "moneyline": 49.5
    },
-   "fb_model_ml_curve_spread": 42.0
+   "fb_model_ml_curve_spread": 39.8
   },
   {
    "game_id": "2026_10_MIN_GB",
@@ -343,25 +343,25 @@
    "margin": -7.3,
    "total": 49.1,
    "line": {
-    "spread": -9.5,
-    "total": 40.0
+    "spread": -9.25,
+    "total": 39.5
    },
    "score_curve": {
-    "spread": 56.6,
-    "total": 73.9,
+    "spread": 55.9,
+    "total": 75.0,
     "moneyline": 29.0
    },
    "calibrated": {
-    "spread": 52.2,
-    "total": 58.4,
+    "spread": 52.0,
+    "total": 58.9,
     "moneyline": 29.9
    },
    "fb_model": {
     "spread": 58.3,
-    "total": 58.9,
+    "total": 58.8,
     "moneyline": 30.9
    },
-   "fb_model_ml_curve_spread": 58.6
+   "fb_model_ml_curve_spread": 57.9
   },
   {
    "game_id": "2026_10_SEA_LV",
@@ -377,25 +377,25 @@
    "margin": -6.7,
    "total": 49.2,
    "line": {
-    "spread": -6.0,
+    "spread": -6.25,
     "total": 40.75
    },
    "score_curve": {
-    "spread": 47.9,
+    "spread": 48.6,
     "total": 72.4,
     "moneyline": 30.6
    },
    "calibrated": {
-    "spread": 49.3,
+    "spread": 49.5,
     "total": 57.9,
     "moneyline": 31.4
    },
    "fb_model": {
-    "spread": 52.0,
+    "spread": 51.9,
     "total": 47.0,
     "moneyline": 21.7
    },
-   "fb_model_ml_curve_spread": 37.1
+   "fb_model_ml_curve_spread": 37.9
   },
   {
    "game_id": "2026_10_SF_DAL",
@@ -479,25 +479,59 @@
    "margin": 3.0,
    "total": 40.2,
    "line": {
-    "spread": 5.0,
+    "spread": 4.5,
     "total": 38.5
    },
    "score_curve": {
-    "spread": 44.0,
+    "spread": 45.5,
     "total": 54.9,
     "moneyline": 59.0
    },
    "calibrated": {
-    "spread": 48.0,
+    "spread": 48.5,
     "total": 51.6,
     "moneyline": 58.6
    },
    "fb_model": {
-    "spread": 50.0,
+    "spread": 49.9,
     "total": 52.0,
     "moneyline": 51.3
    },
-   "fb_model_ml_curve_spread": 36.5
+   "fb_model_ml_curve_spread": 37.9
+  },
+  {
+   "game_id": "2026_11_IND_HOU",
+   "day": "2026-11-19",
+   "kick": "2026-11-19T20:15",
+   "home": "HOU",
+   "away": "IND",
+   "neutral": false,
+   "score": {
+    "home": 28.6,
+    "away": 21.8
+   },
+   "margin": 6.7,
+   "total": 50.4,
+   "line": {
+    "spread": 9.75,
+    "total": 44.0
+   },
+   "score_curve": {
+    "spread": 40.9,
+    "total": 67.3,
+    "moneyline": 69.5
+   },
+   "calibrated": {
+    "spread": 46.9,
+    "total": 56.0,
+    "moneyline": 68.6
+   },
+   "fb_model": {
+    "spread": 60.2,
+    "total": 52.6,
+    "moneyline": 81.2
+   },
+   "fb_model_ml_curve_spread": 56.0
   }
  ],
  "backtest": {
