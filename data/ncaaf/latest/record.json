@@ -1,39 +1,39 @@
 {
- "built_at": "2026-11-11T07:01:05Z",
+ "built_at": "2026-11-11T07:32:33Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 337,
-  "n": 641,
-  "pct": 52.6
+  "w": 342,
+  "n": 651,
+  "pct": 52.5
  },
  "board": {
-  "w": 444,
-  "n": 871,
-  "pct": 51.0
+  "w": 449,
+  "n": 883,
+  "pct": 50.8
  },
  "game_lines": {
   "w": 107,
-  "n": 230,
-  "pct": 46.5,
+  "n": 232,
+  "pct": 46.1,
   "overall": {
    "w": 107,
-   "n": 230,
-   "pct": 46.5
+   "n": 232,
+   "pct": 46.1
   },
   "shown": 236,
   "voids": 1,
-  "pending": 5,
+  "pending": 3,
   "unresolved": 0,
   "from": "2026-10-03",
   "by_market": {
    "moneyline": {
     "w": 31,
-    "n": 48,
-    "pct": 64.6
+    "n": 49,
+    "pct": 63.3
    },
    "spread": {
     "w": 23,
@@ -42,8 +42,8 @@
    },
    "alternate_spread": {
     "w": 30,
-    "n": 92,
-    "pct": 32.6
+    "n": 93,
+    "pct": 32.3
    },
    "total": {
     "w": 23,
@@ -59,8 +59,8 @@
    },
    "MODEL": {
     "w": 96,
-    "n": 218,
-    "pct": 44.0
+    "n": 220,
+    "pct": 43.6
    }
   },
   "by_day": [
@@ -274,11 +274,11 @@
    },
    {
     "w": 1,
-    "n": 1,
-    "pct": 100.0,
+    "n": 3,
+    "pct": 33.3,
     "date": "2026-11-10",
     "voids": 0,
-    "pending": 2
+    "pending": 0
    },
    {
     "w": 0,
@@ -294,8 +294,8 @@
   "basis": "MARKET + MODEL",
   "overall": {
    "w": 26,
-   "n": 88,
-   "pct": 29.5
+   "n": 89,
+   "pct": 29.2
   },
   "shown": 89,
   "by_basis": {
@@ -306,12 +306,12 @@
    },
    "MODEL": {
     "w": 19,
-    "n": 80,
-    "pct": 23.8
+    "n": 81,
+    "pct": 23.5
    }
   },
   "voids": 0,
-  "pending": 1,
+  "pending": 0,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -1646,8 +1646,8 @@
     "break_even": 39.4,
     "game": "Kent State Golden Flashes @ Bowling Green Falcons",
     "commence": "2026-11-11T00:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    }
   ]
  },
@@ -1658,35 +1658,35 @@
    "pct": 55.2
   },
   "player_pass_yds": {
-   "w": 51,
-   "n": 99,
-   "pct": 51.5
+   "w": 53,
+   "n": 102,
+   "pct": 52.0
   },
   "player_reception_yds": {
-   "w": 83,
-   "n": 156,
-   "pct": 53.2
+   "w": 85,
+   "n": 159,
+   "pct": 53.5
   },
   "player_receptions": {
    "w": 51,
-   "n": 97,
-   "pct": 52.6
+   "n": 98,
+   "pct": 52.0
   },
   "player_rush_yds": {
-   "w": 104,
-   "n": 202,
-   "pct": 51.5
+   "w": 105,
+   "n": 205,
+   "pct": 51.2
   }
  },
  "by_side": {
   "over": {
-   "w": 76,
-   "n": 154,
+   "w": 77,
+   "n": 156,
    "pct": 49.4
   },
   "under": {
-   "w": 213,
-   "n": 400,
+   "w": 217,
+   "n": 408,
    "pct": 53.2
   },
   "yes": {
@@ -1707,14 +1707,14 @@
    "pct": 88.9
   },
   "fanduel": {
-   "w": 100,
-   "n": 182,
-   "pct": 54.9
+   "w": 102,
+   "n": 188,
+   "pct": 54.3
   },
   "hardrockbet": {
-   "w": 228,
-   "n": 447,
-   "pct": 51.0
+   "w": 231,
+   "n": 451,
+   "pct": 51.2
   },
   "williamhill_us": {
    "w": 1,
@@ -1722,7 +1722,22 @@
    "pct": 50.0
   }
  },
- "calibration": [],
+ "calibration": [
+  {
+   "bucket": "50-60%",
+   "stated": 54.4,
+   "w": 5,
+   "n": 9,
+   "pct": 55.6
+  },
+  {
+   "bucket": "60-70%",
+   "stated": 62.0,
+   "w": 0,
+   "n": 1,
+   "pct": 0.0
+  }
+ ],
  "card_method_current": "season-blend+props-own+game-HC",
  "calibration_by_method": {
   "2025-only": [
@@ -1893,6 +1908,22 @@
     "n": 8,
     "pct": 37.5
    }
+  ],
+  "season-blend+props-own+game-HC": [
+   {
+    "bucket": "50-60%",
+    "stated": 54.4,
+    "w": 5,
+    "n": 9,
+    "pct": 55.6
+   },
+   {
+    "bucket": "60-70%",
+    "stated": 62.0,
+    "w": 0,
+    "n": 1,
+    "pct": 0.0
+   }
   ]
  },
  "by_method": {
@@ -1915,6 +1946,11 @@
    "w": 127,
    "n": 242,
    "pct": 52.5
+  },
+  "season-blend+props-own+game-HC": {
+   "w": 5,
+   "n": 10,
+   "pct": 50.0
   }
  },
  "by_day": [
@@ -2244,25 +2280,25 @@
   },
   {
    "date": "2026-11-10",
-   "w": 0,
-   "n": 0,
+   "w": 5,
+   "n": 10,
    "carded": 10,
    "voids": 0,
-   "unresolved": 10,
-   "owed": 10
+   "unresolved": 0,
+   "owed": 0
   }
  ],
- "days_graded": 36,
+ "days_graded": 37,
  "cards_seen": 37,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 337,
- "distinct_games": 205,
+ "distinct_players": 343,
+ "distinct_games": 208,
  "carded_rows": 705,
  "voids": 0,
- "unresolved": 64,
- "coverage_note": "641 of 705 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 64 could not be settled at all.",
+ "unresolved": 54,
+ "coverage_note": "651 of 705 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 54 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -2273,10 +2309,6 @@
   {
    "date": "2026-10-08",
    "why": "nothing settled yet \u2014 its list is empty, nothing to grade"
-  },
-  {
-   "date": "2026-11-10",
-   "why": "nothing settled yet \u2014 the log does not reach this slate"
   },
   {
    "date": "2026-11-11",
