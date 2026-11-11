@@ -715,10 +715,11 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
 #    adds IN, AT, RS (NFL) and ATC, RSC (college).
 # `[Sam, 2026-10-16]` ~~8 and 8~~: T71 (§3e) adds SM and SMC.
 # `[Sam, 2026-10-26]` ~~9 and 9~~: T72 (§3f) adds CL, WL, MC, AJ (NFL) and CLC, WLC, MCC, AJC.
+# `[Sam, 2026-11-10]` ~~13 and 13~~: T75 (§3k) adds QB, QP (NFL) and QBC, QPC (college).
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "RS", "S", "SM", "WL", "WX"],
-    "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "RSC", "SMC", "T", "TS", "WLC", "WXC"]},
-   "🔴 so alpha divides by 13 in the NFL and 13 in college (T72 adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC)")
+   {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "QB", "QP", "RS", "S", "SM", "WL", "WX"],
+    "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "QBC", "QPC", "RSC", "SMC", "T", "TS", "WLC", "WXC"]},
+   "🔴 so alpha divides by 15 in the NFL and 15 in college (T75 adds QB, QP and QBC, QPC)")
 eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
     R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
    ["2026-10-19", "2026-10-19", "2026-10-26", None],
@@ -777,8 +778,9 @@ for _n in ("SM", "SMC"):
 _al = {lg: R.verdicts([dict(counted(300, 0.05, 0.001), name=n) for n, c in FC.CHALLENGERS.items()
                        if c["league"] == lg])[0]["alpha"] for lg in ("nfl", "ncaaf")}
 # `[Sam, 2026-10-26]` ~~0.01 / 9, stricter than 0.01 / 8~~: T72 (§3f) adds four a league.
-ck(all(abs(a - 0.01 / 13) < 1e-12 and a < 0.01 / 9 for a in _al.values()),
-   "🔴 the divisor is 13 in each league: every bar is stricter than 0.01 / 9, never looser", _al)
+# `[Sam, 2026-11-10]` ~~0.01 / 13~~: T75 (§3k) adds two a league.
+ck(all(abs(a - 0.01 / 15) < 1e-12 and a < 0.01 / 13 for a in _al.values()),
+   "🔴 the divisor is 15 in each league: every bar is stricter than 0.01 / 13, never looser", _al)
 # `[2026-10-16]` ~~the first Monday on or after the merge day (10-19 -> 10-19)~~: AFTER it (§3e).
 eq([R.registration("SM", T1, {"SM": d}) for d in ("2026-10-16", "2026-10-19", "2026-10-21", "2026-10-26", None)],
    ["2026-10-19", "2026-10-26", "2026-10-26", "2026-11-02", None],
@@ -956,9 +958,10 @@ _bys = {x["name"]: x for x in _lgs["challengers"]}
 # `[Sam, 2026-11-08]` §3j, *"ok i approve of all 3"*: ~~0.01 / 12~~ SM, the champion, is still one of k, so
 #    0.01 / 13; and AT (it would replace SM's own total with today's) is NOT APPLICABLE too.
 _na11 = ("S", "MC", "AJ", "AT")
-ck(all(_bys[n]["verdict"] == "NOT APPLICABLE" and _bys[n]["alpha"] == 0.01 / 13 for n in _na11)
+# `[Sam, 2026-11-10]` ~~0.01 / 13~~: T75 (§3k) adds QB and QP, which only append: they build beside SM.
+ck(all(_bys[n]["verdict"] == "NOT APPLICABLE" and _bys[n]["alpha"] == 0.01 / 15 for n in _na11)
    and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n not in _na11),
-   "🔴 with SM champion, S, MC, AJ and AT are NOT APPLICABLE (still in the divisor, 0.01 / 13 with SM) and the "
+   "🔴 with SM champion, S, MC, AJ and AT are NOT APPLICABLE (still in the divisor, 0.01 / 15 with SM) and the "
    "rest are scored, no crash", {n: x.get("verdict") for n, x in _bys.items()})
 _sum = S.refit_summary(_lgs, "NFL", NOW)
 _s_line = _sum[_sum.find("Challenger S (fewer inputs):"):].split(". Challenger")[0]

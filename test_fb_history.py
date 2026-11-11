@@ -260,8 +260,9 @@ eq(R.registration("H", T, {"H": "2026-10-20"}), "2026-10-26", "   ...and once th
 # `[Sam, 2026-10-16]` ~~8 challengers a league, p < 0.01 / 8~~: T71 (§3e) adds SM, SMC.
 # `[Sam, 2026-10-26]` ~~9 challengers a league, p < 0.01 / 9~~: T72 (§3f) adds CL, WL, MC, AJ and
 #    CLC, WLC, MCC, AJC.
+# `[Sam, 2026-11-10]` ~~13 challengers a league, p < 0.01 / 13~~: T75 (§3k) adds QB, QP and QBC, QPC.
 eq({lg: sum(1 for c in FC.CHALLENGERS.values() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": 13, "ncaaf": 13}, "🔴 13 challengers a league, p < 0.01 / 13")
+   {"nfl": 15, "ncaaf": 15}, "🔴 15 challengers a league, p < 0.01 / 15")
 P = tree()
 rows = F.contract(P + "/data/nfl", P + "/picks", None)
 hist = [r for r in rows if "/history/" in r[1][1]]

@@ -530,7 +530,70 @@ first, fourth and fifth bullets correct.)
   does. A challenger with only its own inputs (H, HC, SM, SMC) trains on the 2025-2026 rows plus
   its own history rows, never another's.
 
+## 3k. T75 — the backup-QB background check (frozen)
+
+**Sam, 2026-11-10:**
+- *"when teams have a backup qb starting or a 3rd string qb starting the model gives them more porints than they actually score. we have to weigh certain positions heavier than others when regarding injuries ... the model finds the backup who is starting and does a "backggriudn check". this would consist of seeing how theyve performed in other starts from either that year or previous years."*
+- Asked four questions, he answered:
+  - "All past weeks too";
+  - "Yes, require it" (the direction rule);
+  - "Add the second one" (the positions pair);
+  - "Use what's stored now".
+- Defined here, by Claude, before any result under it; disclosed for him to overrule. **Exposure, disclosed:** Sam's own observation, and the already-recorded T69 and injury-layer numbers (research/fb_sim_backtest.json), which two read-only mappers saw while drafting this. No number was computed from either.
+
+**Four challengers, two a league:**
+- **QB (NFL) and QBC (college):** the QB delta below.
+- **QP (NFL) and QPC (college):** the QB delta plus the other positions out.
+- Code: `fb_qb.py` (the check) and `fb_challengers.attach_qb` / `extend`.
+
+**Who starts.** The cut is the game day: no start, result or rating dated on or after the game's own date is read. The listed-out reports are read as each listing below says (NFL: the game week's report; college: cfb_injuries' 9:00 ET pick time on the game's own ET day).
+- *Starter of record* of a past game: the team's QB with the most pass attempts (else its top passer of any position); a tie goes to the larger player id, compared as text.
+- *Usual starter* U: the most starts in the team's previous 8 games, any season; a tie goes to the most recent.
+- *Last starter* L: the starter of the team's previous game.
+- *Listed out:*
+  - NFL: Out or Doubtful on the game week's report (IN's reading), or on the team's reserve list that week (players-<season> `team_out`, "roster: reserve list": injured reserve and similar), which the report does not carry. A reserve-list name counts only when exactly one player with a stored log row for the team dated before the game has it, compared exactly bar case and spacing, and he is a QB (an ambiguous name is not listed; a teammate with no stored log row before the game cannot be seen); the inactive list is not read. Both are read for the seasons the reports are stored for (fb_model.SEASONS, 2025 on);
+  - college: Out, Out for Season or Doubtful on the 9:00 ET report (cfb_injuries' reading);
+  - no report: nobody listed.
+- *Expected starter* E:
+  - If U is not listed out, and L started because U was listed out at L's game, E is U (whether or not L is listed out now).
+  - Otherwise L, unless L is listed out. Then E is the team's other QB with the most pass attempts this season, then last season, not listed out (a tie in attempts: the larger player id, compared as text); none: an unknown backup.
+
+**The check.**
+- *A start's mark:* the team's points minus the points the model's own ratings (`fb_model.own_ratings`, frozen settings, solved on every stored schedule, latest and history, at the start's own Monday) expected for that game.
+- *A QB's grade:* (the sum of his marks + 8 × the prior) / (his marked starts + 8). It reads every stored start before the cut, any team, any stored season. A start with no mark (no stored schedule game for it, or no earlier game for the ratings) adds to neither sum; it is still a stored start for "3 or fewer prior stored starts" and for "no earlier start".
+- *The prior (replacement level):* the mean mark of starts in every earlier season by QBs with 3 or fewer prior stored starts whose first stored start came after the first stored season of his team's logs (in that season every QB of that team starts at 0, veterans too; college logs before 2025 are Power 4 only); 0 before any such season, whether or not the row's own season has logs stored yet. A QB who moved from a team whose logs are not stored counts as new: the stored data cannot tell. An unknown backup's grade is the prior.
+- *The QB delta:* grade(E) minus the rating's own QB mix. The mix is the grades of the team's starters over the games the champion's own rating reads (`fb_model.rating_games`; plus the history seasons' when H or HC is champion), dated before the row's Monday, each weighted 0.5 ^ (days / 150) (`fb_challengers.rated_games`).
+- No earlier start, or no such game: no reading, an input of 0.
+- ⛔ The constants (8, 3, 8 games, 150 days) are fixed, not tuned.
+
+**The inputs, appended to the champion's in every market (spread, total, moneyline):**
+- QB delta / 10: away − home on spread and moneyline, home + away on totals.
+- QP adds, in the same shape:
+  - IN's offence share out and defence share out (the report only: the reserve list joins the QB listing alone);
+  - the offensive linemen listed out, counted. Linemen have no snap rows, so IN weighs them 0.
+- QPC adds college's offence share out and defence share out (cfb_injuries' reading; no reading: 0).
+- They only append, so they are in APPEND_ONLY (§3f).
+- They train on the rows the champion trains on (§3j), HC's history rows included. A history row reads the logs stored for its season (NFL from 2021, college Power 4 before 2025) and has no report.
+
+**Counted weeks.** QB, QBC, QP and QPC count every walk-forward week, §3g's first group (Sam: "All past weeks too"). Before its registration Monday a challenger has not entered (§3g).
+
+**Registration:** the first Monday AFTER the day its entry reaches main (a Monday merge counts from the next Monday), no earlier than 2026-11-16 (`on_merge`). No withdrawal rule.
+
+**The bar:**
+- §2 and §3g's, unchanged:
+  - mean d > 0;
+  - one-sided p < 0.01 / k, clustered by game;
+  - at least 300 counted predictions differing from the champion's.
+- k rises by two in each league: NFL 15; college 15, less one for each challenger withdrawn (§3h).
+- **And the direction rule** (Sam: "Yes, require it"):
+  - A WINS also needs the QB delta's weight, in each market's latest weekly fit, to point the expected way: negative on spread and moneyline (they price the home side, and a better away QB must lower its chance), positive on totals.
+  - Otherwise it is NOT YET, whatever its score (`fb_refit.direction`).
+
+**As champion:** "the champion plus its inputs". A college WINS while HC is champion pushes nothing and reports NEEDS SAM (fb_refit.push_branch's `[R1, 2026-10-18]` rule, described in §4: the code's rule, not one of §3's). If a second switch made QBC or QPC champion, the live college injury layer's flat QB term would be counted twice. That switch, and dropping the term, are Sam's.
+
 ## 4. How it is built (not frozen)
+
+- `[2026-11-10]` §3k T75: `fb_qb.Book` reads the stored player logs (every season) and the rating games (`fb_model.rating_games` plus `history_rating_games`), solves `own_ratings` once for every start's Monday, and gives a row's QB delta per team (`delta`). `fb_challengers.attach_qb` reads the listed-out QBs (NFL `injury_tables`, college `cfb_injuries.pick_time_outs` + `Roles.match`) and writes `sig["qb_d"]` (and `sig["qp"]` for QP / QPC). `fb_refit.contest` records each market's latest fit's QB weight (`direction`), and `verdicts` turns a WINS whose weight points the wrong way into NOT YET.
 
 - `[2026-10-27]` §3i T74 rides the same Monday job: `fb_refit.props_contest` runs
   `fb_props_model.walk_forward` twice per league (the champion on `load_logs(lg)`, P2526 on
@@ -687,3 +750,4 @@ first, fourth and fifth bullets correct.)
 - 2026-10-27 — §3h added at Sam's instruction (*"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*), answering the two readings flagged above: a withdrawal is permanent (carried by the weekly report, `withdrawn_since`), and "differs" stays exact. Written before any result under it; §2 to §3g unchanged and pinned. §4 records how it is built.
 - 2026-10-27 — §3i T74 added at Sam's instruction (*"set up the monday contest to train it on 25-26"*, then *"build as written"*): a weekly contest for the PROPS model, the champion (every stored season) against P2526 (last season plus this one, rolling), per league, 500 paired predictions, lower log loss at one-sided p < 0.01; a win pushes one branch for Sam. Written before any result under it; §2 to §3h unchanged and pinned.
 - 2026-11-08 — §3j added at Sam's instruction (*"ok i approve of all 3"*), answering three questions about the first champion switch (HC, college): the champion stays one of k; T, AT and ATC (and the class: a first input replaced by a number defined against today's own margin or total) are NOT APPLICABLE against a champion whose first input is not today's own number; the spread of results, the injury sizing and the email's "miss by" read the champion's own numbers. It also names every place history rows stay training only. Written before any contest under it; §2 to §3i unchanged and pinned.
+- 2026-11-10 — §3k T75 (QB, QBC, QP, QPC), the backup-QB background check, from Sam's request and his four answers ("All past weeks too", "Yes, require it", "Add the second one", "Use what's stored now"); added before any result under it, editing nothing above it. §4: `fb_qb.py` holds the check; `fb_challengers.attach_qb` the readings; `fb_refit.direction` the direction rule.

@@ -393,10 +393,11 @@ section("5. 🔴 k KEEPS THE CHAMPION; THE WEEKLY REPORT UNDER HC (NOT APPLICABL
 # ══════════════════════════════════════════════════════════════════════
 _res = [{"name": n, "registered": "2026-10-19", "withdrawn": False, "verdict": "NOT APPLICABLE"}
         for n in names("ncaaf") if n != "HC"]
-eq(len(_res), 12, "the planted report: the twelve college challengers other than HC")
-eq(R.verdicts([dict(x) for x in _res], "HC")[0]["alpha"], 0.01 / 13,
-   "🔴 with HC as champion the bar is 0.01 / 13: HC is still one of k")
-eq(R.verdicts([dict(x) for x in _res])[0]["alpha"], 0.01 / 12, "   ...(and with no champion passed, 0.01 / 12)")
+# `[Sam, 2026-11-10]` ~~twelve, 0.01 / 13, 0.01 / 12~~: T75 (§3k) adds QBC and QPC.
+eq(len(_res), 14, "the planted report: the fourteen college challengers other than HC")
+eq(R.verdicts([dict(x) for x in _res], "HC")[0]["alpha"], 0.01 / 15,
+   "🔴 with HC as champion the bar is 0.01 / 15: HC is still one of k")
+eq(R.verdicts([dict(x) for x in _res])[0]["alpha"], 0.01 / 14, "   ...(and with no champion passed, 0.01 / 14)")
 _T5 = tree()
 os.makedirs(os.path.join(_T5, "data", "ncaaf", "latest"))
 _got_rows, _attach = {}, FC.attach

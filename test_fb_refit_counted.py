@@ -11,6 +11,8 @@ champion's; P and T's withdrawal window stays the weeks before 2026-10-19; one b
 largest mean d; after a champion switch the eighteen do not restart and the eight do.
 `[Sam, 2026-10-27]` §3h, *"Yes: keep 'differs' exact, and make P and T's withdrawal permanent."*:
 a challenger withdrawn once stays withdrawn in every later report (§8).
+`[Sam, 2026-11-10]` §3k ("All past weeks too"): T75's four (QB, QBC, QP, QPC) count every week,
+like the eighteen; their list is read from §3k's own text.
 
 Planted predictions and a pinned clock only. ⛔ Reads no live data: no fb-refit.json, no
 build_rows, no git; nothing is pushed (push_branch is replaced by a recorder).
@@ -273,6 +275,9 @@ class Planted:
     def predictions(self, mk, keep=None):
         return self.preds.get(mk, {})
 
+    def model(self, wk, mk):
+        return None                            # handed-in predictions have no fit (§3k's direction: not ok)
+
 
 ROW = {"pml": 0.5, "season": 2026}           # all league()'s scoreboard reads of a planted row
 # Last season and this season before 2026-10-19 (history), and the two Mondays from it (scored).
@@ -328,10 +333,15 @@ EIGHT = names_in(r"\*\*Still only games after registration \(§2\):\*\* (.*?)\. 
 _floor = re.search(r"\*\*The floor:\*\* at least (\d+) counted predictions", _3g)
 _win = re.search(r"\*\*Withdrawal\*\* \(P and T\) is unchanged: §2's history window, the weeks before "
                  r"(\d{4}-\d\d-\d\d)\.", _3g)
+_3k = _spec[_spec.find("\n## 3k. "):_spec.find("\n## 4. ")]
+_m3k = re.search(r"\*\*Counted weeks\.\*\* (.*?) count every walk-forward week", _3k, re.S)
+FOUR = [n.strip() for n in re.split(r",| and ", " ".join(_m3k.group(1).split())) if n.strip()] if _m3k else []
 ck(len(ALL18) == 18 and len(EIGHT) == 8, "§3g is in the spec and names eighteen and eight", (ALL18, EIGHT))
+eq(FOUR, list(FC.T75), "§3k names T75's four as counting every week, fb_challengers.T75's own list")
 eq(R.SCORED_ONLY, tuple(EIGHT), "🔴 fb_refit.SCORED_ONLY is §3g's eight, in its order")
-eq((sorted(ALL18 + EIGHT), len(set(ALL18) & set(EIGHT))), (sorted(FC.CHALLENGERS), 0),
-   "🔴 the eighteen and the eight are every challenger, each exactly once")
+eq((sorted(ALL18 + FOUR + EIGHT), len(set(ALL18 + FOUR) & set(EIGHT)), len(set(ALL18) & set(FOUR))),
+   (sorted(FC.CHALLENGERS), 0, 0),
+   "🔴 the eighteen, §3k's four and the eight are every challenger, each exactly once")
 eq(R.MIN_SCORED, int(_floor.group(1)) if _floor else None, "🔴 the floor is §3g's (300)")
 eq(R.WITHDRAW_BEFORE, _win.group(1) if _win else None, "🔴 P and T's withdrawal window ends on §3g's date")
 eq(sorted(n for n, c in FC.CHALLENGERS.items() if c["withdrawable"]), ["P", "T"],
@@ -388,7 +398,7 @@ eq((_ef["counted"]["predictions"], _ef["counted"]["differing"], _ef["verdict"]),
    "   ...while E on the same games (its two markets) counts all 500 and WINS")
 _wide = [n for n in FC.CHALLENGERS if n not in R.SCORED_ONLY and not FC.CHALLENGERS[n]["withdrawable"]]
 ck(all(contest(n, BOTH)["counted"]["predictions"] == 300 * len(FC.CHALLENGERS[n]["markets"]) for n in _wide),
-   "🔴 every one of the eighteen (P and T below) counts every week on each of its markets", _wide)
+   "🔴 every one of the eighteen (P and T below) and §3k's four counts every week on each of its markets", _wide)
 c = contest("E", BOTH, entered=False)
 eq((c["counted"]["predictions"], c["history"]["predictions"]), (0, 400),
    "🔴 before its registration Monday a challenger has not entered: nothing is counted (its history is still "
@@ -449,8 +459,9 @@ eq((_b2["CL"]["counted"]["predictions"], _b2["CL"]["verdict"], _b2["E"]["counted
    (0, "NOT YET MEASURABLE", 600),
    "🔴 a run on Wednesday 10-28 counts nothing for CL, which enters the contest on 11-02")
 _k = sum(1 for x in _d2["challengers"] if x["registered"] and not x.get("withdrawn"))
-ck(_k == 13 and all(x.get("alpha") == R.ALPHA / 13 for x in _d2["challengers"]),
-   "🔴 k is unchanged (§2 to §3f): every registered, not withdrawn challenger, CL included, so 0.01 / 13",
+ck(_k == 15 and all(x.get("alpha") == R.ALPHA / 15 for x in _d2["challengers"]),
+   "🔴 k is unchanged (§2 to §3k): every registered, not withdrawn challenger, CL (and QB, QP, not yet "
+   "entered) included, so 0.01 / 15",
    (_k, {x["name"]: x.get("alpha") for x in _d2["challengers"]}))
 _d3, _b3 = league("nfl", NOW, prev={"champion": "E", "champion_since": None})
 eq(_d3["champion_since"], "2026-11-02", "a champion switch is noticed: champion_since is 11-02")

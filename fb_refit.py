@@ -54,6 +54,10 @@ SCORED_ONLY = ("S", "TS", "AV", "AVC", "AT", "ATC", "SM", "SMC")
 #    a champion switch moves `scored_from`, never this.
 #    `[Sam, 2026-10-27]` ⛔ §3h: and once withdrawn, withdrawn for good (`carried_withdrawals`).
 WITHDRAW_BEFORE = "2026-10-19"
+# `[Sam, 2026-11-10]` §3k, T75's direction rule ("Yes, require it"): the sign the QB delta's weight
+#    must have in each market's latest weekly fit. Spread and moneyline price the HOME side and the
+#    input is away - home, so a better away QB must LOWER the chance; totals, the sum, must raise it.
+DIRECTION = {"spread": -1, "moneyline": -1, "total": 1}
 Z90 = 1.645
 
 
@@ -195,6 +199,7 @@ def contest(rows, champ, name, start, registered, fits=None, entered=True, withd
         return dict(out, verdict="NO DATA")
     fits = fits or Fits(rows, challenger_feat(name))
     preds = []                                   # (Monday, (champion loss, challenger loss, game), differs)
+    latest = {}                                  # market -> (the latest Monday it priced, a row it priced) §3k
     for mk in c["markets"]:
         a = champ.predictions(mk)
         # `[R1, 2026-10-18]` only the games the champion prices: a pair needs both, so this
@@ -202,6 +207,10 @@ def contest(rows, champ, name, start, registered, fits=None, entered=True, withd
         for gid, (p_x, y, wk, _r) in fits.predictions(mk, lambda r: r["id"] in a).items():
             if gid in a:
                 preds.append((wk, (loss(a[gid][0], y), loss(p_x, y), gid), p_x != a[gid][0]))
+                if wk >= latest.get(mk, ("", None))[0]:
+                    latest[mk] = (wk, _r)
+    if name in FC.T75:
+        out["direction"] = direction(fits, latest)
     scored = [x for x in preds if x[0] >= start]
     out["history"] = test([pair for wk, pair, _df in preds if wk < start])
     h = test([pair for wk, pair, _df in preds if wk < WITHDRAW_BEFORE]) if c["withdrawable"] else None
@@ -215,6 +224,25 @@ def contest(rows, champ, name, start, registered, fits=None, entered=True, withd
     counted = [] if out["withdrawn"] or not entered else scored if name in SCORED_ONLY else preds
     out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=True),
                           differing=sum(1 for _wk, _pair, df in counted if df))
+    return out
+
+
+def direction(fits, latest):
+    """`[Sam, 2026-11-10]` §3k: per market, the weight the latest weekly fit (the latest Monday it
+    priced) gives the QB delta, the first input T75 appends, and whether it points DIRECTION's way.
+    `latest`: {market: (Monday, a row it priced that Monday)}. The QB delta follows the champion's
+    inputs (`fb_model.features`, the champion's own included), so its weight is w[1 + that many]
+    (w[0] is the intercept). The inputs are standardised, so the weight's sign is the direction
+    learned. A market with no fit is not ok."""
+    out = {}
+    for mk, (wk, row) in sorted(latest.items()):
+        m, w = fits.model(wk, mk), None
+        if m:
+            i = 1 + len(FM.features(row, mk))
+            w = m["w"][i] if i < len(m["w"]) else None
+        out[mk] = {"monday": wk, "weight": None if w is None else round(w, 6),
+                   "expected": "negative" if DIRECTION[mk] < 0 else "positive",
+                   "ok": w is not None and w * DIRECTION[mk] > 0}
     return out
 
 
@@ -239,6 +267,13 @@ def verdicts(results, champion=None):
             x["verdict"] = "NOT YET MEASURABLE"
         elif s["mean_d"] > 0 and s["p"] is not None and s["p"] < x["alpha"]:
             x["verdict"] = "WINS"
+            # `[Sam, 2026-11-10]` §3k: T75 wins only if its QB delta learned the expected way in
+            #    every market it is scored on ("Yes, require it")
+            d = x.get("direction") or {}
+            if x["name"] in FC.T75 and not (d and all(v["ok"] for v in d.values())):
+                x["verdict"] = "NOT YET"
+                x["why"] = "its QB number pulls the wrong way in %s (§3k)" % (
+                    ", ".join(mk for mk, v in sorted(d.items()) if not v["ok"]) or "every market, none was fitted")
         else:
             x["verdict"] = "NOT YET"
     return results

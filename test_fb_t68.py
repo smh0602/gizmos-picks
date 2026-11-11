@@ -250,9 +250,10 @@ al = {lg: R.verdicts([res(n) for n, c in FC.CHALLENGERS.items() if c["league"] =
 # `[Sam, 2026-10-15]` ~~0.01/4 and 0.01/5~~: T69 (§3c) adds IN, AT, RS and ATC, RSC.
 # `[Sam, 2026-10-16]` ~~0.01/8 and 0.01/8~~: T71 (§3e) adds SM and SMC.
 # `[Sam, 2026-10-26]` ~~0.01/9 and 0.01/9~~: T72 (§3f) adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC.
-ck(abs(al["nfl"] - 0.01 / 13) < 1e-12 and abs(al["ncaaf"] - 0.01 / 13) < 1e-12,
-   "🔴 alpha: 0.01/13 in the NFL (E, S, AV, WX, IN, AT, RS, H, SM, CL, WL, MC, AJ) and 0.01/13 in college "
-   "(P, T, TS, AVC, WXC, ATC, RSC, HC, SMC, CLC, WLC, MCC, AJC)", al)
+# `[Sam, 2026-11-10]` ~~0.01/13 and 0.01/13~~: T75 (§3k) adds QB, QP and QBC, QPC.
+ck(abs(al["nfl"] - 0.01 / 15) < 1e-12 and abs(al["ncaaf"] - 0.01 / 15) < 1e-12,
+   "🔴 alpha: 0.01/15 in the NFL (E, S, AV, WX, IN, AT, RS, H, SM, CL, WL, MC, AJ, QB, QP) and 0.01/15 in "
+   "college (P, T, TS, AVC, WXC, ATC, RSC, HC, SMC, CLC, WLC, MCC, AJC, QBC, QPC)", al)
 eq((F.champion_inputs("nfl", {"nfl": "WX"}), F.champion_inputs("ncaaf", {"ncaaf": "WXC"}),
     F.champion_inputs("nfl", {"nfl": "AV"})),
    ([("weather-{s}.json.gz", "possession")], [("weather-{s}.json.gz", "possession")], []),

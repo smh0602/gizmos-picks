@@ -164,10 +164,11 @@ section("3. 🔴 COUNTS, REGISTRATION, FRESHNESS AND THE NFL DEFENSIVE SNAPS")
 # ══════════════════════════════════════════════════════════════════════
 # `[Sam, 2026-10-16]` ~~8 challengers a league, 0.01 / 8~~: T71 (§3e) adds SM, SMC.
 # `[Sam, 2026-10-26]` ~~9 challengers a league, 0.01 / 9~~: T72 (§3f) adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC.
+# `[Sam, 2026-11-10]` ~~13 challengers a league, 0.01 / 13~~: T75 (§3k) adds QB, QP and QBC, QPC.
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "RS", "S", "SM", "WL", "WX"],
-    "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "RSC", "SMC", "T", "TS", "WLC", "WXC"]},
-   "🔴 13 challengers a league (T72 adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC), so alpha is 0.01 / 13")
+   {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "QB", "QP", "RS", "S", "SM", "WL", "WX"],
+    "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "QBC", "QPC", "RSC", "SMC", "T", "TS", "WLC", "WXC"]},
+   "🔴 15 challengers a league (T75 adds QB, QP and QBC, QPC), so alpha is 0.01 / 15")
 eq([R.registration("IN", T1, {"IN": "2026-10-15"}), R.registration("AT", T1), R.registration("RSC", T1)],
    ["2026-10-19"] * 3, "🔴 registered 2026-10-19 (IN after its injuries files exist)")
 import freshness as F  # noqa: E402
