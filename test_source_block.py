@@ -71,7 +71,7 @@ import sys
 import tempfile
 
 import freshness as F
-from tcheck import ck, note
+from tcheck import ck, note, copy_latest
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
@@ -152,7 +152,7 @@ print("\n═══ 3. 🔴 DRIVEN: WITHIN GRACE WARNS, PAST GRACE FAILS ══�
 def _gate(age_days, state="refused"):
     """Copy the live ncaaf tree, age its report, and run the gate."""
     d = tempfile.mkdtemp()
-    shutil.copytree(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
+    copy_latest(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
     for f in ("freshness.py", "verify_freshness.py", "tcheck.py",
               "wfroutes.py", "collect.py", "cfb.py", "nfl.py"):
         if os.path.exists(f"{ROOT}/{f}"):
@@ -410,7 +410,7 @@ def _teams_season(d, season):
 #    tried and was wrong. Run the collector with the back-off armed.
 def _standdown(mode):
     d = tempfile.mkdtemp()
-    shutil.copytree(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
+    copy_latest(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
     for f in os.listdir(ROOT):
         if f.endswith(".py"):
             shutil.copy2(f"{ROOT}/{f}", f"{d}/{f}")
@@ -476,7 +476,7 @@ for _m in ("cfb-probe", "fb-scores"):
 # cannot tell one gate from the next.
 def _fbs(extra):
     d = tempfile.mkdtemp()
-    shutil.copytree(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
+    copy_latest(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
     for f in os.listdir(ROOT):
         if f.endswith(".py"):
             shutil.copy2(f"{ROOT}/{f}", f"{d}/{f}")

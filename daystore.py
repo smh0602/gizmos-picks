@@ -59,13 +59,27 @@ def path(data, kind, when=None):
 
 
 def same_bytes(path, doc):
-    """The bytes of the gzip at `path` when it stores exactly `doc` (compared as
-    JSON stores it, so int keys read back as strings); None otherwise (no file,
-    unreadable, any difference). ⛔ Never raises."""
+    """The bytes of the gzip at `path` when it stores `doc` apart from its stamps
+    (freshness.same_but_stamps, the heartbeat's own compare: as JSON stores it, so int
+    keys read back as strings); None otherwise (no file, unreadable, any other
+    difference, at any depth). ⛔ Never raises.
+    🔴 `[2026-11-10]` ~~exactly `doc`~~ APART FROM ITS STAMPS. The latest file is written
+    by `collect.write`, which adds `written_at`, and a run whose document moved only its
+    stamps keeps the latest gzip and writes its heartbeat: compared exactly, the archive
+    would dump a second full gzip on every such run (the copy exists to stop that). The
+    archive then carries latest's file stamps; its own time is its dated path, and no
+    reader takes a stamp from a DOSSIER archive, the one `same_as` caller (shadow_fb reads
+    `dossiers`; other kinds' archives ARE read for `pulled_at`, so a new caller is a decision:
+    test_archive_same_bytes §2). ⚠️ winners.graded reaches this function (daystore.archive),
+    so record_grader's winners fingerprint follows it: an edit here or to
+    freshness.same_but_stamps costs one free winners.json rebuild (verify_record)."""
     try:
+        import freshness as _F
         with open(path, "rb") as fh:
             buf = fh.read()
-        if json.loads(gzip.decompress(buf).decode("utf-8")) == json.loads(json.dumps(doc)):
+        stored = json.loads(gzip.decompress(buf).decode("utf-8"))
+        if stored == json.loads(json.dumps(doc)) or (
+                isinstance(stored, dict) and isinstance(doc, dict) and _F.same_but_stamps(stored, doc)):
             return buf
     except Exception:
         pass
@@ -79,13 +93,14 @@ def archive(doc, data, kind, log=print, when=None, same_as=None):
     same minute was LEFT ALONE, which is the point of the whole module.
 
     🔴 `same_as` `[2026-11-08]`: the `latest/` gzip the caller has just written
-    `doc` to. When that file stores exactly `doc`, the archive is a copy of its
-    BYTES, so git stores one blob for the two paths. ⛔ A gzip carries its own
+    `doc` to. When that file stores `doc` (~~exactly~~ `[2026-11-10]` apart from its
+    top-level stamps: same_bytes), the archive is a copy of its BYTES, so git stores
+    one blob for the two paths. ⛔ A gzip carries its own
     write time and temporary file name, so the same document dumped twice is two
     different blobs: the dossier archive was a second full copy of
     `latest/dossiers.json.gz` on every `card-fb` run (267 archives, 63.8 MB of
     new gzip from 2026-10-25 to 11-08, every one sampled equal in content to the
-    latest file of its commit). Any difference, and it dumps `doc` as before.
+    latest file of its commit). Any other difference, and it dumps `doc` as before.
     """
     p = path(data, kind, when)
     parts = os.path.normpath(p).split(os.sep)

@@ -572,10 +572,10 @@ def build(lg=None, root=None, now=None, log=log):
         log("  ⚠️ game lines %s: no model %% on any rung (%s)" % (lg, doc["fits_refused"]))
     latest = os.path.join(_data(lg, root), "latest")
     path = os.path.join(latest, "game-lines.json.gz")
-    tmp = path + ".tmp"
-    with gzip.open(tmp, "wt", encoding="utf-8") as fh:
-        json.dump(doc, fh)
-    os.replace(tmp, path)
+    # 💾 `[2026-11-10]` THROUGH collect.write's HEARTBEAT (atomic, as before): 103 of 165
+    #    rewrites 11-03 -> 11-10 moved only `built_at`. card_fb reads the ladder's stamp
+    #    through freshness.with_heartbeat (test_heartbeat.py §4).
+    collect.write(path, doc, compress=True, heartbeat=True)
     frz = freeze(doc, lg, root, now, log)
     rungs = frozen_rungs(lg, root)
     stored = stored_grades(lg, root)

@@ -124,7 +124,7 @@ import sys
 import tempfile
 
 from jsblock import calls, js_block
-from tcheck import ck, note, section
+from tcheck import ck, note, section, copy_latest
 
 import dossier_fb as D          # noqa: E402  (nfl_table: the ONE parse)
 
@@ -214,7 +214,7 @@ def build(lg, planted=False):
         for f in os.listdir(ROOT):
             if f.endswith(".py") or f.endswith(".json"):
                 shutil.copy(os.path.join(ROOT, f), d)
-        shutil.copytree(os.path.join(ROOT, "data", lg),
+        copy_latest(os.path.join(ROOT, "data", lg),
                         os.path.join(d, "data", lg))
         if planted:
             with open(os.path.join(d, "data", lg, "latest", "board.json"),
