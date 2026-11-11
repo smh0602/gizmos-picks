@@ -126,6 +126,11 @@ to judge the challengers (rule 13): the planted scores exist only so the marks h
 #   find: HALF_LIFE = FM.RATING_HALF_LIFE
 #   with: HALF_LIFE = 15.0
 #
+# @vacuity 🔴 attach_qb's marks read every stored schedule, the history seasons too
+#   file: fb_challengers.py
+#   find: G = sorted(set(FM.rating_games(lg, root)).union(history_rating_games(lg, root)))
+#   with: G = sorted(set(FM.rating_games(lg, root)))
+#
 # @vacuity 🔴 today's model's rating reads latest/ only; the history seasons only for H or HC
 #   file: fb_challengers.py
 #   find: if FM.CHAMPION.get(lg) in HIST:

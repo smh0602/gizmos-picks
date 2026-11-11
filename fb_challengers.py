@@ -844,7 +844,7 @@ def attach_qb(name, lg, rows, root=None):
     (cfb_injuries' reading; none: 0). "Listed out": Out, Doubtful (NFL, the game week's report) or
     Out, Out for Season, Doubtful (college, the 9:00 report), as IN and cfb_injuries read them."""
     import fb_qb
-    G = sorted(set(FM.rating_games(lg, root)) | set(history_rating_games(lg, root)))
+    G = sorted(set(FM.rating_games(lg, root)).union(history_rating_games(lg, root)))     # every stored schedule
     book = fb_qb.Book(lg, G, root, rated=rated_games(lg, root))
     if lg == "nfl":
         reports, logs = injury_tables(root)

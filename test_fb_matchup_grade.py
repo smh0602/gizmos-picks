@@ -173,8 +173,8 @@ on the real games. Their numbers are pinned in test_fb_refit.py §17 (§3f names
 #
 # @vacuity 🔴 ...the append-only list is §3f's (IN appends)
 #   file: fb_challengers.py
-#   find: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC")
-#   with: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "RS", "RSC", "CL", "CLC", "WL", "WLC")
+#   find: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC",
+#   with: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "RS", "RSC", "CL", "CLC", "WL", "WLC",
 #
 # @vacuity 🔴 registration: never before 2026-11-02
 #   file: fb_refit.py
