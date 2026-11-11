@@ -2777,13 +2777,24 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    credits. ⚠️ `dict.fromkeys` keeps the contract's order, which is
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
-    # `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
-    #    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH.
-    need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
-            and (allow_paid or not r["paid"])
-            and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH)} \
+    need = {r["mode"] for r in rows if owes(r, allow_paid)} \
         | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now) \
         | code_moves(data)
+    return [m for m in order if m in cascaded(need)], rows
+
+
+def owes(r, allow_paid=True):
+    """Does this surveyed row need its mode run? ⛔ ONE COPY: `plan` and
+    `caught_up` both ask it (rule 117).
+    `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
+    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH."""
+    return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
+                and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
+
+
+def cascaded(need):
+    """`need` and every mode CASCADE says must follow one of them."""
+    need = set(need)
     changed = True
     while changed:
         changed = False
@@ -2791,7 +2802,59 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
             for dst in CASCADE.get(src, ()):
                 if dst not in need:
                     need.add(dst); changed = True
-    return [m for m in order if m in need], rows
+    return need
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A DEADLINE THAT PASSES WHILE A PASS IS RUNNING IS THAT PASS'S.
+#    `[2026-11-11]`
+# ══════════════════════════════════════════════════════════════════════
+# collect 42973157780, 11-11: the college pass surveyed at 06:54:57Z with
+# cfb-probe inside contract, planned `cfb-injuries card-fb news`, and the card
+# took 13 minutes (HC, the champion since 11-10, reads the history seasons).
+# cfb-probe's 3:00 ET deadline (07:00Z) passed at 07:00, the pass's own final
+# survey wrote freshness.json at 07:07:54Z with it stale, and the gate failed
+# "cfb-probe MISSED its 3:00 ET build ... 9m past due". `after_last_survey`
+# rightly did not excuse it: that survey HAD seen it stale. No pass could have
+# built it: the one running had planned before the deadline, and the next had
+# not started.
+# ✅ So `collect.converge` asks again before it writes freshness.json: a row
+#    whose missed deadline passed AFTER the survey the pass planned from is
+#    built in the same pass (`caught_up`), at most `collect.CATCH_UP_ROUNDS`
+#    times. Only these rows qualify:
+#      - stale by `owes` (the plan's own rule), with a deadline after `since`;
+#      - NOT missing (a missing row was stale when the pass planned, so it was
+#        planned already; still missing means its mode failed or wrote nothing);
+#      - its mode did not fail and was not skipped this pass (`skip`): a failed
+#        mode is never retried here, even when a LATER deadline of its passes
+#        while the pass runs (an hourly row that missed 06:00 and then 07:00);
+#      - plus CASCADE's followers, in the contract's order.
+# ⛔ NOTHING ELSE MOVES. The gate is unchanged and as strict: a row the plan saw
+#    stale whose mode failed is red as before, and a paid mode still runs at most
+#    once a pass (`_RAN_PAID`) under the same daily cap, so a paid row due again
+#    after its own pull is still the gate's to judge.
+def caught_up(rows, since, allow_paid=True, skip=()):
+    """-> the modes, in the contract's order, owed for rows whose missed deadline
+    (`due_at`) passed after `since`, the moment the pass surveyed to plan.
+    `skip`: modes that failed or were skipped this pass; never returned."""
+    late = {r["mode"] for r in rows if owes(r, allow_paid) and not r["missing"]
+            and _after(r.get("due_at"), since)} - set(skip)
+    if not late:
+        return []
+    order = list(dict.fromkeys(r["mode"] for r in rows))
+    need = cascaded(late) - set(skip)          # ...nor as a follower
+    return [m for m in order if m in need]
+
+
+def _after(due_at, since):
+    """Is the deadline `due_at` ('YYYY-MM-DDTHH:MMZ') later than `since`?"""
+    if not due_at or since is None:
+        return False
+    try:
+        due = datetime.datetime.strptime(due_at, "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
+    except (TypeError, ValueError):
+        return False
+    return due > since
 
 
 # ══════════════════════════════════════════════════════════════════════

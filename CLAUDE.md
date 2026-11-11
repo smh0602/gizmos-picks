@@ -1659,6 +1659,11 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   by the contract's own survey, on its own row (`props_rows`).
                   `after_last_survey`: a deadline that passed after the
                   league's last survey is the next pass's (10-19's 1.9 s).
+                  `[2026-11-11]` `caught_up`: one that passes WHILE a pass
+                  runs is that pass's: `converge` surveys again and builds
+                  it (at most `collect.CATCH_UP_ROUNDS`), never a mode that
+                  failed this pass; the gate is unchanged (11-11's 13-minute
+                  college card turned collect red). `test_catch_up.py`.
                   `[Sam, 2026-10-26]` the `injury-check` row: `INJURY_CHECK_ET`
                   (9:00/12:00/19:00), `injury_check_slots` (real Eastern time,
                   `et_wall_utc`, game days only), a `Moments` deadline (real

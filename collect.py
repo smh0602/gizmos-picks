@@ -6115,8 +6115,13 @@ def _record_lateness(rows):
         log(f"⚠️ the lateness record was not written ({type(e).__name__}: {e})")
 
 
+# `[2026-11-11]` freshness.caught_up: how many times a pass builds what fell due WHILE it ran.
+CATCH_UP_ROUNDS = 2
+
+
 def converge(explicit=(), allow_paid=True):
     """Bring every artifact back inside its contract. Returns exit code."""
+    looked = now()                      # no later than the survey the plan reads (caught_up)
     modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
 
     log("=" * 66)
@@ -6168,41 +6173,62 @@ def converge(explicit=(), allow_paid=True):
         f"(the API's balance; stored snapshots record {_mspent})")
 
     failed, soft_failed, skipped = [], [], []
-    for m in modes:
-        if m in paid and m in _RAN_PAID:
-            log(f"--- converge: {m} already ran this pass (chained): not run "
-                f"twice, nothing spent, its snapshot kept")
-            continue
-        # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
-        # A single props cycle on a 15-game slate is ~120-240 credits, so
-        # a check made only at the top of the pass could overshoot by a
-        # whole cycle. Re-measuring each time costs a directory walk.
-        if m in paid:
-            spent = daily_spend()
-            if spent >= cap_today:
-                # ⛔ REPORTED, NEVER SILENT. A skipped paid pull leaves an
-                # artifact out of contract, the freshness banner says so
-                # on the page, and the run goes red. That is the intended
-                # behaviour, not a failure to hide.
-                log(f"SKIPPING {m}: {spent} credits spent today, cap is "
-                    f"{cap_today}. NOTHING SPENT. It will stay out of "
-                    f"contract and the page will say so.")
-                skipped.append(m)
-                continue
-        try:
-            log(f"--- converge: {m}")
-            run_mode(m)
-            if m in paid:
-                _RAN_PAID.add(m)
-        except SystemExit as e:
-            if e.code:
-                # ⛔ an exit code is no evidence about a source
-                _record_failure(failed, soft_failed, m, f"exit {e.code}")
-        except Exception as e:
-            _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}",
-                            source=_fresh.outside_source(e))
 
-    rows2 = _fresh.survey(data=DATA, picks=PICKS)
+    def run_modes(names):
+        for m in names:
+            if m in paid and m in _RAN_PAID:
+                log(f"--- converge: {m} already ran this pass (chained): not run "
+                    f"twice, nothing spent, its snapshot kept")
+                continue
+            # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
+            # A single props cycle on a 15-game slate is ~120-240 credits, so
+            # a check made only at the top of the pass could overshoot by a
+            # whole cycle. Re-measuring each time costs a directory walk.
+            if m in paid:
+                spent = daily_spend()
+                if spent >= cap_today:
+                    # ⛔ REPORTED, NEVER SILENT. A skipped paid pull leaves an
+                    # artifact out of contract, the freshness banner says so
+                    # on the page, and the run goes red. That is the intended
+                    # behaviour, not a failure to hide.
+                    log(f"SKIPPING {m}: {spent} credits spent today, cap is "
+                        f"{cap_today}. NOTHING SPENT. It will stay out of "
+                        f"contract and the page will say so.")
+                    skipped.append(m)
+                    continue
+            try:
+                log(f"--- converge: {m}")
+                run_mode(m)
+                if m in paid:
+                    _RAN_PAID.add(m)
+            except SystemExit as e:
+                if e.code:
+                    # ⛔ an exit code is no evidence about a source
+                    _record_failure(failed, soft_failed, m, f"exit {e.code}")
+            except Exception as e:
+                _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}",
+                                source=_fresh.outside_source(e))
+
+    run_modes(modes)
+
+    # 🔴 `[2026-11-11]` A DEADLINE THAT PASSES WHILE THIS PASS RUNS IS THIS PASS'S
+    #    (freshness.caught_up says which rows, and why the gate is unchanged).
+    #    Asked on the survey this pass writes anyway, so a pass with nothing late
+    #    costs nothing extra; bounded at CATCH_UP_ROUNDS.
+    for _round in range(CATCH_UP_ROUNDS + 1):
+        _at = now()
+        rows2 = _fresh.survey(data=DATA, picks=PICKS)
+        _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed} | set(skipped)
+        todo = (_fresh.caught_up(rows2, looked, allow_paid=allow_paid, skip=_bad)
+                if _round < CATCH_UP_ROUNDS else [])
+        if not todo:
+            break
+        log(f"CATCH-UP: {' '.join(todo)} — a deadline passed while this pass ran "
+            f"(it surveyed at {looked:%H:%M:%S}Z): "
+            + ", ".join(f"{r['mode']} due {r['due_at']}" for r in rows2
+                        if r["stale"] and r["mode"] in todo and r.get("due_at")))
+        run_modes(todo)
+        looked = _at
     _record_lateness(rows2)
     # 🔴 EVERY STALE ROW COUNTS, NOT EACH MODE'S LAST ONE. `[2026-10-17]`
     #    ~~`{mode: row}`~~ kept one row per mode, the last in the contract, so
