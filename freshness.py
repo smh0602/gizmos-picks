@@ -2823,11 +2823,17 @@ def cascaded(need):
 #    built in the same pass (`caught_up`), at most `collect.CATCH_UP_ROUNDS`
 #    times. Only these rows qualify:
 #      - stale by `owes` (the plan's own rule), with a deadline after `since`;
-#      - missing only when its mode has NOT run this pass (`ran`): a dated path
-#        (the MLB card's picks/<date>.json, results' data/<date>/...) rolls to a
-#        new file AT its own deadline, so it reads missing mid-pass although the
-#        plan saw it inside contract (review, 11-11); a missing row whose mode
-#        did run means that mode wrote nothing, and it is not run again;
+#      - missing only when its mode has NOT run this pass (`ran`), or its path has
+#        changed since the plan's survey (`before`): a dated path (the MLB
+#        card's picks/<date>.json, results' data/<date>/...) rolls to a new file
+#        AT its own deadline, so it reads missing mid-pass, whether its mode ran
+#        before the roll or not at all (review, 11-11); a missing row at the SAME
+#        path whose mode ran means that mode wrote nothing, and it is not run again;
+#      - not HELD (`_held`): a free row due at the same deadline as a paid row the
+#        catch-up will not buy, and after it in the contract's order (dependency
+#        order), waits for the pass that buys it, as before this change: built now
+#        it would read the old pull and be stamped fresh, and that pass would then
+#        never rebuild it (the MLB game model, the props board);
 #      - its mode did not fail this pass (`skip`): a failed mode is never retried
 #        here, even when a LATER deadline of its passes while the pass runs (an
 #        hourly row that missed 06:00 and then 07:00), nor run as a follower;
@@ -2839,20 +2845,41 @@ def cascaded(need):
 # ⛔ NOTHING ELSE MOVES. The gate is unchanged and as strict: a row the plan saw
 #    stale whose mode failed is red as before, and a PAID row that falls due
 #    mid-pass is its own cron's and the gate's, exactly as before this change.
-def caught_up(rows, since, allow_paid=True, skip=(), ran=()):
+def caught_up(rows, since, allow_paid=True, skip=(), ran=(), before=None):
     """-> the modes, in the contract's order, owed for rows whose missed deadline
     (`due_at`) passed after `since`, the moment the pass surveyed to plan.
     `skip`: modes that failed this pass; never returned.
-    `ran`: modes this pass has run; a MISSING row of one of them is not owed here."""
+    `ran`: modes this pass has run; a MISSING row of one of them is not owed here,
+    unless its path changed since `before` (the plan's own rows).
+    A free row due with a paid row this catch-up will not buy, and after it in the
+    contract's (dependency) order, waits for the pass that buys it (`_held`)."""
     ran = set(ran)
+    seen = None if before is None else {(r.get("mode"), r.get("path")) for r in before}
+    order = list(dict.fromkeys(r["mode"] for r in rows))
+    held = _held(rows, order, allow_paid)
     late = {r["mode"] for r in rows if owes(r, allow_paid)
-            and (not r["missing"] or r["mode"] not in ran)
-            and _after(r.get("due_at"), since)} - set(skip)
+            and (not r["missing"] or r["mode"] not in ran
+                 or (seen is not None and (r["mode"], r["path"]) not in seen))
+            and _after(r.get("due_at"), since)
+            and r["mode"] not in held} - set(skip)
     if not late:
         return []
-    order = list(dict.fromkeys(r["mode"] for r in rows))
     need = cascaded(late) - set(skip)          # ...nor as a follower
     return [m for m in order if m in need]
+
+
+def _held(rows, order, allow_paid):
+    """The free modes owed at a deadline whose PAID row this catch-up will not buy and
+    that come after it in the contract's order, which is dependency order: the MLB
+    game model and the props board are built from that deadline's pulls (review,
+    11-11: built from the old board, then never rebuilt after the new one)."""
+    pos = {m: i for i, m in enumerate(order)}
+    first = {}                                  # deadline -> the first unbought paid row's place
+    for r in rows:
+        if r["paid"] and r.get("due_at") and owes(r, True) and not owes(r, allow_paid):
+            first[r["due_at"]] = min(first.get(r["due_at"], len(order)), pos[r["mode"]])
+    return {r["mode"] for r in rows if not r["paid"] and r.get("due_at") in first
+            and pos[r["mode"]] > first[r["due_at"]]}
 
 
 def _after(due_at, since):

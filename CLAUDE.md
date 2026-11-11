@@ -1662,10 +1662,13 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `[2026-11-11]` `caught_up`: one that passes WHILE a pass
                   runs is that pass's when it is FREE: `converge` surveys
                   again and builds it (at most `collect.CATCH_UP_ROUNDS`),
-                  a dated path that rolled at its deadline (the MLB card)
-                  included; never a mode that failed this pass, ⛔ never a
-                  paid pull (its own cron buys it); one clock for the plan
-                  and every survey; the gate is unchanged (11-11's 13-minute
+                  a dated path that rolled at its deadline (the MLB card,
+                  results) included; never a mode that failed this pass,
+                  ⛔ never a paid pull (its own cron buys it), and a free
+                  row due with an unbought paid row and after it in the
+                  contract (the game model, the props board) waits for the
+                  pass that buys it (`_held`); one clock for the plan and
+                  every survey; the gate is unchanged (11-11's 13-minute
                   college card turned collect red). `test_catch_up.py`.
                   `[Sam, 2026-10-26]` the `injury-check` row: `INJURY_CHECK_ET`
                   (9:00/12:00/19:00), `injury_check_slots` (real Eastern time,

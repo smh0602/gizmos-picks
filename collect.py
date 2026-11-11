@@ -6228,14 +6228,15 @@ def converge(explicit=(), allow_paid=True):
         _at = now()
         rows2 = _fresh.survey(data=DATA, picks=PICKS, now=_at)
         _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
-        todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted)
+        todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted,
+                                 before=rows)
                 if _round < CATCH_UP_ROUNDS else [])
         if not todo:
             break
         log(f"CATCH-UP: {' '.join(todo)} — a deadline passed while this pass ran "
             f"(it surveyed at {looked:%H:%M:%S}Z): "
-            + ", ".join(f"{r['mode']} due {r['due_at']}" for r in rows2
-                        if r["stale"] and r["mode"] in todo and r.get("due_at")))
+            + ", ".join(dict.fromkeys(f"{r['mode']} due {r['due_at']}" for r in rows2
+                                      if r["stale"] and r["mode"] in todo and r.get("due_at"))))
         run_modes(todo)
         looked = _at
     _record_lateness(rows2)
