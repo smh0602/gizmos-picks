@@ -61,7 +61,7 @@ import subprocess
 import sys
 import tempfile
 
-from tcheck import ck, note, section, copy_module
+from tcheck import ck, note, section, copy_module, copy_latest
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -122,7 +122,7 @@ _PRESTRIP = {}
 def tree(lg):
     """A throwaway repo with one league's data and the builder."""
     d = tempfile.mkdtemp(prefix="doscov-")
-    shutil.copytree(os.path.join(ROOT, "data", lg),
+    copy_latest(os.path.join(ROOT, "data", lg),
                     os.path.join(d, "data", lg))
     os.makedirs(os.path.join(d, "picks"), exist_ok=True)
     for f in glob.glob(os.path.join(ROOT, "picks", "fb-%s-*.json" % lg)):

@@ -2657,7 +2657,10 @@ def main():
     # 🔴 `[Sam, 2026-10-01]` WHAT THE CARD SHOWS: the game model's own picks
     #    for the card's slate day, plus one alternate spread per game.
     try:
-        _ladder = json.load(gzip.open(f"{DATA}/latest/game-lines.json.gz", "rt"))
+        import freshness as _F
+        _lp = f"{DATA}/latest/game-lines.json.gz"
+        # `[2026-11-10]` its `built_at` (`ladder_built_at` below) through its heartbeat
+        _ladder = _F.with_heartbeat(_lp, json.load(gzip.open(_lp, "rt")))
     except Exception:
         _ladder = {}
     # 🔴 `[2026-10-03]` THE NEXT SLATE WITH AN UNSTARTED GAME, ONE DAY ONLY

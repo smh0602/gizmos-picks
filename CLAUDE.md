@@ -1153,14 +1153,24 @@ note boxes, tags and the stale bar now require their absence.
   stall alarm is open). A heartbeat that does not match the bytes is void (stale, never falsely
   fresh), and `push_retry.sh` lands none (`freshness.settle_beats`: a football run's MLB record
   repair would have, turning the next MLB pass red; test_push_retry §5). ⛔ Only `collect.write`
-  makes one (test_heartbeat §4c'); opt a file in only when every reader of its stamps goes through
+  makes one (test_heartbeat §4c'), whichever module calls it (§4a lists every call, by module and
+  file); opt a file in only when every reader of its stamps goes through
   `with_heartbeat` (§4c, judged read by read; the page §4e, every stamp read named); copy a
-  latest/ tree in a test only with `tcheck.copy_latest` (§4d). ⚠️ §4b decides every gzip write in
-  collect.py only: the other modules' gzip writers are the football follow-up.
-  `freshness.same_but_stamps` is the one WHOLE-DOCUMENT stamp-aside compare (nfl, cfb call it;
-  cfb_injuries' per-report `fetched_at` compare is another question). Opted in: the MLB pitchers,
-  hitters, scores, lineups, weather and record-detail files; football next. `test_heartbeat.py`,
-  `test_push_retry.py` §5.
+  latest/ tree in a test, a league's `data/<lg>` included, only with `tcheck.copy_latest` (§4d).
+  ~~⚠️ §4b decides every gzip write in collect.py only: the other modules' gzip writers are the
+  football follow-up.~~ `[2026-11-10]` Every gzip write decides: collect.py's in §4b, every other
+  module's in §4b' (`REPO_DECIDED`: heartbeat, or a reason; a new writer is red until it has one,
+  in any spelling: an aliased gzip, a from-import, GzipFile, gzip.compress, module level, a
+  computed compress on collect.write).
+  `freshness.same_but_stamps` is the one WHOLE-DOCUMENT stamp-aside compare (nfl, cfb and
+  `daystore.same_bytes` call it; cfb_injuries' per-report `fetched_at` compare is another
+  question). Opted in: the MLB pitchers, hitters, scores, lineups, weather and record-detail files;
+  ~~football next~~ `[2026-11-10]` football's dossiers, game lines and record-detail (dossier_fb,
+  game_lines_fb, record_fb through collect.write: 291 of 439 rewrites 11-03 -> 11-10, 19.0 MB,
+  were stamp-only; card_fb reads the ladder's stamp through `with_heartbeat`, `offseason.blank`
+  settles a heartbeat before it rewrites). Next: college's CFBD files and nfl-logs' (their stamps
+  are read raw: cfb.fetch_adv's daily gate, the page). `test_heartbeat.py` (§3b: the football
+  card-fb rows), `test_push_retry.py` §5.
 - 🔴 **AN MLB RUN THAT REACHES THE END OF ITS HOLD STARTS ITS SUCCESSOR (THE
   RELAY).** `[Sam, 2026-10-06]` *"a card is on time even when GitHub starts a
   scheduled run hours late"*: on 10-06 the card due 14:00Z was built 16:02Z,
@@ -1625,6 +1635,8 @@ offseason.py      THE TREE WITH NO GAME ANYWHERE (Sam, 2026-10-30): empties
                   pick lists, on pr-tests' throwaway `offseason` checkout.
                   ⛔ Cards and graded records stay: nothing rewrites them when
                   a season ends. Needs `--yes`; never on the real tree.
+                  `[2026-11-10]` A heartbeat file it empties keeps its
+                  heartbeat's stamps, and the heartbeat goes.
 champions_named.py THE TREE ONCE A CHAMPION SWITCH MERGES (2026-11-08): names
                   NFL SM and college HC in every league that names none
                   (fb_refit.set_champion), on pr-tests' throwaway `champion`
@@ -1807,6 +1819,18 @@ daystore.py       the one dated, write-once archive writer. ⛔ Never
                   ITS BYTES, one blob for git (the dossier archive was a
                   second full copy every card-fb run: 63.8 MB in 14 days).
                   `test_archive_same_bytes.py` finds every such pair.
+                  `[2026-11-10]` ~~when that file stores exactly the
+                  document~~ when it stores it APART FROM ITS STAMPS
+                  (`freshness.same_but_stamps`): latest/ is collect.write's
+                  now, which adds `written_at` and keeps its bytes on a
+                  stamp-only run. The archive then carries latest's file
+                  stamps; its own time is its dated path (no reader takes a
+                  stamp from a DOSSIER archive, the one same_as caller; other
+                  kinds' archives are read for `pulled_at`, so a new caller
+                  is a decision: test_archive_same_bytes §2). Any content
+                  difference still dumps. ⚠️ winners.graded reaches
+                  same_bytes, so an edit to it (or to same_but_stamps) moves
+                  the winners grader's stamp: one free rebuild.
 push_retry.sh     the ONE way a workflow lands its commits: rebase
                   favouring this run's files, abort + replay on a
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a

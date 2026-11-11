@@ -68,7 +68,7 @@ import sys
 import tempfile
 from datetime import datetime, timedelta
 
-from tcheck import ck, copy_module, eq, note, section
+from tcheck import ck, copy_module, eq, note, section, copy_latest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from jsblock import js_block  # noqa: E402
@@ -248,7 +248,7 @@ def rebuild(lg, mutate=None, planted=False, src=ROOT):
     if planted:
         plant(lg, tmp)
     else:
-        shutil.copytree(os.path.join(src, "data", lg),
+        copy_latest(os.path.join(src, "data", lg),
                         os.path.join(tmp, "data", lg))
         os.makedirs(os.path.join(tmp, "picks"))
         for f in glob.glob(os.path.join(src, "picks", "fb-%s-*.json" % lg)):

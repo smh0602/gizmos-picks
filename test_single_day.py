@@ -48,7 +48,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
-from tcheck import ck, note, copy_module, shown  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+from tcheck import ck, note, copy_module, shown, copy_latest  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
 #                                 fixture went red on all four harnesses at once
 #                                 the day card_fb.py gained one import
 
@@ -158,7 +158,7 @@ def stage(tmp):
     ~85MB of a fixed CI disk allowance for no benefit, and copying stored
     cards in would make this test depend on files it does not use.
     """
-    shutil.copytree(os.path.join(ROOT, "data/ncaaf"),
+    copy_latest(os.path.join(ROOT, "data/ncaaf"),
                     os.path.join(tmp, "data/ncaaf"))
     os.makedirs(os.path.join(tmp, "picks"), exist_ok=True)
     copy_module("card_fb", tmp)

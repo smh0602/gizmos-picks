@@ -21,10 +21,13 @@ run), and the first fix of that kind hid a 10-day nflverse outage. So:
   §3  the contract: a stamp-only pull keeps the row fresh, a failed pull
       leaves it stale at the same deadline as before.
   §4  the CLASS: every scope that names a heartbeat file and reads a stamp
-      reads it through freshness; every gzip `write` in collect.py decides
-      (⚠️ collect.py only: the other modules' gzip writers are the football
-      follow-up); only collect.write makes a heartbeat; no test copies one
-      out of latest/ unsettled; the page reads no heartbeat file's stamp.
+      reads it through freshness; every gzip write decides, ~~in collect.py
+      only~~ `[2026-11-10]` in every module (§4b, §4b'); only collect.write
+      makes a heartbeat (called from any module: §4a lists each, by module and
+      file); no test copies one out of latest/ unsettled, a league's included;
+      the page reads no heartbeat file's stamp.
+  §3b `[2026-11-10]` football: the card-fb rows (dossiers, game lines) on a
+      planted league tree, the same two answers as §3.
   §5  the real chain: two identical pitcher pulls, then the tables.
 
 ⛔ A TEST ASKS THE CODE: every tree here is planted, every clock pinned.
@@ -88,6 +91,31 @@ run), and the first fix of that kind hid a 10-day nflverse outage. So:
 #   file: collect.py
 #   find:         "players": logs}, compress=True, heartbeat=True)
 #   with:         "players": logs}, compress=True)
+#
+# @vacuity 🔴 [2026-11-10] the football dossiers that stopped passing heartbeat=True are caught
+#   file: dossier_fb.py
+#   find:     _C.write(p, doc, compress=True, heartbeat=True)
+#   with:     _C.write(p, doc, compress=True)
+#
+# @vacuity 🔴 [2026-11-10] ...and the game lines
+#   file: game_lines_fb.py
+#   find:     collect.write(path, doc, compress=True, heartbeat=True)
+#   with:     collect.write(path, doc, compress=True)
+#
+# @vacuity 🔴 [2026-11-10] ...and the football record-detail
+#   file: record_fb.py
+#   find:              compress=True, heartbeat=True)
+#   with:              compress=True)
+#
+# @vacuity 🔴 [2026-11-10] the card's raw read of the ladder's stamp is caught
+#   file: card_fb.py
+#   find:         _ladder = _F.with_heartbeat(_lp, json.load(gzip.open(_lp, "rt")))
+#   with:         _ladder = json.load(gzip.open(_lp, "rt"))
+#
+# @vacuity 🔴 [2026-11-10] a gzip writer outside collect.py that has not decided is caught
+#   file: fb_weather.py
+#   find:         with gzip.open(path, "wt", encoding="utf-8") as fh:
+#   with:         with gzip.open(path, "wt", encoding="utf-8") as fh, gzip.open(path + ".x", "wt") as _x:
 #
 # @vacuity 🔴 a reader of the pull's own stamp that skips the overlay is caught
 #   file: mlb_tables.py
@@ -393,6 +421,49 @@ ck(_r is not None and _r["stale"] and "pitchers" in hard("2026-11-11T10:30:00Z")
    "🔴🔴 ...so the row is STALE and HARD at the same 10:00Z deadline as before "
    "(an outage is seen as fast as today)")
 
+# 3b. `[2026-11-10]` FOOTBALL: card-fb's dossiers and game lines on a planted league tree, the
+#     real contract. A pass whose files moved only their stamps keeps both rows fresh at the
+#     card deadline; a day with no card-fb pass leaves them stale and hard, as before.
+FT = os.path.join(TMP, "fbtree").replace(os.sep, "/")
+FL = FT + "/data/nfl/latest"
+os.makedirs(FL)
+os.makedirs(FT + "/picks")
+open(FL + "/props.json.gz", "wb").close()        # a board was pulled: the card's rows exist
+FB = {"dossiers.json.gz": {"league": "nfl", "dossiers": [{"board_id": 7, "sections": []}]},
+      "game-lines.json.gz": {"league": "nfl", "games": [], "n_rungs": 0}}
+
+
+def fbrows(now):
+    return {r["path"].rsplit("/", 1)[-1]: r for r in F.survey(data=FT + "/data/nfl", picks=FT + "/picks", now=at(now))
+            if r["path"].rsplit("/", 1)[-1] in FB}
+
+
+def fbwrite(when):
+    with clock(when):
+        for name, doc in FB.items():
+            C.write(FL + "/" + name, dict(doc, built_at=C.stamp()), compress=True, heartbeat=True)
+
+
+fbwrite("2026-11-08T12:00:00Z")
+_due = {k: r["due_at"] for k, r in fbrows("2026-11-10T20:00:00Z").items()}
+eq(sorted(_due), sorted(FB), "the card-fb rows judge both files (%s)" % _due)
+_d = max(_due.values())                           # the latest card deadline before 20:00Z, as both read it
+_t1 = (at(_d[:-1] + ":00Z") + datetime.timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+_t2 = (at(_d[:-1] + ":00Z") + datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+_shas = {k: sha(FL + "/" + k) for k in FB}
+fbwrite(_t1)
+eq({k: sha(FL + "/" + k) for k in FB}, _shas, "a stamp-only card-fb pass leaves both gzips' bytes as they were")
+ck(all(os.path.exists(F.heartbeat_path(FL + "/" + k)) for k in FB), "   ...and writes both heartbeats")
+_r = fbrows(_t2)
+ck(len(_r) == 2 and not any(r["stale"] for r in _r.values()),
+   "🔴🔴 ...so both rows are FRESH after the card deadline (%s): no red run, no re-plan every pass" % _d, _r)
+_r = fbrows((at(_t2) + datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+_hard, _soft = F.classify([r for r in _r.values() if r["stale"]], data=FT + "/data/nfl",
+                          now=at(_t2) + datetime.timedelta(days=1))
+ck(len(_r) == 2 and all(r["stale"] for r in _r.values()) and {r["mode"] for r in _hard} == {"card-fb"},
+   "🔴🔴 a day with no card-fb pass: both rows STALE and HARD at the same deadline (an outage is seen "
+   "as fast as today)", (_r, _hard))
+
 # ══════════════════════════════════════════════════════════════════════
 section("4. THE CLASS: WHO CARRIES A HEARTBEAT, AND WHO READS ITS STAMPS")
 # ══════════════════════════════════════════════════════════════════════
@@ -414,21 +485,69 @@ def _tail(node, fn):
     return parts[-1].rsplit("/", 1)[-1] if parts else None
 
 
-GZ_WRITES = {}          # function -> [(file, heartbeat?)]
-for fn in ast.walk(_TREE):
-    if not isinstance(fn, ast.FunctionDef):
-        continue
-    for n in ast.walk(fn):
-        if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "write":
-            kw = {k.arg: k.value for k in n.keywords}
-            if isinstance(kw.get("compress"), ast.Constant) and kw["compress"].value is True:
-                hb = isinstance(kw.get("heartbeat"), ast.Constant) and kw["heartbeat"].value is True
-                GZ_WRITES.setdefault(fn.name, []).append((_tail(n.args[0], fn), hb))
-HEARTBEAT = sorted({f for v in GZ_WRITES.values() for f, hb in v if hb})
-eq(HEARTBEAT, ["hitters.json.gz", "lineups.json.gz", "pitchers.json.gz", "record-detail.json.gz",
-               "scores.json.gz", "weather.json.gz"],
-   "🔴 the MLB latest/ gzips measured stamp-only in winter carry a heartbeat "
-   "(a change to this list is a decision: say why)")
+def collect_aliases(tree):
+    """`[2026-11-10]` The names a module binds to collect (`import collect [as X]`, anywhere)."""
+    return {a.asname or a.name for n in ast.walk(tree) if isinstance(n, ast.Import)
+            for a in n.names if a.name == "collect"}
+
+
+def is_collect_write(n, rel, aliases):
+    """Is call `n` collect.write? collect.py's own `write(...)`, or `<alias>.write(...)`."""
+    f = n.func
+    return ((rel == "collect.py" and isinstance(f, ast.Name) and f.id == "write")
+            or (isinstance(f, ast.Attribute) and f.attr == "write"
+                and isinstance(f.value, ast.Name) and f.value.id in aliases))
+
+
+def _parse_mod(path):
+    with warnings.catch_warnings():               # another module's escapes are not this test's
+        warnings.simplefilter("ignore")
+        return ast.parse(open(path, encoding="utf-8").read())
+
+
+def gz_writes(path, rel):
+    """{function: [(file, heartbeat?)]} of every collect.write(..., compress=True) in the
+    module at `path` (`rel`: its name here)."""
+    tree = _parse_mod(path)
+    al, out = collect_aliases(tree), {}
+    for fn in ast.walk(tree):
+        if not isinstance(fn, ast.FunctionDef):
+            continue
+        for n in ast.walk(fn):
+            if isinstance(n, ast.Call) and is_collect_write(n, rel, al):
+                kw = {k.arg: k.value for k in n.keywords}
+                if isinstance(kw.get("compress"), ast.Constant) and kw["compress"].value is True:
+                    hb = isinstance(kw.get("heartbeat"), ast.Constant) and kw["heartbeat"].value is True
+                    out.setdefault(fn.name, []).append((_tail(n.args[0], fn), hb))
+    return out
+
+
+def modules(root):
+    """[(path, name here)] of every module in `root` and research/, tests left out."""
+    return [(f, os.path.relpath(f, root).replace(os.sep, "/"))
+            for f in sorted(glob.glob(os.path.join(root, "*.py")) + glob.glob(os.path.join(root, "research", "*.py")))
+            if not os.path.basename(f).startswith("test_")]
+
+
+GZ_WRITES = gz_writes(os.path.join(ROOT, "collect.py"), "collect.py")     # collect.py's (§4b)
+HB_WRITES = sorted({(rel, f) for p, rel in modules(ROOT) for v in gz_writes(p, rel).values()
+                    for f, hb in v if hb})
+eq(HB_WRITES, [("collect.py", "hitters.json.gz"), ("collect.py", "lineups.json.gz"),
+               ("collect.py", "pitchers.json.gz"), ("collect.py", "record-detail.json.gz"),
+               ("collect.py", "scores.json.gz"), ("collect.py", "weather.json.gz"),
+               ("dossier_fb.py", "dossiers.json.gz"), ("game_lines_fb.py", "game-lines.json.gz"),
+               ("record_fb.py", "record-detail.json.gz")],
+   "🔴 the MLB latest/ gzips measured stamp-only in winter, and `[2026-11-10]` football's dossiers, "
+   "game lines and record-detail (291 of 439 rewrites 11-03 -> 11-10, 19.0 MB, stamp-only), carry a "
+   "heartbeat, by module and file (a change to this list is a decision: say why)")
+HEARTBEAT = sorted({f for _m, f in HB_WRITES})
+_pa = os.path.join(TMP, "aliases")
+os.makedirs(_pa)
+with open(os.path.join(_pa, "other.py"), "w", encoding="utf-8") as fh:
+    fh.write("def put(p, d):\n    import collect as K\n"
+             "    K.write(p + '/x.json.gz', d, compress=True, heartbeat=True)\n")
+eq(gz_writes(os.path.join(_pa, "other.py"), "other.py"), {"put": [("x.json.gz", True)]},
+   "   (planted) a heartbeat write through any name a module gives collect is listed")
 
 # 4b. EVERY gzip write in collect.py decides. A new one is red until it is
 #     given heartbeat=True or a reason here. (function: (gzip writes, heartbeat writes, why))
@@ -460,6 +579,124 @@ _direct = sorted({fn.name for fn in ast.walk(_TREE) if isinstance(fn, ast.Functi
                   and str(n.args[1].value).startswith("w")})
 eq(_direct, ["write"], "   ...and collect.py writes a gzip directly only inside write() itself")
 
+# 4b'. `[2026-11-10]` ...AND EVERY gzip WRITE IN EVERY OTHER MODULE DECIDES: a gzip opened
+#      for writing (`gzip.open` or `GzipFile` with a w/a/x mode, or a mode it cannot read)
+#      or a collect.write(compress=True). A new one is red until it is given heartbeat=True
+#      or a reason. ("module:function": (gzip writes, heartbeat writes, why))
+REPO_DECIDED = {
+    "cfb.py:write_stamped": (1, 0, "college's CFBD files (schedule, players, vs-position, ...): their "
+                                   "stamps are read raw (cfb.fetch_adv's daily gate, the page's "
+                                   "fbScores and renderFootball): adopt with their readers"),
+    "cfb_injuries.py:_write_gz": (1, 0, "written on a change only, with mtime 0 and sorted keys: the same "
+                                       "content is the same bytes"),
+    "daystore.py:archive": (1, 0, "a dated, write-once archive, never in place (`same_as` copies "
+                                  "latest's bytes)"),
+    "dossier_fb.py:build": (1, 1, "heartbeat"),
+    "fb_history.py:_write": (1, 0, "an older season, written once while missing"),
+    "fb_weather.py:run": (1, 0, "stored-only forecasts whose `last` moves every run: content"),
+    "game_lines_fb.py:build": (1, 1, "heartbeat"),
+    "mlb_refit.py:main": (2, 0, "the refit's start logs, its own weekly job's"),
+    "nfl.py:store_injuries": (1, 0, "nfl-logs' injuries: their own on-change rule on the game-day check "
+                                    "(nfl.py:900-906's heartbeat rule); adopt with nfl-logs' files"),
+    "offseason.py:_open": (1, 0, "the off-season job's throwaway checkout: it settles a heartbeat "
+                                 "before it rewrites (blank)"),
+    "record_fb.py:main": (1, 1, "heartbeat"),
+    "t60r.py:grade": (1, 0, "the pre-registered T60r report, research output of a mode"),
+    "t60r.py:lines": (1, 0, "T60r's CFBD closing lines, research input of a mode"),
+    "tcheck.py:copy_latest": (1, 0, "a test tree's settled copy"),
+}
+
+
+def _mode_writes(n):
+    """Does a gzip open / GzipFile call open for writing (a w/a/x mode, or one it cannot read)?
+    `[review]` GzipFile's mode is its second positional argument too."""
+    m = n.args[1] if len(n.args) > 1 else None
+    m = next((k.value for k in n.keywords if k.arg == "mode"), m)
+    if m is None:
+        return False                                    # the default mode reads
+    return not isinstance(m, ast.Constant) or str(m.value)[:1] in "wax"
+
+
+def gzip_names(tree):
+    """`[review]` (names bound to the gzip module, {name: gzip function} bound by `from gzip
+    import ...`): `import gzip as _gz` is the repo's own spelling (nfl.py, cfb.py)."""
+    mods, funcs = set(), {}
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            mods |= {a.asname or a.name for a in n.names if a.name == "gzip"}
+        elif isinstance(n, ast.ImportFrom) and n.module == "gzip":
+            funcs.update({a.asname or a.name: a.name for a in n.names})
+    return mods, funcs
+
+
+def gz_sites(path, rel):
+    """{"module:function": [heartbeat?]} of every gzip write in a module but collect.py: a gzip
+    open / GzipFile for writing and gzip.compress, through any name the module gives gzip; a
+    collect.write whose compress is not a literal False, through any name it gives collect or
+    its `write`. Module-level statements are scope "<module>"."""
+    tree = _parse_mod(path)
+    al, out = collect_aliases(tree), {}
+    gmods, gfuncs = gzip_names(tree)
+    cw_names = {a.asname or a.name for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)
+                and n.module == "collect" for a in n.names if a.name == "write"}
+
+    def gz_call(n):
+        f = n.func
+        what = (f.attr if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) and f.value.id in gmods
+                else gfuncs.get(f.id) if isinstance(f, ast.Name) else None)
+        return what == "compress" or (what in ("open", "GzipFile") and _mode_writes(n))
+
+    def cw_call(n):
+        if not (is_collect_write(n, rel, al) or (isinstance(n.func, ast.Name) and n.func.id in cw_names)):
+            return False
+        c = next((k.value for k in n.keywords if k.arg == "compress"), n.args[2] if len(n.args) > 2 else None)
+        return c is not None and not (isinstance(c, ast.Constant) and c.value in (False, None, 0))
+    def own(fn):                                         # the function's own nodes, not a nested def's
+        nodes, stack = [], list(ast.iter_child_nodes(fn))
+        while stack:
+            x = stack.pop()
+            if not isinstance(x, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                nodes.append(x)
+                stack.extend(ast.iter_child_nodes(x))
+        return nodes
+    for sc in [tree] + [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+        for n in own(sc):
+            if not isinstance(n, ast.Call):
+                continue
+            kw = {k.arg: k.value for k in n.keywords}
+            cw = cw_call(n)
+            if gz_call(n) or cw:
+                out.setdefault("%s:%s" % (rel, getattr(sc, "name", "<module>")), []).append(
+                    bool(cw and isinstance(kw.get("heartbeat"), ast.Constant) and kw["heartbeat"].value is True))
+    return out
+
+
+_sites = {k: v for p, rel in modules(ROOT) if rel != "collect.py" for k, v in gz_sites(p, rel).items()}
+eq({k: (len(v), sum(v)) for k, v in sorted(_sites.items())},
+   {k: v[:2] for k, v in sorted(REPO_DECIDED.items())},
+   "🔴🔴 every gzip write outside collect.py is decided too: heartbeat, or a reason it needs none")
+with open(os.path.join(_pa, "writer.py"), "w", encoding="utf-8") as fh:
+    fh.write("import gzip, json\n\ndef a(p):\n    with gzip.open(p, 'wt') as fh:\n        json.dump({}, fh)\n\n"
+             "def b(p, m):\n    return gzip.open(p, m)\n\ndef c(p):\n    return gzip.GzipFile(p, mode='wb')\n\n"
+             "def d(p):\n    return json.load(gzip.open(p, 'rt'))\n\ndef e(p):\n    return gzip.open(p)\n")
+with open(os.path.join(_pa, "spell.py"), "w", encoding="utf-8") as fh:   # `[review]` every other spelling
+    fh.write("import gzip as _gz\nfrom gzip import GzipFile as GF, open as gopen\nimport collect as K\n"
+             "from collect import write as W\n_gz.open('m.json.gz', 'wt')\n\n"
+             "def f(p):\n    return _gz.open(p, 'wt')\n\ndef g(p):\n    return _gz.GzipFile(p, 'wb')\n\n"
+             "def h(p):\n    return GF(p, 'wb')\n\ndef i(p):\n    return gopen(p, 'at')\n\n"
+             "def j(b):\n    return _gz.compress(b)\n\ndef k(p, d):\n    W(p, d, compress=True)\n\n"
+             "def l(p, d, z):\n    K.write(p, d, z)\n\ndef m(p):\n    return _gz.open(p, 'rt')\n\n"
+             "def n(p, d):\n    K.write(p, d, compress=False)\n")
+eq(sorted(gz_sites(os.path.join(_pa, "writer.py"), "writer.py")), ["writer.py:a", "writer.py:b", "writer.py:c"],
+   "   (planted) a w mode, a mode it cannot read and a GzipFile are writes; a read is not")
+eq(sorted(gz_sites(os.path.join(_pa, "spell.py"), "spell.py")),
+   ["spell.py:<module>", "spell.py:f", "spell.py:g", "spell.py:h", "spell.py:i", "spell.py:j", "spell.py:k",
+    "spell.py:l"],
+   "   (planted, review) an aliased gzip, a from-import, GzipFile's positional mode, gzip.compress, a "
+   "module-level write, `from collect import write` and a computed compress are writes too; a read and "
+   "compress=False are not")
+
+
 # 4c. EVERY scope (module body or function) in every .py here that NAMES a
 #     heartbeat file and READS a stamp field must read through freshness
 #     (with_heartbeat / stamp_of / age_minutes, or a same-module function
@@ -468,7 +705,8 @@ FIELDS = set(F.STAMP_FIELDS)
 OVERLAY = {"with_heartbeat", "stamp_of", "age_minutes"}
 ALLOWED = {   # (module, scope): why its stamp read is not a heartbeat file's own stamp
     ("collect.py", "collect_record"): "reads the built_at of the record doc it is writing",
-    ("record_fb.py", "main"): "football's record-detail (no heartbeat): its own doc's built_at",
+    ("record_fb.py", "main"): "the built_at of the record doc it is writing (record.json), which it "
+                              "also gives record-detail's write `[2026-11-10]` (~~no heartbeat~~)",
     ("test_record_scope.py", "run_verifier"): "plants a record-detail from its own record doc",
     ("test_card_single_day.py", "<module>"): "reads the PINNED pull it copied over the tree's "
                                              "file (any copied heartbeat is void on those bytes)",
@@ -476,6 +714,11 @@ ALLOWED = {   # (module, scope): why its stamp read is not a heartbeat file's ow
                                         "(copy_latest left no heartbeat beside it)",
     ("test_heartbeat.py", "<module>"): "this test reads gzips' OWN stamps on purpose, to show what the "
                                        "heartbeat changes and what it does not",
+    ("test_dossier_fb.py", "<module>"): "`[2026-11-10]` reads the first pass's latest/ dossiers raw on "
+                                        "purpose: its check is that the second pass's heartbeat carries a "
+                                        "NEW built_at over the same bytes",
+    ("test_offseason.py", "<module>"): "`[2026-11-10]` reads the emptied game lines raw on purpose: blank "
+                                       "must write the heartbeat's stamps INTO the file it rewrites",
     ("research/mlb_calibration_audit.py", "main"): "its stamp reads are the published cards' "
                                                    "(generated_at, logs_pulled_at); of the pulls it "
                                                    "reads only `season`",
@@ -683,22 +926,34 @@ def keepers(root):
                     continue
                 if (getattr(n.func, "attr", None) or getattr(n.func, "id", None)) == "keep_with_heartbeat":
                     out.append((rel, getattr(sc, "name", "<module>"), "keep_with_heartbeat"))
-                if rel != "collect.py" and any(
-                        k.arg == "heartbeat" and not (isinstance(k.value, ast.Constant) and k.value.value is False)
-                        for k in n.keywords):
+                # `[2026-11-10]` ~~any heartbeat= outside collect.py~~ a heartbeat= on anything but
+                #    a collect.write call §4a LISTS (a literal compress=True and heartbeat=True):
+                #    `[review]` a positional or computed compress makes a heartbeat no list holds
+                kw = {k.arg: k.value for k in n.keywords}
+                listed = (is_collect_write(n, rel, collect_aliases(tree))
+                          and isinstance(kw.get("compress"), ast.Constant) and kw["compress"].value is True
+                          and isinstance(kw.get("heartbeat"), ast.Constant) and kw["heartbeat"].value is True)
+                if not listed and "heartbeat" in kw and not (
+                        isinstance(kw["heartbeat"], ast.Constant) and kw["heartbeat"].value is False):
                     out.append((rel, getattr(sc, "name", "<module>"), "heartbeat="))
     return out
 
 
 eq(keepers(ROOT), [("collect.py", "write", "keep_with_heartbeat")],
-   "🔴 only collect.write makes a heartbeat (so §4a's list is every heartbeat file there is)")
+   "🔴 only collect.write makes a heartbeat, from whichever module calls it (so §4a's list is "
+   "every heartbeat file there is)")
 _kp = os.path.join(TMP, "keepers")
 os.makedirs(_kp)
 with open(os.path.join(_kp, "other.py"), "w", encoding="utf-8") as fh:
     fh.write("import collect, freshness as F\n\ndef save(p, d):\n    return F.keep_with_heartbeat(p, d)\n\n"
-             "def put(p, d):\n    collect.write(p, d, compress=True, heartbeat=True)\n")
-eq(sorted(keepers(_kp)), [("other.py", "put", "heartbeat="), ("other.py", "save", "keep_with_heartbeat")],
-   "   (planted) a module keeping its own gzip, either way, is flagged")
+             "def put(p, d):\n    collect.write(p, d, compress=True, heartbeat=True)\n\n"
+             "def own(p, d):\n    mywrite(p, d, heartbeat=True)\n\n"
+             "def pos(p, d):\n    collect.write(p, d, True, heartbeat=True)\n\n"
+             "def var(p, d, gz):\n    collect.write(p, d, compress=gz, heartbeat=True)\n")
+eq(sorted(keepers(_kp)), [("other.py", "own", "heartbeat="), ("other.py", "pos", "heartbeat="),
+                          ("other.py", "save", "keep_with_heartbeat"), ("other.py", "var", "heartbeat=")],
+   "   (planted) a module keeping its own gzip, either way, is flagged, and so is a collect.write "
+   "heartbeat §4a cannot list (a positional or computed compress); §4a's own form is listed there")
 
 # 4d. A TEST TREE COPIED FROM latest/ STARTS WITH ITS HEARTBEATS SETTLED.
 #     Measured on a planted post-merge tree (live heartbeats beside the six
@@ -764,15 +1019,17 @@ def path_of(node, env, depth=0):
 
 
 _HB_RX = re.compile(r"(^|/)latest/(%s)$" % "|".join(re.escape(h) for h in HEARTBEAT))
-_TREE_RX = re.compile(r"(^|/)data(/latest)?/?$")     # data/latest, or data/ (which carries it)
+# `[2026-11-10]` and a league's data/<lg>(/latest): its dossiers, game lines and record-detail;
+#    `[review]` a league spelled as a variable (`*`, path_of's unknown) too
+_TREE_RX = re.compile(r"(^|/)data(/(nfl|ncaaf|\*))?(/latest)?/?$")
 
 
 def copies(paths):
     """-> (copytree calls whose source carries MLB's data/latest, single copies of a
     heartbeat file out of a latest/ path), each "file:line". `[2026-10-28, review]`
     Paths are RESOLVED (literal, f-string, join, a name): the first form saw only
-    `os.path.join(..., 'latest', '<file>')`. ⚠️ A football data/<lg> copy carries no
-    heartbeat file yet: widening is the football follow-up."""
+    `os.path.join(..., 'latest', '<file>')`. ~~⚠️ A football data/<lg> copy carries no
+    heartbeat file yet: widening is the football follow-up.~~ `[2026-11-10]` it does now."""
     trees, singles = [], []
     for _t in paths:
         tree = ast.parse(open(_t, encoding="utf-8").read())
@@ -803,11 +1060,18 @@ with open(os.path.join(_pl, "test_bad.py"), "w", encoding="utf-8") as fh:
              "shutil.copytree(LATEST, 'z')\n"
              "shutil.copytree('data', 'w')\n"
              "shutil.copytree(os.path.join(ROOT, 'data', 'nfl'), 'v')\n"
-             "shutil.copy(os.path.join(ROOT, 'tmp', 'hitters.json.gz'), 'u')\n")
+             "shutil.copy(os.path.join(ROOT, 'tmp', 'hitters.json.gz'), 'u')\n"
+             "shutil.copytree(os.path.join(ROOT, 'data', 'ncaaf', 'latest'), 's')\n"
+             "shutil.copy(os.path.join(ROOT, 'data', 'nfl', 'latest', 'dossiers.json.gz'), 't')\n"
+             "shutil.copytree(os.path.join(ROOT, 'data', 'nfl', '2026-11-10'), 'r')\n"
+             "shutil.copytree(os.path.join(ROOT, 'data', lg), 'q')\n")
 eq(copies([os.path.join(_pl, "test_bad.py")]),
-   (["test_bad.py:8", "test_bad.py:9"], ["test_bad.py:4", "test_bad.py:5", "test_bad.py:6", "test_bad.py:7"]),
+   (["test_bad.py:8", "test_bad.py:9", "test_bad.py:10", "test_bad.py:12", "test_bad.py:15"],
+    ["test_bad.py:4", "test_bad.py:5", "test_bad.py:6", "test_bad.py:7", "test_bad.py:13"]),
    "   (planted) every spelling is flagged: a join, a literal, an f-string, a LATEST name, a copy of "
-   "data/; a football data/<lg> tree and a file outside latest/ are not")
+   "data/; `[2026-11-10]` a football data/<lg> tree (its league literal or a variable), its latest/ "
+   "and one of its heartbeat files too (~~are not~~); a file outside latest/ and a league's dated "
+   "folder are not")
 
 # ══════════════════════════════════════════════════════════════════════
 section("4e. THE PAGE NEVER READS A HEARTBEAT FILE'S STAMP")

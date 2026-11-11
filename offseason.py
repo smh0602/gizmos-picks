@@ -50,12 +50,23 @@ def blank(root):
                 continue
             with _open(path, "r") as fh:
                 doc = json.load(fh)
+            # `[2026-11-10]` a heartbeat file is rewritten here: it keeps the stamps its
+            #    readers saw (its heartbeat's), and the heartbeat, void on new bytes, goes.
+            #    (A sandbox holding this file alone has no freshness.py, and no heartbeat.)
+            try:
+                import freshness as _F
+            except ImportError:
+                _F = None
+            if _F:
+                doc = _F.with_heartbeat(path, doc)
             for k in keys:
                 if k in doc:
                     doc[k] = []
                     done.append("%s/%s:%s" % (lg, name, k))
             with _open(path, "w") as fh:
                 json.dump(doc, fh)
+            if _F:
+                _F.drop_heartbeat(path)
     return done
 
 

@@ -11,8 +11,9 @@ on origin/main, 2026-10-25 to 11-08: 267 archives, 63.8 MB of new gzip; every
 one of 27 sampled equal in content to its own commit's latest file.
 
   §1  daystore.archive(..., same_as=latest) copies latest's BYTES when that file
-      stores exactly the document, and dumps it as before on any difference;
-      write-once and the picks/ refusal are unchanged.
+      stores the document (~~exactly~~ `[2026-11-10]` apart from its top-level
+      stamps), and dumps it as before on any other difference; write-once and the
+      picks/ refusal are unchanged.
   §2  the CLASS: every function in this repo that writes a document to a
       latest/ gzip AND archives that same document passes `same_as`. A new
       one is red until it does (the dossier is the only one today).
@@ -26,8 +27,13 @@ one of 27 sampled equal in content to its own commit's latest file.
 #
 # @vacuity 🔴 a latest file that stores another document is not copied
 #   file: daystore.py
-#   find:         if json.loads(gzip.decompress(buf).decode("utf-8")) == json.loads(json.dumps(doc)):
-#   with:         if True:
+#   find:         if stored == json.loads(json.dumps(doc)) or (
+#   with:         if True or (
+#
+# @vacuity 🔴 [2026-11-10] a latest file that differs only in its stamps is copied (a stamp-only run)
+#   file: daystore.py
+#   find:                 isinstance(stored, dict) and isinstance(doc, dict) and _F.same_but_stamps(stored, doc)):
+#   with:                 False):
 #
 # @vacuity 🔴 the census finds a latest/ write beside an archive of the same document
 #   file: dossier_fb.py
@@ -89,11 +95,47 @@ ck(blob(_ap2) != blob(_lp) and json.load(gzip.open(_ap2, "rt")) == json.load(gzi
    "   (control) the same document dumped again is a DIFFERENT blob: the defect, measured here",
    "if this ever passes as equal bytes, the check above proves nothing")
 
-_r3 = os.path.join(TMP, "other")
-_lp3 = latest(_r3, dict(DOC, built_at="2026-11-04T16:00:00Z"))
+# `[2026-11-10]` ~~a stamp apart is ANOTHER document, not copied~~. #343's exact-match rule is
+#    RELAXED for top-level stamps, on purpose (my rule of 11-08, not one Sam set; the PR puts the
+#    choice to him): the latest file is now collect.write's, which adds `written_at`, and keeps its
+#    bytes on a run that moved only its stamps (its heartbeat carries them). Compared exactly,
+#    EVERY run would dump a second full gzip again. ⚠️ What is given up: a stamp-only run's
+#    archive carries the built_at / written_at of that content's first build, which can be days
+#    before its dated path. Nothing reads a stamp from a dossier archive (shadow_fb picks by file
+#    name and reads `dossiers`); §2 holds the dossier to being the only such caller. The content
+#    rule is unchanged: any difference below the top-level stamps still dumps.
+_r3 = os.path.join(TMP, "stamps")
+_lp3 = latest(_r3, dict(DOC, built_at="2026-11-04T16:00:00Z", written_at="2026-11-04T16:00:05Z"))
 _ap3, _ = D.archive(DOC, _r3, "dossiers", log=lambda *a: None, when=WHEN, same_as=_lp3)
-eq(json.load(gzip.open(_ap3, "rt")), json.loads(json.dumps(DOC)),
-   "🔴 a latest file that stores ANOTHER document (a stamp apart) is not copied: the archive is this doc")
+ck(blob(_ap3) == blob(_lp3),
+   "🔴 a latest file that stores this document APART FROM ITS STAMPS is copied: one blob (a stamp-only "
+   "run, and collect.write's written_at)")
+for _i, (_what, _other) in enumerate((
+        ("a top-level field", dict(DOC, league="ncaaf")),
+        ("a value inside a section", dict(DOC, dossiers=[{"board_id": 7, "sections": [1]}])),
+        ("a key it lacks", dict(DOC, extra=1)),
+        ("a stamp-named key BELOW the top", dict(DOC, dossiers=[{"board_id": 7, "sections": [],
+                                                              "built_at": "2026-11-04T16:00:00Z"}])))):
+    _ro = os.path.join(TMP, "other-%d" % _i)
+    _lpo = latest(_ro, _other)
+    _apo, _ = D.archive(DOC, _ro, "dossiers", log=lambda *a: None, when=WHEN, same_as=_lpo)
+    eq(json.load(gzip.open(_apo, "rt")), json.loads(json.dumps(DOC)),
+       "🔴 a latest file whose CONTENT differs (%s) is not copied: the archive is this doc" % _what)
+
+# ...and the run it is for: collect.write keeps latest on a stamp-only run, and the archive of
+#    that run is the same blob, so the run adds no gzip at all
+import collect as _C  # noqa: E402
+import freshness as _F  # noqa: E402
+_r5 = os.path.join(TMP, "kept")
+_lp5 = os.path.join(_r5, "latest", "dossiers.json.gz")
+_C.write(_lp5, dict(DOC, built_at="2026-11-04T16:00:00Z"), compress=True, heartbeat=True)
+_first = blob(_lp5)
+_C.write(_lp5, dict(DOC, built_at="2026-11-04T17:10:00Z"), compress=True, heartbeat=True)
+ck(blob(_lp5) == _first and os.path.exists(_F.heartbeat_path(_lp5)),
+   "(a stamp-only run through collect.write: latest kept, its heartbeat written)")
+_ap5, _ = D.archive(dict(DOC, built_at="2026-11-04T17:10:00Z"), _r5, "dossiers", log=lambda *a: None,
+                    when=WHEN, same_as=_lp5)
+ck(blob(_ap5) == blob(_lp5), "🔴🔴 ...and that run's archive is latest's bytes: the run adds no new blob")
 for _name, _make in (("missing", None), ("corrupt", b"not a gzip"), ("truncated", None)):
     _rr = os.path.join(TMP, _name)
     os.makedirs(os.path.join(_rr, "latest"))
@@ -206,6 +248,13 @@ ck(any(m.startswith("dossier_fb.py:build ") for m in _mem),
    "⚠️ the census finds the dossier's latest write and its archive (%s)" % _mem,
    "⛔ if it finds nothing, 'none flagged' below checks nothing (rule 67)")
 eq(_flag, [], "🔴🔴 every latest/ gzip that is also archived is archived as its own bytes (same_as)")
+# `[2026-11-10]` ...and the dossier is the ONLY such caller: its archive carries latest's stamps when
+#    only they moved, which is safe because no reader takes a stamp from a dossier archive. Other
+#    kinds' archives are read for `pulled_at` (props snapshots, the alt-line units), so a new
+#    caller is a decision: name it here, with who reads its archive's stamps.
+eq(sorted({m.split(" ")[0] for m in _mem}), ["dossier_fb.py:build"],
+   "⛔ the only latest/ gzip archived through same_as is the dossier (a new one says who reads "
+   "its archive's stamps)")
 
 # rule 67: the census bites on planted modules
 _pl = os.path.join(TMP, "census")

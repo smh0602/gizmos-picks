@@ -141,7 +141,7 @@ import subprocess
 import sys
 import tempfile
 
-from tcheck import ck, copy_module, fail, note, section, shown
+from tcheck import ck, copy_module, fail, note, section, shown, copy_latest
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.environ.setdefault("LEAGUE", "nfl")
@@ -157,7 +157,7 @@ UTC = datetime.timezone.utc
 def tree(lg="nfl"):
     """A throwaway repo carrying one league's data and the modules."""
     d = tempfile.mkdtemp(prefix="shadow-")
-    shutil.copytree(os.path.join(ROOT, "data", lg), os.path.join(d, "data", lg))
+    copy_latest(os.path.join(ROOT, "data", lg), os.path.join(d, "data", lg))
     os.makedirs(os.path.join(d, "picks"), exist_ok=True)
     for f in glob.glob(os.path.join(ROOT, "picks", "fb-%s-*.json" % lg)):
         shutil.copy(f, os.path.join(d, "picks"))
