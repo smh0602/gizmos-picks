@@ -2840,12 +2840,11 @@ def cascaded(need):
 #        before the roll or not at all (review, 11-11); a missing row at the SAME
 #        path whose mode ran means that mode wrote nothing, and it is not run again;
 #      - not HELD (`_held`): a free row that comes after, in the contract's order
-#        (dependency order), a paid row the catch-up will not buy and that is owed
-#        for a deadline at or before the free row's own, waits for the pass that
-#        buys it, as before this change: built now it would read the old pull and be
-#        stamped fresh, and that pass would then never rebuild it (the MLB game model
-#        and props board at their own deadline; the MLB card behind an 11:00Z pull
-#        still owed at 14:00Z);
+#        (dependency order), an owed paid row the catch-up will not buy waits for the
+#        pass that buys it, whatever either deadline, as before this change: built now
+#        it would read the old pull and be stamped fresh, and that pass would then
+#        never rebuild it (the MLB game model, props board and card; football's card);
+#        a late mode whose CASCADE follower is held waits with it;
 #      - its mode did not fail this pass (`skip`): a failed mode is never retried
 #        here, even when a LATER deadline of its passes while the pass runs (an
 #        hourly row that missed 06:00 and then 07:00), nor run as a follower;
@@ -2865,8 +2864,8 @@ def caught_up(rows, since, allow_paid=True, skip=(), ran=(), before=None):
     `skip`: modes that failed this pass; never returned.
     `ran`: modes this pass has run; a MISSING row of one of them is not owed here,
     unless its path changed since `before` (the plan's own rows).
-    A free row after a paid row this catch-up will not buy, owed for a deadline at or
-    before its own, waits for the pass that buys it (`_held`)."""
+    A free row after an owed paid row this catch-up will not buy waits for the pass that
+    buys it (`_held`), and so does a late mode whose CASCADE follower waits."""
     ran = set(ran)
     seen = None if before is None else {(r.get("mode"), r.get("path")) for r in before}
     order = list(dict.fromkeys(r["mode"] for r in rows))
@@ -2887,17 +2886,20 @@ def caught_up(rows, since, allow_paid=True, skip=(), ran=(), before=None):
 
 
 def _held(rows, order, allow_paid):
-    """The free modes that wait: each one comes AFTER, in the contract's order (which is
-    dependency order), a PAID row this catch-up will not buy that is owed for a deadline
-    at or before the free row's own. The MLB game model and the props board are built
-    from their deadline's pulls, and the MLB card from the day's 11:00Z ones (review,
-    11-11: built from the old pull and stamped fresh, then never rebuilt after the new
-    one). Deadlines are 'YYYY-MM-DDTHH:MMZ', which sort in time order."""
+    """The free modes that wait: every one that comes AFTER, in the contract's order (which
+    is dependency order), an owed PAID row this catch-up will not buy, whatever either
+    deadline. Base built such a row in the next pass, AFTER that pull (plan's order); built
+    now it would read the old pull, be stamped fresh, and that pass would never rebuild it:
+    the MLB game model, props board and card; football's card behind its afternoon odds
+    (reviews, 11-11: first the same deadline, then an earlier one, then a later one, each
+    failed). A row before every owed paid row (MLB grading, the injury check, college
+    injuries) is never held."""
     pos = {m: i for i, m in enumerate(order)}
-    unbought = [(r["due_at"], pos[r["mode"]]) for r in rows
-                if r["paid"] and r.get("due_at") and owes(r, True) and not owes(r, allow_paid)]
-    return {r["mode"] for r in rows if not r["paid"] and r.get("due_at")
-            and any(d <= r["due_at"] and p < pos[r["mode"]] for d, p in unbought)}
+    first = min((pos[r["mode"]] for r in rows
+                 if r["paid"] and owes(r, True) and not owes(r, allow_paid)), default=None)
+    if first is None:
+        return set()
+    return {r["mode"] for r in rows if not r["paid"] and pos[r["mode"]] > first}
 
 
 def last_looks(final, first, at, built):

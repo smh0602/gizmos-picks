@@ -1664,10 +1664,9 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   again and builds it (at most `collect.CATCH_UP_ROUNDS`),
                   a dated path that rolled at its deadline (the MLB card,
                   results) included; never a mode that failed this pass,
-                  ⛔ never a paid pull (its own cron buys it), and a free
-                  row after an unbought paid row in the contract, owed for
-                  the same or an earlier deadline (the game model, the
-                  props board, the MLB card), waits for the
+                  ⛔ never a paid pull (its own cron buys it), and every
+                  free row after an owed, unbought paid row in the contract
+                  (the game model, the props board, both cards) waits for the
                   pass that buys it (`_held`); one clock for the plan and
                   every survey. The gate's rules are unchanged; a row the
                   catch-up did not build keeps the survey it was judged at

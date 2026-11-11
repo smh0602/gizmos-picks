@@ -83,20 +83,15 @@ clock (CLAUDE.md, 2026-09-28).
 #   find:             and r["mode"] not in held} - set(skip)
 #   with:             } - set(skip)
 #
-# @vacuity 🔴🔴 ...behind a paid row owed for an EARLIER deadline too (the card, 11:00Z's pull)
-#   file: freshness.py
-#   find:             and any(d <= r["due_at"] and p < pos[r["mode"]] for d, p in unbought)}
-#   with:             and any(d == r["due_at"] and p < pos[r["mode"]] for d, p in unbought)}
-#
 # @vacuity 🔴 ...only a row AFTER the paid one in the contract's (dependency) order
 #   file: freshness.py
-#   find:             and any(d <= r["due_at"] and p < pos[r["mode"]] for d, p in unbought)}
-#   with:             and any(d <= r["due_at"] for d, p in unbought)}
+#   find:     return {r["mode"] for r in rows if not r["paid"] and pos[r["mode"]] > first}
+#   with:     return {r["mode"] for r in rows if not r["paid"]}
 #
 # @vacuity 🔴 ...and only while that paid row is one this catch-up will not buy
 #   file: freshness.py
-#   find:                 if r["paid"] and r.get("due_at") and owes(r, True) and not owes(r, allow_paid)]
-#   with:                 if r["paid"] and r.get("due_at") and owes(r, True)]
+#   find:                  if r["paid"] and owes(r, True) and not owes(r, allow_paid)), default=None)
+#   with:                  if r["paid"] and owes(r, True)), default=None)
 #
 # @vacuity 🔴🔴 a longer pass costs a row it did not build nothing of the 10-19 rule
 #   file: collect.py
@@ -520,6 +515,13 @@ _glf = {"mode": "gamelines", "stale": True, "missing": False, "paid": True, "due
 eq(F.caught_up([_ic, _glf, _cf], at(4, 15, 55), allow_paid=False), [],
    "🔴 ...but while an unbought pull holds the card, the injury check waits WITH it: run alone it "
    "would rebuild the card from the old board (review, 11-11)")
+eq(F.caught_up([dict(_ic, due_at="2026-11-09T00:00Z"), dict(_glf, due_at="2026-11-08T18:00Z"),
+                dict(_cf, due_at="2026-11-08T15:30Z")], at(8, 23, 55), allow_paid=False), [],
+   "🔴🔴 ...the 7pm ET injury check too, behind the 18:00Z pull that comes AFTER the card's own 15:30Z "
+   "deadline (review round 5)")
+eq(F.caught_up([dict(_ic, due_at="2026-11-09T00:00Z"), dict(_glf, due_at="2026-11-08T18:00Z", stale=False),
+                dict(_cf, due_at="2026-11-08T15:30Z")], at(8, 23, 55), allow_paid=False), ["injury-check", "card-fb"],
+   "...and with that pull bought, it brings the card as before")
 # the hold, on its own
 _gl = {"mode": "gamelines", "stale": True, "missing": False, "paid": True, "due_at": "2026-11-04T20:00Z", "path": BOARD}
 _gm = {"mode": "game-model", "stale": True, "missing": False, "paid": False, "due_at": "2026-11-04T20:00Z", "path": GM}
@@ -535,6 +537,11 @@ _cd = {"mode": "card", "stale": True, "missing": True, "paid": False, "due_at": 
        "path": "picks/2026-11-04.json"}
 eq(F.caught_up([_pb, _cd], at(4, 13, 58), allow_paid=False, skip={"props-batter"}, ran={"props-batter"}, before=[]), [],
    "🔴🔴 ...and behind a paid row owed for an EARLIER deadline: the card waits for 11:00Z's pull")
+eq(F.caught_up([dict(_gl, due_at="2026-11-04T20:00Z"), dict(_cd, missing=False)], at(4, 13, 58), allow_paid=False), [],
+   "🔴🔴 ...whatever either deadline: a card due 14:00Z, late since a 13:58Z plan, waits behind a pull owed "
+   "for 20:00Z, a LATER deadline (base built it after that pull, in plan's order)")
+eq(F.caught_up([dict(_gl, due_at="2026-11-04T20:00Z", stale=False), dict(_cd, missing=False)], at(4, 13, 58),
+               allow_paid=False), ["card"], "...and with nothing owed before it, the card is caught up")
 # last_looks
 _A = at(4, 10, 58)
 _g0 = {"mode": "gamelines", "path": BOARD, "stale": False, "due_at": "2026-11-03T20:00Z"}
