@@ -239,7 +239,11 @@ FROZEN = {
     # APPLICABLE; the spread of results, injury sizing and "miss by" read the champion's own
     # numbers; history rows train and are never scored), written before any contest under it; it
     # edits nothing above it, and everything before it is pinned below. ⛔ Sam's answers.
-    "fb_refit_spec.md": "280d3576ae1d6db18a5052e28a77408e0f1d83e7b83d73bc4548438ce95f20df",
+    # ~~"280d3576ae1d6db18a5052e28a77408e0f1d83e7b83d73bc4548438ce95f20df"~~
+    # [Sam, 2026-11-10] "All past weeks too", "Yes, require it", "Add the second one", "Use what's
+    # stored now": section 3k (T75, the backup-QB background check: QB, QBC, QP, QPC), written before
+    # any result under it; it edits nothing above it, and everything before it is pinned below.
+    "fb_refit_spec.md": "5393b5819c6bb1eb10c44090e7af37d59ca5dd8b2ed86edc8c844c2e158544ff",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -254,6 +258,7 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3h. ", "f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3"),
                  ("fb_refit_spec.md", "\n## 3i. ", "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd"),
                  ("fb_refit_spec.md", "\n## 3j. ", "ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10"),
+                 ("fb_refit_spec.md", "\n## 3k. ", "280d3576ae1d6db18a5052e28a77408e0f1d83e7b83d73bc4548438ce95f20df"),
                  ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 

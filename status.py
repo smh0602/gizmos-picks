@@ -116,6 +116,10 @@ def refit_summary(doc, name, now, due=None):
     for x in doc.get("challengers") or []:
         v = x["verdict"]
         said = {"NOT YET MEASURABLE": "not yet measurable", "NOT YET": "not better yet", "WINS": "it WINS"}.get(v, v)
+        if v == "NOT YET" and x.get("why"):
+            # `[Sam, 2026-11-10]` §3k: a T75 score that beat the model while its QB number pulled the
+            #    wrong way is no win, and the email says why rather than "not better yet"
+            said = "not a win: it beat the current model on the numbers, but %s" % x["why"]
         if v == "WINS" and x.get("outranked_by"):
             # `[2026-10-26]` "went to" only when the winner holds its OWN branch: with a champion
             #    already named, or an older champion branch on GitHub, no branch was pushed for it.

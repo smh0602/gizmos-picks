@@ -345,7 +345,7 @@ note boxes, tags and the stale bar now require their absence.
   team does against above-average opponents beyond its rating), WL/WLC (a win-loss resume),
   MC/MCC (the margin with blowouts capped at 21 / 28) and AJ/AJC (form and the defence rank,
   opponent-adjusted; head-to-head is not retested), registered from the first Monday AFTER
-  its merge day, no earlier than 2026-11-02: 13 challengers a league, so p < 0.01/13
+  its merge day, no earlier than 2026-11-02: ~~13 challengers a league, so p < 0.01/13~~
   (`test_fb_matchup_grade.py`). ~~College has no injury data stored.~~ (`[Sam, 2026-10-17]` it is now: see COLLEGE
   INJURIES.) `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
@@ -382,6 +382,19 @@ note boxes, tags and the stale bar now require their absence.
   are never scored, graded, counted or measured, anywhere; a module that builds rows calls
   `is_history` (census). An OWN_SCORE challenger (H, HC, SM, SMC) never trains on another's history
   rows. With no champion named every output is byte for byte as before. `test_champion_switch.py`.
+  `[Sam, 2026-11-10]` T75 (§3k, THE BACKUP-QB BACKGROUND CHECK): *"when teams have a backup qb
+  starting or a 3rd string qb starting the model gives them more porints than they actually score"*;
+  he answered "All past weeks too", "Yes, require it", "Add the second one", "Use what's stored now".
+  `fb_qb.py` grades each team's EXPECTED starter (listed out: the injury report; NFL also its stored
+  reserve list, by exact name) on his own stored starts (each start: points minus
+  what the own ratings expected), shrunk toward replacement level (judged per team's first stored
+  season: college logs before 2025 are Power 4 only), minus the QB mix over the games the
+  champion's own rating reads (`fb_challengers.rated_games`; none: no reading); QB/QBC append that
+  delta, QP/QPC the other positions out too. All past weeks
+  count (not SCORED_ONLY); registered from the first Monday AFTER its merge day, no earlier than
+  2026-11-16; a WINS also needs the QB number's weight to point the expected way in every market
+  (`fb_refit.direction`; otherwise NOT YET and the email says why): 15 challengers a league, so
+  p < 0.01/15. ⛔ Nothing reads it but the contest; a WINS is a branch for Sam. `test_fb_t75.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
   *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
   ... only show confidence score on each pick that the model picks, BASED ON THE
@@ -1498,8 +1511,15 @@ fb_challengers.py T65's frozen challengers to the football game model
                   score-first model's margin and total, the only input);
                   `[Sam, 2026-10-26]` T72 CL/CLC (class vs above-average teams),
                   WL/WLC (win-loss resume), MC/MCC (blowouts capped), AJ/AJC (form
-                  and defence opponent-adjusted). fb_model reads it only for a
-                  named CHAMPION.
+                  and defence opponent-adjusted); `[Sam, 2026-11-10]` T75 QB/QBC
+                  (the expected starter's grade, fb_qb.py) and QP/QPC (plus the
+                  other positions out). fb_model reads it only for a named CHAMPION.
+fb_qb.py          T75's BACKUP-QB BACKGROUND CHECK (Sam, 2026-11-10): one
+                  league's stored QB starts, each start's mark against the own
+                  ratings, a QB's grade shrunk toward replacement level, the
+                  expected starter (a listed-out starter's replacement) and the
+                  delta from the team's rating mix. ⛔ Read only by
+                  fb_challengers' T75 four; point in time; stdlib only.
 fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No

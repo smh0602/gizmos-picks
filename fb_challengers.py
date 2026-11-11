@@ -23,6 +23,11 @@
     AJ NFL / AJC college   T72: form and the defence rank, opponent-adjusted
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
+    QB NFL / QBC college   T75: the backup-QB background check (fb_qb.py): the expected
+                           starter's grade from his own earlier starts, minus the grade of
+                           the QBs the team's rating was built on
+    QP NFL / QPC college   T75: QB's input plus the other positions out (IN's shares; NFL
+                           linemen by their listed count)
 
 ⛔ FROZEN. Any change is a NEW challenger with a new name.
 ⛔ POINT IN TIME: a row's input reads only entries / games dated (UTC kickoff
@@ -141,6 +146,23 @@ CHALLENGERS = {
     "AJC": {"league": "ncaaf", "what": "form and defence adjusted", "markets": ("spread", "total", "moneyline"),
             "files": (), "key": "aj", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
             "on_merge": True},
+    # `[Sam, 2026-11-10]` T75 (§3k): "the model finds the backup who is starting and does a
+    #    background check" (fb_qb.py), and "weigh certain positions heavier than others". Registered
+    #    from the first Monday AFTER the day its entry reaches main, no earlier than 2026-11-16; every
+    #    past week counts (§3k: "All past weeks too"); a WINS also needs the QB delta's weight to point
+    #    the expected way (fb_refit.direction, "Yes, require it"). No withdrawal rule.
+    "QB": {"league": "nfl", "what": "backup QB check", "markets": ("spread", "total", "moneyline"),
+           "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+           "on_merge": True},
+    "QBC": {"league": "ncaaf", "what": "backup QB check", "markets": ("spread", "total", "moneyline"),
+            "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+            "on_merge": True},
+    "QP": {"league": "nfl", "what": "backup QB check and positions", "markets": ("spread", "total", "moneyline"),
+           "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+           "on_merge": True},
+    "QPC": {"league": "ncaaf", "what": "backup QB check and positions", "markets": ("spread", "total", "moneyline"),
+            "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+            "on_merge": True},
 }
 HIST = ("H", "HC")
 SCORE = ("SM", "SMC")
@@ -171,7 +193,12 @@ A_STEP = 64.0                # WL / WLC's solve: the longest step on the home ed
                              #    logistic is flat past |z| ~ 37, so one step crosses any flat stretch
 # ⛔ §3f: AJ, AJC, MC and MCC replace inputs at fixed places in today's lists, so they build
 #    only against no champion or one that only appends; otherwise NOT APPLICABLE (Sam's to decide).
-APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC")
+APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC",
+               "QB", "QBC", "QP", "QPC")         # `[2026-11-10]` §3k: T75 only appends
+# ⛔ T75 §3k, FROZEN with QB, QBC, QP and QPC (fb_qb.py holds the check's own constants).
+T75 = ("QB", "QBC", "QP", "QPC")
+QPOS = ("QP", "QPC")
+OL_POS = {"T", "OT", "G", "OG", "C", "OL", "LT", "RT", "LG", "RG"}      # ⛔ §3k: QP's linemen, by count
 # `[Sam, 2026-11-08]` §3j, after a champion switch. OWN_SCORE: inputs that are the challenger's
 #    OWN predicted margin and total and nothing of the champion's (H, HC, SM, SMC). As champion
 #    they make their own predicted score; as challenger they train on their own rows only.
@@ -774,9 +801,126 @@ def attach_grade(name, lg, rows, root=None):
     return rows
 
 
+RESERVE = "roster: reserve list"      # ⛔ §3k: the NFL reserve list (IR and similar); never the inactive list
+
+
+def reserve_lists(root=None):
+    """§3k: {(season, team, week): [names on the team's reserve list that week]}, from the stored
+    players-<season> `team_out` (nfl.py), for the seasons the reports are read for (FM.SEASONS)."""
+    out = {}
+    for s in FM.SEASONS:
+        doc = FM.jz(os.path.join(latest("nfl", root), "players-%d.json.gz" % s)) or {}
+        for team, weeks in (doc.get("team_out") or {}).items():
+            for wk, v in (weeks or {}).items():
+                names = [p.get("name") for p in (v or {}).get("players") or []
+                         if p.get("name") and any(str(w).startswith(RESERVE) for w in p.get("why") or [])]
+                if names:
+                    out[(s, team, str(wk))] = names
+    return out
+
+
+def name_key(name):
+    """A stored name compared exactly, bar case and spacing (⛔ never fuzzy)."""
+    return " ".join(str(name or "").split()).casefold()
+
+
+def rated_games(lg, root=None):
+    """§3k: the (team, day) games the CHAMPION's own rating reads, the only games T75's QB mix
+    reads: fb_model.rating_games (latest/) for today's model and every champion built on today's
+    own numbers; plus the history seasons' for H or HC (h_own's solve)."""
+    G = list(FM.rating_games(lg, root))
+    if FM.CHAMPION.get(lg) in HIST:
+        G += history_rating_games(lg, root)
+    return {(t, g[0]) for g in G for t in (g[1], g[2])}
+
+
+def attach_qb(name, lg, rows, root=None):
+    """T75 (§3k): r["sig"]["qb_d"] = (home delta, away delta), fb_qb's QB delta in points (None: no
+    reading). NFL "listed out" also reads the team's stored reserve list that week, by name: a name
+    exactly one player with a log row for the team dated before the game holds, and he a QB (an
+    ambiguous one is not listed).
+    QP also r["sig"]["qp"] = {"off", "ol", "def": (home, away)}: IN's offence and defence
+    shares out and the linemen listed out, counted; QPC {"off", "def"}: college's own shares out
+    (cfb_injuries' reading; none: 0). "Listed out": Out, Doubtful (NFL, the game week's report) or
+    Out, Out for Season, Doubtful (college, the 9:00 report), as IN and cfb_injuries read them."""
+    import fb_qb
+    G = sorted(set(FM.rating_games(lg, root)).union(history_rating_games(lg, root)))     # every stored schedule
+    book = fb_qb.Book(lg, G, root, rated=rated_games(lg, root))
+    if lg == "nfl":
+        reports, logs = injury_tables(root)
+
+        def listed(season, team, week, pos=("QB",)):
+            return [p for p in reports.get((season, team, str(week))) or []
+                    if (p.get("report_status") or "").strip().lower() in OUT_STATUSES
+                    and (p.get("position") or "").upper() in pos]
+
+        reserve = reserve_lists(root)
+        by_name = collections.defaultdict(set)        # (team, name) -> every player logged for the team
+        for (t, pid) in book.first:
+            by_name[(t, name_key(book.name.get(pid)))].add(pid)
+
+        def on_reserve(season, team, week, cut):
+            out = set()
+            for nm in reserve.get((season, team, str(week))) or []:
+                ids = {p for p in by_name.get((team, name_key(nm))) or () if book.first[(team, p)] < cut}
+                if len(ids) == 1 and book.pos.get(next(iter(ids))) == "QB":      # ⛔ an ambiguous name: not listed
+                    out |= ids
+            return out
+
+        def out_now(r, team):
+            rep_now = {p.get("gsis_id") for p in listed(r["season"], team, r.get("week")) if p.get("gsis_id")}
+            return rep_now | on_reserve(r["season"], team, r.get("week"), r["day"])
+
+        def out_at(team, day):
+            s, w = book.season.get((team, day)), book.week.get((team, day))
+            rep_at = {p.get("gsis_id") for p in listed(s, team, w) if p.get("gsis_id")}
+            return rep_at | on_reserve(s, team, w, day)
+    else:
+        import cfb_injuries
+        cache = {}
+
+        def season_outs(s):
+            if s not in cache:
+                cache[s] = (cfb_injuries.pick_time_outs(s, root), cfb_injuries.Roles(s, root)) \
+                    if s is not None else ({}, None)
+            return cache[s]
+
+        def listed_gid(s, gid, team):
+            outs, roles = season_outs(s)
+            if roles is None or gid is None:
+                return set()
+            ids = {roles.match(team, p) for p in ((outs.get(str(gid)) or {}).get(team) or [])
+                   if (p.get("status") or "").strip().lower() in cfb_injuries.OUT_STATUSES}
+            ids.discard(None)
+            return {i for i in ids if book.pos.get(i) == "QB"}
+
+        def out_now(r, team):
+            return listed_gid(r["season"], r.get("id"), team)
+
+        def out_at(team, day):
+            return listed_gid(book.season.get((team, day)), book.gid.get((team, day)), team)
+    for r in rows:
+        r["sig"]["qb_d"] = tuple(book.delta(t, r["day"], r["season"], out_now(r, t), out_at)
+                                 for t in (r["home"], r["away"]))
+    if name == "QP":
+        for r in rows:
+            h = team_out(reports, logs, lambda team, day: None, r["season"], r["home"], r.get("week"), r["day"])
+            a = team_out(reports, logs, lambda team, day: None, r["season"], r["away"], r.get("week"), r["day"])
+            ol = tuple(float(len(listed(r["season"], t, r.get("week"), OL_POS))) for t in (r["home"], r["away"]))
+            r["sig"]["qp"] = {"off": (h[1], a[1]), "ol": ol, "def": (h[2], a[2])}
+    elif name == "QPC":
+        cfb_injuries.attach(rows, root)
+        for r in rows:
+            j = r["sig"].get("inj") or {}
+            r["sig"]["qp"] = {"off": tuple(j.get("off") or (0.0, 0.0)), "def": tuple(j.get("def") or (0.0, 0.0))}
+    return rows
+
+
 def attach(name, lg, rows, root=None):
     """Write challenger `name`'s number into every row's `sig` (None: no number)."""
     c = CHALLENGERS[name]
+    if name in T75:                      # §3k
+        return attach_qb(name, lg, rows, root)
     if c["key"] is None:                 # S reads only the champion's own inputs
         return rows
     if name in HIST:
@@ -910,10 +1054,23 @@ def extend(name, r, market, x, M=None, T=None):
     append wl (spread, moneyline); MC, MCC put the capped margin in the first input
     (spread (capped - line) / 10, moneyline capped / 10); AJ, AJC put the adjusted form in
     the third (index 2: (form_m - line) / 10, form_m / 10, (form_t - line) / 10) and the
-    adjusted defence rank in the total's fourth (index 3: (fraction - 0.5) x 4)."""
+    adjusted defence rank in the total's fourth (index 3: (fraction - 0.5) x 4).
+    T75 (§3k): QB, QBC append the QB delta / 10 (away - home on spread and moneyline, home + away
+    on totals); QP, QPC then the other positions out in the same shape (QP: offence share,
+    linemen counted, defence share; QPC: offence and defence shares)."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
         return x
+    if name in T75:                      # §3k: appended, points / 10; the parts' sum on totals
+        h, a = r["sig"].get("qb_d") or (None, None)
+        h, a = (h or 0.0) / 10.0, (a or 0.0) / 10.0
+        add = [h + a] if market == "total" else [a - h]
+        if name in QPOS:
+            q = r["sig"].get("qp") or {}
+            for part in (("off", "ol", "def") if name == "QP" else ("off", "def")):
+                hh, aa = q.get(part) or (0.0, 0.0)
+                add.append(hh + aa if market == "total" else aa - hh)
+        return list(x) + add
     if name in CLASS:
         v = r["sig"].get("cl")
         return list(x) + [0.0 if v is None else v[1 if market == "total" else 0] / 10.0]

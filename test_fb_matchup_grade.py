@@ -173,8 +173,8 @@ on the real games. Their numbers are pinned in test_fb_refit.py §17 (§3f names
 #
 # @vacuity 🔴 ...the append-only list is §3f's (IN appends)
 #   file: fb_challengers.py
-#   find: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC")
-#   with: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "RS", "RSC", "CL", "CLC", "WL", "WLC")
+#   find: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC",
+#   with: APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "RS", "RSC", "CL", "CLC", "WL", "WLC",
 #
 # @vacuity 🔴 registration: never before 2026-11-02
 #   file: fb_refit.py
@@ -658,6 +658,7 @@ eq({n: (c["league"], c["markets"], c["withdrawable"], c["files"], c["input"], c[
 section("7. 🔴 AGAINST ANOTHER CHAMPION: AJ, AJC, MC, MCC ONLY BESIDE ONE THAT ONLY APPENDS")
 # ══════════════════════════════════════════════════════════════════════
 APPENDS = {"E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC"}     # §3f, verbatim
+APPENDS |= {"QB", "QBC", "QP", "QPC"}            # `[Sam, 2026-11-10]` §3k: T75's four only append too
 _got, _want = {}, {}
 for lg in NEW:
     _r = row("p", lg, "2026-04-01", "T00", "T05")
@@ -697,16 +698,17 @@ eq({n: (R.merged_on(n, G8), R.registration(n, G8)) for n in NEW["nfl"] + NEW["nc
    "🔴 each entry's line in the real fb_challengers.py is found by its merge-day needle")
 
 # ══════════════════════════════════════════════════════════════════════
-section("9. 🔴 league(): 13 CHALLENGERS A LEAGUE, EACH BUILT AND SCORED, alpha = 0.01 / 13")
+section("9. 🔴 league(): 15 CHALLENGERS A LEAGUE, EACH BUILT AND SCORED, alpha = 0.01 / 15")
 # ══════════════════════════════════════════════════════════════════════
 T9 = tree()
 _g9 = league_games(TEAMS, 32, 75, start=datetime.date(2025, 3, 2))       # 192 games: fits need 150
 plant(T9, _g9)
-WANT13 = {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "RS", "S", "SM", "WL", "WX"],
-          "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "RSC", "SMC", "T", "TS", "WLC", "WXC"]}
+# `[Sam, 2026-11-10]` ~~13~~: T75 (§3k) adds QB, QP and QBC, QPC.
+WANT15 = {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "QB", "QP", "RS", "S", "SM", "WL", "WX"],
+          "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "QBC", "QPC", "RSC", "SMC", "T", "TS", "WLC", "WXC"]}
 for lg in NEW:
     names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == lg]
-    eq(sorted(names), WANT13[lg], "🔴 %s: 13 challengers (T72 adds %s)" % (lg, ", ".join(NEW[lg])))
+    eq(sorted(names), WANT15[lg], "🔴 %s: 15 challengers (T72 adds %s; T75 two more)" % (lg, ", ".join(NEW[lg])))
     rs = []
     for gid, day, h, a, n, hp, ap, _y in _g9:
         r = row(gid, lg, day, h, a, final=True, hs=hp, M=1.5 if hp % 2 else -2.5, T=44.5, pml=0.55,
@@ -715,9 +717,9 @@ for lg in NEW:
         rs.append(r)
     doc = R.league(lg, T9, NOW, rows=rs, added={n: "2025-01-01" for n in names})
     by = {x["name"]: x for x in doc["challengers"]}
-    eq(sorted(by), WANT13[lg], "🔴 %s: league() reports all 13" % lg)
-    ck(all(abs(x["alpha"] - 0.01 / 13) < 1e-15 and x["alpha"] < 0.01 / 9 for x in by.values()),
-       "🔴 %s: every registered challenger's bar is 0.01 / 13, stricter than 0.01 / 9" % lg,
+    eq(sorted(by), WANT15[lg], "🔴 %s: league() reports all 15" % lg)
+    ck(all(abs(x["alpha"] - 0.01 / 15) < 1e-15 and x["alpha"] < 0.01 / 9 for x in by.values()),
+       "🔴 %s: every registered challenger's bar is 0.01 / 15, stricter than 0.01 / 9" % lg,
        {n: x.get("alpha") for n, x in by.items()})
     ck(all(by[n]["history"]["predictions"] > 0 for n in NEW[lg])
        and all(rs[-1]["sig"].get(k) is not None for k in ("cl", "wl", "mc", "aj")),
