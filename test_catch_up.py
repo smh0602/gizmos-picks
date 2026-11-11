@@ -118,6 +118,21 @@ clock (CLAUDE.md, 2026-09-28).
 #   find:         caught_now.update(todo)
 #   with:         pass
 #
+# @vacuity 🔴 ...and the watchdog's stopped check judges from the same survey
+#   file: watchdog.py
+#   find:             built = judged
+#   with:             pass
+#
+# @vacuity 🔴 ...which converge writes when it ran a catch-up
+#   file: collect.py
+#   find:     write_freshness(rows2, still, judged_at=end_at if caught_now else None)
+#   with:     write_freshness(rows2, still)
+#
+# @vacuity 🔴 a late mode whose CASCADE follower is held waits with it
+#   file: freshness.py
+#   find:     late = {m for m in late if not ((cascaded({m}) - {m}) & held)}
+#   with:     pass
+#
 # @vacuity 🔴 ...as last_looks itself says
 #   file: freshness.py
 #   find:                 and r.get("mode") not in built and _after(r.get("due_at"), at)):
@@ -500,6 +515,11 @@ _cf = {"mode": "card-fb", "stale": False, "missing": False, "paid": False, "due_
        "path": "picks/fb-nfl-latest.json"}
 eq(F.caught_up([_ic, _cf], at(4, 15, 55)), ["injury-check", "card-fb"],
    "🔴 ...football's injury check brings the card behind it (Sam, 2026-10-26)")
+_glf = {"mode": "gamelines", "stale": True, "missing": False, "paid": True, "due_at": "2026-11-04T11:00Z",
+        "path": "data/nfl/latest/board.json"}
+eq(F.caught_up([_ic, _glf, _cf], at(4, 15, 55), allow_paid=False), [],
+   "🔴 ...but while an unbought pull holds the card, the injury check waits WITH it: run alone it "
+   "would rebuild the card from the old board (review, 11-11)")
 # the hold, on its own
 _gl = {"mode": "gamelines", "stale": True, "missing": False, "paid": True, "due_at": "2026-11-04T20:00Z", "path": BOARD}
 _gm = {"mode": "game-model", "stale": True, "missing": False, "paid": False, "due_at": "2026-11-04T20:00Z", "path": GM}
@@ -663,6 +683,32 @@ ck("gamelines" not in _h and "game-model" not in _h,
    "catch-up existed: their 11:00Z deadline passed after that survey", _h)
 ck(not written(d, HIT)["stale"] and "looked_at" not in written(d, HIT), "...and hitters, built, is simply inside contract",
    written(d, HIT))
+eq(json.load(open(f"{d}/data/latest/freshness.json", encoding="utf-8")).get("judged_at"), "2026-11-04T10:58:00Z",
+   "...and freshness.json says the pass judged at 10:58Z, before its catch-up")
+import watchdog as _WD  # noqa: E402
+
+
+class _Rep:
+    def __init__(self):
+        self.found = []
+
+    def bad(self, key, *a):
+        self.found.append(("BROKEN", key))
+
+    def warn(self, key, *a):
+        self.found.append(("DEGRADED", key))
+
+
+_saved = _WD.ROOT, _WD.DATA
+_WD.ROOT, _WD.DATA = d, {"mlb": "data"}
+try:
+    _rep = _Rep()
+    _WD.check_stopped_league(_rep, at(4, 15, 30))
+finally:
+    _WD.ROOT, _WD.DATA = _saved
+ck(("DEGRADED", "stopped:mlb") in _rep.found,
+   "🔴 ...so the watchdog, at 15:30Z with no run since, still sees the 11:00Z rows that pass never built "
+   "as a stopped league, as it did when the file was written at 10:58Z", _rep.found)
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════

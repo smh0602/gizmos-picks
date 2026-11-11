@@ -6027,7 +6027,7 @@ def _record_failure(failed, soft_failed, mode, why, source=None):
         failed.append((mode, why, source))
 
 
-def write_freshness(rows=None, still=None):
+def write_freshness(rows=None, still=None, judged_at=None):
     """Publish the freshness report the PAGE reads.
 
     🔴 THIS MUST RUN AFTER THE CARD REVERT, NOT BEFORE, AND THAT IS THE
@@ -6102,6 +6102,9 @@ def write_freshness(rows=None, still=None):
                 "allowed to be. Published by the converge pass.",
         "ok": not still,
         "artifacts": rows,
+        # `[2026-11-11]` set only when converge ran a catch-up: the survey this file was
+        #    written from before the catch-up existed (watchdog.check_stopped_league)
+        **({"judged_at": judged_at.strftime("%Y-%m-%dT%H:%M:%SZ")} if judged_at else {}),
     })
 
 
@@ -6253,7 +6256,7 @@ def converge(explicit=(), allow_paid=True):
     #    "every artifact is inside contract" and freshness.json `ok: true`
     #    while the gate warned. The same rule as `write_freshness`'s default.
     still = list(dict.fromkeys(r["mode"] for r in rows2 if r["stale"]))
-    write_freshness(rows2, still)
+    write_freshness(rows2, still, judged_at=end_at if caught_now else None)
 
     # 🔴 THE PAGE MUST BE ABLE TO SAY HOW OLD IT IS. Sam had to ask why
     # the board looked wrong; the site itself said nothing, because

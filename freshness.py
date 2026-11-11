@@ -2876,6 +2876,10 @@ def caught_up(rows, since, allow_paid=True, skip=(), ran=(), before=None):
                  or (seen is not None and (r["mode"], r["path"]) not in seen))
             and _after(r.get("due_at"), since)
             and r["mode"] not in held} - set(skip)
+    # a late mode whose CASCADE follower is held waits WITH it (review, 11-11): run alone,
+    # the follower would be built from the old pull and stamped fresh, and neither row
+    # would bring it back once the pull lands (injury-check -> card-fb behind gamelines)
+    late = {m for m in late if not ((cascaded({m}) - {m}) & held)}
     if not late:
         return []
     need = cascaded(late) - set(skip)          # ...nor as a follower

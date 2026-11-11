@@ -800,10 +800,16 @@ def check_stopped_league(rep, now):
     artifacts' own stamps): past due with no pass for over STOPPED_GRACE_MIN
     -> BROKEN for a card, DEGRADED otherwise. ⛔ No repair: converge can spend."""
     for lg, d in DATA.items():          # every league, whichever league's run this is
-        built = _when((_read(os.path.join(ROOT, d, "latest", "freshness.json")) or {})
-                      .get("built_at"))
+        doc = _read(os.path.join(ROOT, d, "latest", "freshness.json")) or {}
+        built = _when(doc.get("built_at"))
         if built is None:
             continue
+        # `[2026-11-11]` a pass that ran a catch-up (freshness.caught_up) wrote this file
+        #    later than it judged: a row it did not build, whose deadline passed during the
+        #    catch-up, is judged from the earlier survey, as before the catch-up existed
+        judged = _when(doc.get("judged_at"))
+        if judged is not None and judged < built:
+            built = judged
         late = stopped_rows(F.survey(os.path.join(ROOT, d), os.path.join(ROOT, "picks"), now),
                             built, now)
         if not late:

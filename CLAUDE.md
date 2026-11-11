@@ -1672,7 +1672,8 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   every survey. The gate's rules are unchanged; a row the
                   catch-up did not build keeps the survey it was judged at
                   before it existed (`last_looks`, read by
-                  `after_last_survey`): never looser (11-11's 13-minute
+                  `after_last_survey`; `judged_at`, read by the watchdog's
+                  stopped check): never looser (11-11's 13-minute
                   college card turned collect red). `test_catch_up.py`.
                   `[Sam, 2026-10-26]` the `injury-check` row: `INJURY_CHECK_ET`
                   (9:00/12:00/19:00), `injury_check_slots` (real Eastern time,
