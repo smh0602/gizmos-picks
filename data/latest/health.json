@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-11T06:59:29Z",
+ "checked_at": "2026-11-11T07:09:21Z",
  "et_date": "2026-11-11",
  "healthy": false,
  "broken": 0,
  "degraded": 11,
  "findings": [
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (cfb-injuries, cfb-probe)",
+   "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:lineups:mlb",
    "severity": "DEGRADED",
@@ -75,13 +82,6 @@
    "what": "nfl news was built 113 minutes after it was due",
    "why": "due 2026-11-10T14:05Z, built 2026-11-10T15:57Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
-  },
-  {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 136 minutes after it was due",
-   "why": "due 2026-11-10T07:00Z, built 2026-11-10T09:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
-   "repair": null
   }
  ],
  "repairs": [],
@@ -93,7 +93,7 @@
   "pulled_at": "2026-11-11T00:41:51Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 6.3,
+  "reading_age_hours": 6.5,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-11T00:41:51Z",
   "source": "data/ncaaf/2026-11-11/gamelines/0041.json.gz",
