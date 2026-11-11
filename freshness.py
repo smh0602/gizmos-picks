@@ -2823,21 +2823,30 @@ def cascaded(need):
 #    built in the same pass (`caught_up`), at most `collect.CATCH_UP_ROUNDS`
 #    times. Only these rows qualify:
 #      - stale by `owes` (the plan's own rule), with a deadline after `since`;
-#      - NOT missing (a missing row was stale when the pass planned, so it was
-#        planned already; still missing means its mode failed or wrote nothing);
-#      - its mode did not fail and was not skipped this pass (`skip`): a failed
-#        mode is never retried here, even when a LATER deadline of its passes
-#        while the pass runs (an hourly row that missed 06:00 and then 07:00);
+#      - missing only when its mode has NOT run this pass (`ran`): a dated path
+#        (the MLB card's picks/<date>.json, results' data/<date>/...) rolls to a
+#        new file AT its own deadline, so it reads missing mid-pass although the
+#        plan saw it inside contract (review, 11-11); a missing row whose mode
+#        did run means that mode wrote nothing, and it is not run again;
+#      - its mode did not fail this pass (`skip`): a failed mode is never retried
+#        here, even when a LATER deadline of its passes while the pass runs (an
+#        hourly row that missed 06:00 and then 07:00), nor run as a follower;
+#      - FREE: `collect.converge` asks with allow_paid=False, so no paid row
+#        and no follower of one is returned. Every paid deadline has its own cron, in its own
+#        concurrency group, running from its own checkout: a catch-up that bought
+#        here could buy the same deadline twice;
 #      - plus CASCADE's followers, in the contract's order.
 # ⛔ NOTHING ELSE MOVES. The gate is unchanged and as strict: a row the plan saw
-#    stale whose mode failed is red as before, and a paid mode still runs at most
-#    once a pass (`_RAN_PAID`) under the same daily cap, so a paid row due again
-#    after its own pull is still the gate's to judge.
-def caught_up(rows, since, allow_paid=True, skip=()):
+#    stale whose mode failed is red as before, and a PAID row that falls due
+#    mid-pass is its own cron's and the gate's, exactly as before this change.
+def caught_up(rows, since, allow_paid=True, skip=(), ran=()):
     """-> the modes, in the contract's order, owed for rows whose missed deadline
     (`due_at`) passed after `since`, the moment the pass surveyed to plan.
-    `skip`: modes that failed or were skipped this pass; never returned."""
-    late = {r["mode"] for r in rows if owes(r, allow_paid) and not r["missing"]
+    `skip`: modes that failed this pass; never returned.
+    `ran`: modes this pass has run; a MISSING row of one of them is not owed here."""
+    ran = set(ran)
+    late = {r["mode"] for r in rows if owes(r, allow_paid)
+            and (not r["missing"] or r["mode"] not in ran)
             and _after(r.get("due_at"), since)} - set(skip)
     if not late:
         return []

@@ -8,8 +8,10 @@ freshness.json at 07:07:54Z with cfb-probe stale, and the gate failed "cfb-probe
 its 3:00 ET build ... 9m past due": a red recurring run no pass could have avoided.
 
 ✅ `collect.converge` now surveys again before it writes freshness.json and builds, in the
-same pass, the rows whose missed deadline passed AFTER the survey it planned from
-(`freshness.caught_up`), at most `CATCH_UP_ROUNDS` times. ⛔ The gate is unchanged.
+same pass, the FREE rows whose missed deadline passed AFTER the survey it planned from
+(`freshness.caught_up`), at most `CATCH_UP_ROUNDS` times. ⛔ The gate is unchanged, a failed
+mode is never retried, and a paid pull is never bought by the catch-up (its own cron, in its
+own concurrency group, buys it: two buyers could pay for one deadline twice).
 
 This drives the REAL `collect.converge` in a planted MLB tree on a clock that the stubbed
 modes move, the way a long mode moves the real one. Nothing reads the live tree or the real
@@ -21,24 +23,44 @@ clock (CLAUDE.md, 2026-09-28).
 #   with:         pass
 #
 # @vacuity 🔴 a mode that failed this pass is never retried, even when a later deadline passes
+#   file: collect.py
+#   find:         _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
+#   with:         _bad = set()
+#
+# @vacuity 🔴 ...a SOFT mode that failed included
+#   file: collect.py
+#   find:         _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
+#   with:         _bad = {m for m, *_ in failed}
+#
+# @vacuity 🔴 ...and a failed mode's CASCADE followers are not run behind it
 #   file: freshness.py
 #   find:             and _after(r.get("due_at"), since)} - set(skip)
 #   with:             and _after(r.get("due_at"), since)}
 #
-# @vacuity 🔴 ...the skip set is this pass's failures
-#   file: collect.py
-#   find:         _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed} | set(skipped)
-#   with:         _bad = set()
-#
-# @vacuity 🔴 ...nor as a CASCADE follower
+# @vacuity 🔴 ...nor is a failed follower run behind a late mode
 #   file: freshness.py
 #   find:     need = cascaded(late) - set(skip)          # ...nor as a follower
 #   with:     need = cascaded(late)
 #
-# @vacuity 🔴 a missing row was planned already and is never caught up
+# @vacuity 🔴🔴 a dated path that rolls at its own deadline (the MLB card) is caught up
 #   file: freshness.py
-#   find:     late = {r["mode"] for r in rows if owes(r, allow_paid) and not r["missing"]
-#   with:     late = {r["mode"] for r in rows if owes(r, allow_paid)
+#   find:             and (not r["missing"] or r["mode"] not in ran)
+#   with:             and not r["missing"]
+#
+# @vacuity 🔴 ...but a missing row whose mode RAN this pass wrote nothing and is not run again
+#   file: freshness.py
+#   find:             and (not r["missing"] or r["mode"] not in ran)
+#   with:             and True
+#
+# @vacuity 🔴 ...which needs the pass to record what it ran
+#   file: collect.py
+#   find:                 attempted.add(m)
+#   with:                 pass
+#
+# @vacuity ⛔ the catch-up never buys a paid pull
+#   file: collect.py
+#   find:         todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted)
+#   with:         todo = (_fresh.caught_up(rows2, looked, allow_paid=allow_paid, skip=_bad, ran=attempted)
 #
 # @vacuity 🔴 only a deadline AFTER the plan's survey counts
 #   file: freshness.py
@@ -50,13 +72,29 @@ clock (CLAUDE.md, 2026-09-28).
 #   find:                 if _round < CATCH_UP_ROUNDS else [])
 #   with:                 if True else [])
 #
-# @vacuity ⛔ a paid mode still runs at most once a pass
+# @vacuity 🔴 each round asks from the previous round's survey
 #   file: collect.py
-#   find:             if m in paid and m in _RAN_PAID:
-#   with:             if False:
+#   find:         looked = _at
+#   with:         pass
+#
+# @vacuity 🔴 ...taken when that round surveyed
+#   file: collect.py
+#   find:         _at = now()
+#   with:         _at = looked
+#
+# @vacuity 🔴 ONE CLOCK: the plan is asked at converge's own clock
+#   file: collect.py
+#   find:     modes, rows = _fresh.plan(data=DATA, picks=PICKS, now=looked, allow_paid=allow_paid)
+#   with:     modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
+#
+# @vacuity 🔴 ...and so is every survey
+#   file: collect.py
+#   find:         rows2 = _fresh.survey(data=DATA, picks=PICKS, now=_at)
+#   with:         rows2 = _fresh.survey(data=DATA, picks=PICKS)
 """
 import contextlib
 import datetime
+import gzip
 import importlib
 import io
 import json
@@ -75,14 +113,27 @@ os.environ.setdefault("ODDS_API_KEY", "test")
 import freshness as F  # noqa: E402
 
 UTC = datetime.timezone.utc
-# MLB's game-model, gamelines and props rows are due at 7:00/16:00 ET = 11:00Z / 20:00Z (the
-# contract's fixed -4). The pass plans at 19:58Z; the first mode it runs moves the clock to 20:05Z.
-T0 = datetime.datetime(2026, 11, 4, 19, 58, tzinfo=UTC)
-LATE = datetime.datetime(2026, 11, 4, 20, 5, tzinfo=UTC)
+
+
+def at(day, h, m):
+    return datetime.datetime(2026, 11, day, h, m, tzinfo=UTC)
+
+
+def mins(n):
+    return datetime.timedelta(minutes=n)
+
+
+# The contract's fixed -4: MLB's game-model, gamelines and props rows are due 7:00/16:00 ET =
+# 11:00Z / 20:00Z; scores, results and record 6:00 ET = 10:00Z; card, lineups and weather 10:00 ET
+# = 14:00Z; news 9:05/15:05/21:05 ET = 13:05Z / 19:05Z / 01:05Z. Each case plans two minutes
+# before a deadline, and the first mode the pass runs moves the clock past it.
+T0, LATE = at(4, 19, 58), at(4, 20, 5)
 DEADLINE = "2026-11-04T20:00Z"
 GM = "data/latest/mlb-game-model.json"
 BOARD = "data/latest/board.json"
-PROPS = "data/latest/props.json.gz"
+SCORES = "data/latest/scores.json.gz"
+RECORD = "data/latest/record.json"
+NEWS = "data/latest/news.json"
 
 
 def ts(t):
@@ -92,13 +143,13 @@ def ts(t):
 def plant(d, rel, t):
     p = os.path.join(d, rel)
     os.makedirs(os.path.dirname(p), exist_ok=True)
+    doc = {"pulled_at": ts(t), "built_at": ts(t)}
     if rel.endswith(".gz"):
-        import gzip
         with gzip.open(p, "wt", encoding="utf-8") as fh:
-            json.dump({"pulled_at": ts(t), "built_at": ts(t)}, fh)
+            json.dump(doc, fh)
     else:
         with open(p, "w", encoding="utf-8") as fh:
-            json.dump({"pulled_at": ts(t), "built_at": ts(t)}, fh)
+            json.dump(doc, fh)
 
 
 def sandbox(planted):
@@ -113,7 +164,7 @@ def sandbox(planted):
 
 def converge(d, clock, run):
     """The real converge in `d` on the moving `clock` ([datetime]); `run(m)` is the stub
-    run_mode (it may move the clock, plant files, raise). -> (code, stdout, survey calls)."""
+    run_mode (it may move the clock, plant files, raise). -> (code, stdout, survey times)."""
     cwd = os.getcwd()
     os.chdir(d)
     try:
@@ -121,9 +172,12 @@ def converge(d, clock, run):
         importlib.reload(collect)
         fresh = collect._fresh
         calls = []
+        ASKED.clear()
 
         def at_clock(fn, name):
             def call(*a, **k):
+                # what converge itself passed, before this harness fills a gap (section 2)
+                ASKED.append((name, a[2] if len(a) >= 3 else k.get("now"), clock[0]))
                 if len(a) < 3 and k.get("now") is None:
                     k["now"] = clock[0]
                 if name == "survey":
@@ -149,186 +203,175 @@ def converge(d, clock, run):
 
 def written(d, rel):
     """The final freshness.json's row for `rel`."""
+    return next(a for a in final_rows(d) if a["path"].endswith(rel))
+
+
+def final_rows(d):
     with open(f"{d}/data/latest/freshness.json", encoding="utf-8") as fh:
-        doc = json.load(fh)
-    return next(a for a in doc["artifacts"] if a["path"].endswith(rel))
+        return json.load(fh)["artifacts"]
+
+
+def hard_modes(d, now):
+    hard, _soft = F.classify(final_rows(d), data=d + "/data", refused=False, block={"state": None}, now=now)
+    return [r["mode"] for r in hard]
 
 
 def catch_up_line(out):
     return [l for l in out.splitlines() if "CATCH-UP:" in l]
 
 
+def caught(out):
+    """The modes each CATCH-UP line names, in order."""
+    return [l.split("CATCH-UP: ", 1)[1].split(" — ", 1)[0].split() for l in catch_up_line(out)]
+
+
 def ran(log, mode):
     return [t for m, t in log if m == mode]
 
 
+def stub(log, clock, first_to=None, writes=None, fails=(), after_each=None):
+    """A run_mode stub: logs (mode, clock); the first call moves the clock to `first_to`;
+    `writes` {mode: path} plants that mode's artifact at the clock; `fails` raise."""
+    writes = writes or {}
+
+    def run(m):
+        log.append((m, clock[0]))
+        if len(log) == 1 and first_to is not None:
+            clock[0] = first_to
+        if m in fails:
+            raise RuntimeError("%s failed" % m)
+        if m in writes:
+            plant(_d[0], writes[m], clock[0])
+        if after_each:
+            after_each(m)
+    return run
+
+
+_d = [None]
+ASKED = []            # (plan|survey, the `now` converge passed, the clock then)
+
 # ══════════════════════════════════════════════════════════════════════
 section("0. THE PLANTED TREE: game-model inside contract when the pass plans")
 # ══════════════════════════════════════════════════════════════════════
-d = sandbox({GM: T0 - datetime.timedelta(minutes=8)})
+d = sandbox({GM: T0 - mins(8)})
 rows0 = {r["path"].replace(d + "/", ""): r for r in F.survey(data=d + "/data", picks=d + "/picks", now=T0)}
 modes0, _ = F.plan(data=d + "/data", picks=d + "/picks", now=T0)
 ck(not rows0[GM]["stale"], "game-model, built 19:50Z, is inside contract at 19:58Z", rows0[GM])
 ck("game-model" not in modes0, "...so the pass does not plan it", modes0)
 rows1 = {r["path"].replace(d + "/", ""): r for r in F.survey(data=d + "/data", picks=d + "/picks", now=LATE)}
-eq(rows1[GM]["due_at"], DEADLINE, "...and at 20:05Z its 20:00Z deadline has passed: stale, due 20:00Z")
+eq(rows1[GM]["due_at"], DEADLINE, "...and at 20:05Z its 20:00Z deadline has passed: due 20:00Z")
 ck(rows1[GM]["stale"], "...stale", rows1[GM])
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
 section("1. 🔴🔴 11-11's CASE: THE DEADLINE PASSES WHILE THE PASS RUNS -> BUILT IN THE SAME PASS")
 # ══════════════════════════════════════════════════════════════════════
-d = sandbox({GM: T0 - datetime.timedelta(minutes=8)})
+d = _d[0] = sandbox({GM: T0 - mins(8)})
 clock, log = [T0], []
-
-
-def run1(m):
-    log.append((m, clock[0]))
-    if len(log) == 1:
-        clock[0] = LATE                         # the first mode takes 7 minutes
-    if m == "game-model":
-        plant(d, GM, clock[0])
-
-
-code, out, surveys = converge(d, clock, run1)
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=LATE, writes={"game-model": GM}))
 eq(ran(log, "game-model"), [LATE], "🔴🔴 game-model is built once, at 20:05Z, after its deadline passed")
-ck(len(catch_up_line(out)) == 1 and "CATCH-UP: game-model " in catch_up_line(out)[0]
-   and DEADLINE in catch_up_line(out)[0] and "19:58:00Z" in catch_up_line(out)[0],
-   "...and the log says so: the mode, its deadline, the survey it planned from", shown(catch_up_line(out)))
+eq(caught(out), [["game-model"]], "...in ONE catch-up round that names only it (every missing row's mode ran)")
+ck(catch_up_line(out) and DEADLINE in catch_up_line(out)[0] and "19:58:00Z" in catch_up_line(out)[0],
+   "...and the line says its deadline and the survey the pass planned from", shown(catch_up_line(out)))
 ck(not written(d, GM)["stale"], "🔴🔴 freshness.json, written after the catch-up, has it inside contract",
    written(d, GM))
-_rows = json.load(open(f"{d}/data/latest/freshness.json", encoding="utf-8"))["artifacts"]
-hard, _soft = F.classify(_rows, data=d + "/data", refused=False, block={"state": None}, now=LATE)
-ck(not [r for r in hard if r["mode"] == "game-model"],
-   "🔴🔴 ...so the gate has nothing to fail it on (this was 11-11's red run)", [r["mode"] for r in hard])
-eq(F.caught_up([dict(r, path=r["path"]) for r in _rows], T0), [],
-   "...and nothing else that fell due mid-pass is left (every other planted-late row is missing)")
+ck("game-model" not in hard_modes(d, LATE), "🔴🔴 ...so the gate has nothing to fail it on (11-11's red run)",
+   hard_modes(d, LATE))
+eq(F.caught_up(final_rows(d), T0, allow_paid=False, ran={m for m, _t in log}), [],
+   "...and nothing free that fell due mid-pass is left")
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. ⛔ A PASS WITH NOTHING LATE COSTS NOTHING EXTRA")
 # ══════════════════════════════════════════════════════════════════════
-d = sandbox({GM: T0 - datetime.timedelta(minutes=8)})
+d = _d[0] = sandbox({GM: T0 - mins(8)})
 clock, log = [T0], []
-code, out, surveys = converge(d, clock, lambda m: log.append((m, clock[0])))
+code, out, surveys = converge(d, clock, stub(log, clock))
 eq(catch_up_line(out), [], "a pass on a still clock catches nothing up")
 eq(len(surveys), 2, "...and surveys exactly twice, as before: the plan's and the one freshness.json is written from")
 eq(ran(log, "game-model"), [], "...and game-model, inside contract, is not run")
+shutil.rmtree(d, ignore_errors=True)
+d = _d[0] = sandbox({GM: T0 - mins(8)})
+clock, log = [T0], []
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=LATE, writes={"game-model": GM}))
+_mine = [x for x in ASKED if x[0] == "plan"][:1] + [x for x in ASKED if x[0] == "survey"]
+ck(len(_mine) >= 3 and all(now_ == clk for _n, now_, clk in _mine),
+   "🔴 ONE CLOCK: converge asks the plan and every survey at its own clock, never freshness's "
+   "(test_credit_ledger pins collect.now alone; a survey on the real clock beside it caught up "
+   "every free mode its plan never ran)", _mine)
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 A MODE THAT FAILED THIS PASS IS NEVER RETRIED, EVEN WHEN A LATER DEADLINE PASSES")
 # ══════════════════════════════════════════════════════════════════════
-# game-model built 10:50Z: it missed 11:00Z, so the plan has it. It fails; the clock passes 20:00Z,
-# so its row now reads "due 20:00Z", after the plan's survey: the shape an hourly row has.
-d = sandbox({GM: T0.replace(hour=10, minute=50)})
+# game-model built 10:50Z missed 11:00Z, so the plan has it. It fails; the clock passes 20:00Z, so
+# its row now reads "due 20:00Z", after the plan's survey: the shape an hourly row has.
+d = _d[0] = sandbox({GM: at(4, 10, 50)})
 clock, log = [T0], []
-
-
-def run3(m):
-    log.append((m, clock[0]))
-    if len(log) == 1:
-        clock[0] = LATE
-    if m == "game-model":
-        raise RuntimeError("the game model failed")
-
-
-code, out, surveys = converge(d, clock, run3)
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=LATE, fails={"game-model"}))
 eq(len(ran(log, "game-model")), 1, "🔴 the failed game-model runs once, never again in the catch-up")
 eq(catch_up_line(out), [], "...so there is no catch-up at all")
-ck(written(d, GM)["stale"], "⛔ ...and it stays out of contract: the gate judges it exactly as before", written(d, GM))
+ck(written(d, GM)["stale"] and "game-model" in hard_modes(d, LATE),
+   "⛔ ...and the gate judges it exactly as before: red", hard_modes(d, LATE))
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
-section("4. 🔴 ...NOR AS A CASCADE FOLLOWER")
+section("4. 🔴 ...NEITHER A FAILED FOLLOWER NOR THE FOLLOWERS OF A FAILED MODE")
 # ══════════════════════════════════════════════════════════════════════
-# The board (gamelines) is inside contract at 19:58Z; props-board (built 10:50Z) is planned and fails.
-# At 20:05Z the board is due: gamelines is caught up, and CASCADE would bring props-board with it.
-d = sandbox({BOARD: T0 - datetime.timedelta(minutes=8), PROPS: T0.replace(hour=10, minute=50)})
-clock, log = [T0], []
-
-
-def run4(m):
-    log.append((m, clock[0]))
-    if len(log) == 1:
-        clock[0] = LATE
-    if m == "props-board":
-        raise RuntimeError("the props board failed")
-    if m == "gamelines":
-        plant(d, BOARD, clock[0])
-
-
-code, out, surveys = converge(d, clock, run4)
-eq(ran(log, "gamelines"), [LATE], "the board that fell due mid-pass is caught up")
-eq(len(ran(log, "props-board")), 1, "🔴 ...but props-board, which failed this pass, is not run again behind it")
-ck(catch_up_line(out) and "props-board" not in catch_up_line(out)[0].split("—")[0],
-   "...and the catch-up line does not list it", shown(catch_up_line(out)))
+# scores -> record is a CASCADE. (a) scores inside contract at 09:58Z, record (built 11-03 09:00Z,
+# before that day's 10:00Z) planned and FAILS; at 10:05Z scores is due and caught up, and CASCADE
+# would bring record behind it.
+TS0, TS1 = at(4, 9, 58), at(4, 10, 5)
+d = _d[0] = sandbox({SCORES: TS0 - mins(8), RECORD: at(3, 9, 0)})
+clock, log = [TS0], []
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=TS1, writes={"scores": SCORES}, fails={"record"}))
+eq(ran(log, "scores"), [TS1], "scores, due 10:00Z mid-pass, is caught up")
+eq(len(ran(log, "record")), 1, "🔴 ...but record, which failed this pass, is not run again behind it")
+ck(caught(out) and "record" not in caught(out)[0], "...and the catch-up line does not list it", shown(catch_up_line(out)))
 shutil.rmtree(d, ignore_errors=True)
-
-# The board missed 11:00Z, so gamelines is planned and FAILS; props-board (no file yet) is planned
-# behind it, runs and writes nothing. At 20:05Z the board's row reads "due 20:00Z", after the plan's
-# survey: gamelines failed this pass, so nothing is caught up, and CASCADE brings no follower either.
-d = sandbox({BOARD: T0.replace(hour=10, minute=50)})
-clock, log = [T0], []
-
-
-def run4b(m):
-    log.append((m, clock[0]))
-    if len(log) == 1:
-        clock[0] = LATE
-    if m == "gamelines":
-        raise RuntimeError("the gamelines pull failed")
-
-
-code, out, surveys = converge(d, clock, run4b)
-eq(len(ran(log, "props-board")), 1, "🔴 a failed mode's CASCADE followers are not run again behind it")
+# (b) scores (built 11-03 09:00Z) is planned and FAILS; record (no file yet) runs behind it and writes
+# nothing. At 10:05Z scores reads "due 10:00Z", after the plan's survey: it failed this pass, so it
+# is not caught up, and CASCADE brings no follower either.
+d = _d[0] = sandbox({SCORES: at(3, 9, 0)})
+clock, log = [TS0], []
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=TS1, fails={"scores"}))
+eq(len(ran(log, "scores")), 1, "the failed scores runs once")
+eq(len(ran(log, "record")), 1, "🔴 ...and its CASCADE follower record is not run again behind it")
 eq(catch_up_line(out), [], "...so there is no catch-up at all")
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
-section("5. ⛔ A PAID MODE STILL RUNS AT MOST ONCE A PASS")
+section("5. ⛔ THE CATCH-UP NEVER BUYS A PAID PULL")
 # ══════════════════════════════════════════════════════════════════════
-# The board missed 11:00Z, so gamelines is planned and bought at 19:59Z; the 20:00Z deadline then
-# passes, so the board is due again, after the plan's survey. The catch-up asks for it; the
-# once-a-pass rule refuses it, and the board is the gate's to judge, as before.
-d = sandbox({BOARD: T0.replace(hour=10, minute=50)})
+# The board is inside contract at 19:58Z, so gamelines is not planned; at 20:05Z it is due. Its own
+# cron buys it (`2 11`-style arms, own concurrency group): a catch-up buying here too could pay for
+# one deadline twice. So the catch-up leaves it, and the gate judges it as before.
+d = _d[0] = sandbox({BOARD: T0 - mins(8)})
 clock, log = [T0], []
-
-
-def run5(m):
-    log.append((m, clock[0]))
-    if m == "gamelines":
-        plant(d, BOARD, clock[0] + datetime.timedelta(minutes=1))
-        clock[0] = LATE
-
-
-code, out, surveys = converge(d, clock, run5)
-eq(len(ran(log, "gamelines")), 1, "⛔ gamelines is bought once in the pass")
-ck(any("gamelines already ran this pass" in l for l in out.splitlines()),
-   "...the catch-up asked for it and the once-a-pass rule said no, out loud", shown(catch_up_line(out)))
-ck(written(d, BOARD)["stale"], "...so the board is out of contract for the gate, exactly as before", written(d, BOARD))
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=LATE, writes={"gamelines": BOARD}))
+eq(ran(log, "gamelines"), [], "⛔ gamelines, due 20:00Z mid-pass, is never run by the catch-up")
+ck(not [m for ms in caught(out) for m in ms if m in ("gamelines", "props-pitcher", "props-batter")],
+   "...no catch-up line names a paid mode", shown(catch_up_line(out)))
+ck(written(d, BOARD)["stale"], "...and the board is out of contract for the gate, exactly as before", written(d, BOARD))
+eq(F.caught_up([dict(written(d, BOARD), stale=True)], T0, allow_paid=False), [],
+   "...because the catch-up asks with allow_paid=False")
 shutil.rmtree(d, ignore_errors=True)
 
 # ══════════════════════════════════════════════════════════════════════
 section("6. ⛔ BOUNDED, AND ONLY A DEADLINE AFTER THE PLAN'S SURVEY COUNTS")
 # ══════════════════════════════════════════════════════════════════════
 # Every game-model build moves the clock past its next deadline, so every survey finds it due again.
-d = sandbox({GM: T0 - datetime.timedelta(minutes=8)})
+d = _d[0] = sandbox({GM: T0 - mins(8)})
 clock, log = [T0], []
-NEXT = [LATE, datetime.datetime(2026, 11, 5, 11, 5, tzinfo=UTC), datetime.datetime(2026, 11, 5, 20, 5, tzinfo=UTC),
-        datetime.datetime(2026, 11, 6, 11, 5, tzinfo=UTC), datetime.datetime(2026, 11, 6, 20, 5, tzinfo=UTC)]
+NEXT = [at(5, 11, 5), at(5, 20, 5), at(6, 11, 5), at(6, 20, 5), at(7, 11, 5), at(7, 20, 5)]
 
 
-def run6(m):
-    log.append((m, clock[0]))
-    if len(log) == 1:
-        clock[0] = NEXT[0]
-    elif m == "game-model":
-        plant(d, GM, clock[0])
-        clock[0] = NEXT[min(len(ran(log, "game-model")), len(NEXT) - 1)]
+def _hop(m):
+    if m == "game-model":
+        clock[0] = NEXT[min(len(ran(log, "game-model")) - 1, len(NEXT) - 1)]
 
 
-code, out, surveys = converge(d, clock, run6)
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=LATE, writes={"game-model": GM}, after_each=_hop))
 import collect as _C  # noqa: E402
 eq(len(ran(log, "game-model")), _C.CATCH_UP_ROUNDS,
    "⛔ a pass catches up at most CATCH_UP_ROUNDS times (%d), however many deadlines pass" % _C.CATCH_UP_ROUNDS)
@@ -336,13 +379,71 @@ eq(len(catch_up_line(out)), _C.CATCH_UP_ROUNDS, "...one CATCH-UP line per round"
 ck(written(d, GM)["stale"], "...and what is still late after the last round is the gate's", written(d, GM))
 shutil.rmtree(d, ignore_errors=True)
 
-_r = {"mode": "game-model", "stale": True, "missing": False, "paid": False, "due_at": "2026-11-04T19:00Z",
-      "path": GM}
+_r = {"mode": "game-model", "stale": True, "missing": False, "paid": False, "due_at": "2026-11-04T19:00Z", "path": GM}
 eq(F.caught_up([_r], T0), [], "🔴 a row whose missed deadline (19:00Z) came BEFORE the plan's survey is not caught up")
 eq(F.caught_up([dict(_r, due_at=DEADLINE)], T0), ["game-model"], "...one whose deadline came after it is")
-eq(F.caught_up([dict(_r, due_at=DEADLINE, missing=True)], T0), [], "🔴 ...unless the artifact is missing")
-eq(F.caught_up([dict(_r, due_at=DEADLINE)], T0, skip={"game-model"}), [], "...or its mode failed this pass")
-eq(F.caught_up([dict(_r, due_at=DEADLINE, paid=True)], T0, allow_paid=False), [],
-   "...and a paid row only when paid modes are allowed (the plan's own rule)")
+eq(F.caught_up([dict(_r, due_at=DEADLINE, missing=True)], T0), ["game-model"],
+   "🔴 ...a MISSING one too, when its mode has not run this pass (a dated path rolled)")
+eq(F.caught_up([dict(_r, due_at=DEADLINE, missing=True)], T0, ran={"game-model"}), [],
+   "🔴 ...but not when its mode ran this pass and wrote nothing")
+eq(F.caught_up([dict(_r, due_at=DEADLINE)], T0, skip={"game-model"}), [], "...nor when its mode failed this pass")
+eq(F.caught_up([dict(_r, due_at=DEADLINE, paid=True)], T0, allow_paid=False), [], "...and a paid row never, asked as converge asks")
 eq(F.caught_up([dict(_r, due_at=None)], T0), [], "...and a row with no deadline never")
+
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴🔴 A DATED PATH THAT ROLLS AT ITS OWN DEADLINE IS CAUGHT UP (THE MLB CARD, RESULTS)")
+# ══════════════════════════════════════════════════════════════════════
+# The card is picks/<the card deadline's date>.json: at 13:58Z on 11-04 that is 11-03's file, built
+# 11-03 14:10Z and inside contract, so the card is not planned. At 14:05Z the row is picks/
+# 2026-11-04.json, which does not exist yet: MISSING, though the plan never saw it owed.
+TC0, TC1 = at(4, 13, 58), at(4, 14, 5)
+d = _d[0] = sandbox({"picks/2026-11-03.json": at(3, 14, 10)})
+_c0 = [r for r in F.survey(data=d + "/data", picks=d + "/picks", now=TC0) if r["mode"] == "card"]
+ck(_c0 and not _c0[0]["stale"] and _c0[0]["path"].endswith("2026-11-03.json"),
+   "at 13:58Z the card row is 11-03's file, inside contract", _c0)
+clock, log = [TC0], []
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=TC1, writes={"card": "picks/2026-11-04.json"}))
+eq(ran(log, "card"), [TC1], "🔴🔴 the card is built once, at 14:05Z, by the catch-up")
+ck(not written(d, "picks/2026-11-04.json")["stale"], "...freshness.json has today's card inside contract",
+   written(d, "picks/2026-11-04.json"))
+ck("card" not in hard_modes(d, TC1), "🔴🔴 ...and the gate has no 'card MISSED its 10:00 build' to fail", hard_modes(d, TC1))
+shutil.rmtree(d, ignore_errors=True)
+# results is data/<slate date>/results/final.json.gz: the same roll at 10:00Z.
+d = _d[0] = sandbox({"data/2026-11-03/results/final.json.gz": at(3, 10, 10)})
+_r0 = [r for r in F.survey(data=d + "/data", picks=d + "/picks", now=TS0) if r["mode"] == "results"]
+ck(_r0 and not _r0[0]["stale"], "at 09:58Z the results row is inside contract", _r0)
+clock, log = [TS0], []
+_rp = [r["path"] for r in F.survey(data=d + "/data", picks=d + "/picks", now=TS1) if r["mode"] == "results"][0]
+_rp = _rp.replace(d + "/", "")
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=TS1, writes={"results": _rp}))
+eq(ran(log, "results"), [TS1], "🔴🔴 results, whose path rolled at 10:00Z, is built once by the catch-up")
+ck("results" not in hard_modes(d, TS1), "...and the gate has nothing to fail it on", hard_modes(d, TS1))
+shutil.rmtree(d, ignore_errors=True)
+
+# ══════════════════════════════════════════════════════════════════════
+section("8. 🔴 A SOFT MODE THAT FAILED IS NOT RETRIED EITHER")
+# ══════════════════════════════════════════════════════════════════════
+# news (SOFT) built 12:00Z missed 13:05Z, so the plan at 19:02Z has it; it fails (a soft failure).
+# At 19:10Z its row reads "due 19:05Z", after the plan's survey.
+TN0, TN1 = at(4, 19, 2), at(4, 19, 10)
+d = _d[0] = sandbox({NEWS: at(4, 12, 0)})
+clock, log = [TN0], []
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=TN1, fails={"news"}))
+eq(len(ran(log, "news")), 1, "🔴 the failed news runs once, never again in the catch-up")
+eq(catch_up_line(out), [], "...so there is no catch-up at all")
+ck(written(d, NEWS)["stale"], "...and it is still late in freshness.json", written(d, NEWS))
+shutil.rmtree(d, ignore_errors=True)
+
+# ══════════════════════════════════════════════════════════════════════
+section("9. 🔴 A CAUGHT-UP MODE THAT WROTE NOTHING NEW IS NOT CAUGHT UP AGAIN FOR THE SAME DEADLINE")
+# ══════════════════════════════════════════════════════════════════════
+# game-model is caught up at 20:05Z, runs without raising, and leaves its file as it was: the next
+# round asks from THAT round's survey, so the same 20:00Z deadline does not bring it back.
+d = _d[0] = sandbox({GM: T0 - mins(8)})
+clock, log = [T0], []
+code, out, surveys = converge(d, clock, stub(log, clock, first_to=LATE))
+eq(len(ran(log, "game-model")), 1, "🔴 game-model runs once in the catch-up, not once a round")
+eq(len(catch_up_line(out)), 1, "...one CATCH-UP line")
+ck(written(d, GM)["stale"], "...and the row it left late is the gate's", written(d, GM))
+shutil.rmtree(d, ignore_errors=True)
 note("CATCH_UP_ROUNDS = %d" % _C.CATCH_UP_ROUNDS)

@@ -6121,8 +6121,11 @@ CATCH_UP_ROUNDS = 2
 
 def converge(explicit=(), allow_paid=True):
     """Bring every artifact back inside its contract. Returns exit code."""
-    looked = now()                      # no later than the survey the plan reads (caught_up)
-    modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
+    # 🔴 ONE CLOCK `[2026-11-11]`: the plan and every survey are asked at `now()`, the
+    #    instant caught_up compares deadlines with (a survey on freshness's own clock beside
+    #    a pinned collect.now caught up every free mode test_credit_ledger's plan never ran).
+    looked = now()
+    modes, rows = _fresh.plan(data=DATA, picks=PICKS, now=looked, allow_paid=allow_paid)
 
     log("=" * 66)
     log("FRESHNESS SURVEY")
@@ -6173,6 +6176,7 @@ def converge(explicit=(), allow_paid=True):
         f"(the API's balance; stored snapshots record {_mspent})")
 
     failed, soft_failed, skipped = [], [], []
+    attempted = set()                   # every mode this pass ran, failed or not (caught_up)
 
     def run_modes(names):
         for m in names:
@@ -6198,6 +6202,7 @@ def converge(explicit=(), allow_paid=True):
                     continue
             try:
                 log(f"--- converge: {m}")
+                attempted.add(m)
                 run_mode(m)
                 if m in paid:
                     _RAN_PAID.add(m)
@@ -6215,11 +6220,15 @@ def converge(explicit=(), allow_paid=True):
     #    (freshness.caught_up says which rows, and why the gate is unchanged).
     #    Asked on the survey this pass writes anyway, so a pass with nothing late
     #    costs nothing extra; bounded at CATCH_UP_ROUNDS.
+    #    ⛔ NEVER A PAID PULL. Each paid deadline has its own cron, in its own
+    #    concurrency group, running from its own checkout while this pass runs: a
+    #    catch-up buying here could buy the same deadline twice (review, 11-11). A
+    #    paid row that falls due mid-pass is that cron's, and the gate's as before.
     for _round in range(CATCH_UP_ROUNDS + 1):
         _at = now()
-        rows2 = _fresh.survey(data=DATA, picks=PICKS)
-        _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed} | set(skipped)
-        todo = (_fresh.caught_up(rows2, looked, allow_paid=allow_paid, skip=_bad)
+        rows2 = _fresh.survey(data=DATA, picks=PICKS, now=_at)
+        _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
+        todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted)
                 if _round < CATCH_UP_ROUNDS else [])
         if not todo:
             break
