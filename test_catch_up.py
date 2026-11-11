@@ -11,8 +11,9 @@ its 3:00 ET build ... 9m past due": a red recurring run no pass could have avoid
 same pass, the FREE rows whose missed deadline passed AFTER the survey it planned from
 (`freshness.caught_up`), at most `CATCH_UP_ROUNDS` times. ⛔ The gate is unchanged, a failed
 mode is never retried, a paid pull is never bought by the catch-up (its own cron, in its own
-concurrency group, buys it), and a free row built from that deadline's paid pull (the MLB
-game model, the props board) waits for the pass that buys it.
+concurrency group, buys it), and every free row after an owed paid row this catch-up will not
+buy, in the contract's (dependency) order, waits for the pass that buys it, whatever either
+deadline (the MLB game model, props board and card; football's card).
 
 This drives the REAL `collect.converge` in a planted MLB tree on a clock that the stubbed
 modes move, the way a long mode moves the real one. Nothing reads the live tree or the real
@@ -53,10 +54,15 @@ clock (CLAUDE.md, 2026-09-28).
 #   find:     return [m for m in order if m in need]
 #   with:     return [m for m in reversed(order) if m in need]
 #
-# @vacuity 🔴🔴 a dated path that rolls at its own deadline (the MLB card) is caught up
+# @vacuity 🔴 caught_up's own rule: a MISSING row is owed while its mode has not run (asked without the plan's rows)
 #   file: freshness.py
 #   find:             and (not r["missing"] or r["mode"] not in ran
 #   with:             and (not r["missing"]
+#
+# @vacuity 🔴🔴 a dated path that rolls at its own deadline (the MLB card, results) is caught up
+#   file: freshness.py
+#   find:                  or (seen is not None and (r["mode"], r["path"]) not in seen))
+#   with:                  and False)
 #
 # @vacuity 🔴🔴 ...also when its mode ran before the roll (results)
 #   file: freshness.py
@@ -78,7 +84,7 @@ clock (CLAUDE.md, 2026-09-28).
 #   find:         todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted,
 #   with:         todo = (_fresh.caught_up(rows2, looked, allow_paid=allow_paid, skip=_bad, ran=attempted,
 #
-# @vacuity 🔴🔴 a free row built from a deadline's paid pull waits for the pass that buys it
+# @vacuity 🔴🔴 a free row after an owed paid pull waits for the pass that buys it
 #   file: freshness.py
 #   find:             and r["mode"] not in held} - set(skip)
 #   with:             } - set(skip)
@@ -107,6 +113,21 @@ clock (CLAUDE.md, 2026-09-28).
 #   file: freshness.py
 #   find:         at = mine if mine is not None and mine <= look else look
 #   with:         at = look
+#
+# @vacuity 🔴 ...and says which survey it judged against
+#   file: freshness.py
+#   find:             out[key] = (at, first)
+#   with:             out[key] = (look, first)
+#
+# @vacuity 🔴 ...and ignores a row's own time when it is later than the file's stamp
+#   file: freshness.py
+#   find:         at = mine if mine is not None and mine <= look else look
+#   with:         at = mine if mine is not None else look
+#
+# @vacuity 🔴 ...and the watchdog ignores a judged_at later than the file's stamp
+#   file: watchdog.py
+#   find:         if judged is not None and judged < built:
+#   with:         if judged is not None:
 #
 # @vacuity 🔴 ...but a row the catch-up RAN and left stale stays strict
 #   file: collect.py
@@ -308,17 +329,20 @@ def written(d, rel):
     return next(a for a in final_rows(d) if a["path"].replace("\\", "/").endswith(rel))
 
 
-def hard_modes(d, now):
-    """The gate's hard rows, run as verify_freshness runs it: from inside the tree, on a
-    survey taken at `now`, against the freshness.json converge wrote."""
+def gate(d, now):
+    """The gate's (hard, soft) rows, run as verify_freshness runs it: from inside the tree,
+    on a survey taken at `now`, against the freshness.json converge wrote."""
     cwd = os.getcwd()
     os.chdir(d)
     try:
         rows = F.survey(data="data", picks="picks", now=now)
-        hard, _soft = F.classify(rows, data="data", refused=False, block={"state": None}, now=now)
+        return F.classify(rows, data="data", refused=False, block={"state": None}, now=now)
     finally:
         os.chdir(cwd)
-    return [r["mode"] for r in hard]
+
+
+def hard_modes(d, now):
+    return [r["mode"] for r in gate(d, now)[0]]
 
 
 def catch_up_line(out):
@@ -688,6 +712,9 @@ _h = hard_modes(d, at(4, 11, 4))
 ck("gamelines" not in _h and "game-model" not in _h,
    "🔴🔴 ...so the gate at 11:04Z excuses the board and the held game model, as it did before the "
    "catch-up existed: their 11:00Z deadline passed after that survey", _h)
+_soft = {r["mode"]: r for r in gate(d, at(4, 11, 4))[1]}
+eq((_soft.get("gamelines") or {}).get("_after_survey", (None,))[0], at(4, 10, 58),
+   "🔴 ...and the gate says which survey it judged them against: 10:58Z, not the file's 11:03Z")
 ck(not written(d, HIT)["stale"] and "looked_at" not in written(d, HIT), "...and hitters, built, is simply inside contract",
    written(d, HIT))
 eq(json.load(open(f"{d}/data/latest/freshness.json", encoding="utf-8")).get("judged_at"), "2026-11-04T10:58:00Z",
@@ -764,5 +791,34 @@ ck(len(caught(out)) == 2 and "news" in caught(out)[0] and "lineups" in caught(ou
    "news is caught up in round 1, lineups in round 2", shown(catch_up_line(out)))
 ck(written(d, "data/latest/lineups.json.gz")["stale"] and "looked_at" not in written(d, "data/latest/lineups.json.gz"),
    "🔴 ...and lineups, which the catch-up ran and left stale, carries no last look", written(d, "data/latest/lineups.json.gz"))
+shutil.rmtree(d, ignore_errors=True)
+# ══════════════════════════════════════════════════════════════════════
+section("14. ⛔ A RECORDED TIME LATER THAN THE FILE'S OWN STAMP IS NEVER BELIEVED")
+# ══════════════════════════════════════════════════════════════════════
+# freshness.json written at 10:58Z can only speak for 10:58Z. A row time or a judged_at later than
+# that is not a survey this file holds (a hand edit, a stale copy), so neither the gate nor the
+# watchdog may use it to excuse anything.
+d = sandbox({BOARD: at(4, 19, 50)})
+with open(f"{d}/data/latest/freshness.json", "w", encoding="utf-8") as fh:
+    json.dump({"built_at": "2026-11-04T10:58:00Z", "judged_at": "2026-11-04T15:00:00Z",
+               "artifacts": [{"mode": "gamelines", "path": BOARD, "stale": True, "stale_then": False,
+                              "looked_at": "2026-11-04T19:00:00Z"}]}, fh)
+ck("gamelines" in hard_modes(d, at(4, 20, 5)),
+   "⛔ the gate ignores a row's looked_at (19:00Z) later than the file's stamp (10:58Z): the board, due "
+   "20:00Z, is red", hard_modes(d, at(4, 20, 5)))
+shutil.rmtree(d, ignore_errors=True)
+d = sandbox({BOARD: at(3, 20, 10)})
+with open(f"{d}/data/latest/freshness.json", "w", encoding="utf-8") as fh:
+    json.dump({"built_at": "2026-11-04T10:58:00Z", "judged_at": "2026-11-04T15:00:00Z", "artifacts": []}, fh)
+_saved = _WD.ROOT, _WD.DATA
+_WD.ROOT, _WD.DATA = d, {"mlb": "data"}
+try:
+    _rep = _Rep()
+    _WD.check_stopped_league(_rep, at(4, 15, 30))
+finally:
+    _WD.ROOT, _WD.DATA = _saved
+ck(("DEGRADED", "stopped:mlb") in _rep.found,
+   "⛔ ...and the watchdog ignores a judged_at (15:00Z) later than the file's stamp (10:58Z): the 11:00Z "
+   "rows still read as a stopped league at 15:30Z", _rep.found)
 shutil.rmtree(d, ignore_errors=True)
 note("CATCH_UP_ROUNDS = %d" % _C.CATCH_UP_ROUNDS)
