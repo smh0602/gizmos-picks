@@ -898,6 +898,26 @@ jobs:
           PASS=0
           rc=0
 
+          # 🔴 `converge-off` IS A MODIFIER, NOT A MODE. `[2026-11-11]` The
+          # dispatch form promises "card-fb converge-off" runs card-fb ALONE,
+          # and `collect.py` honours the word only in the SAME argv. ⛔ The
+          # loop below used to make two calls of it: `collect.py card-fb`
+          # (which converged everything overdue) and `collect.py converge-off`
+          # (which did nothing). Measured: dispatched run 42976627011 logged
+          # "PLAN: cfb-injuries cfb-probe card-fb".
+          # ✅ A modifier leaves the list of modes and rides on EVERY mode's
+          # call. A list with no modifier makes exactly the calls it always
+          # made. ⚠️ A new word collect.py's main() treats this way goes here
+          # too: test_mode_modifiers.py asks main() and fails until it does.
+          RUN_MODES=""
+          MODE_ARGS=""
+          for _w in $MODES; do
+            case "$_w" in
+              converge-off) MODE_ARGS="$MODE_ARGS $_w" ;;
+              *)            RUN_MODES="$RUN_MODES $_w" ;;
+            esac
+          done
+
           while : ; do
             PASS=$((PASS + 1))
             echo "::group::converge pass $PASS"
@@ -924,12 +944,14 @@ jobs:
             for LG in $LEAGUES; do
               export LEAGUE="$LG"
               [ "$LEAGUES" = "$LG" ] || echo "── league: $LG ──"
-              for m in $MODES; do
+              for m in $RUN_MODES; do
                 # ⛔ NOT `python collect.py "$m" || exit`. A failing mode
                 # must never abort the pass -- paid data already on disk
                 # has to reach the repo. The failure is recorded and
                 # reported.
-                if ! python collect.py "$m"; then
+                # ⚠️ `$MODE_ARGS` UNQUOTED on purpose: empty, it is no
+                #    argument at all; each modifier is its own argument.
+                if ! python collect.py "$m" $MODE_ARGS; then
                   pass_rc=1
                   rc=1
                   echo "::error::mode '$m' failed for $LG on pass $PASS"
