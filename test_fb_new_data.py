@@ -93,8 +93,8 @@ makes no network call, writes nothing under data/.
 #
 # @vacuity 🔴 a stale stored-only file never plans a run
 #   file: freshness.py
-#   find:     need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
-#   with:     need = {r["mode"] for r in rows if r["stale"]
+#   find:     return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
+#   with:     return bool(r["stale"] and (allow_paid or not r["paid"])
 #
 # @vacuity 🔴 every new file has a freshness row
 #   file: freshness.py
