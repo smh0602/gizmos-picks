@@ -238,6 +238,25 @@ try:
 finally:
     shutil.rmtree(d, ignore_errors=True)
 
+# 🔴 `[2026-11-12]` #349'S CATCH-UP. A pass that straddles 07:00Z builds
+#    cfb-probe in its catch-up round, often before the cron's 07:04Z: the
+#    stand-down reads only the rows' stamps, so that build counts like any
+#    other. ~~"built after the cron's own minute"~~ re-swept it: a build after
+#    07:00Z is the one `4 7` fires for (SERVES_MIN).
+d = plant(NOW, T("2026-11-11 07:02"))
+try:
+    precondition(d, NOW, "cfb-probe", "catch-up at 07:02Z")
+    ran, code, out = converge(d, NOW, event("4 7 * * *"), ["cfb-probe"])
+    # @vacuity a build after the deadline the cron fires for did the cron's work
+    #   file: freshness.py
+    #   find: SERVES_MIN = 30
+    #   with: SERVES_MIN = 0
+    ck("🔴 a catch-up build at 07:02Z, after the 07:00Z deadline `4 7` fires for, "
+       "is not swept again", "cfb-probe" not in ran and "STAND DOWN: cfb-probe" in out,
+       "ran=%s" % ran)
+finally:
+    shutil.rmtree(d, ignore_errors=True)
+
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. ⛔ EVERYTHING ELSE RUNS EXACTLY AS BEFORE")
@@ -255,16 +274,17 @@ def runs(label, now, built, env, explicit=("cfb-probe",), mode="cfb-probe",
         shutil.rmtree(d, ignore_errors=True)
 
 
-# The minute that decides it: inside contract (after 07:00Z) but built BEFORE
-# the cron's 07:04Z, so this build did not do the cron's work.
-runs("built 07:02Z, before the cron's 07:04Z minute", NOW, T("2026-11-11 07:02"),
-     event("4 7 * * *"))
-# 🔴 THE SUNDAY REBUILD. Sam's `35 14 * * 0`, after Saturday's games: the
-#    day's build (07:07Z) is before its 14:35Z minute, so it sweeps.
-# @vacuity a build before the cron's own minute never stands the cron down
+# 🔴 THE SUNDAY REBUILD. Sam's `35 14 * * 0`, after Saturday's games, fires
+#    7h35m after cfb-probe's 07:00Z deadline: an extra build, judged by its own
+#    minute, and the day's build (07:07Z) is before it, so it sweeps.
+# @vacuity an extra cron is judged by its own minute, never by the deadline before it
 #   file: freshness.py
-#   find:             and now - datetime.timedelta(minutes=r["age_min"]) >= since
-#   with:             and now - datetime.timedelta(minutes=r["age_min"]) >= since - datetime.timedelta(hours=12)
+#   find:         return built >= (due if fires_for else since)
+#   with:         return built >= due
+# @vacuity only a cron within SERVES_MIN of a deadline fires for it
+#   file: freshness.py
+#   find: SERVES_MIN = 30
+#   with: SERVES_MIN = 600
 runs("Sunday 11-08: the `35 14 * * 0` rebuild, the day's build at 07:07Z",
      T("2026-11-08 19:03"), T("2026-11-08 07:07"), event("35 14 * * 0"),
      explicit=("cfb-probe",))
@@ -281,6 +301,11 @@ _SAT = T("2026-11-07 18:45")
 runs("Saturday's 18:40Z fb-scores refresh, the last at 16:41Z", _SAT,
      T("2026-11-07 16:41"), event("40 */2 * * 6"), explicit=("fb-scores",),
      mode="fb-scores")
+# ⚠️ The nearest extra refresh to a deadline: Saturday's 08:40Z, 40 minutes after
+#    fb-scores' 08:00Z (over SERVES_MIN), after the 08:04Z cron built it.
+runs("Saturday's 08:40Z fb-scores refresh, 40 minutes after its 08:00Z deadline",
+     T("2026-11-07 08:45"), T("2026-11-07 08:05"), event("40 */2 * * 6"),
+     explicit=("fb-scores",), mode="fb-scores")
 
 # ...and the same refresh when a pass already built it after 18:40Z stands down.
 d = plant(_SAT, T("2026-11-07 18:42"), mode="fb-scores")

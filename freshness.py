@@ -2280,6 +2280,18 @@ SOURCE_BACKED = {"cfb-probe", "nfl-logs", "fb-scores"}
 #    (each one's minute is after the refresh before it).
 # ⛔ NEVER A PAID MODE: the Odds pulls keep `pull_owed` and nothing else.
 STAND_DOWN = SOURCE_BACKED | {"cfb-teams"}
+# 🔴 THE DEADLINE A CRON FIRES FOR. `[2026-11-12]` Every cron here sits just
+#    AFTER the deadline it serves ("the deadline sits just before a cron"):
+#    `4 7` 4 minutes after cfb-probe's 07:00Z, `4 8` 4 after fb-scores'
+#    08:00Z, `14 7` 14 after nfl-logs', `35 14 * * 0` 0 after cfb-teams'. A
+#    row's deadline in force at most SERVES_MIN before the cron's minute is
+#    the one it fires for, and a build after THAT deadline did its work: #349's
+#    catch-up builds cfb-probe in the pass that straddles 07:00Z, often before
+#    07:04Z, and ~~"built after the cron's own minute"~~ re-swept it then.
+#    ⛔ Every other cron (the Sunday rebuild, 7h35m after 07:00Z; the next
+#    nearest, Saturday's 08:40Z scores refresh, 40 minutes after 08:00Z) is an
+#    extra build, judged by its own minute as before.
+SERVES_MIN = 30
 
 
 def _cron_set(field, lo, hi):
@@ -2352,10 +2364,17 @@ def stand_down(rows, mode, now, env=None):
     if since is None or not mine or any(r["stale"] or r["missing"] for r in mine):
         return None
     dated = [r for r in mine if r.get("due_at")]
-    if not dated or not all(
-            r.get("age_min") is not None
-            and now - datetime.timedelta(minutes=r["age_min"]) >= since
-            for r in dated):
+
+    def served(r):
+        """Built for this cron: after the deadline it fires for (SERVES_MIN),
+        else after its own minute."""
+        if r.get("age_min") is None:
+            return False
+        built = now - datetime.timedelta(minutes=r["age_min"])
+        due = datetime.datetime.strptime(r["due_at"], "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
+        fires_for = due <= since and since - due <= datetime.timedelta(minutes=SERVES_MIN)
+        return built >= (due if fires_for else since)
+    if not dated or not all(served(r) for r in dated):
         return None
     return since
 

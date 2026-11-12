@@ -6148,12 +6148,13 @@ def converge(explicit=(), allow_paid=True):
         #    `4 7` college cron, started 5-10 hours late, re-swept CFBD every
         #    day after an hourly pass had built cfb-probe for its deadline,
         #    ~37 calls a day. ⛔ Only a free metered mode, only when every row
-        #    it builds is inside contract and was built after this cron's own
-        #    minute; anything else runs exactly as before.
-        _since = _fresh.stand_down(rows, m, now())
+        #    it builds is inside contract and was built for this cron (after
+        #    the deadline it fires for, else after its own minute); anything
+        #    else runs exactly as before. ⚠️ At `looked`, the plan's own clock.
+        _since = _fresh.stand_down(rows, m, looked)
         if _since is not None:
             log(f"STAND DOWN: {m} — every row it builds is inside contract and "
-                f"was built after this cron's {_since:%Y-%m-%d %H:%MZ} minute, "
+                f"was built for this cron's {_since:%Y-%m-%d %H:%MZ} run, "
                 f"so its source is not asked again")
             continue
         modes.append(m)

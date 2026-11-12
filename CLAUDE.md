@@ -1677,8 +1677,10 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `[2026-11-11]` `STAND_DOWN` / `stand_down`: a free metered
                   mode a cron names (cfb-probe, fb-scores, cfb-teams, nfl-logs)
                   is not run when every row it builds is inside contract and
-                  was built after THAT cron's own minute (`cron_last_fire`,
-                  `fired_cron` from GitHub's event file; no workflow change).
+                  was built for THAT cron: after the deadline it fires for (its
+                  minute at most `SERVES_MIN` 30 after it), else after its own
+                  minute (`cron_last_fire`, `fired_cron` from GitHub's event
+                  file; no workflow change). A #349 catch-up build counts too.
                   The `4 7` college cron, started 5-10 h late every day,
                   re-swept CFBD: 922 of 2,391 calls 10-18 -> 11-11. ⛔ A row
                   the contract owes, a dispatch, a paid mode, and the Sunday
