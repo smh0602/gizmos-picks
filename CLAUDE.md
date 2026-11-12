@@ -1725,7 +1725,13 @@ verify_freshness.py  fails the run when the site is not current.
                   and no "out of date" note; staleness reaches Sam
                   through this, the watchdog, health.json and the issue.
 cfbd_budget.py    projected CFBD call volume, derived from the workflow
+                  `[2026-11-11]` and the key's MEASURED pace (`measured_pace`:
+                  what CFBD's own header fell by over 7 days, projected to the
+                  1st). The schedule read 32% of 3,000 while the header ran
+                  ~100 a day (October ended with 173 left).
 cfbd_watch.py     ...and the watcher that asks whether it will run out
+                  `[2026-11-11]` judging BOTH at the one 80% bar; a counter
+                  with no pace is "could not look", never OK.
 budget_watch.py   the same question for the Odds API spend
 repo_watch.py     is the REPOSITORY growing in a way that will become
                   a problem, and WHAT is doing it? ⛔ Reads

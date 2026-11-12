@@ -59,6 +59,7 @@ that fires every day on a working system is a guard that gets filtered
 (rule 238). ✅ Alarm on the floor, report the retry — exactly the shape
 `budget_watch.py` uses for the measurement and the ceiling.
 """
+import datetime
 import os
 import re
 import subprocess
@@ -83,6 +84,12 @@ _RE_VERDICT = re.compile(
 _RE_MODE = re.compile(r"^\s{2}([a-z-]+)\s+(\d+)\s+(\d+)\s+(\d+)\s*$", re.M)
 _RE_TIER = re.compile(r"^\s{2}(\S.*?)\s{2,}(\d+)/mo\s+(\d+)%", re.M)
 _RE_EARLY = re.compile(r"early-stop:\s*(ON|🔴 OFF)")
+# `[2026-11-11]` The key's own counter, from `cfbd_budget.pace_line`.
+_RE_PACE = re.compile(
+    r"^\s*measured pace: ([\d.]+) calls/day, (-?\d+) left at "
+    r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z), (-?\d+) at the "
+    r"(\d{4}-\d{2}-\d{2}) reset, (-?\d+)% of a (\d+) plan\s*$", re.M)
+_RE_PACE_UNKNOWN = re.compile(r"^\s*measured pace: UNKNOWN — (.*)$", re.M)
 
 
 def run_cfbd(args=(), root=ROOT):
@@ -134,8 +141,42 @@ def parse(text):
     tiers = [{"name": n.strip(), "limit": int(l), "pct": int(p)}
              for n, l, p in _RE_TIER.findall(text)]
     early = _RE_EARLY.search(text or "")
+    # 🔴🔴 THE KEY'S OWN COUNTER, CROSS-CHECKED LIKE THE FLOOR. `[2026-11-11]`
+    #    The floor said 32% every day while the header fell ~100 a day.
+    #    ⛔ A missing line is format drift (UNREADABLE); an UNKNOWN pace is
+    #    carried as UNKNOWN and judged "could not look", never OK.
+    pv = _RE_PACE.search(text or "")
+    if pv:
+        pace, left, at = float(pv.group(1)), int(pv.group(2)), pv.group(3)
+        at_reset, reset = int(pv.group(4)), pv.group(5)
+        ppct, pplan = int(pv.group(6)), int(pv.group(7))
+        if pplan != plan:
+            return _bad("cfbd_budget.py's measured pace is against a %d plan "
+                        "and its schedule against %d" % (pplan, plan))
+        if abs(100.0 * (plan - at_reset) / plan - ppct) > 1.0:
+            return _bad("cfbd_budget.py printed a measured %d%% where its own "
+                        "figures give %.1f%%"
+                        % (ppct, 100.0 * (plan - at_reset) / plan))
+        if pace < 0 or left < at_reset:
+            return _bad("cfbd_budget.py's measured pace does not add up: "
+                        "%.1f a day, %d left, %d at the reset"
+                        % (pace, left, at_reset))
+        run_out = None
+        if pace > 0 and at_reset < 0:
+            t = datetime.datetime.strptime(at, "%Y-%m-%dT%H:%MZ")
+            run_out = (t + datetime.timedelta(days=left / pace)).strftime(
+                "%Y-%m-%d")
+        measured = {"state": "READ", "pace": pace, "left": left, "at": at,
+                    "at_reset": at_reset, "reset": reset,
+                    "pct": 100.0 * (plan - at_reset) / plan, "run_out": run_out}
+    else:
+        pu = _RE_PACE_UNKNOWN.search(text or "")
+        if not pu:
+            return _bad("cfbd_budget.py printed no `measured pace:` line — its "
+                        "output format changed and this parser has not")
+        measured = {"state": "UNKNOWN", "why": pu.group(1).strip()}
     return {"state": "READ", "month": month, "plan": plan, "pct": pct,
-            "modes": modes, "tiers": tiers,
+            "modes": modes, "tiers": tiers, "measured": measured,
             "early_stop": bool(early and early.group(1) == "ON")}
 
 
@@ -147,6 +188,8 @@ def judge(p):
         return p
     out = dict(p)
     bar = WARN_FRAC * p["plan"]
+    m = p.get("measured") or {}
+    out["measured_why"] = _measured_why(m, p["plan"])
     if p["month"] >= bar:
         out["state"] = "OVER"
         out["why"] = ("the deployed schedule implies %s CFBD calls a "
@@ -155,12 +198,38 @@ def judge(p):
                       % (f"{p['month']:,}", f"{p['plan']:,}", p["pct"],
                          100 * WARN_FRAC, f"{bar:,.0f}"))
         return out
+    # 🔴🔴 THE KEY'S OWN COUNTER, AT THE SAME BAR. `[2026-11-11]` ~~The floor
+    #    alone decided~~: it said 32% every day of a November the header ran
+    #    at ~100 calls a day, out around the 29th. ⛔ The bar is the floor's
+    #    own WARN_FRAC, applied to what the period will have used by the reset.
+    if m.get("state") != "READ":
+        return _bad("the key's own counter gave no pace (%s), so the schedule's "
+                    "%s/month cannot be called the answer"
+                    % (m.get("why") or "no measured line", f"{p['month']:,}"))
+    if m["pct"] >= 100 * WARN_FRAC:
+        out["state"] = "OVER"
+        out["why"] = out["measured_why"] + (", at or past the %.0f%% bar"
+                                            % (100 * WARN_FRAC))
+        return out
     out["state"] = "OK"
     out["why"] = ("the deployed schedule implies %s CFBD calls a month "
-                  "against a %s plan — %.0f%%, inside the %.0f%% bar"
+                  "against a %s plan — %.0f%%, inside the %.0f%% bar; %s"
                   % (f"{p['month']:,}", f"{p['plan']:,}", p["pct"],
-                     100 * WARN_FRAC))
+                     100 * WARN_FRAC, out["measured_why"]))
     return out
+
+
+def _measured_why(m, plan):
+    """The counter's sentence. ⚠️ Every clause carries a number."""
+    if m.get("state") != "READ":
+        return "the key's own counter gave no pace: %s" % (m.get("why") or "?")
+    s = ("CFBD's own counter fell %.0f calls a day over the last week; at that "
+         "pace the key holds %s at the %s reset — %.0f%% of the %s plan used"
+         % (m["pace"], f"{m['at_reset']:,}", m["reset"], m["pct"], f"{plan:,}"))
+    if m.get("run_out"):
+        s += (", and it runs out around %s with %s left on %s"
+              % (m["run_out"], f"{m['left']:,}", m["at"][:10]))
+    return s
 
 
 def render(v, retry_month=None):
@@ -183,6 +252,13 @@ def render(v, retry_month=None):
                  "a DATA-OUTAGE finding: the calls are scheduled and "
                  "priced, and the quota is what runs out.**\n")
         o.append("- %s" % v["why"])
+        # 🔴 BOTH HALVES, WHICHEVER TRIPPED THE BAR. `[2026-11-11]`
+        if v.get("measured_why") and v["measured_why"] not in v["why"]:
+            o.append("- %s" % v["measured_why"])
+        else:
+            o.append("- the deployed schedule implies %s calls a month (%.0f%%): "
+                     "a FLOOR, which cannot see a duplicate sweep or a retry"
+                     % (f"{v['month']:,}", v["pct"]))
     else:
         o.append("✅ %s" % v["why"])
     o.append("")
@@ -220,11 +296,20 @@ def render(v, retry_month=None):
                  "is a flat 32 calls whatever the date — the exact shape "
                  "that blew the quota in September.")
         o.append("")
-    o.append("➡️ **The cheapest fix is not a code change.** CFBD's "
-             "**Academic tier is 3,000 calls a month and also free** with "
-             "a `.edu` address; Tier 1 is $1/month for 5,000. ⛔ Those "
-             "numbers are quoted from their pricing page and go stale — "
-             "re-read it before acting.")
+    if v.get("plan", 0) >= 3000:
+        # ⚠️ `[2026-11-11]` ~~"the cheapest fix is the Academic tier"~~: the
+        #    key IS on it (CFBD_PLAN 3000, and the header has read 2,967).
+        o.append("➡️ **This key is already on the 3,000-call Academic tier.** "
+                 "A bigger tier costs money, and that is Sam's decision "
+                 "alone (CLAUDE.md, rule 1). The free fix is to stop spending "
+                 "calls nothing reads: a sweep that runs twice for one "
+                 "deadline is the first place to look.")
+    else:
+        o.append("➡️ **The cheapest fix is not a code change.** CFBD's "
+                 "**Academic tier is 3,000 calls a month and also free** with "
+                 "a `.edu` address; Tier 1 is $1/month for 5,000. ⛔ Those "
+                 "numbers are quoted from their pricing page and go stale — "
+                 "re-read it before acting.")
     o.append("")
     o.append("⛔ **Do not fix this by retiming or disabling a cron.** "
              "`CLAUDE.md`: the deployed crons keep running, and nothing in "
@@ -236,9 +321,9 @@ def render(v, retry_month=None):
              "must be harder to pass.")
     o.append("")
     o.append("_One issue, updated in place, closed by itself when the "
-             "derived call volume is back inside the bar. Free: "
-             "`cfbd_budget.py` reads the workflow and `cfb.py` and calls "
-             "no API._")
+             "derived call volume AND the key's measured pace are back inside "
+             "the bar. Free: `cfbd_budget.py` reads the workflow, `cfb.py` "
+             "and the stored quota readings, and calls no API._")
     return "\n".join(o)
 
 
@@ -268,8 +353,11 @@ def main():
         if r.get("state") == "READ":
             retry_month = r["month"]
     if v["state"] == "OK":
-        print("OK  %d/month  %d%% of %d  (floor; %d at %d retries)"
-              % (v["month"], v["pct"], v["plan"], retry_month or 0, RETRY_N))
+        m = v["measured"]
+        print("OK  %d/month  %d%% of %d  (floor; %d at %d retries)  "
+              "measured %.0f/day, %d at the %s reset (%.0f%%)"
+              % (v["month"], v["pct"], v["plan"], retry_month or 0, RETRY_N,
+                 m["pace"], m["at_reset"], m["reset"], m["pct"]))
         return 0
     print(render(v, retry_month))
     return 1

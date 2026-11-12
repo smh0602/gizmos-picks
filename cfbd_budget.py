@@ -258,6 +258,103 @@ def measured_plan(data):
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE KEY'S OWN COUNTER IS THE PACE, AND THE SCHEDULE WAS 3x UNDER IT.
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-11-11]` The schedule priced 949 calls a month (32% of 3,000) every
+# day of October and November while CFBD's own header fell ~100 a day:
+# October ended with 173 calls left (94% used) and November's 1,888 on 11-11
+# ran out around 11-29. ⛔ The floor cannot see a duplicate sweep (the `4 7`
+# cron starting 5-10 hours late, after an hourly pass had already built
+# cfb-probe), and it priced every rebuild at week 3 of the season.
+# ✅ So the pace is MEASURED, from `_readings` (the ONE reader of the
+# readings): the calls the header fell by over the last PACE_DAYS days.
+# A rise is a reset and adds nothing. Projected to the 1st 00:00Z, the reset
+# seen 09-30 -> 10-01 and 10-31 -> 11-01.
+# ⛔ NO PACE IS NOT A SMALL PACE: no reading, a newest reading older than
+# PACE_STALE_H, or under PACE_MIN_DAYS of readings is UNKNOWN, and the
+# watcher reads UNKNOWN as "could not look".
+PACE_DAYS = 7          # one whole week, so a Saturday counts once
+PACE_MIN_DAYS = 2      # two daily builds at least, or the pace is one sweep
+PACE_STALE_H = 48      # every college pass writes one; two days of none is news
+
+
+def _parse_when(s):
+    import datetime as _dt
+    try:
+        t = _dt.datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=_dt.timezone.utc)
+
+
+def next_reset(t):
+    """The 1st of the month after `t`, 00:00 UTC. ⚠️ By date arithmetic, no
+    `.year` taken off a date (`test_year_turn.py` §1): the 1st of `t`'s month
+    plus 32 days is always in the next month."""
+    import datetime as _dt
+    first = t.astimezone(_dt.timezone.utc).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0)
+    return (first + _dt.timedelta(days=32)).replace(day=1)
+
+
+def measured_pace(data, now=None, plan=None):
+    """-> dict. What CFBD's own header says the key is spending a day, and
+    where that pace leaves it at the reset. `state` READ or UNKNOWN."""
+    import datetime as _dt
+    plan = PLAN if plan is None else plan
+    now = now or _dt.datetime.now(_dt.timezone.utc)
+    rs = [(t, r) for t, r in ((_parse_when(w), r) for w, r, _s in _readings(data))
+          if t is not None and t <= now + _dt.timedelta(minutes=5)]
+    rep = {"state": "UNKNOWN", "readings": 0, "plan": plan}
+    if not rs:
+        rep["why"] = "no CFBD quota reading on disk"
+        return rep
+    t_last, left = rs[-1]
+    age_h = (now - t_last).total_seconds() / 3600.0
+    if age_h > PACE_STALE_H:
+        rep["why"] = ("the newest CFBD quota reading is %.0f hours old (%s); "
+                      "every college pass that can call CFBD writes one"
+                      % (age_h, t_last.strftime("%Y-%m-%d %H:%MZ")))
+        return rep
+    win = [(t, r) for t, r in rs if t >= now - _dt.timedelta(days=PACE_DAYS)]
+    span = (win[-1][0] - win[0][0]).total_seconds() / 86400.0
+    rep["readings"] = len(win)
+    if span < PACE_MIN_DAYS:
+        rep["why"] = ("%d reading(s) over %.1f day(s): under the %d days a "
+                      "pace needs" % (len(win), span, PACE_MIN_DAYS))
+        return rep
+    used = sum(max(0, a - b) for (_t0, a), (_t1, b) in zip(win, win[1:]))
+    resets = sum(1 for (_t0, a), (_t1, b) in zip(win, win[1:]) if b > a)
+    pace = used / span
+    reset = next_reset(t_last)
+    to_reset = (reset - t_last).total_seconds() / 86400.0
+    at_reset = left - pace * to_reset
+    run_out = (t_last + _dt.timedelta(days=left / pace)) if pace > 0 else None
+    rep.update({
+        "state": "READ", "used": used, "span_days": span, "resets": resets,
+        "pace": pace, "left": left, "at": t_last, "reset": reset,
+        "days_to_reset": to_reset, "at_reset": at_reset,
+        "run_out": run_out if (run_out and run_out < reset) else None,
+        # ⚠️ `plan - at_reset` is what the period will have used by the reset:
+        #    a period starts at the plan, and the reading after a reset has
+        #    had some calls taken out of it already (`measured_plan`).
+        "pct": 100.0 * (plan - at_reset) / plan if plan > 0 else None,
+    })
+    return rep
+
+
+def pace_line(p):
+    """The one line `cfbd_watch.py` parses. ⛔ Cross-checked there."""
+    if p.get("state") != "READ":
+        return "  measured pace: UNKNOWN — %s" % p.get("why", "no reason given")
+    return ("  measured pace: %.1f calls/day, %d left at %s, %d at the %s "
+            "reset, %.0f%% of a %d plan"
+            % (p["pace"], p["left"], p["at"].strftime("%Y-%m-%dT%H:%MZ"),
+               round(p["at_reset"]), p["reset"].strftime("%Y-%m-%d"), p["pct"],
+               p["plan"]))
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 🔴 EVERY WORKFLOW THAT CALLS CFBD COUNTS, NOT ONLY collect.yml.
 # ══════════════════════════════════════════════════════════════════════
 # `[added 2026-09-22 with t60r.py]` This script derived the whole budget
@@ -453,21 +550,60 @@ def main():
               "one on every run that can call CFBD; this fills in by "
               "itself.")
         print()
+    # 🔴 THE PACE, FROM THE SAME HEADER. ⛔ Printed BESIDE the floor, never
+    #    instead of it: the floor is what the schedule implies, the pace is
+    #    what the key actually spent (see `measured_pace`).
+    _p = measured_pace(os.environ.get(
+        "CFBD_DATA", os.path.join(ROOT, "data", "ncaaf")))
+    if _p["state"] == "READ":
+        print("  MEASURED PACE, the header over the last %d days (%d readings):"
+              % (PACE_DAYS, _p["readings"]))
+        print("    it fell %d calls in %.1f days: %.1f a day; %d left at %s"
+              % (_p["used"], _p["span_days"], _p["pace"], _p["left"],
+                 _p["at"].strftime("%Y-%m-%d %H:%MZ")))
+        print("    at that pace the key holds %d at the %s reset (%.0f%% of "
+              "the %d plan used)" % (round(_p["at_reset"]),
+                                     _p["reset"].strftime("%Y-%m-%d"),
+                                     _p["pct"], PLAN))
+        if _p["run_out"]:
+            print("    🔴 it runs out around %s, before the reset"
+                  % _p["run_out"].strftime("%Y-%m-%d %H:00Z"))
+    print(pace_line(_p))
+    print()
     pct = 100.0 * month / PLAN
+
+    def _measured(rc):
+        # 🔴 THE FLOOR'S VERDICT IS NOT THE WHOLE ANSWER. A key the header
+        #    says will run dry before the 1st is the 429 the line above
+        #    warns of, whatever the schedule implies: exit 1 for it too.
+        if _p["state"] == "READ" and _p["run_out"]:
+            print("🔴 BUT CFBD'S OWN COUNTER FALLS %.0f A DAY AND THE KEY RUNS "
+                  "OUT AROUND %s, BEFORE THE %s RESET. ⛔ EVERY CFBD MODE WILL "
+                  "429 UNTIL THEN." % (_p["pace"],
+                                       _p["run_out"].strftime("%Y-%m-%d"),
+                                       _p["reset"].strftime("%Y-%m-%d")))
+            return 1
+        if _p["state"] == "READ" and _p["pct"] >= 80:
+            print("⚠️ BUT CFBD'S OWN COUNTER, at %.0f a day, leaves %d at the "
+                  "%s reset: %.0f%% of the plan used." % (
+                      _p["pace"], round(_p["at_reset"]),
+                      _p["reset"].strftime("%Y-%m-%d"), _p["pct"]))
+        return rc
+
     if pct >= 100:
         print(f"🔴 {month}/month against a {PLAN} plan — {pct:.0f}%. "
               f"⛔ THE QUOTA WILL RUN OUT MID-MONTH AND EVERY CFBD MODE "
               f"WILL 429 UNTIL THE 1st.")
-        return 1
+        return _measured(1)
     if pct >= 80:
         print(f"⚠️ {month}/month against a {PLAN} plan — {pct:.0f}%. "
               f"Little headroom for a retry storm.")
-        return 0
+        return _measured(0)
     print(f"✅ {month}/month against a {PLAN} plan — {pct:.0f}%.")
     print("⚠️ THIS IS A FLOOR. It prices ONE attempt per scheduled build. "
           "Converge retries are what blew the quota in September — "
           "run `--retries 7` to price what actually happened.")
-    return 0
+    return _measured(0)
 
 
 if __name__ == "__main__":
