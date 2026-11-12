@@ -1659,6 +1659,15 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   by the contract's own survey, on its own row (`props_rows`).
                   `after_last_survey`: a deadline that passed after the
                   league's last survey is the next pass's (10-19's 1.9 s).
+                  `[2026-11-11]` `STAND_DOWN` / `stand_down`: a free metered
+                  mode a cron names (cfb-probe, fb-scores, cfb-teams, nfl-logs)
+                  is not run when every row it builds is inside contract and
+                  was built after THAT cron's own minute (`cron_last_fire`,
+                  `fired_cron` from GitHub's event file; no workflow change).
+                  The `4 7` college cron, started 5-10 h late every day,
+                  re-swept CFBD: 922 of 2,391 calls 10-18 -> 11-11. ⛔ A row
+                  the contract owes, a dispatch, a paid mode, and the Sunday
+                  14:35Z rebuild all run as before. `test_cron_stand_down.py`.
                   `[Sam, 2026-10-26]` the `injury-check` row: `INJURY_CHECK_ET`
                   (9:00/12:00/19:00), `injury_check_slots` (real Eastern time,
                   `et_wall_utc`, game days only), a `Moments` deadline (real

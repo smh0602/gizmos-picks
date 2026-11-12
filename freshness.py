@@ -2257,6 +2257,108 @@ SOURCE_NOT_YET_GRACE_MIN = int(
 # legitimately be blocked by it. ⛔ Keep this SMALL and explicit.
 SOURCE_BACKED = {"cfb-probe", "nfl-logs", "fb-scores"}
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 A CRON THAT STARTS LATE MUST NOT BUY AGAIN WHAT AN EARLIER PASS BOUGHT.
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-11-11]` `converge(explicit=...)` ran every mode its cron named,
+# inside contract or not. GitHub started the `4 7 * * *` college cron 5 to 10
+# hours late on every one of the 25 days measured (10-18 -> 11-11: 11:56Z to
+# 17:22Z), after an hourly pass had already rebuilt cfb-probe for its 07:00Z
+# deadline, so it swept CFBD a second time: 922 of the 2,391 calls those days
+# made (39%), and November's 3,000-call key ran out around the 29th.
+# ✅ STAND_DOWN: a free mode a cron names that spends a third party's quota
+#    (CFBD: cfb-probe, fb-scores, cfb-teams; nflverse: nfl-logs) is not run
+#    when every row it builds is inside contract AND each row with a deadline
+#    was built at or after THIS cron's own minute (`cron_last_fire`): that
+#    build already did what the cron fires for. The cron is the run's own
+#    (`fired_cron`, GitHub's event file), so no workflow file changes.
+# ⛔ NEVER A ROW THE CONTRACT OWES: a stale, missing or unhealthy row, a mode
+#    with no dated row, a run no cron started (a dispatch, a push, a relay) or
+#    an event file nobody can read, and the mode runs exactly as before.
+# ✅ So the Sunday `35 14 * * 0` rebuild still runs (the day's build is the
+#    07:xx one, before 14:35), and so does every game-day fb-scores refresh
+#    (each one's minute is after the refresh before it).
+# ⛔ NEVER A PAID MODE: the Odds pulls keep `pull_owed` and nothing else.
+STAND_DOWN = SOURCE_BACKED | {"cfb-teams"}
+
+
+def _cron_set(field, lo, hi):
+    """One cron field -> the set of values it fires on."""
+    out = set()
+    for part in str(field).split(","):
+        rng, _sl, step = part.partition("/")
+        if rng == "*":
+            a, b = lo, hi
+        elif "-" in rng:
+            a, b = (int(x) for x in rng.split("-", 1))
+        else:
+            a = int(rng)
+            b = hi if step else a
+        out |= set(range(a, b + 1, int(step) if step else 1))
+    return out
+
+
+def cron_last_fire(cron, now):
+    """The newest minute at or before `now` that a 5-field cron (UTC, as
+    GitHub's are) fires on; None for a cron that cannot be read or that fires
+    on no day of the last eight. Day of week is cron's: 0 and 7 are Sunday,
+    and when both day fields are restricted either may match."""
+    try:
+        mi, hr, dom, mon, dow = str(cron).split()
+        mins, hrs = sorted(_cron_set(mi, 0, 59), reverse=True), \
+            sorted(_cron_set(hr, 0, 23), reverse=True)
+        doms, mons = _cron_set(dom, 1, 31), _cron_set(mon, 1, 12)
+        dows = {d % 7 for d in _cron_set(dow, 0, 7)}
+    except (ValueError, TypeError):
+        return None
+    either = dom != "*" and dow != "*"
+    now = now.astimezone(UTC).replace(second=0, microsecond=0)
+    for back in range(0, 8):
+        day = (now - datetime.timedelta(days=back)).date()
+        d_ok, w_ok = day.day in doms, (day.weekday() + 1) % 7 in dows
+        if day.month not in mons or not ((d_ok or w_ok) if either else (d_ok and w_ok)):
+            continue
+        for h in hrs:
+            for m in mins:
+                t = datetime.datetime(day.year, day.month, day.day, h, m, tzinfo=UTC)
+                if t <= now:
+                    return t
+    return None
+
+
+def fired_cron(env=None):
+    """The cron that started this run, read from GitHub's own event file
+    (`GITHUB_EVENT_PATH`, its `schedule`); None for any run a cron did not
+    start, or an event file that cannot be read."""
+    env = os.environ if env is None else env
+    if env.get("GITHUB_EVENT_NAME") != "schedule":
+        return None
+    try:
+        with open(env.get("GITHUB_EVENT_PATH") or "", encoding="utf-8") as fh:
+            cron = json.load(fh).get("schedule")
+    except (OSError, ValueError, AttributeError):
+        return None
+    return cron if isinstance(cron, str) and len(cron.split()) == 5 else None
+
+
+def stand_down(rows, mode, now, env=None):
+    """-> the minute of the cron that named `mode` when that cron's work is
+    already done (see STAND_DOWN), else None: run it."""
+    if mode not in STAND_DOWN:
+        return None
+    cron = fired_cron(env)
+    since = cron_last_fire(cron, now) if cron else None
+    mine = [r for r in rows if r["mode"] == mode]
+    if since is None or not mine or any(r["stale"] or r["missing"] for r in mine):
+        return None
+    dated = [r for r in mine if r.get("due_at")]
+    if not dated or not all(
+            r.get("age_min") is not None
+            and now - datetime.timedelta(minutes=r["age_min"]) >= since
+            for r in dated):
+        return None
+    return since
+
 
 def source_block(data="data", now=None):
     """What the league's own back-fill report says about its SOURCE.
