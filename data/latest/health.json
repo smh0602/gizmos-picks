@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-12T18:42:58Z",
+ "checked_at": "2026-11-12T19:07:17Z",
  "et_date": "2026-11-12",
  "healthy": false,
  "broken": 0,
- "degraded": 18,
+ "degraded": 15,
  "findings": [
   {
    "key": "late:lineups:mlb",
@@ -18,13 +18,6 @@
    "severity": "DEGRADED",
    "what": "mlb weather was built 255 minutes after it was due",
    "why": "due 2026-11-12T14:00Z, built 2026-11-12T18:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next weather build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:alt-lines:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf alt-lines was built 235 minutes after it was due",
-   "why": "due 2026-11-12T12:30Z, built 2026-11-12T16:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -60,20 +53,6 @@
    "severity": "DEGRADED",
    "what": "ncaaf news was built 164 minutes after it was due",
    "why": "due 2026-11-12T14:05Z, built 2026-11-12T16:48Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-board:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf props-board was built 236 minutes after it was due",
-   "why": "due 2026-11-12T12:30Z, built 2026-11-12T16:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-player:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf props-player was built 235 minutes after it was due",
-   "why": "due 2026-11-12T12:30Z, built 2026-11-12T16:25Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -138,15 +117,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17040,
-  "pulled_at": "2026-11-12T16:25:40Z",
+  "balance": 17019,
+  "pulled_at": "2026-11-12T19:06:57Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.3,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-12T16:25:40Z",
-  "source": "data/ncaaf/2026-11-12/props-player/1625.json.gz",
-  "readings_on_disk": 1605,
+  "newest_paid_pull": "2026-11-12T19:06:53Z",
+  "source": "data/ncaaf/2026-11-12/alt-lines/1906.json.gz",
+  "readings_on_disk": 1608,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
