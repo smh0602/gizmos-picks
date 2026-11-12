@@ -1659,6 +1659,21 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   by the contract's own survey, on its own row (`props_rows`).
                   `after_last_survey`: a deadline that passed after the
                   league's last survey is the next pass's (10-19's 1.9 s).
+                  `[2026-11-11]` `caught_up`: one that passes WHILE a pass
+                  runs is that pass's when it is FREE: `converge` surveys
+                  again and builds it (at most `collect.CATCH_UP_ROUNDS`),
+                  a dated path that rolled at its deadline (the MLB card,
+                  results) included; never a mode that failed this pass,
+                  ⛔ never a paid pull (its own cron buys it), and every
+                  free row after an owed, unbought paid row in the contract
+                  (the game model, the props board, both cards) waits for the
+                  pass that buys it (`_held`); one clock for the plan and
+                  every survey. The gate's rules are unchanged; a row the
+                  catch-up did not build keeps the survey it was judged at
+                  before it existed (`last_looks`, read by
+                  `after_last_survey`; `judged_at`, read by the watchdog's
+                  stopped check): never looser (11-11's 13-minute
+                  college card turned collect red). `test_catch_up.py`.
                   `[2026-11-11]` `STAND_DOWN` / `stand_down`: a free metered
                   mode a cron names (cfb-probe, fb-scores, cfb-teams, nfl-logs)
                   is not run when every row it builds is inside contract and

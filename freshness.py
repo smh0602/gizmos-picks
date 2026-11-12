@@ -2456,6 +2456,11 @@ def source_block(data="data", now=None):
 #    freshness.json are all red as before. The next pass surveys after the
 #    deadline, so it is judged strictly, and its build is recorded in
 #    lateness.json like any other.
+# `[2026-11-11]` One addition, so the catch-up (`caught_up`) costs no row this rule:
+#    a row the catch-up deliberately did not build is judged against the survey
+#    freshness.json was written from before the catch-up existed (`last_looks`,
+#    `looked_at`), never a later one. That is this rule's verdict before 11-11,
+#    exactly; it is never looser.
 def after_last_survey(rows, data="data", picks="picks", now=None):
     """-> {(mode, path): (survey time, deadline)} for the stale rows whose only
     missed deadline passed after the league's last recorded survey, which found
@@ -2473,12 +2478,17 @@ def after_last_survey(rows, data="data", picks="picks", now=None):
     for r in rows:
         key = (r["mode"], r["path"])
         rec, t = seen.get(key), times.get(key)
+        # `[2026-11-11]` a row converge's catch-up did not build carries the survey it was
+        #    last judged at (`last_looks`), never later than this file's own stamp.
+        mine = _parse(rec.get("looked_at")) if isinstance(rec, dict) else None
+        then = rec.get("stale_then", rec.get("stale")) if isinstance(rec, dict) else None
         if (not r["stale"] or r["missing"] or r.get("unhealthy") or not r.get("due_at")
-                or not rec or rec.get("stale") is not False or not t):
+                or not rec or then is not False or not t):
             continue
-        first = next_due(t, look)
+        at = mine if mine is not None and mine <= look else look
+        first = next_due(t, at)
         if first is not None and first.strftime("%Y-%m-%dT%H:%MZ") == r["due_at"]:
-            out[key] = (look, first)
+            out[key] = (at, first)
     return out
 
 
@@ -2879,13 +2889,24 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    credits. ⚠️ `dict.fromkeys` keeps the contract's order, which is
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
-    # `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
-    #    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH.
-    need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
-            and (allow_paid or not r["paid"])
-            and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH)} \
+    need = {r["mode"] for r in rows if owes(r, allow_paid)} \
         | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now) \
         | code_moves(data)
+    return [m for m in order if m in cascaded(need)], rows
+
+
+def owes(r, allow_paid=True):
+    """Does this surveyed row need its mode run? ⛔ ONE COPY: `plan` and
+    `caught_up` both ask it (rule 117).
+    `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
+    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH."""
+    return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
+                and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
+
+
+def cascaded(need):
+    """`need` and every mode CASCADE says must follow one of them."""
+    need = set(need)
     changed = True
     while changed:
         changed = False
@@ -2893,7 +2914,129 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
             for dst in CASCADE.get(src, ()):
                 if dst not in need:
                     need.add(dst); changed = True
-    return [m for m in order if m in need], rows
+    return need
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A DEADLINE THAT PASSES WHILE A PASS IS RUNNING IS THAT PASS'S.
+#    `[2026-11-11]`
+# ══════════════════════════════════════════════════════════════════════
+# collect 42973157780, 11-11: the college pass surveyed at 06:54:57Z with
+# cfb-probe inside contract, planned `cfb-injuries card-fb news`, and the card
+# took 13 minutes (HC, the champion since 11-10, reads the history seasons).
+# cfb-probe's 3:00 ET deadline (07:00Z) passed at 07:00, the pass's own final
+# survey wrote freshness.json at 07:07:54Z with it stale, and the gate failed
+# "cfb-probe MISSED its 3:00 ET build ... 9m past due". `after_last_survey`
+# rightly did not excuse it: that survey HAD seen it stale. No pass could have
+# built it: the one running had planned before the deadline, and the next had
+# not started.
+# ✅ So `collect.converge` asks again before it writes freshness.json: a row
+#    whose missed deadline passed AFTER the survey the pass planned from is
+#    built in the same pass (`caught_up`), at most `collect.CATCH_UP_ROUNDS`
+#    times. Only these rows qualify:
+#      - stale by `owes` (the plan's own rule), with a deadline after `since`;
+#      - missing only when its mode has NOT run this pass (`ran`), or its path has
+#        changed since the plan's survey (`before`): a dated path (the MLB
+#        card's picks/<date>.json, results' data/<date>/...) rolls to a new file
+#        AT its own deadline, so it reads missing mid-pass, whether its mode ran
+#        before the roll or not at all (review, 11-11); a missing row at the SAME
+#        path whose mode ran means that mode wrote nothing, and it is not run again;
+#      - not HELD (`_held`): a free row that comes after, in the contract's order
+#        (dependency order), an owed paid row the catch-up will not buy waits for the
+#        pass that buys it, whatever either deadline, as before this change: built now
+#        it would read the old pull and be stamped fresh, and that pass would then
+#        never rebuild it (the MLB game model, props board and card; football's card);
+#        a late mode whose CASCADE follower is held waits with it;
+#      - its mode did not fail this pass (`skip`): a failed mode is never retried
+#        here, even when a LATER deadline of its passes while the pass runs (an
+#        hourly row that missed 06:00 and then 07:00), nor run as a follower;
+#      - FREE: `collect.converge` asks with allow_paid=False, so no paid row
+#        and no follower of one is returned. Every paid deadline has its own cron, in its own
+#        concurrency group, running from its own checkout: a catch-up that bought
+#        here could buy the same deadline twice;
+#      - plus CASCADE's followers, in the contract's order.
+# ⛔ NOTHING ELSE MOVES. The gate is as strict as before: a row the plan saw stale
+#    whose mode failed is red as before, and a PAID row that falls due mid-pass is
+#    its own cron's and the gate's. Its one new reading (`last_looks`, read by
+#    `after_last_survey`) gives a row the catch-up did NOT build the verdict it had
+#    before the catch-up existed, never a looser one.
+def caught_up(rows, since, allow_paid=True, skip=(), ran=(), before=None):
+    """-> the modes, in the contract's order, owed for rows whose missed deadline
+    (`due_at`) passed after `since`, the moment the pass surveyed to plan.
+    `skip`: modes that failed this pass; never returned.
+    `ran`: modes this pass has run; a MISSING row of one of them is not owed here,
+    unless its path changed since `before` (the plan's own rows).
+    A free row after an owed paid row this catch-up will not buy waits for the pass that
+    buys it (`_held`), and so does a late mode whose CASCADE follower waits."""
+    ran = set(ran)
+    seen = None if before is None else {(r.get("mode"), r.get("path")) for r in before}
+    order = list(dict.fromkeys(r["mode"] for r in rows))
+    held = _held(rows, order, allow_paid)
+    late = {r["mode"] for r in rows if owes(r, allow_paid)
+            and (not r["missing"] or r["mode"] not in ran
+                 or (seen is not None and (r["mode"], r["path"]) not in seen))
+            and _after(r.get("due_at"), since)
+            and r["mode"] not in held} - set(skip)
+    # a late mode whose CASCADE follower is held waits WITH it (review, 11-11): run alone,
+    # the follower would be built from the old pull and stamped fresh, and neither row
+    # would bring it back once the pull lands (injury-check -> card-fb behind gamelines)
+    late = {m for m in late if not ((cascaded({m}) - {m}) & held)}
+    if not late:
+        return []
+    need = cascaded(late) - set(skip)          # ...nor as a follower
+    return [m for m in order if m in need]
+
+
+def _held(rows, order, allow_paid):
+    """The free modes that wait: every one that comes AFTER, in the contract's order (which
+    is dependency order), an owed PAID row this catch-up will not buy, whatever either
+    deadline. Base built such a row in the next pass, AFTER that pull (plan's order); built
+    now it would read the old pull, be stamped fresh, and that pass would never rebuild it:
+    the MLB game model, props board and card; football's card behind its afternoon odds
+    (reviews, 11-11: first the same deadline, then an earlier one, then a later one, each
+    failed). A row before every owed paid row (MLB grading, the injury check, college
+    injuries) is never held."""
+    pos = {m: i for i, m in enumerate(order)}
+    first = min((pos[r["mode"]] for r in rows
+                 if r["paid"] and owes(r, True) and not owes(r, allow_paid)), default=None)
+    if first is None:
+        return set()
+    return {r["mode"] for r in rows if not r["paid"] and pos[r["mode"]] > first}
+
+
+def last_looks(final, first, at, built):
+    """`[2026-11-11]` THE CATCH-UP MAKES A PASS LONGER, AND THAT MUST NOT COST A ROW
+    WHAT THE 10-19 RULE GAVE IT (review, 11-11). -> `final` (the survey freshness.json
+    is written from), each row of it marked `looked_at` = `at` and `stale_then` False
+    when: it is stale now; `first` (the first survey after the planned modes, taken
+    at `at`, the one freshness.json was written from before the catch-up existed)
+    found it inside contract; its deadline passed after `at`; and the catch-up did
+    not run its mode (`built`): a paid row, a held one. `after_last_survey` judges
+    such a row against `at`, exactly as it judged it before. ⛔ Nothing else moves: a
+    row the catch-up ran and left stale, or one already stale at `at`, stays strict."""
+    if first is None or first is final:
+        return final
+    was = {(r.get("mode"), r.get("path")): r for r in first}
+    stamp = at.strftime("%Y-%m-%dT%H:%M:%SZ")
+    out = []
+    for r in final:
+        w = was.get((r.get("mode"), r.get("path")))
+        if (r.get("stale") and w is not None and w.get("stale") is False
+                and r.get("mode") not in built and _after(r.get("due_at"), at)):
+            r = dict(r, looked_at=stamp, stale_then=False)
+        out.append(r)
+    return out
+
+
+def _after(due_at, since):
+    """Is the deadline `due_at` ('YYYY-MM-DDTHH:MMZ') later than `since`?"""
+    if not due_at or since is None:
+        return False
+    try:
+        due = datetime.datetime.strptime(due_at, "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
+    except (TypeError, ValueError):
+        return False
+    return due > since
 
 
 # ══════════════════════════════════════════════════════════════════════

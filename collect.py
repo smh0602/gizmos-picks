@@ -6027,7 +6027,7 @@ def _record_failure(failed, soft_failed, mode, why, source=None):
         failed.append((mode, why, source))
 
 
-def write_freshness(rows=None, still=None):
+def write_freshness(rows=None, still=None, judged_at=None):
     """Publish the freshness report the PAGE reads.
 
     🔴 THIS MUST RUN AFTER THE CARD REVERT, NOT BEFORE, AND THAT IS THE
@@ -6102,6 +6102,9 @@ def write_freshness(rows=None, still=None):
                 "allowed to be. Published by the converge pass.",
         "ok": not still,
         "artifacts": rows,
+        # `[2026-11-11]` set only when converge ran a catch-up: the survey this file was
+        #    written from before the catch-up existed (watchdog.check_stopped_league)
+        **({"judged_at": judged_at.strftime("%Y-%m-%dT%H:%M:%SZ")} if judged_at else {}),
     })
 
 
@@ -6115,9 +6118,17 @@ def _record_lateness(rows):
         log(f"⚠️ the lateness record was not written ({type(e).__name__}: {e})")
 
 
+# `[2026-11-11]` freshness.caught_up: how many times a pass builds what fell due WHILE it ran.
+CATCH_UP_ROUNDS = 2
+
+
 def converge(explicit=(), allow_paid=True):
     """Bring every artifact back inside its contract. Returns exit code."""
-    modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
+    # 🔴 ONE CLOCK `[2026-11-11]`: the plan and every survey are asked at `now()`, the
+    #    instant caught_up compares deadlines with (a survey on freshness's own clock beside
+    #    a pinned collect.now caught up every free mode test_credit_ledger's plan never ran).
+    looked = now()
+    modes, rows = _fresh.plan(data=DATA, picks=PICKS, now=looked, allow_paid=allow_paid)
 
     log("=" * 66)
     log("FRESHNESS SURVEY")
@@ -6182,41 +6193,76 @@ def converge(explicit=(), allow_paid=True):
         f"(the API's balance; stored snapshots record {_mspent})")
 
     failed, soft_failed, skipped = [], [], []
-    for m in modes:
-        if m in paid and m in _RAN_PAID:
-            log(f"--- converge: {m} already ran this pass (chained): not run "
-                f"twice, nothing spent, its snapshot kept")
-            continue
-        # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
-        # A single props cycle on a 15-game slate is ~120-240 credits, so
-        # a check made only at the top of the pass could overshoot by a
-        # whole cycle. Re-measuring each time costs a directory walk.
-        if m in paid:
-            spent = daily_spend()
-            if spent >= cap_today:
-                # ⛔ REPORTED, NEVER SILENT. A skipped paid pull leaves an
-                # artifact out of contract, the freshness banner says so
-                # on the page, and the run goes red. That is the intended
-                # behaviour, not a failure to hide.
-                log(f"SKIPPING {m}: {spent} credits spent today, cap is "
-                    f"{cap_today}. NOTHING SPENT. It will stay out of "
-                    f"contract and the page will say so.")
-                skipped.append(m)
-                continue
-        try:
-            log(f"--- converge: {m}")
-            run_mode(m)
-            if m in paid:
-                _RAN_PAID.add(m)
-        except SystemExit as e:
-            if e.code:
-                # ⛔ an exit code is no evidence about a source
-                _record_failure(failed, soft_failed, m, f"exit {e.code}")
-        except Exception as e:
-            _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}",
-                            source=_fresh.outside_source(e))
+    attempted = set()                   # every mode this pass ran, failed or not (caught_up)
 
-    rows2 = _fresh.survey(data=DATA, picks=PICKS)
+    def run_modes(names):
+        for m in names:
+            if m in paid and m in _RAN_PAID:
+                log(f"--- converge: {m} already ran this pass (chained): not run "
+                    f"twice, nothing spent, its snapshot kept")
+                continue
+            # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
+            # A single props cycle on a 15-game slate is ~120-240 credits, so
+            # a check made only at the top of the pass could overshoot by a
+            # whole cycle. Re-measuring each time costs a directory walk.
+            if m in paid:
+                spent = daily_spend()
+                if spent >= cap_today:
+                    # ⛔ REPORTED, NEVER SILENT. A skipped paid pull leaves an
+                    # artifact out of contract, the freshness banner says so
+                    # on the page, and the run goes red. That is the intended
+                    # behaviour, not a failure to hide.
+                    log(f"SKIPPING {m}: {spent} credits spent today, cap is "
+                        f"{cap_today}. NOTHING SPENT. It will stay out of "
+                        f"contract and the page will say so.")
+                    skipped.append(m)
+                    continue
+            try:
+                log(f"--- converge: {m}")
+                attempted.add(m)
+                run_mode(m)
+                if m in paid:
+                    _RAN_PAID.add(m)
+            except SystemExit as e:
+                if e.code:
+                    # ⛔ an exit code is no evidence about a source
+                    _record_failure(failed, soft_failed, m, f"exit {e.code}")
+            except Exception as e:
+                _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}",
+                                source=_fresh.outside_source(e))
+
+    run_modes(modes)
+
+    # 🔴 `[2026-11-11]` A DEADLINE THAT PASSES WHILE THIS PASS RUNS IS THIS PASS'S
+    #    (freshness.caught_up says which rows, and why the gate is unchanged).
+    #    Asked on the survey this pass writes anyway, so a pass with nothing late
+    #    costs nothing extra; bounded at CATCH_UP_ROUNDS.
+    #    ⛔ NEVER A PAID PULL. Each paid deadline has its own cron, in its own
+    #    concurrency group, running from its own checkout while this pass runs: a
+    #    catch-up buying here could buy the same deadline twice (review, 11-11). A
+    #    paid row that falls due mid-pass is that cron's, and the gate's as before.
+    end_rows = end_at = None            # the survey freshness.json was written from before
+    caught_now = set()                  # ...the catch-up existed, and what it then ran
+    for _round in range(CATCH_UP_ROUNDS + 1):
+        _at = now()
+        rows2 = _fresh.survey(data=DATA, picks=PICKS, now=_at)
+        if _round == 0:
+            end_rows, end_at = rows2, _at
+        _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
+        todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted,
+                                 before=rows)
+                if _round < CATCH_UP_ROUNDS else [])
+        if not todo:
+            break
+        log(f"CATCH-UP: {' '.join(todo)} — a deadline passed while this pass ran "
+            f"(it surveyed at {looked:%H:%M:%S}Z): "
+            + ", ".join(dict.fromkeys(f"{r['mode']} due {r['due_at']}" for r in rows2
+                                      if r["stale"] and r["mode"] in todo and r.get("due_at"))))
+        run_modes(todo)
+        caught_now.update(todo)
+        looked = _at
+    # ⛔ a longer pass must not cost a row it did not build the 10-19 rule (last_looks)
+    rows2 = _fresh.last_looks(rows2, end_rows, end_at, caught_now)
     _record_lateness(rows2)
     # 🔴 EVERY STALE ROW COUNTS, NOT EACH MODE'S LAST ONE. `[2026-10-17]`
     #    ~~`{mode: row}`~~ kept one row per mode, the last in the contract, so
@@ -6224,7 +6270,7 @@ def converge(explicit=(), allow_paid=True):
     #    "every artifact is inside contract" and freshness.json `ok: true`
     #    while the gate warned. The same rule as `write_freshness`'s default.
     still = list(dict.fromkeys(r["mode"] for r in rows2 if r["stale"]))
-    write_freshness(rows2, still)
+    write_freshness(rows2, still, judged_at=end_at if caught_now else None)
 
     # 🔴 THE PAGE MUST BE ABLE TO SAY HOW OLD IT IS. Sam had to ask why
     # the board looked wrong; the site itself said nothing, because
