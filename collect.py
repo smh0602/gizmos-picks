@@ -6141,8 +6141,23 @@ def converge(explicit=(), allow_paid=True):
             + (f"  UNHEALTHY: {r['unhealthy']}" if r.get("unhealthy") else ""))
 
     for m in explicit:
-        if m not in modes:
-            modes.append(m)
+        if m in modes:
+            continue
+        # 🔴 `[2026-11-11]` A CRON THAT STARTS LATE DOES NOT BUY IT AGAIN
+        #    (freshness.STAND_DOWN). ~~Every named mode was appended~~: the
+        #    `4 7` college cron, started 5-10 hours late, re-swept CFBD every
+        #    day after an hourly pass had built cfb-probe for its deadline,
+        #    ~37 calls a day. ⛔ Only a free metered mode, only when every row
+        #    it builds is inside contract and was built for this cron (after
+        #    the deadline it fires for, else after its own minute); anything
+        #    else runs exactly as before. ⚠️ At `looked`, the plan's own clock.
+        _since = _fresh.stand_down(rows, m, looked)
+        if _since is not None:
+            log(f"STAND DOWN: {m} — every row it builds is inside contract and "
+                f"was built for this cron's {_since:%Y-%m-%d %H:%MZ} run, "
+                f"so its source is not asked again")
+            continue
+        modes.append(m)
     if not modes:
         log("everything inside contract — nothing to do")
         log("=" * 66)
