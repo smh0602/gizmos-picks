@@ -122,9 +122,28 @@ note("live CFBD figure: %s calls/month against a %s plan — %.0f%%"
 section("3. 🔴🔴 THE ALARM, DRIVEN BOTH WAYS")
 
 
-def report(month, plan=1000):
-    """A synthetic cfbd_budget.py report at a chosen volume."""
+def mline(used_pct=40, plan=1000, pace=None):
+    """`[2026-11-11]` cfbd_budget.py's `measured pace:` line, for a period
+    that will have used `used_pct` of `plan` by the reset. ⚠️ Printed by the
+    SAME formatter the tool uses (`pace_line`), so the parser is driven
+    against the real line, never a copy of its shape."""
+    import datetime as _dt
+    import cfbd_budget as _B
+    at_reset = plan - used_pct * plan / 100.0
+    pace = pace if pace is not None else plan / 30.0
+    return _B.pace_line({
+        "state": "READ", "pace": pace, "left": int(at_reset + pace * 10),
+        "at": _dt.datetime(2026, 11, 21, 16, 33, tzinfo=_dt.timezone.utc),
+        "at_reset": at_reset,
+        "reset": _dt.datetime(2026, 12, 1, tzinfo=_dt.timezone.utc),
+        "pct": used_pct, "plan": plan})
+
+
+def report(month, plan=1000, measured=None):
+    """A synthetic cfbd_budget.py report at a chosen volume. `[2026-11-11]`
+    with the key's measured pace, inside the bar unless told otherwise."""
     pct = round(100.0 * month / plan)
+    measured = mline(40, plan) if measured is None else measured
     return ("CFBD CALL BUDGET — derived\n"
             "  assuming 3 played week(s); build_pace early-stop: ON (32 -> 15 calls)\n\n"
             "  mode          calls/build  builds/wk   calls/wk\n"
@@ -132,7 +151,9 @@ def report(month, plan=1000):
             "  fb-scores               2         44         88\n"
             "                                              209  = %d/month\n\n"
             "  Free                 %d/mo      %d%%  ⚠️\n\n"
-            "⚠️ %d/month against a %d plan — %d%%. tail\n" % (month, plan, pct, month, plan, pct))
+            "%s\n\n"
+            "⚠️ %d/month against a %d plan — %d%%. tail\n"
+            % (month, plan, pct, measured, month, plan, pct))
 
 
 _over = W.judge(W.parse(report(900)))
@@ -229,6 +250,13 @@ for _name, _txt in [
         ("printed % disagrees with the plan",
          _good.replace("— 90%. tail", "— 12%. tail")),
         ("a zero plan", _good.replace("against a 1000 plan", "against a 0 plan")),
+        # `[2026-11-11]` the key's own counter is cross-checked the same way
+        ("no measured-pace line", "\n".join(
+            l for l in _good.splitlines() if "measured pace:" not in l)),
+        ("a measured % that disagrees with its own figures",
+         re.sub(r"(\d+)% of a 1000 plan", "3% of a 1000 plan", _good)),
+        ("a measured pace against another plan",
+         report(900, measured=mline(40, plan=3000))),
 ]:
     _v = W.judge(W.parse(_txt))
     ck("⛔ %s -> UNREADABLE" % _name,
@@ -262,6 +290,13 @@ for _label, _stdout, _brc, _want in [
         ("a schedule past the bar", report(900), 0, 1),
         ("cfbd_budget.py over plan (its own exit 1)", report(1500), 1, 1),
         ("output this parser cannot read", "nothing like a budget", 0, 2),
+        # 🔴🔴 `[2026-11-11]` THE DEFECT: a floor inside the bar while the
+        #    key's own counter runs it dry. ~~exit 0~~, which CLOSED the issue.
+        ("a schedule inside the bar, a measured pace past it",
+         report(500, measured=mline(103)), 1, 1),
+        ("a schedule inside the bar, the counter with no pace",
+         report(500, measured="  measured pace: UNKNOWN — no CFBD quota "
+                              "reading on disk"), 0, 2),
 ]:
     _got = drive_watch(_stdout, _brc)
     ck("⛔ %s -> exit %d" % (_label, _want), _got == _want,
@@ -427,6 +462,169 @@ note("⚠️ %d crons with this PR's one included. ⛔ PR #13 also adds a cron "
      "and also moves this marker, so whichever merges SECOND needs a "
      "recount to 53 — the guard will catch it either way, and the count "
      "must be recounted rather than incremented." % _total)
+
+section("9. 🔴🔴 THE KEY'S OWN COUNTER: THE PACE THE SCHEDULE CANNOT SEE")
+# `[2026-11-11]` THE DEFECT. Every day of October and November this watcher
+# printed "OK 949/month 31% of 3000" while CFBD's own header fell ~100 calls
+# a day: October ended with 173 left (94% used) and November's 1,888 on 11-11
+# would run out around the 29th. It read the schedule and nothing else, and a
+# schedule cannot see a cron GitHub starts 5-10 hours late re-sweeping what an
+# hourly pass already built, or a rebuild priced at week 3 in week 11.
+# ✅ The readings are PLANTED, by the real writer (`cfb.record_quota`), on a
+# tree pinned to the clock each check uses: never the live tree.
+import datetime as _dt  # noqa: E402
+import cfb as _cfb  # noqa: E402
+import cfbd_budget as B  # noqa: E402
+
+_UTC = _dt.timezone.utc
+
+
+def plant(readings):
+    """A college data dir whose quota readings are [(datetime, remaining)]."""
+    data = os.path.join(tempfile.mkdtemp(prefix="cfbdpace-"), "ncaaf")
+    saved = dict(_cfb.QUOTA)
+    try:
+        for t, r in readings:
+            _cfb.QUOTA.update({"seen": True,
+                               "headers": {"X-CallLimit-Remaining": str(r)},
+                               "at": t.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                               "note": None})
+            _cfb.record_quota(data, log=lambda *a: None, when=t)
+    finally:
+        _cfb.QUOTA.clear()
+        _cfb.QUOTA.update(saved)
+    return data
+
+
+def series(now, per_day, left_now, days=10, step_h=6):
+    """Readings every `step_h` hours, falling `per_day`, `left_now` at `now`."""
+    n = int(days * 24 / step_h)
+    return [(now - _dt.timedelta(hours=k * step_h),
+             int(round(left_now + per_day * k * step_h / 24.0)))
+            for k in range(n, -1, -1)]
+
+
+def verdict(pace, month=949, plan=3000):
+    """judge() on a floor at `month` beside this measured pace."""
+    return W.judge(W.parse(report(month, plan, measured=B.pace_line(pace))))
+
+
+# THE INCIDENT'S OWN NUMBERS: the key's readings 11-05 -> 11-11 as the
+# archive holds them, judged at 11-11 21:40Z, the run that said "OK".
+_INCIDENT = [("11-04T15:40:46", 2584), ("11-05T07:16:14", 2542),
+             ("11-05T15:53:03", 2499), ("11-06T08:51:50", 2457),
+             ("11-06T15:14:44", 2414), ("11-07T10:38:39", 2368),
+             ("11-07T14:22:34", 2325), ("11-08T07:07:46", 2279),
+             ("11-08T14:40:03", 2233), ("11-08T19:26:24", 2190),
+             ("11-09T07:09:05", 2145), ("11-09T17:55:07", 2104),
+             ("11-10T09:17:33", 2020), ("11-10T16:09:04", 1979),
+             ("11-11T07:26:23", 1932), ("11-11T15:40:46", 1890),
+             ("11-11T16:33:10", 1888)]
+_NOW = _dt.datetime(2026, 11, 11, 21, 40, tzinfo=_UTC)
+_inc = B.measured_pace(plant([(_dt.datetime.strptime("2026-" + w, "%Y-%m-%dT%H:%M:%S")
+                               .replace(tzinfo=_UTC), r) for w, r in _INCIDENT]),
+                       now=_NOW, plan=3000)
+ck("🔴 the incident's readings give a pace: ~100 calls a day",
+   _inc["state"] == "READ" and 90 <= _inc["pace"] <= 115,
+   "⛔ 2,542 on 11-05 to 1,888 on 11-11 is 654 calls in 6.4 days. Got %s"
+   % {k: _inc.get(k) for k in ("state", "pace", "used", "span_days", "why")})
+ck("🔴 ...and the key runs out before the 12-01 reset, around 11-29/30",
+   _inc.get("run_out") and _dt.datetime(2026, 11, 28, tzinfo=_UTC)
+   <= _inc["run_out"] < _dt.datetime(2026, 12, 1, tzinfo=_UTC),
+   "Got %s" % _inc.get("run_out"))
+# @vacuity the measured pace must be what the header FELL by, never its rises
+#   file: cfbd_budget.py
+#   find:     used = sum(max(0, a - b) for (_t0, a), (_t1, b) in zip(win, win[1:]))
+#   with:     used = sum(max(0, b - a) for (_t0, a), (_t1, b) in zip(win, win[1:]))
+_iv = verdict(_inc)
+# @vacuity the counter's pace must reach the verdict at the floor's own bar
+#   file: cfbd_watch.py
+#   find:     if m["pct"] >= 100 * WARN_FRAC:
+#   with:     if m["pct"] >= 1000 * WARN_FRAC:
+ck("🔴🔴 THE DEFECT: a floor at 32% beside that counter is OVER, never OK",
+   _iv["state"] == "OVER" and "runs out around 2026-11-" in _iv.get("why", ""),
+   "⛔ ~~'OK 949/month 31%% of 3000'~~ is what this watcher printed at 11-11 "
+   "21:40Z, and OK CLOSES the issue. Got %s: %s"
+   % (_iv["state"], _iv.get("why")))
+ck("✅ ...and the body says both halves, the counter first",
+   _iv["state"] == "OVER"
+   and W.render(_iv).index("CFBD's own counter") < W.render(_iv).index("FLOOR"),
+   "🔴 the issue must name the number that tripped the bar")
+
+_ok = B.measured_pace(plant(series(_NOW, 40, 1888)), now=_NOW, plan=3000)
+_okv = verdict(_ok)
+ck("✅ a key at 40 a day with 1,888 left on 11-11 is OK (63% by the reset)",
+   _ok["state"] == "READ" and 38 <= _ok["pace"] <= 42 and _okv["state"] == "OK"
+   and not _ok["run_out"],
+   "⛔ a guard that fires on correct code is the other failure. Got %s %s"
+   % (_okv["state"], {k: _ok.get(k) for k in ("pace", "pct", "run_out")}))
+ck("✅ ...and an OK says the counter's numbers too",
+   "CFBD's own counter fell 40" in _okv.get("why", ""), _okv.get("why"))
+_flo = verdict(_ok, month=2700)
+ck("⛔ a floor past the bar is OVER whatever the counter says",
+   _flo["state"] == "OVER", "Got %s" % _flo["state"])
+
+for _label, _rs, _want in [
+        ("no reading at all", [], "no CFBD quota reading"),
+        ("a newest reading 3 days old",
+         series(_NOW - _dt.timedelta(days=3), 100, 1888), "hours old"),
+        ("one day of readings", series(_NOW, 100, 1888, days=1), "a pace needs"),
+]:
+    _u = B.measured_pace(plant(_rs), now=_NOW, plan=3000)
+    _uv = verdict(_u)
+    # @vacuity a counter with no pace is "could not look", never the floor's OK
+    #   file: cfbd_watch.py
+    #   find: return _bad("the key's own counter gave no pace (%s), so the schedule's "
+    #   with: return dict(out, state="OK", why="the key's own counter gave no pace (%s), so the schedule's "
+    ck("⛔ %s -> no pace, and the watcher could not look" % _label,
+       _u["state"] == "UNKNOWN" and _want in _u.get("why", "")
+       and _uv["state"] == "UNREADABLE",
+       "🔴 no pace is not a small pace. Got %s %r / %s"
+       % (_u["state"], _u.get("why"), _uv["state"]))
+ck("⛔ ...while a floor past the bar still alarms without one",
+   W.judge(W.parse(report(2700, 3000, measured=B.pace_line(
+       B.measured_pace(plant([]), now=_NOW, plan=3000)))))["state"] == "OVER",
+   "🔴 a missing counter must not silence the schedule's own alarm")
+
+# ⚠️ A RESET INSIDE THE WEEK: 173 on 10-31 23:56Z, 2,924 on 11-01 07:13Z.
+_rst = [(t, r) for t, r in series(_dt.datetime(2026, 10, 31, 23, 56, tzinfo=_UTC),
+                                   100, 173, days=4)] + \
+       [(t, r) for t, r in series(_dt.datetime(2026, 11, 3, 7, 13, tzinfo=_UTC),
+                                   100, 2924 - 200, days=2)]
+_rp = B.measured_pace(plant(_rst), now=_dt.datetime(2026, 11, 3, 8, 0, tzinfo=_UTC),
+                      plan=3000)
+ck("⚠️ a reset inside the week adds nothing: the pace stays ~100 a day",
+   _rp["state"] == "READ" and _rp["resets"] == 1 and 85 <= _rp["pace"] <= 105,
+   "⛔ counted as a rise, the reset would read as -2,700 calls; ignored, the "
+   "sweep between the two readings is lost, so a little under 100. Got %s"
+   % {k: _rp.get(k) for k in ("state", "pace", "resets", "used", "span_days")})
+
+# 🔴🔴 END TO END, THE REAL WATCHER RUNNING THE REAL cfbd_budget.py, on a
+#    tree pinned to NOW (the real clock both runs read). ⛔ Today's watcher
+#    exited 0 here, and 0 is the exit that CLOSES the issue.
+_now = _dt.datetime.now(_UTC)
+_to_reset = (B.next_reset(_now) - _now).total_seconds() / 86400.0
+_hot = plant(series(_now, 100, int(100 * _to_reset * 0.5)))
+_e2e = subprocess.run([sys.executable, "cfbd_watch.py"], cwd=ROOT,
+                      capture_output=True, text=True, timeout=300,
+                      env=dict(os.environ, CFBD_DATA=_hot, CFBD_PLAN="3000"))
+ck("🔴🔴 the real watcher on a key spending 100 a day, half-way to empty "
+   "at the reset, exits 1",
+   _e2e.returncode == 1 and "runs out around" in _e2e.stdout,
+   "⛔ THE GUARD FOR 11-11: exit 0 closes the open issue. Got rc=%s %s %s"
+   % (_e2e.returncode, _e2e.stdout[-300:], _e2e.stderr[-300:]))
+_cold = subprocess.run([sys.executable, "cfbd_watch.py"], cwd=ROOT,
+                       capture_output=True, text=True, timeout=300,
+                       env=dict(os.environ, CFBD_DATA=plant([]),
+                                CFBD_PLAN="3000"))
+# ⚠️ The schedule's month does not depend on the plan; the bar here is 3,000's.
+_floor_over = (_parsed.get("state") == "READ"
+               and _parsed["month"] >= W.WARN_FRAC * 3000)
+ck("⛔ ...and with no reading on disk it could not look (exit 2), unless the "
+   "schedule alone is past the bar",
+   _cold.returncode == (1 if _floor_over else 2),
+   "🔴 no reading is not all-clear. Got rc=%s %s"
+   % (_cold.returncode, _cold.stdout[-200:]))
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that 906 calls a month is safe, or "
      "that the floor is what will actually be spent. It claims the "
