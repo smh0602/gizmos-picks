@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_agreement_spec.md",
- "built_at": "2026-11-12T11:47:29Z",
+ "built_at": "2026-11-12T16:23:30Z",
  "bases": {
   "label": "DESCRIPTIVE",
   "model_p": "MODEL",
@@ -182,9 +182,26 @@
    "label": "AGREE"
   },
   {
-   "key": "74d39e19225caf211ad2c8eb4110179f|Devin Singletary|player_reception_yds|over|8.5",
+   "key": "74d39e19225caf211ad2c8eb4110179f|Devin Singletary|player_reception_yds|over|9.5",
    "game_id": "74d39e19225caf211ad2c8eb4110179f",
    "game": "Washington Commanders @ New York Giants",
+   "commence": "2026-11-13T01:15:00Z",
+   "player": "Devin Singletary",
+   "market": "player_reception_yds",
+   "side": "over",
+   "line": 9.5,
+   "price": -110,
+   "break_even": 52.4,
+   "card_p": null,
+   "card_basis": "RECORD",
+   "model_p": 52.6,
+   "on_card": true,
+   "label": "ONE SOURCE"
+  },
+  {
+   "key": "74d39e19225caf211ad2c8eb4110179f|Devin Singletary|player_reception_yds|over|8.5",
+   "game_id": "74d39e19225caf211ad2c8eb4110179f",
+   "game": "Washington Commanders at New York Giants",
    "commence": "2026-11-13T01:15:00Z",
    "player": "Devin Singletary",
    "market": "player_reception_yds",
@@ -193,9 +210,9 @@
    "price": -113,
    "break_even": 53.1,
    "card_p": null,
-   "card_basis": "RECORD",
+   "card_basis": null,
    "model_p": 53.3,
-   "on_card": true,
+   "on_card": false,
    "label": "ONE SOURCE"
   },
   {
@@ -360,13 +377,13 @@
    "market": "player_rush_yds",
    "side": "under",
    "line": 38.5,
-   "price": -113,
-   "break_even": 53.1,
+   "price": -110,
+   "break_even": 52.4,
    "card_p": 40,
    "card_basis": "RECORD",
    "model_p": 52.7,
    "on_card": true,
-   "label": "AGREE"
+   "label": "SPLIT"
   },
   {
    "key": "74d39e19225caf211ad2c8eb4110179f|Stefon Diggs|player_receptions|under|4.5",
@@ -462,8 +479,8 @@
    "market": "player_receptions",
    "side": "over",
    "line": 2.5,
-   "price": 140,
-   "break_even": 41.7,
+   "price": 138,
+   "break_even": 42.0,
    "card_p": null,
    "card_basis": null,
    "model_p": 50.1,
@@ -488,26 +505,9 @@
    "label": "AGREE"
   },
   {
-   "key": "74d39e19225caf211ad2c8eb4110179f|Van Jefferson|player_receptions|over|0.5",
-   "game_id": "74d39e19225caf211ad2c8eb4110179f",
-   "game": "Washington Commanders @ New York Giants",
-   "commence": "2026-11-13T01:15:00Z",
-   "player": "Van Jefferson",
-   "market": "player_receptions",
-   "side": "over",
-   "line": 0.5,
-   "price": -230,
-   "break_even": 69.7,
-   "card_p": 89,
-   "card_basis": "RECORD",
-   "model_p": 63.6,
-   "on_card": true,
-   "label": "SPLIT"
-  },
-  {
    "key": "74d39e19225caf211ad2c8eb4110179f|Van Jefferson|player_receptions|over|1.5",
    "game_id": "74d39e19225caf211ad2c8eb4110179f",
-   "game": "Washington Commanders at New York Giants",
+   "game": "Washington Commanders @ New York Giants",
    "commence": "2026-11-13T01:15:00Z",
    "player": "Van Jefferson",
    "market": "player_receptions",
@@ -515,11 +515,11 @@
    "line": 1.5,
    "price": 178,
    "break_even": 36.0,
-   "card_p": null,
-   "card_basis": null,
+   "card_p": 77,
+   "card_basis": "RECORD",
    "model_p": 54.6,
-   "on_card": false,
-   "label": "ONE SOURCE"
+   "on_card": true,
+   "label": "AGREE"
   }
  ],
  "counts": {
