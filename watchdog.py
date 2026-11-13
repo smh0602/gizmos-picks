@@ -1425,7 +1425,10 @@ def learners(root=None):
         crons = [c["expr"] for c in (RR.parse_cron(e) for e in d["crons"]) if c]
         if not paths or not crons:          # an unreadable cron is runs_report's `unattributable`
             continue
-        lim = [m or LANDING_TIMEOUT_DEFAULT for m in wfparse.job_timeouts(src).values()]
+        # `[2026-11-13]` a clock set but unreadable (wfparse.UNREADABLE) takes GitHub's own
+        #    ceiling, which no job outlives, so the grace stays an upper bound
+        lim = [LANDING_TIMEOUT_DEFAULT if m is wfparse.UNREADABLE else (m or LANDING_TIMEOUT_DEFAULT)
+               for m in wfparse.job_timeouts(src).values()]
         out.append({"file": d["file"], "crons": crons, "paths": paths,
                     "timeout_min": max(lim or [LANDING_TIMEOUT_DEFAULT])})
     return out
@@ -1546,6 +1549,53 @@ def check_learner_landing(rep, now):
     rep.note_learners = seen
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A JOB OR TEST FILE APPROACHING ITS OWN CLOCK IS VISIBLE BEFORE IT IS KILLED.
+#    `[2026-11-13]`
+# ══════════════════════════════════════════════════════════════════════
+# pr-tests' sweep parts reached 79% of test_vacuity.py's 5,400s clock and nothing
+# here said so; the half-clock warning reached only the PR page. The hourly runs
+# watcher now records every finished job's time beside its own clock in runs.json
+# (`runs_report.read_clocks`); this reads `runs_report.clock_report`, the one judge.
+# ⛔ DEGRADED ONLY, NO REPAIR: nothing here makes a job shorter. The answer is
+#    more parts or a shorter job, NEVER a higher clock (raising it is how the
+#    sweep outgrew it three times, vacuity.yml).
+# ⚠️ A stale or missing run list says nothing here: its own freshness row (`runs`)
+#    already reports it, and a planted tree without one is a clean tree.
+def check_job_clocks(rep, now):
+    """The slowest run of each job in the last 7 days at 75%+ of its clock -> DEGRADED,
+    one finding per workflow; a job time that could not be read -> DEGRADED too."""
+    doc, why = RR.run_list(os.path.join(ROOT, "data", "latest", "runs.json"), now)
+    if doc is None:
+        rep.note_clocks = {"could_not_look": why}
+        return
+    r = RR.clock_report(doc, now)
+    rep.note_clocks = {"jobs_measured": r["n"], "days": RR.CLOCK_DAYS, "warn_at": RR.CLOCK_WARN,
+                       "slowest": RR.clock_words(r["slowest"]) if r["slowest"] else None}
+    if not r["looked"]:
+        rep.warn("clock:unread", "how close the jobs came to their clocks could not be read",
+                 r["why"] + ".")
+        return
+    by = {}
+    for row in r["over"]:
+        by.setdefault(row["file"], []).append(row)
+    for f, rows in sorted(by.items()):
+        top = rows[0]
+        rep.warn("clock:%s" % os.path.basename(f or "?")[:-4],
+                 "%s's %s used %d%% of its clock in the last %d days" % (
+                     top.get("workflow"), top["job"], int(top["pct"] * 100), RR.CLOCK_DAYS),
+                 "%s. %d job(s) of this workflow were at %d%% or more: %s. ⛔ %s: a clock this "
+                 "close is one slow runner from killing the job." % (
+                     RR.clock_words(top), len(rows), int(RR.CLOCK_WARN * 100),
+                     "; ".join("%s %d%%" % (x["job"] + ("" if x["clock"] == "job" else " (%s)" % x["clock"]),
+                                            int(x["pct"] * 100)) for x in rows[:6]),
+                     RR.clock_advice(f or "", top["job"], top["clock"]).capitalize()))
+    if r["unread"]:
+        rep.warn("clock:unread", "%d job time(s) of the last %d days could not be read" % (
+            len(r["unread"]), RR.CLOCK_DAYS),
+                 "a job that could not be measured could be at its clock: %s." % "; ".join(r["unread"][:6]))
+
+
 CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_verify_failure, check_card_day_agreement,
           check_board_not_empty, check_record_sane,
@@ -1563,6 +1613,8 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_credit_reconciliation,
           # `[Sam, 2026-10-12]` the football model's weekly contest, DEGRADED only.
           check_fb_refit,
+          # `[2026-11-13]` no job or test file near its own clock, DEGRADED only.
+          check_job_clocks,
           # `[R1, 2026-10-18]` every scheduled learner lands its file, DEGRADED only.
           check_learner_landing)
 
@@ -1683,6 +1735,9 @@ def run(now=None):
     # `[R1, 2026-10-18]` when each learner's schedule was first seen, by check_learner_landing.
     if getattr(rep, "note_learners", None) is not None:
         out["learners"] = rep.note_learners
+    # `[2026-11-13]` the slowest job against its own clock, finding or not, by check_job_clocks.
+    if getattr(rep, "note_clocks", None) is not None:
+        out["job_clocks"] = rep.note_clocks
     return out
 
 
@@ -1699,6 +1754,7 @@ FILES_FIRST = {    # the finding key's first part -> the files to read first
     "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
     "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
     "landing": "data/latest/runs.json, runs_report.py, the learner's own .py and workflow (read only)",
+    "clock": "data/latest/runs.json (clock_runs), runs_report.py, the workflow named, vacuity.py",
 }
 USAGE_CHECK = "\n".join((
     "USAGE CHECK",

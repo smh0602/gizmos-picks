@@ -170,8 +170,40 @@ def _perm_block(lines, at_indent, start=0, stop=None):
             base = indent
         if indent != base:
             break
-        out[key] = val.strip().strip('"').strip("'")
+        out[key] = _value(val)   # a scope's level
     return out
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A VALUE IS READ AS YAML MEANS IT: ITS ` # comment` IS NOT PART OF IT.
+#    `[2026-11-13]` job_names and job_env already cut it; job_timeouts did not,
+#    so `timeout-minutes: 45   # the clock` read as "no clock" (int() failed and
+#    was swallowed): runs_report.job_clocks then gave that job GitHub's 360, a run
+#    its own 45-minute clock stopped stayed `cancelled`, and the timed-out-run
+#    alarm (#333/#334) never fired. The step name / id / if, a step's env and a
+#    permissions block kept the comment too. ✅ ONE reader for every scalar
+#    value, so the class is fixed in one place; test_wfparse.py §3 sweeps every
+#    value of every workflow (deployed and staged) for a comment left in.
+# ══════════════════════════════════════════════════════════════════════
+def _uncomment(val):
+    """A scalar value with its trailing ` # comment` cut, as YAML cuts it. A `#`
+    with no space before it, or inside a value that is quoted whole, stays."""
+    return _JOB_NAME.match((val or "").strip()).group(1).strip()
+
+
+def _value(val):
+    """A scalar value as YAML means it: the comment cut (`_uncomment`), then the
+    quotes."""
+    return _uncomment(val).strip("\"'")
+
+
+class _Unreadable(str):
+    """A `timeout-minutes` that is set but is not a whole number: an expression,
+    a typo. ⛔ NOT "no clock": a caller that read it as None would give the job
+    GitHub's 360 minutes and miss the run its real clock stopped."""
+
+
+UNREADABLE = _Unreadable("unreadable")
 
 
 def jobs(src):
@@ -222,13 +254,14 @@ def steps(src, job=None):
                 if not (start <= lineno < end) or indent != col:
                     continue
                 if key == "name" and name is None:
-                    name = val.strip().strip('"').strip("'")
+                    name = _value(val)
                 elif key == "id" and sid is None:
-                    sid = val.strip().strip('"').strip("'")
+                    sid = _value(val)
                 elif key == "run" and run is None:
                     run = body if body is not None else val
                 elif key == "if" and cond is None:
-                    cond = (body if body is not None else val).strip()
+                    # ⚠️ the comment cut, never the quotes: `x != '0'` keeps its own
+                    cond = body.strip() if body is not None else _uncomment(val)
             out.append(Step(name, sid, run, start, end, cond))
     return out
 
@@ -269,7 +302,7 @@ def step_env(src, step_id=None, step_name=None, job=None):
         elif inside:
             child = indent if child is None else child
             if indent == child:
-                out[key] = val.strip().strip('"').strip("'")
+                out[key] = _value(val)   # a step's own env value
     return out
 
 
@@ -298,7 +331,10 @@ def git_adds(src):
 
 
 def job_timeouts(src):
-    """{job: its `timeout-minutes` as an int, or None when the job sets none}."""
+    """{job: its `timeout-minutes` as an int, None when the job sets none, or
+    `UNREADABLE` when it sets one that is not a whole number (an expression).
+    `[2026-11-13]` The comment is cut first (`_value`); ~~an unreadable value
+    was None~~, which every caller took for "no clock"."""
     lines = read(src).splitlines()
     out = {}
     for jb in jobs(src):
@@ -306,9 +342,9 @@ def job_timeouts(src):
         for lineno, indent, key, val, _b in _scan(lines):
             if jb.start <= lineno < jb.end and indent == 4 and key == "timeout-minutes":
                 try:
-                    out[jb.name] = int(val.strip().strip('"').strip("'"))
+                    out[jb.name] = int(_value(val))
                 except ValueError:
-                    pass
+                    out[jb.name] = UNREADABLE
     return out
 
 

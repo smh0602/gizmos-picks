@@ -212,7 +212,15 @@ failed recurring runs, i would like to avoid that"*. So:
    `[2026-09-25]` It runs it as five parallel jobs per image: `rest`, and
    the vacuity sweep in four parts (`SUITE_SHARD`, `VACUITY_PART`).
    `test_pr_shards.py` fails if a file or a declared mutation falls
-   between them. ~~`collect.yml` leaves both unset and runs everything.~~
+   between them. `[2026-11-13]` Each test's green-on-revert run is run ONCE
+   per sweep on a tree git shows is exactly HEAD, and reused for its other
+   declarations (`vacuity._Greens`, `_pristine`; `test_vacuity_greens.py`):
+   parts were at 79% of their 5,400s clock, and part 1/4 measured 174 green
+   runs instead of 546, 47% of the test-seconds (542 bite; the other 4 read
+   the same without the reuse, Windows-only). Still
+   four parts, still every declaration red, on both images.
+   ⛔ More parts when it fills again, never a higher clock.
+   ~~`collect.yml` leaves both unset and runs everything.~~
    `[Sam, 2026-10-02]` `collect.yml` runs the `rest` share
    (`SUITE_SHARD: rest` on its Tests step): the sweep checks the TESTS, not
    the data, and took 33 minutes before every pull. It still runs in full
@@ -1227,7 +1235,19 @@ note boxes, tags and the stale bar now require their absence.
   The football ungraded-card alarm fires only while a row is still OWED a grade
   (record_fb's `owed`: every unresolved state but `SETTLED_UNRESOLVED`, the player-side
   ones, an exclusion list), never on a card whose rows are graded as they will stay; a
-  final game the log does not hold stays owed.
+  final game the log does not hold stays owed. ✅ `[2026-11-13]` A JOB OR TEST FILE NEAR
+  ITS OWN CLOCK IS DEGRADED BEFORE THE CLOCK KILLS IT: pr-tests' sweep parts reached 79% of
+  test_vacuity.py's 5,400s clock (11-12) and only the PR page said so. The hourly runs
+  watcher reads every finished run's jobs once (`runs_report.read_clocks`, at most 40 calls
+  an hour, about 2 at steady state) into runs.json `clock_runs` (7 days): each job beside
+  its own `timeout-minutes`, a sweep part's Tests step beside test_vacuity.py's own clock
+  (read from the step, `sweep_clock`). `watchdog.check_job_clocks` is DEGRADED, no repair,
+  for the slowest run at 75%+ (`clock:<workflow>`) and for a job time it could not read
+  (`clock:unread`); the Monday email lists the slowest. ⛔ The answer is more parts or a
+  shorter job, never a higher clock. A `timeout-minutes` with a trailing comment is read
+  (it read as "no clock"), and one that is set but not a number is `wfparse.UNREADABLE`,
+  never None (`test_wfparse.py` §3). Not seen: a `rest` file against its own 600s (no
+  per-file time outside the job log). `test_job_clocks.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -1767,7 +1787,8 @@ status.py         THE WEEKLY STATUS EMAIL (Sam, 2026-10-07): one issue, updated
                   `[2026-10-26]` an injury branch whose entry main already
                   holds is no longer "Needs you" (`injury_recorded`); the
                   game-day injury checks that ran, failed or never ran
-                  (`injury_checks`).
+                  (`injury_checks`). `[2026-11-13]` "Job clocks": the week's
+                  slowest job against its own clock, and each at 75%+.
 card_gate.py      did the card fail for a reason Sam already accepted?
                   ⚠️ `[2026-10-01]` the page no longer says a card was
                   published past an accepted check (the stale bar went).
@@ -1818,6 +1839,9 @@ wfparse.py        the one HAND parser for a workflow file -- jobs,
                   runner (measured 2026-09-19) and a test that cannot
                   import blocks a push. Cross-checked against PyYAML
                   in test_wfparse.py wherever PyYAML happens to exist.
+                  `[2026-11-13]` Every scalar value through `_value` (its
+                  ` # comment` cut, then quotes); a `timeout-minutes` that
+                  is set but not a number is `UNREADABLE`, never None.
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
 self_repair.py    self-repair triage: which watcher issue the repair agent
@@ -1842,7 +1866,11 @@ runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
                   the name it lists under, never its id (`_own_clock`: the
                   shortest of every job that could carry the name). ⛔ No
                   annotation in `collect()`: `watch` holds no `checks: read`.
-                  `test_runs_timeout.py`.
+                  `test_runs_timeout.py`. `[2026-11-13]` runs.json also keeps
+                  7 days of `clock_runs`: each finished run's jobs beside their
+                  own clocks, read once (`read_clocks`), judged by
+                  `clock_report` for the watchdog and status.py.
+                  `test_job_clocks.py`.
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a
                   gzip, 560x) and never into `picks/`.
@@ -1933,7 +1961,10 @@ vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   one sweep through `verdict()`. ⛔ A part that never
                   reported is never exit 0, and a crash is exit 2, never
                   1 (1 is a finding, and writes the issue).
-                  `test_vacuity_merge.py`.
+                  `test_vacuity_merge.py`. `[2026-11-13]` A test's green run
+                  is run once per sweep and reused, only on a tree git
+                  shows is exactly HEAD (`_pristine`: no change, no
+                  untracked, no ignored file). `test_vacuity_greens.py`.
 ```
 
 ⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`

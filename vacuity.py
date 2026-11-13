@@ -77,6 +77,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -412,8 +413,85 @@ def rotted(root=ROOT):
     return out
 
 
-def _tier2_one(d, root):
-    """Apply one declared mutation in `root`: RED, revert, GREEN."""
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE GREEN-ON-REVERT RUN, ONCE PER TEST ON A PRISTINE TREE. `[2026-11-13]`
+# ══════════════════════════════════════════════════════════════════════
+# `[measured, pr-tests run 43131342239, 2026-11-12]` Sweep parts used 4,158s
+# and 4,097s of test_vacuity.py's 5,400s clock (4,249s on 11-12's slowest), and
+# the slowest part grew 500-800 s a week. `[measured 2026-11-13, locally, part
+# 1/4]` THE GREEN RUN IS MOST OF THE COST: per declaration, red / green was
+# test_fb_refit.py 19s / 84s (14 declarations), test_dossier_fb.py 52 / 196 (7),
+# test_fb_matchup_grade.py 9 / 41 (9), test_fb_score_model.py 18 / 47 (7),
+# test_heartbeat.py 12 / 47 (5). A red run stops at its first failed check; the
+# green run is the whole file, on the SAME unmutated tree, once per declaration:
+# test_fb_refit.py's 14 green runs in one part were one experiment run 14 times.
+# ✅ SO A TEST'S GREEN RUN IS RUN ONCE PER SWEEP AND REUSED, but ONLY when the
+#    tree is provably the tree that run saw: after the revert, git lists no
+#    change, no untracked file and no ignored file in it (`_pristine`; bytecode
+#    aside, which `run_test` purges before every run). Every worker tree is a
+#    detached worktree of the clean root's HEAD (`_pool`), so a pristine tree is
+#    byte for byte HEAD, in whichever tree the first green ran.
+# ⛔ NOTHING ELSE CHANGES. Every declaration is still applied, still run RED in
+#    a tree of its own, still reverted; a test red unmutated is still
+#    RED_BOTH_WAYS for every declaration it carries; a leak is still a leak.
+#    A tree that is NOT pristine after the revert (a red run that left a file,
+#    a dirty root swept in place) runs its own green, exactly as before.
+#    `test_vacuity_greens.py` drives all of it.
+# `[measured 2026-11-13, locally, part 1/4 of the real tree, 4 trees]` 546
+#    declarations: 174 green runs instead of 546, 5,327 test-seconds against
+#    11,442 had every green run (47%); 542 bite, and the other 4 read the same
+#    without the reuse (Windows-only reds and one Windows-only VACUOUS). A new declaration on a
+#    test that already has one now costs its red run only (6.3s average, of 21s).
+def _pristine(root):
+    """Is `root` exactly its HEAD? No change, no untracked and no ignored file,
+    bytecode aside. ⛔ Fails closed: a git that cannot answer is not pristine."""
+    try:
+        p = subprocess.run(["git", "status", "--porcelain", "--ignored",
+                            "--untracked-files=all"], cwd=root,
+                           capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if p.returncode != 0:
+        return False
+    return not [ln for ln in p.stdout.splitlines() if ln.strip()
+                and "__pycache__/" not in ln and not ln.rstrip().endswith(".pyc")]
+
+
+class _Greens(object):
+    """One sweep's green runs: test -> its exit code on a pristine tree.
+
+    ⚠️ A test two trees ask for at once is run ONCE: the second waits for the
+    first. If the run that owns it raises, a waiter runs its own."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._got = {}
+
+    def get(self, t, run):
+        """-> (exit code, reused?)."""
+        with self._lock:
+            slot = self._got.get(t)
+            mine = slot is None
+            if mine:
+                slot = self._got[t] = (threading.Event(), [])
+        done, box = slot
+        if mine:
+            try:
+                box.append(run())
+            finally:
+                done.set()
+            return box[0], False
+        done.wait()
+        if not box:
+            return run(), False
+        return box[0], True
+
+
+def _tier2_one(d, root, greens=None):
+    """Apply one declared mutation in `root`: RED, revert, GREEN.
+
+    `greens` (one `_Greens` per sweep) reuses the test's green run when `root`
+    is pristine after the revert; None runs it every time, as before."""
     t = d["test"]
     miss = [k for k in ("file", "find", "with") if not d.get(k)]
     if miss:
@@ -451,13 +529,20 @@ def _tier2_one(d, root):
                        % (t, d["file"], d["find"], d["with"])}
     # ✅ AND GREEN ON THE REVERT. Red under mutation is only half the
     #    claim: a test that is red either way proves nothing either.
-    green = run_test(t, root)
+    # `[2026-11-13]` Once per test on a pristine tree (see `_pristine`).
+    def _green_run():
+        green = run_test(t, root)
+        return green
+    if greens is not None and _pristine(root):
+        green, reused = greens.get(t, _green_run)
+    else:
+        green, reused = _green_run(), False
     secs = round(time.time() - t0, 1)
     if green != 0:
-        return {**d, "state": "RED_BOTH_WAYS", "secs": secs,
+        return {**d, "state": "RED_BOTH_WAYS", "secs": secs, "green_reused": reused,
                 "why": "%s is RED even unmutated — its mutation result "
                        "says nothing" % t}
-    return {**d, "state": "BITES", "secs": secs,
+    return {**d, "state": "BITES", "secs": secs, "green_reused": reused,
             "why": "red under `%s` -> `%s`, green on revert"
                    % (d["find"], d["with"])}
 
@@ -472,8 +557,9 @@ def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
     since 2026-10-02.
     """
     ds = [d for d in declarations(root) if not (only and d["test"] not in only)]
+    greens = _Greens()
     return _pool(root, JOBS if jobs is None else jobs, part_of(ds, part),
-                 _tier2_one, leaks)
+                 lambda d, tree: _tier2_one(d, tree, greens), leaks)
 
 
 # ══════════════════════════════════════════════════════════════════════
