@@ -5272,8 +5272,9 @@ const FB_KICK_WINDOW_H = 4;
 function fbSameGameDay(a, b){
   const x = fbStartDate(a), y = fbStartDate(b);
   if (!isFinite(x) || !isFinite(y)) return false;
-  return Math.abs(x.getTime() - y.getTime()) <= FB_KICK_WINDOW_H * 3600e3
-      || etDate(x.getTime()) === etDate(y.getTime());
+  const d = Math.abs(x.getTime() - y.getTime());
+  return d <= FB_KICK_WINDOW_H * 3600e3
+      || (d < 25 * 3600e3 && etDate(x.getTime()) === etDate(y.getTime()));   // an Eastern day is at most 25h
 }
 
 function fbBoardFor(g){
@@ -5281,8 +5282,9 @@ function fbBoardFor(g){
   if (!B.length || !g) return null;
   const h = fbResolve(g.home), a = fbResolve(g.away);
   if (!h || !a || h === a) return null;
-  const day = B.filter(x => x && fbSameGameDay(g.start, x.commence));
   const has = (x, t) => fbResolve(x.home) === t || fbResolve(x.away) === t;
+  // ⚠️ the teams first (memoised), so the clock is asked about one or two records, not 76
+  const day = B.filter(x => x && (has(x, h) || has(x, a)) && fbSameGameDay(g.start, x.commence));
   const withH = day.filter(x => has(x, h)), withA = day.filter(x => has(x, a));
   // ⛔ each team in exactly ONE board game that game day, and the same one
   return (withH.length === 1 && withA.length === 1 && withH[0] === withA[0])

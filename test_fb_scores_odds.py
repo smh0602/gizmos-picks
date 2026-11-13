@@ -33,7 +33,7 @@ an assertion. Today's live college and NFL files are measured as a `note()` only
 
 # @vacuity 🔴 the base defect: a board game is found by the feeds' NAMES again (0 of N college)
 #   file: index.html
-#   find: const day = B.filter(x => x && fbSameGameDay(g.start, x.commence));
+#   find: const day = B.filter(x => x && (has(x, h) || has(x, a)) && fbSameGameDay(g.start, x.commence));
 #   with: const day = B.filter(x => x && [[g.home, x.home], [g.away, x.away]].every(([s, o]) => String(((fbResolve(s) || {}).name) || s).toLowerCase() === String(o).toLowerCase()));
 #
 # @vacuity 🔴 the base defect's other half: the card reads the board by OUR spelling of the team
@@ -48,8 +48,8 @@ an assertion. Today's live college and NFL files are measured as a `note()` only
 #
 # @vacuity ⛔ no game-day test: a rematch weeks later borrows this week's odds
 #   file: index.html
-#   find: const day = B.filter(x => x && fbSameGameDay(g.start, x.commence));
-#   with: const day = B.filter(x => x);
+#   find: const day = B.filter(x => x && (has(x, h) || has(x, a)) && fbSameGameDay(g.start, x.commence));
+#   with: const day = B.filter(x => x && (has(x, h) || has(x, a)));
 #
 # @vacuity ⛔ two board records for one pair: the first one is taken instead of refused
 #   file: index.html
@@ -68,12 +68,12 @@ an assertion. Today's live college and NFL files are measured as a `note()` only
 #
 # @vacuity 🔴 CFBD's midnight placeholder for a time not yet set is the same game day
 #   file: index.html
-#   find: || etDate(x.getTime()) === etDate(y.getTime());
+#   find: || (d < 25 * 3600e3 && etDate(x.getTime()) === etDate(y.getTime()));   // an Eastern day is at most 25h
 #   with: || false;
 #
 # @vacuity 🔴 a kickoff moved across midnight Eastern is still the same game
 #   file: index.html
-#   find: return Math.abs(x.getTime() - y.getTime()) <= FB_KICK_WINDOW_H * 3600e3
+#   find: return d <= FB_KICK_WINDOW_H * 3600e3
 #   with: return false
 """
 import gzip
