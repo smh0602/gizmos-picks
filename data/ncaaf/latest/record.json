@@ -1,5 +1,5 @@
 {
- "built_at": "2026-11-13T19:02:56Z",
+ "built_at": "2026-11-13T19:57:01Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -313,7 +313,7 @@
    "n": 94,
    "pct": 30.9
   },
-  "shown": 94,
+  "shown": 96,
   "by_basis": {
    "MARKET": {
     "w": 7,
@@ -327,7 +327,7 @@
    }
   },
   "voids": 0,
-  "pending": 0,
+  "pending": 2,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -1739,6 +1739,36 @@
     "commence": "2026-11-13T01:00:00Z",
     "won": false,
     "state": "graded"
+   },
+   {
+    "date": "2026-11-13",
+    "player": "Illinois Fighting Illini",
+    "side": "away",
+    "line": 12.5,
+    "price": -125,
+    "book": "hardrockbet",
+    "confidence": 63,
+    "confidence_basis": "MODEL",
+    "break_even": 55.6,
+    "game": "Illinois Fighting Illini @ UCLA Bruins",
+    "commence": "2026-11-14T02:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-11-13",
+    "player": "Pittsburgh Panthers",
+    "side": "home",
+    "line": -4.5,
+    "price": 110,
+    "book": "hardrockbet",
+    "confidence": 52,
+    "confidence_basis": "MODEL",
+    "break_even": 47.6,
+    "game": "Florida State Seminoles @ Pittsburgh Panthers",
+    "commence": "2026-11-14T00:00:00Z",
+    "won": null,
+    "state": "pending"
    }
   ]
  },
@@ -2400,10 +2430,10 @@
    "date": "2026-11-13",
    "w": 0,
    "n": 0,
-   "carded": 8,
+   "carded": 9,
    "voids": 0,
-   "unresolved": 8,
-   "owed": 8
+   "unresolved": 9,
+   "owed": 9
   }
  ],
  "days_graded": 39,
@@ -2413,10 +2443,10 @@
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
  "distinct_players": 347,
  "distinct_games": 212,
- "carded_rows": 723,
+ "carded_rows": 724,
  "voids": 0,
- "unresolved": 64,
- "coverage_note": "659 of 723 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 64 could not be settled at all.",
+ "unresolved": 65,
+ "coverage_note": "659 of 724 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 65 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
