@@ -1,7 +1,7 @@
 {
  "date": "2026-11-12",
  "league": "ncaaf",
- "generated_at": "2026-11-13T00:46:20Z",
+ "generated_at": "2026-11-13T01:07:58Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-12T19:06:53Z",
@@ -282,19 +282,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-13T00:45:52Z",
-  "ladder_built_at": "2026-11-13T00:46:03Z",
-  "alt_spreads": 2
+  "model_built_at": "2026-11-13T01:00:29Z",
+  "ladder_built_at": "2026-11-13T01:07:46Z",
+  "alt_spreads": 1
  },
  "scores_shown": [
-  {
-   "away": "Memphis Tigers",
-   "home": "South Florida Bulls",
-   "score": {
-    "home": 25,
-    "away": 24
-   }
-  },
   {
    "away": "Louisiana Ragin Cajuns",
    "home": "UL Monroe Warhawks",
@@ -776,7 +768,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 4 pick(s) for 2026-11-12 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (2 listed).",
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-11-12 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -872,22 +864,22 @@
     "<b>JJ Garner</b> went under 62.5 rush yds in <b>7 of 9 games</b> in 2026, in the games he appears in."
    ],
    "model_p": 57.5,
-   "rank": 2
+   "rank": 13
   }
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 1,
-  "same_game_already_listed": 22,
+  "same_game_already_listed": 8,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 25,
+  "pool_after_price_gate": 10,
   "cap": 10,
-  "distinct_games": 2,
-  "shared_with_board_head": 2,
+  "distinct_games": 1,
+  "shared_with_board_head": 1,
   "board_head_size": 10
  },
- "top_plays_rule": "The 2 most likely to hit for 2026-11-12 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 10, over 2 game(s). 22 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-11-12 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 8 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -1151,8 +1143,8 @@
   "4": []
  },
  "parlay_meta": {
-  "pool": 12,
-  "rated_legs": 25,
+  "pool": 10,
+  "rated_legs": 10,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -1166,8 +1158,8 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 25,
-    "taken": 12
+    "available": 10,
+    "taken": 10
    },
    {
     "decimal": "2-3",
@@ -1181,77 +1173,15 @@
    }
   ],
   "rejected": {
-   "same_game": 745,
+   "same_game": 375,
    "same_player": 0,
-   "mixed_book": 18,
+   "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "25 rated legs, 12 in the stratified pool. Rejected: 745 same game, 0 same player, 18 would need two books, 0 outside Sam's bands."
+  "note": "10 rated legs, 10 in the stratified pool. Rejected: 375 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
-   {
-    "legs": [
-     "JJ Garner u62.5 rush yds",
-     "Louisiana Ragin Cajuns -10.5 spread"
-    ],
-    "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-    "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -110,
-     -105
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -105,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.727,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 58,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     58
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "JJ Garner u63.5 rush yds",
-     "Louisiana Ragin Cajuns -10.5 spread"
-    ],
-    "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-    "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -110
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -105,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.584,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 58,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     58
-    ],
-    "band_floor": 1.8
-   },
    {
     "legs": [
      "D.J. Crowther u91.5 rush yds",
@@ -1315,47 +1245,10 @@
      53
     ],
     "band_floor": 1.8
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "JJ Garner u63.5 rush yds",
-     "Steven Blanco u54.5 rush yds",
-     "Louisiana Ragin Cajuns -10.5 spread"
-    ],
-    "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-    "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -118,
-     -110
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.621,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 55,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     58,
-     55
-    ],
-    "band_floor": 3.0
    },
    {
     "legs": [
      "JJ Garner u62.5 rush yds",
-     "Nic Trujillo u31.5 rec yds",
      "Louisiana Ragin Cajuns -10.5 spread"
     ],
     "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
@@ -1364,28 +1257,59 @@
     "book": "hardrockbet",
     "prices": [
      -110,
-     -120,
      -105
     ],
     "line_best_book": "hardrockbet",
     "line_best_price": -105,
-    "n_legs": 3,
+    "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 6.833,
+    "multiplier": 3.727,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 53,
+    "weakest_leg": 58,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     58,
-     53
+     58
     ],
-    "band_floor": 3.0
+    "band_floor": 1.8
    },
+   {
+    "legs": [
+     "JJ Garner u63.5 rush yds",
+     "Louisiana Ragin Cajuns -10.5 spread"
+    ],
+    "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+    "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -110
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.584,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 58,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
    {
     "legs": [
      "D.J. Crowther u91.5 rush yds",
@@ -1455,17 +1379,85 @@
      52
     ],
     "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "JJ Garner u63.5 rush yds",
+     "Steven Blanco u54.5 rush yds",
+     "Louisiana Ragin Cajuns -10.5 spread"
+    ],
+    "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+    "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -118,
+     -110
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.621,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58,
+     55
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "JJ Garner u62.5 rush yds",
+     "Nic Trujillo u31.5 rec yds",
+     "Louisiana Ragin Cajuns -10.5 spread"
+    ],
+    "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+    "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -110,
+     -120,
+     -105
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.833,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 53,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58,
+     53
+    ],
+    "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 2,
+  "games_with_rated_legs": 1,
   "games_with_a_line_row": 1,
-  "games_used": 2,
+  "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 54,
-   "mixed_book": 219,
+   "same_player": 20,
+   "mixed_book": 124,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -1473,7 +1465,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "2 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -1894,19 +1886,19 @@
   }
  },
  "name_match_rate": 0.917,
- "n_priced": 33,
+ "n_priced": 15,
  "single_day": true,
  "slate_date": "2026-11-12",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 33,
+ "n_on_slate_day": 15,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-12 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "33 priced football rows for 2026-11-12 across 2 board games; 25 shown.",
+ "coverage": "15 priced football rows for 2026-11-12 across 2 board games; 13 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. There are not enough graded College Football plays yet to say whether these confidence numbers hold up \u2014 15 so far, and no band has reached 20. Treat every one as unproven.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -1963,102 +1955,6 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "JJ Garner",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 62.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8063637206987833744",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 58,
-   "raw": "7 of 9",
-   "record": "7 of 9",
-   "rate": 78,
-   "break_even": 52.4,
-   "edge": 5.6,
-   "season_detail": {
-    "h25": 0,
-    "n25": 0,
-    "h26": 7,
-    "n26": 9,
-    "w25": 0.308,
-    "p0": 0.774,
-    "weighted_n": 9.0,
-    "mean_all": 48.889
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 48.89,
-   "projection": 48.9,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 48.9 rush yds a game.",
-   "why": [
-    "<b>JJ Garner</b> went under 62.5 rush yds in <b>7 of 9 games</b> in 2026, in the games he appears in."
-   ],
-   "model_p": 57.5,
-   "rank": 2
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Steven Blanco",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 54.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "fanduel",
-   "price": -118,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624686027&selectionId=105027304",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "16 of 19",
-   "record": "16 of 19",
-   "rate": 77,
-   "break_even": 54.1,
-   "edge": 0.9,
-   "season_detail": {
-    "h25": 9,
-    "n25": 10,
-    "h26": 7,
-    "n26": 9,
-    "w25": 0.308,
-    "p0": 0.73,
-    "weighted_n": 12.08,
-    "mean_all": 23.895
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 15.6,
-   "projection": 23.9,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 23.9 rush yds a game.",
-   "why": [
-    "<b>Steven Blanco</b> went under 54.5 rush yds in <b>7 of 9 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
-   ],
-   "model_p": 55.2,
-   "rank": 3
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Marcus Stokes",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -2101,7 +1997,7 @@
     "<b>Marcus Stokes</b> went over 20.5 rush yds in <b>6 of 9 games</b> in 2026, in the games he appears in."
    ],
    "model_p": 53.3,
-   "rank": 4
+   "rank": 2
   },
   {
    "kind": "fb",
@@ -2149,85 +2045,7 @@
     "<b>Jemyri Davis</b> went over 37.5 rec yds in <b>5 of 7 games</b> in 2026 and 0 of 2 in 2025, in the games he appears in."
    ],
    "model_p": 53.4,
-   "rank": 5,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Nic Trujillo",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 31.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "hardrockbet",
-   "price": -120,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6207852170891624836",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 53,
-   "model_p": 53.3,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 54.5,
-   "edge": -1.5,
-   "rank": 6,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Aidan Armenta",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "over",
-   "line": 142.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624685028&selectionId=105027180",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "11 of 19",
-   "record": "11 of 19",
-   "rate": 57,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 6,
-    "n25": 11,
-    "h26": 5,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.546,
-    "weighted_n": 11.67,
-    "mean_all": 159.211
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 147.18,
-   "projection": 159.2,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 159.2 pass yds a game.",
-   "why": [
-    "<b>Aidan Armenta</b> went over 142.5 pass yds in <b>5 of 8 games</b> in 2026 and 6 of 11 in 2025, in the games he appears in."
-   ],
-   "model_p": 52.3,
-   "rank": 7,
+   "rank": 3,
    "below_price": true
   },
   {
@@ -2276,7 +2094,7 @@
     "<b>Marcus Stokes</b> went under 254.5 pass yds in <b>3 of 9 games</b> in 2026, in the games he appears in."
    ],
    "model_p": 52.2,
-   "rank": 8,
+   "rank": 4,
    "below_price": true
   },
   {
@@ -2325,36 +2143,7 @@
     "<b>Hunter Tipton</b> went over 34.5 rec yds in <b>3 of 9 games</b> in 2026 and 5 of 12 in 2025, in the games he appears in."
    ],
    "model_p": 52.0,
-   "rank": 9,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "KeDarius Wade",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 30.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "hardrockbet",
-   "price": -120,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4924722651032846763",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 54.5,
-   "edge": -2.5,
-   "rank": 10,
+   "rank": 5,
    "below_price": true
   },
   {
@@ -2403,7 +2192,7 @@
     "<b>Jermane Hayes</b> went under 44.5 rec yds in <b>5 of 9 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
    ],
    "model_p": 50.9,
-   "rank": 11,
+   "rank": 6,
    "below_price": true
   },
   {
@@ -2452,7 +2241,7 @@
     "<b>Jaylin Carter</b> went under 81.5 rush yds in <b>3 of 9 games</b> in 2026 and 10 of 10 in 2025, in the games he appears in."
    ],
    "model_p": 51.4,
-   "rank": 12,
+   "rank": 7,
    "below_price": true
   },
   {
@@ -2501,105 +2290,7 @@
     "<b>Manny Covey</b> went over 32.5 rush yds in <b>5 of 9 games</b> in 2026 and 3 of 7 in 2025, in the games he appears in."
    ],
    "model_p": 51.2,
-   "rank": 13,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Marcellus Jackson",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 33.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624686772&selectionId=105027389",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 51,
-   "raw": "4 of 8",
-   "record": "4 of 8",
-   "rate": 53,
-   "break_even": 53.3,
-   "edge": -2.3,
-   "season_detail": {
-    "h25": 0,
-    "n25": 0,
-    "h26": 4,
-    "n26": 8,
-    "w25": 0.333,
-    "p0": 0.552,
-    "weighted_n": 8.0,
-    "mean_all": 46.25
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 46.25,
-   "projection": 46.2,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 8 games this record is built from \u2014 46.2 rec yds a game.",
-   "why": [
-    "<b>Marcellus Jackson</b> went under 33.5 rec yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
-   ],
-   "model_p": 50.8,
-   "rank": 14,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Trenton Chaney",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 30.5,
-   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
-   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
-   "away": "Louisiana Ragin Cajuns",
-   "home": "UL Monroe Warhawks",
-   "commence": "2026-11-13T02:00:00Z",
-   "book": "hardrockbet",
-   "price": -120,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6391426632265105825",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 51,
-   "raw": "6 of 9",
-   "record": "6 of 9",
-   "rate": 60,
-   "break_even": 54.5,
-   "edge": -3.5,
-   "season_detail": {
-    "h25": 0,
-    "n25": 2,
-    "h26": 6,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.482,
-    "weighted_n": 7.73,
-    "mean_all": 31.111
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 8.5,
-   "projection": 31.1,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 31.1 rec yds a game.",
-   "why": [
-    "<b>Trenton Chaney</b> went over 30.5 rec yds in <b>6 of 7 games</b> in 2026 and 0 of 2 in 2025, in the games he appears in."
-   ],
-   "model_p": 50.9,
-   "rank": 15,
+   "rank": 8,
    "below_price": true
   },
   {
@@ -2648,7 +2339,383 @@
     "<b>Bryson Rodgers</b> went over 36.5 rec yds in <b>5 of 9 games</b> in 2026 and 0 of 3 in 2025, in the games he appears in."
    ],
    "model_p": 50.2,
+   "rank": 9,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Memphis Tigers D/ST",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Memphis Tigers @ South Florida Bulls",
+   "game_id": "9d463c4686f84c78b890f0fcf2ac90c5",
+   "away": "Memphis Tigers",
+   "home": "South Florida Bulls",
+   "commence": "2026-11-13T01:00:00Z",
+   "book": "draftkings",
+   "price": 380,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387648452%232358100119_14L87637Q1-1486633850Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Memphis Tigers D/ST \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 10
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Stonka Burnside",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Memphis Tigers @ South Florida Bulls",
+   "game_id": "9d463c4686f84c78b890f0fcf2ac90c5",
+   "away": "Memphis Tigers",
+   "home": "South Florida Bulls",
+   "commence": "2026-11-13T01:00:00Z",
+   "book": "draftkings",
+   "price": 240,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387648452%232358100045_13L87637Q1679514714Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Stonka Burnside \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 11
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Stonka Burnside",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 49.5,
+   "game": "Memphis Tigers @ South Florida Bulls",
+   "game_id": "9d463c4686f84c78b890f0fcf2ac90c5",
+   "away": "Memphis Tigers",
+   "home": "South Florida Bulls",
+   "commence": "2026-11-13T01:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624628861&selectionId=103975477",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Stonka Burnside \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "JJ Garner",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 62.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8063637206987833744",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 58,
+   "raw": "7 of 9",
+   "record": "7 of 9",
+   "rate": 78,
+   "break_even": 52.4,
+   "edge": 5.6,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 7,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.774,
+    "weighted_n": 9.0,
+    "mean_all": 48.889
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 48.89,
+   "projection": 48.9,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 48.9 rush yds a game.",
+   "why": [
+    "<b>JJ Garner</b> went under 62.5 rush yds in <b>7 of 9 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 57.5,
+   "rank": 13
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Steven Blanco",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 54.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "fanduel",
+   "price": -118,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624686027&selectionId=105027304",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "16 of 19",
+   "record": "16 of 19",
+   "rate": 77,
+   "break_even": 54.1,
+   "edge": 0.9,
+   "season_detail": {
+    "h25": 9,
+    "n25": 10,
+    "h26": 7,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.73,
+    "weighted_n": 12.08,
+    "mean_all": 23.895
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 15.6,
+   "projection": 23.9,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 23.9 rush yds a game.",
+   "why": [
+    "<b>Steven Blanco</b> went under 54.5 rush yds in <b>7 of 9 games</b> in 2026 and 9 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.2,
+   "rank": 14
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nic Trujillo",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 31.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6207852170891624836",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 53.3,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": -1.5,
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aidan Armenta",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "over",
+   "line": 142.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624685028&selectionId=105027180",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "11 of 19",
+   "record": "11 of 19",
+   "rate": 57,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 6,
+    "n25": 11,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.546,
+    "weighted_n": 11.67,
+    "mean_all": 159.211
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 147.18,
+   "projection": 159.2,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 159.2 pass yds a game.",
+   "why": [
+    "<b>Aidan Armenta</b> went over 142.5 pass yds in <b>5 of 8 games</b> in 2026 and 6 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.3,
    "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "KeDarius Wade",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 30.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4924722651032846763",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 51.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": -2.5,
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Marcellus Jackson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 33.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624686772&selectionId=105027389",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "4 of 8",
+   "record": "4 of 8",
+   "rate": 53,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.552,
+    "weighted_n": 8.0,
+    "mean_all": 46.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 46.25,
+   "projection": 46.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 46.2 rec yds a game.",
+   "why": [
+    "<b>Marcellus Jackson</b> went under 33.5 rec yds in <b>4 of 8 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 50.8,
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Trenton Chaney",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 30.5,
+   "game": "Louisiana Ragin Cajuns @ UL Monroe Warhawks",
+   "game_id": "6a3fbf6388d7c72076555fc4a4bbedf2",
+   "away": "Louisiana Ragin Cajuns",
+   "home": "UL Monroe Warhawks",
+   "commence": "2026-11-13T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6391426632265105825",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 9",
+   "record": "6 of 9",
+   "rate": 60,
+   "break_even": 54.5,
+   "edge": -3.5,
+   "season_detail": {
+    "h25": 0,
+    "n25": 2,
+    "h26": 6,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.482,
+    "weighted_n": 7.73,
+    "mean_all": 31.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 8.5,
+   "projection": 31.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 31.1 rec yds a game.",
+   "why": [
+    "<b>Trenton Chaney</b> went over 30.5 rec yds in <b>6 of 7 games</b> in 2026 and 0 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.9,
+   "rank": 19,
    "below_price": true
   },
   {
@@ -2677,33 +2744,8 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -3.3,
-   "rank": 17,
+   "rank": 20,
    "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MARKET \u2014 price only, no rate available",
-   "player": "Memphis Tigers D/ST",
-   "market": "player_anytime_td",
-   "market_label": "Anytime TD",
-   "side": "yes",
-   "line": null,
-   "game": "Memphis Tigers @ South Florida Bulls",
-   "game_id": "9d463c4686f84c78b890f0fcf2ac90c5",
-   "away": "Memphis Tigers",
-   "home": "South Florida Bulls",
-   "commence": "2026-11-13T01:00:00Z",
-   "book": "draftkings",
-   "price": 380,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387648452%232358100119_14L87637Q1-1486633850Q20",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MARKET",
-   "why": [
-    "No 2025 or 2026 game log matched Memphis Tigers D/ST \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
-   ],
-   "rank": 18
   },
   {
    "kind": "fb",
@@ -2728,7 +2770,7 @@
    "why": [
     "No 2025 or 2026 game log matched Don Chaney \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
    ],
-   "rank": 19
+   "rank": 21
   },
   {
    "kind": "fb",
@@ -2752,56 +2794,6 @@
    "confidence_basis": "MARKET",
    "why": [
     "No 2025 or 2026 game log matched Louisiana Ragin Cajuns D/ST \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
-   ],
-   "rank": 20
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MARKET \u2014 price only, no rate available",
-   "player": "Stonka Burnside",
-   "market": "player_anytime_td",
-   "market_label": "Anytime TD",
-   "side": "yes",
-   "line": null,
-   "game": "Memphis Tigers @ South Florida Bulls",
-   "game_id": "9d463c4686f84c78b890f0fcf2ac90c5",
-   "away": "Memphis Tigers",
-   "home": "South Florida Bulls",
-   "commence": "2026-11-13T01:00:00Z",
-   "book": "draftkings",
-   "price": 240,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387648452%232358100045_13L87637Q1679514714Q20",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MARKET",
-   "why": [
-    "No 2025 or 2026 game log matched Stonka Burnside \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
-   ],
-   "rank": 21
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MARKET \u2014 price only, no rate available",
-   "player": "Stonka Burnside",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 49.5,
-   "game": "Memphis Tigers @ South Florida Bulls",
-   "game_id": "9d463c4686f84c78b890f0fcf2ac90c5",
-   "away": "Memphis Tigers",
-   "home": "South Florida Bulls",
-   "commence": "2026-11-13T01:00:00Z",
-   "book": "fanduel",
-   "price": -112,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624628861&selectionId=103975477",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MARKET",
-   "why": [
-    "No 2025 or 2026 game log matched Stonka Burnside \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
    ],
    "rank": 22
   },
@@ -3097,7 +3089,7 @@
    ]
   }
  ],
- "n_longshots_excluded": 7,
+ "n_longshots_excluded": 4,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
