@@ -5241,16 +5241,61 @@ function fbLogoFail(img){
    grid. ⛔ Do not fabricate quarters from the final score.
    ══════════════════════════════════════════════════════════════════ */
 
-/* The market row for one football game, from the live odds board. */
+/* ══════════════════════════════════════════════════════════════════
+   🔴 THE MARKET ROW FOR ONE FOOTBALL GAME: THE SAME TWO TEAMS, THE SAME
+   GAME DAY, AND ONLY ONE BOARD RECORD THAT FITS. `[2026-11-13]`
+   ~~`nm(full(schedule name)) === nm(board name)`~~: college's directory
+   entries carry no `name`, so the schedule's "Memphis" was compared with
+   the board's "Memphis Tigers" and 0 of 76 college board games joined: no
+   college Scores card showed a moneyline or a win % (first reported in PR
+   #218, 2026-10-02; Sam asked for "the odds under each team", 2026-09-03).
+   The NFL joined 27 of 27 only because its embedded directory carries the
+   full name.
+   ✅ BOTH names go through `fbResolve`, the page's one resolver, and the
+   teams are compared as directory ENTRIES, never as strings or substrings.
+   ✅ THE SAME GAME: kickoffs on the same Eastern date (CFBD files a time
+   still to be set at midnight Eastern, 5 of 76 board games that day; an
+   NFL flex moved two games 3h25m) or within `FB_KICK_WINDOW_H` hours (a
+   kickoff moved across midnight). Two teams never meet twice in one
+   football day; a rematch is weeks later.
+   ⛔ IT FAILS CLOSED, like MLB's `boardFor`: an unresolved side, both sides
+   one entry, two board records for the pair, or a team in two board games
+   that game day (two schools collapsed into one entry, Miami and Miami
+   (OH)) returns null and the card shows no odds. A card missing its odds
+   is a card missing its odds; a card showing another game's odds is
+   misinformation. Home and away may be swapped (a neutral site): every
+   number is read by the board's own name for THAT team (`fbBoardKey`),
+   never by ours. test_fb_scores_odds.py.
+   ══════════════════════════════════════════════════════════════════ */
+const FB_KICK_WINDOW_H = 4;
+
+function fbSameGameDay(a, b){
+  const x = fbStartDate(a), y = fbStartDate(b);
+  if (!isFinite(x) || !isFinite(y)) return false;
+  return Math.abs(x.getTime() - y.getTime()) <= FB_KICK_WINDOW_H * 3600e3
+      || etDate(x.getTime()) === etDate(y.getTime());
+}
+
 function fbBoardFor(g){
   const B = (FBBOARD[LEAGUE] || {}).games || [];
-  if (!B.length) return null;
-  const nm = x => String(x || '').toLowerCase();
-  // ⚠️ The schedule says "SEA"; the board says "Seattle Seahawks". The
-  // team directory bridges them, so match on BOTH shapes.
-  const full = x => { const t = fbResolve(x); return (t && t.name) ? t.name : x; };
-  const h = nm(full(g.home)), a = nm(full(g.away));
-  return B.find(x => nm(x.home) === h && nm(x.away) === a) || null;
+  if (!B.length || !g) return null;
+  const h = fbResolve(g.home), a = fbResolve(g.away);
+  if (!h || !a || h === a) return null;
+  const day = B.filter(x => x && fbSameGameDay(g.start, x.commence));
+  const has = (x, t) => fbResolve(x.home) === t || fbResolve(x.away) === t;
+  const withH = day.filter(x => has(x, h)), withA = day.filter(x => has(x, a));
+  // ⛔ each team in exactly ONE board game that game day, and the same one
+  return (withH.length === 1 && withA.length === 1 && withH[0] === withA[0])
+    ? withH[0] : null;
+}
+
+/* The board's own name for one of OUR teams, or null. ⚠️ Every number on a
+   board row (`win_pct`, `best_ml`) is keyed by the sportsbook's spelling
+   ("Memphis Tigers"), so it is read by this, never by the schedule's name. */
+function fbBoardKey(b, t){
+  const e = fbResolve(t);
+  if (!b || !e) return null;
+  return fbResolve(b.home) === e ? b.home : fbResolve(b.away) === e ? b.away : null;
 }
 
 function fbGameCard(g){
@@ -5272,16 +5317,18 @@ function fbGameCard(g){
 
   const side = (t, score, right) => {
     const d = el('div', 'tm' + (right ? ' r' : ''));
+    // `[2026-11-13]` the board's own name for this team (~~`nameOf(t)`~~)
+    const k = fbBoardKey(b, t);
     /* ⚠️ A LIVE GAME SHOWS ITS SCORE WHERE A FINAL SHOWS ITS SCORE — the
        same slot, so the eye does not have to move when a game ends. */
     if (done || M.live) d.append(el('div', 'win', String(score == null ? '' : score)));
-    else if (b && b.win_pct && b.win_pct[nameOf(t)] != null)
-      d.append(el('div', 'win', b.win_pct[nameOf(t)] + '%'));
+    else if (k && b.win_pct && b.win_pct[k] != null)
+      d.append(el('div', 'win', b.win_pct[k] + '%'));
     d.append(el('div', 'abbr', right
       ? `${fbAb(t)} ${fbMark(t, 24)}` : `${fbMark(t, 24)} ${fbAb(t)}`));
     d.append(el('div', 'rec', nameOf(t) || ''));
     // 🔵 THE MONEYLINE UNDER EACH TEAM, exactly as MLB does it.
-    const ml = b && (b.best_ml || {})[nameOf(t)];
+    const ml = k && (b.best_ml || {})[k];
     if (ml) d.append(el('div', 'ml', sgn(ml.price)));
     return d;
   };
@@ -5713,10 +5760,10 @@ async function fbOpenBox(g){
          ${line('O/U', b.total)}
          ${line('Spread', (b.run_line_team ? fbAb(b.run_line_team) + ' ' : '')
                           + (b.run_line != null ? sgn(b.run_line) : ''))}
-         ${line(fbAb(g.away), (b.best_ml || {})[nameOf(g.away)]
-                ? sgn(b.best_ml[nameOf(g.away)].price) : '')}
-         ${line(fbAb(g.home), (b.best_ml || {})[nameOf(g.home)]
-                ? sgn(b.best_ml[nameOf(g.home)].price) : '')}
+         ${line(fbAb(g.away), (b.best_ml || {})[fbBoardKey(b, g.away)]
+                ? sgn(b.best_ml[fbBoardKey(b, g.away)].price) : '')}
+         ${line(fbAb(g.home), (b.best_ml || {})[fbBoardKey(b, g.home)]
+                ? sgn(b.best_ml[fbBoardKey(b, g.home)].price) : '')}
          ${line('Books', b.n_books)}
        </div>`
     : '<p class="plain">No live odds stored for this game.</p>';

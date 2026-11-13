@@ -1068,7 +1068,14 @@ note boxes, tags and the stale bar now require their absence.
   a line is a card missing a line; a card showing another game's line is
   misinformation. `test_board_match.js` runs against the real board and
   the newest stored schedule; `test_board_doubleheader.py` replays the
-  2026-09-25 doubleheaders.
+  2026-09-25 doubleheaders. `[2026-11-13]` Football's Scores cards are a
+  different join (`fbBoardFor`): the TEAMS decide, both feeds' names
+  resolved through `fbResolve` and compared as directory entries (~~names
+  compared as strings~~: "Memphis" never equalled "Memphis Tigers", so 0 of
+  76 college games showed odds), kickoffs on the same Eastern date or
+  within 4 hours (a football team plays once a day; CFBD files an unset
+  time at midnight Eastern), each team in exactly one board game that day.
+  It fails closed the same way. `test_fb_scores_odds.py`.
 - 🔴 **`run_line` is the HOME team's point, by MAJORITY across books, then
   cross-checked against the MONEYLINE.** ⛔ Never take it from one book.
   Books split on which side they show laying the runs — 11 to 6 on TB@DET,
