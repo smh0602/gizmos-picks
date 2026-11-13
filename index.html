@@ -5000,11 +5000,18 @@ function fbNorm(x){
 
 /* ⛔ A WORD THAT CONTINUES A SCHOOL NAME. If the leftover after our
    name starts with one of these, the feed is naming a DIFFERENT school:
-   "Washington" + "State Cougars" is not Washington. */
+   "Washington" + "State Cougars" is not Washington.
+   `[2026-11-13]` 'baptist': the Odds API still names Houston Christian
+   "Houston Baptist Huskies", and the walk read it as Houston. Houston was
+   then in two board games on any day both played, so Houston's own Scores
+   card drew no odds (09-05 and 09-26 in 2026), and the Odds tab gave
+   Houston Christian Houston's logo and conference. ⛔ Two sportsbook names
+   must never resolve to one entry: test_fb_scores_odds.py asks that of
+   every name in every stored snapshot (recorded in research/). */
 const FB_CONTINUES = new Set(['state','am','tech','southern','northern',
   'eastern','western','central','international','atlantic','christian',
   'poly','dominion','carolina','illinois','michigan','florida','texas',
-  'kentucky','methodist','chicago','st','saint','a']);
+  'kentucky','methodist','chicago','st','saint','a','baptist']);
 
 /* ⛔ CFBD AND THE ODDS FEED DISAGREE ON THREE SCHOOL NAMES, and the
    difference is not a mascot so prefix matching cannot bridge it. The

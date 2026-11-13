@@ -1,0 +1,694 @@
+{
+ "what": "RECORDED sportsbook team names: every away/home name in every stored Odds API gamelines snapshot, both leagues, plus CFBD's FBS directory keys (teams.json). test_fb_scores_odds.py asks the page's fbResolve whether two different names here resolve to ONE directory entry (that team's Scores card then draws no odds); the live files are a note only.",
+ "recorded_from": "data/<lg>/<date>/gamelines/*.json.gz at commit f4ea5390c: ncaaf 250 snapshots over 73 days 2026-09-01 to 2026-11-13, nfl 250 snapshots over 70 days 2026-09-03 to 2026-11-12; data/ncaaf/latest/teams.json built 2026-11-12T11:45:54Z (138 FBS schools)",
+ "names": {
+  "ncaaf": [
+   "Abilene Christian Wildcats",
+   "Air Force Falcons",
+   "Akron Zips",
+   "Alabama Crimson Tide",
+   "Alabama State Hornets",
+   "Albany",
+   "Alcorn State Braves",
+   "Appalachian State Mountaineers",
+   "Arizona State Sun Devils",
+   "Arizona Wildcats",
+   "Arkansas Pine Bluff Golden Lions",
+   "Arkansas Razorbacks",
+   "Arkansas State Red Wolves",
+   "Army Black Knights",
+   "Auburn Tigers",
+   "Austin Peay Governors",
+   "BYU Cougars",
+   "Ball State Cardinals",
+   "Baylor Bears",
+   "Bethune-Cookman Wildcats",
+   "Boise State Broncos",
+   "Boston College Eagles",
+   "Bowling Green Falcons",
+   "Bryant Bulldogs",
+   "Bucknell Bison",
+   "Buffalo Bulls",
+   "Cal Poly Mustangs",
+   "California Golden Bears",
+   "Campbell Fighting Camels",
+   "Central Arkansas Bears",
+   "Central Connecticut Blue Devils",
+   "Central Michigan Chippewas",
+   "Charleston Southern Buccaneers",
+   "Charlotte 49ers",
+   "Cincinnati Bearcats",
+   "Citadel Bulldogs",
+   "Clemson Tigers",
+   "Coastal Carolina Chanticleers",
+   "Colgate Raiders",
+   "Colorado Buffaloes",
+   "Colorado State Rams",
+   "Delaware Blue Hens",
+   "Delaware State Hornets",
+   "Duke Blue Devils",
+   "Duquesne Dukes",
+   "East Carolina Pirates",
+   "East Tennessee State Buccaneers",
+   "East Texas A&M Lions",
+   "Eastern Illinois Panthers",
+   "Eastern Kentucky Colonels",
+   "Eastern Michigan Eagles",
+   "Eastern Washington Eagles",
+   "Elon Phoenix",
+   "Florida A&M Rattlers",
+   "Florida Atlantic Owls",
+   "Florida Gators",
+   "Florida International Panthers",
+   "Florida State Seminoles",
+   "Fordham Rams",
+   "Fresno State Bulldogs",
+   "Furman Paladins",
+   "Gardner-Webb Runnin Bulldogs",
+   "Georgia Bulldogs",
+   "Georgia Southern Eagles",
+   "Georgia State Panthers",
+   "Georgia Tech Yellow Jackets",
+   "Grambling State Tigers",
+   "Hampton Pirates",
+   "Hawaii Rainbow Warriors",
+   "Holy Cross Crusaders",
+   "Houston Baptist Huskies",
+   "Houston Cougars",
+   "Howard Bison",
+   "Idaho State Bengals",
+   "Idaho Vandals",
+   "Illinois Fighting Illini",
+   "Illinois State Redbirds",
+   "Incarnate Word Cardinals",
+   "Indiana Hoosiers",
+   "Indiana State Sycamores",
+   "Iowa Hawkeyes",
+   "Iowa State Cyclones",
+   "Jacksonville State Gamecocks",
+   "James Madison Dukes",
+   "Kansas Jayhawks",
+   "Kansas State Wildcats",
+   "Kennesaw State Owls",
+   "Kent State Golden Flashes",
+   "Kentucky Wildcats",
+   "LIU Sharks",
+   "LSU Tigers",
+   "Lafayette Leopards",
+   "Lamar Cardinals",
+   "Liberty Flames",
+   "Lindenwood Lions",
+   "Louisiana Ragin Cajuns",
+   "Louisiana Tech Bulldogs",
+   "Louisville Cardinals",
+   "Maine Black Bears",
+   "Marshall Thundering Herd",
+   "Maryland Terrapins",
+   "McNeese State Cowboys",
+   "Memphis Tigers",
+   "Mercer Bears",
+   "Mercyhurst Lakers",
+   "Merrimack Warriors",
+   "Miami (OH) RedHawks",
+   "Miami Hurricanes",
+   "Michigan State Spartans",
+   "Michigan Wolverines",
+   "Middle Tennessee Blue Raiders",
+   "Minnesota Golden Gophers",
+   "Mississippi State Bulldogs",
+   "Mississippi Valley State Delta Devils",
+   "Missouri State Bears",
+   "Missouri Tigers",
+   "Monmouth Hawks",
+   "Montana Grizzlies",
+   "Montana State Bobcats",
+   "Morgan State Bears",
+   "Murray State Racers",
+   "NC State Wolfpack",
+   "Navy Midshipmen",
+   "Nebraska Cornhuskers",
+   "Nevada Wolf Pack",
+   "New Hampshire Wildcats",
+   "New Mexico Lobos",
+   "New Mexico State Aggies",
+   "Nicholls State Colonels",
+   "Norfolk State Spartans",
+   "North Alabama Lions",
+   "North Carolina A&T Aggies",
+   "North Carolina Central Eagles",
+   "North Carolina Tar Heels",
+   "North Dakota Fighting Hawks",
+   "North Dakota State Bison",
+   "North Texas Mean Green",
+   "Northern Arizona Lumberjacks",
+   "Northern Colorado Bears",
+   "Northern Illinois Huskies",
+   "Northern Iowa Panthers",
+   "Northwestern State Demons",
+   "Northwestern Wildcats",
+   "Notre Dame Fighting Irish",
+   "Ohio Bobcats",
+   "Ohio State Buckeyes",
+   "Oklahoma Sooners",
+   "Oklahoma State Cowboys",
+   "Old Dominion Monarchs",
+   "Ole Miss Rebels",
+   "Oregon Ducks",
+   "Oregon State Beavers",
+   "Penn State Nittany Lions",
+   "Pittsburgh Panthers",
+   "Portland State Vikings",
+   "Prairie View A&M Panthers",
+   "Purdue Boilermakers",
+   "Rhode Island Rams",
+   "Rice Owls",
+   "Richmond Spiders",
+   "Robert Morris Colonials",
+   "Rutgers Scarlet Knights",
+   "SMU Mustangs",
+   "Sacramento State Hornets",
+   "Sacred Heart Pioneers",
+   "Sam Houston State Bearkats",
+   "Samford Bulldogs",
+   "San Diego State Aztecs",
+   "San Jose State Spartans",
+   "South Alabama Jaguars",
+   "South Carolina Gamecocks",
+   "South Dakota Coyotes",
+   "South Dakota State Jackrabbits",
+   "South Florida Bulls",
+   "Southeast Missouri State Redhawks",
+   "Southeastern Louisiana Lions",
+   "Southern Illinois Salukis",
+   "Southern Mississippi Golden Eagles",
+   "Southern University Jaguars",
+   "Southern Utah Thunderbirds",
+   "Stanford Cardinal",
+   "Stonehill Skyhawks",
+   "Stony Brook Seawolves",
+   "Syracuse Orange",
+   "TCU Horned Frogs",
+   "Tarleton State Texans",
+   "Temple Owls",
+   "Tennessee State Tigers",
+   "Tennessee Volunteers",
+   "Texas A&M Aggies",
+   "Texas Longhorns",
+   "Texas Southern Tigers",
+   "Texas State Bobcats",
+   "Texas Tech Red Raiders",
+   "Toledo Rockets",
+   "Towson Tigers",
+   "Troy Trojans",
+   "Tulane Green Wave",
+   "Tulsa Golden Hurricane",
+   "UAB Blazers",
+   "UC Davis Aggies",
+   "UCF Knights",
+   "UCLA Bruins",
+   "UConn Huskies",
+   "UL Monroe Warhawks",
+   "UMass Minutemen",
+   "UNLV Rebels",
+   "USC Trojans",
+   "UT Martin Skyhawks",
+   "UT Rio Grande Valley Vaqueros",
+   "UTEP Miners",
+   "UTSA Roadrunners",
+   "Utah State Aggies",
+   "Utah Tech Trailblazers",
+   "Utah Utes",
+   "VMI Keydets",
+   "Vanderbilt Commodores",
+   "Villanova Wildcats",
+   "Virginia Cavaliers",
+   "Virginia Tech Hokies",
+   "Wagner Seahawks",
+   "Wake Forest Demon Deacons",
+   "Washington Huskies",
+   "Washington State Cougars",
+   "Weber State Wildcats",
+   "West Georgia Wolves",
+   "West Virginia Mountaineers",
+   "Western Carolina Catamounts",
+   "Western Illinois Leathernecks",
+   "Western Kentucky Hilltoppers",
+   "Western Michigan Broncos",
+   "William and Mary Tribe",
+   "Wisconsin Badgers",
+   "Wofford Terriers",
+   "Wyoming Cowboys",
+   "Youngstown St Penguins"
+  ],
+  "nfl": [
+   "Arizona Cardinals",
+   "Atlanta Falcons",
+   "Baltimore Ravens",
+   "Buffalo Bills",
+   "Carolina Panthers",
+   "Chicago Bears",
+   "Cincinnati Bengals",
+   "Cleveland Browns",
+   "Dallas Cowboys",
+   "Denver Broncos",
+   "Detroit Lions",
+   "Green Bay Packers",
+   "Houston Texans",
+   "Indianapolis Colts",
+   "Jacksonville Jaguars",
+   "Kansas City Chiefs",
+   "Las Vegas Raiders",
+   "Los Angeles Chargers",
+   "Los Angeles Rams",
+   "Miami Dolphins",
+   "Minnesota Vikings",
+   "New England Patriots",
+   "New Orleans Saints",
+   "New York Giants",
+   "New York Jets",
+   "Philadelphia Eagles",
+   "Pittsburgh Steelers",
+   "San Francisco 49ers",
+   "Seattle Seahawks",
+   "Tampa Bay Buccaneers",
+   "Tennessee Titans",
+   "Washington Commanders"
+  ]
+ },
+ "teams_ncaaf": {
+  "Air Force": {
+   "abbr": "AF"
+  },
+  "Akron": {
+   "abbr": "AKR"
+  },
+  "Alabama": {
+   "abbr": "ALA"
+  },
+  "App State": {
+   "abbr": "APP"
+  },
+  "Arizona": {
+   "abbr": "ARIZ"
+  },
+  "Arizona State": {
+   "abbr": "ASU"
+  },
+  "Arkansas": {
+   "abbr": "ARK"
+  },
+  "Arkansas State": {
+   "abbr": "ARST"
+  },
+  "Army": {
+   "abbr": "ARMY"
+  },
+  "Auburn": {
+   "abbr": "AUB"
+  },
+  "BYU": {
+   "abbr": "BYU"
+  },
+  "Ball State": {
+   "abbr": "BALL"
+  },
+  "Baylor": {
+   "abbr": "BAY"
+  },
+  "Boise State": {
+   "abbr": "BOIS"
+  },
+  "Boston College": {
+   "abbr": "BC"
+  },
+  "Bowling Green": {
+   "abbr": "BGSU"
+  },
+  "Buffalo": {
+   "abbr": "BUF"
+  },
+  "California": {
+   "abbr": "CAL"
+  },
+  "Central Michigan": {
+   "abbr": "CMU"
+  },
+  "Charlotte": {
+   "abbr": "CLT"
+  },
+  "Cincinnati": {
+   "abbr": "CIN"
+  },
+  "Clemson": {
+   "abbr": "CLEM"
+  },
+  "Coastal Carolina": {
+   "abbr": "CCU"
+  },
+  "Colorado": {
+   "abbr": "COLO"
+  },
+  "Colorado State": {
+   "abbr": "CSU"
+  },
+  "Delaware": {
+   "abbr": "DEL"
+  },
+  "Duke": {
+   "abbr": "DUKE"
+  },
+  "East Carolina": {
+   "abbr": "ECU"
+  },
+  "Eastern Michigan": {
+   "abbr": "EMU"
+  },
+  "Florida": {
+   "abbr": "FLA"
+  },
+  "Florida Atlantic": {
+   "abbr": "FAU"
+  },
+  "Florida International": {
+   "abbr": "FIU"
+  },
+  "Florida State": {
+   "abbr": "FSU"
+  },
+  "Fresno State": {
+   "abbr": "FRES"
+  },
+  "Georgia": {
+   "abbr": "UGA"
+  },
+  "Georgia Southern": {
+   "abbr": "GASO"
+  },
+  "Georgia State": {
+   "abbr": "GAST"
+  },
+  "Georgia Tech": {
+   "abbr": "GT"
+  },
+  "Hawai'i": {
+   "abbr": "HAW"
+  },
+  "Houston": {
+   "abbr": "HOU"
+  },
+  "Illinois": {
+   "abbr": "ILL"
+  },
+  "Indiana": {
+   "abbr": "IU"
+  },
+  "Iowa": {
+   "abbr": "IOWA"
+  },
+  "Iowa State": {
+   "abbr": "ISU"
+  },
+  "Jacksonville State": {
+   "abbr": "JXST"
+  },
+  "James Madison": {
+   "abbr": "JMU"
+  },
+  "Kansas": {
+   "abbr": "KU"
+  },
+  "Kansas State": {
+   "abbr": "KSU"
+  },
+  "Kennesaw State": {
+   "abbr": "KENN"
+  },
+  "Kent State": {
+   "abbr": "KENT"
+  },
+  "Kentucky": {
+   "abbr": "UK"
+  },
+  "LSU": {
+   "abbr": "LSU"
+  },
+  "Liberty": {
+   "abbr": "LIB"
+  },
+  "Louisiana": {
+   "abbr": "UL"
+  },
+  "Louisiana Tech": {
+   "abbr": "LT"
+  },
+  "Louisville": {
+   "abbr": "LOU"
+  },
+  "Marshall": {
+   "abbr": "MRSH"
+  },
+  "Maryland": {
+   "abbr": "MD"
+  },
+  "Massachusetts": {
+   "abbr": "MASS"
+  },
+  "Memphis": {
+   "abbr": "MEM"
+  },
+  "Miami": {
+   "abbr": "MIA"
+  },
+  "Miami (OH)": {
+   "abbr": "M-OH"
+  },
+  "Michigan": {
+   "abbr": "MICH"
+  },
+  "Michigan State": {
+   "abbr": "MSU"
+  },
+  "Middle Tennessee": {
+   "abbr": "MTSU"
+  },
+  "Minnesota": {
+   "abbr": "MINN"
+  },
+  "Mississippi State": {
+   "abbr": "MSST"
+  },
+  "Missouri": {
+   "abbr": "MIZ"
+  },
+  "Missouri State": {
+   "abbr": "MOST"
+  },
+  "NC State": {
+   "abbr": "NCSU"
+  },
+  "Navy": {
+   "abbr": "NAVY"
+  },
+  "Nebraska": {
+   "abbr": "NEB"
+  },
+  "Nevada": {
+   "abbr": "NEV"
+  },
+  "New Mexico": {
+   "abbr": "UNM"
+  },
+  "New Mexico State": {
+   "abbr": "NMSU"
+  },
+  "North Carolina": {
+   "abbr": "UNC"
+  },
+  "North Dakota State": {
+   "abbr": "NDSU"
+  },
+  "North Texas": {
+   "abbr": "UNT"
+  },
+  "Northern Illinois": {
+   "abbr": "NIU"
+  },
+  "Northwestern": {
+   "abbr": "NU"
+  },
+  "Notre Dame": {
+   "abbr": "ND"
+  },
+  "Ohio": {
+   "abbr": "OHIO"
+  },
+  "Ohio State": {
+   "abbr": "OSU"
+  },
+  "Oklahoma": {
+   "abbr": "OU"
+  },
+  "Oklahoma State": {
+   "abbr": "OKST"
+  },
+  "Old Dominion": {
+   "abbr": "ODU"
+  },
+  "Ole Miss": {
+   "abbr": "MISS"
+  },
+  "Oregon": {
+   "abbr": "ORE"
+  },
+  "Oregon State": {
+   "abbr": "ORST"
+  },
+  "Penn State": {
+   "abbr": "PSU"
+  },
+  "Pittsburgh": {
+   "abbr": "PITT"
+  },
+  "Purdue": {
+   "abbr": "PUR"
+  },
+  "Rice": {
+   "abbr": "RICE"
+  },
+  "Rutgers": {
+   "abbr": "RUTG"
+  },
+  "SMU": {
+   "abbr": "SMU"
+  },
+  "Sacramento State": {
+   "abbr": "SAC"
+  },
+  "Sam Houston": {
+   "abbr": "SHSU"
+  },
+  "San Diego State": {
+   "abbr": "SDSU"
+  },
+  "San José State": {
+   "abbr": "SJSU"
+  },
+  "South Alabama": {
+   "abbr": "USA"
+  },
+  "South Carolina": {
+   "abbr": "SC"
+  },
+  "South Florida": {
+   "abbr": "USF"
+  },
+  "Southern Miss": {
+   "abbr": "USM"
+  },
+  "Stanford": {
+   "abbr": "STAN"
+  },
+  "Syracuse": {
+   "abbr": "SYR"
+  },
+  "TCU": {
+   "abbr": "TCU"
+  },
+  "Temple": {
+   "abbr": "TEM"
+  },
+  "Tennessee": {
+   "abbr": "TENN"
+  },
+  "Texas": {
+   "abbr": "TEX"
+  },
+  "Texas A&M": {
+   "abbr": "TA&M"
+  },
+  "Texas State": {
+   "abbr": "TXST"
+  },
+  "Texas Tech": {
+   "abbr": "TTU"
+  },
+  "Toledo": {
+   "abbr": "TOL"
+  },
+  "Troy": {
+   "abbr": "TROY"
+  },
+  "Tulane": {
+   "abbr": "TULN"
+  },
+  "Tulsa": {
+   "abbr": "TLSA"
+  },
+  "UAB": {
+   "abbr": "UAB"
+  },
+  "UCF": {
+   "abbr": "UCF"
+  },
+  "UCLA": {
+   "abbr": "UCLA"
+  },
+  "UConn": {
+   "abbr": "CONN"
+  },
+  "UL Monroe": {
+   "abbr": "ULM"
+  },
+  "UNLV": {
+   "abbr": "UNLV"
+  },
+  "USC": {
+   "abbr": "USC"
+  },
+  "UTEP": {
+   "abbr": "UTEP"
+  },
+  "UTSA": {
+   "abbr": "UTSA"
+  },
+  "Utah": {
+   "abbr": "UTAH"
+  },
+  "Utah State": {
+   "abbr": "USU"
+  },
+  "Vanderbilt": {
+   "abbr": "VAN"
+  },
+  "Virginia": {
+   "abbr": "UVA"
+  },
+  "Virginia Tech": {
+   "abbr": "VT"
+  },
+  "Wake Forest": {
+   "abbr": "WAKE"
+  },
+  "Washington": {
+   "abbr": "WASH"
+  },
+  "Washington State": {
+   "abbr": "WSU"
+  },
+  "West Virginia": {
+   "abbr": "WVU"
+  },
+  "Western Kentucky": {
+   "abbr": "WKU"
+  },
+  "Western Michigan": {
+   "abbr": "WMU"
+  },
+  "Wisconsin": {
+   "abbr": "WIS"
+  },
+  "Wyoming": {
+   "abbr": "WYO"
+  }
+ }
+}

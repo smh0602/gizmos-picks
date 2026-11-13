@@ -28,8 +28,15 @@ It asks:
      Carolina on one day, the Rams beside the Chargers, a rematch weeks later, two board
      records for one pair, two unresolved teams, and a directory that cannot tell Miami from
      Miami (OH) (both refused). Such a card draws no moneyline, no win % and no betting bar.
-⛔ A TEST ASKS THE CODE, NEVER PRODUCTION: every case is planted, the clock is never read by
-an assertion. Today's live college and NFL files are measured as a `note()` only.
+     `[2026-11-13, review]` Also: two teams the board has in two DIFFERENT games that day
+     (Duke @ UCLA), both sides one directory entry (Ohio Dominican @ Ohio), and the college
+     rematch 6 days 16 hours later (a finale, then the conference title game), so the window
+     is held below a week, not only present;
+  3. ⛔ no two sportsbook names resolve to one team: Houston's card had drawn no odds beside
+     "Houston Baptist Huskies" (Houston Christian, read as Houston). Planted in 1, and asked of
+     every name in every stored gamelines snapshot, both leagues, RECORDED in research/.
+⛔ A TEST ASKS THE CODE, NEVER PRODUCTION: every case is planted or recorded, the clock is
+never read by an assertion. Today's live college and NFL files are measured as a `note()` only.
 
 # @vacuity 🔴 the base defect: a board game is found by the feeds' NAMES again (0 of N college)
 #   file: index.html
@@ -75,6 +82,26 @@ an assertion. Today's live college and NFL files are measured as a `note()` only
 #   file: index.html
 #   find: return d <= FB_KICK_WINDOW_H * 3600e3
 #   with: return false
+#
+# @vacuity ⛔ the two teams in two DIFFERENT board games that day: one team's game is taken
+#   file: index.html
+#   find: return (withH.length === 1 && withA.length === 1 && withH[0] === withA[0])
+#   with: return (withH.length === 1 && withA.length === 1)
+#
+# @vacuity ⛔ both sides one directory entry (Ohio Dominican read as Ohio): Ohio's odds twice
+#   file: index.html
+#   find: if (!h || !a || h === a) return null;
+#   with: if (!h || !a) return null;
+#
+# @vacuity ⛔ the game-day window widened past a week: the finale reads the title game's odds
+#   file: index.html
+#   find: const FB_KICK_WINDOW_H = 4;
+#   with: const FB_KICK_WINDOW_H = 24 * 8;
+#
+# @vacuity 🔴 "Houston Baptist Huskies" read as Houston again: Houston's own card is blank
+#   file: index.html
+#   find: 'kentucky','methodist','chicago','st','saint','a','baptist']);
+#   with: 'kentucky','methodist','chicago','st','saint','a']);
 """
 import gzip
 import json
@@ -172,12 +199,25 @@ const __sideOf = n => {
   const win = kid('win'), ml = kid('ml');
   return {win: win ? __strip(win.innerHTML) : null, ml: ml ? __strip(ml.innerHTML) : null};
 };
+const __collide = names => {   // directory entries two different names resolve to
+  const by = new Map();
+  [...new Set(names)].forEach(n => { const e = fbResolve(n); if (e) by.set(e, (by.get(e) || []).concat([n])); });
+  const out = {n: new Set(names).size, resolved: 0, collide: []};
+  by.forEach((v, e) => { out.resolved += v.length; if (v.length > 1) out.collide.push([e.abbr || '?', v]); });
+  return out;
+};
 (async () => {
   if (__S.live){     // the measurement: the board lookup only, over the whole season
     const used = new Set();
     let cards = 0;
     __S.schedule.forEach(g => { const b = fbBoardFor(g); if (b){ cards++; used.add(b); } });
-    process.stdout.write(JSON.stringify({live: {board: __S.board.games.length, joined: used.size, cards}}));
+    const names = __collide(__S.board.games.flatMap(b => [b.away, b.home]).filter(Boolean));
+    process.stdout.write(JSON.stringify({live: {board: __S.board.games.length, joined: used.size, cards,
+                                                collide: names.collide}}));
+    return;
+  }
+  if (__S.names){    // the class: no two sportsbook names may resolve to one team
+    process.stdout.write(JSON.stringify({names: __collide(__S.names)}));
     return;
   }
   const out = [];
@@ -201,14 +241,15 @@ const __sideOf = n => {
 """
 
 
-def run(league, teams, schedule, board, live=False):
+def run(league, teams, schedule, board, live=False, names=None):
     """The page's card and modal for every schedule game, or None if node failed."""
     tmp = tempfile.mkdtemp(prefix="scodds-")
     try:
         js, data = os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")
         open(js, "w", encoding="utf-8").write(DRIVER.replace("%PAGE%", PAGE_JS))
         json.dump({"league": league, "teams": teams, "schedule": schedule,
-                   "board": board, "live": live}, open(data, "w", encoding="utf-8"))
+                   "board": board, "live": live, "names": names},
+                  open(data, "w", encoding="utf-8"))
         r = subprocess.run(["node", js, data], capture_output=True, text=True,
                            encoding="utf-8", timeout=300)
     finally:
@@ -269,7 +310,8 @@ SCHOOLS = {"Memphis": "MEM", "South Florida": "USF", "Duke": "DUKE", "Miami": "M
            "Miami (OH)": "M-OH", "Ohio": "OHIO", "USC": "USC", "UCLA": "UCLA",
            "South Carolina": "SC", "Clemson": "CLEM", "Army": "ARMY", "Navy": "NAVY",
            "Texas Tech": "TTU", "Baylor": "BAY", "Fresno State": "FRES", "Hawai'i": "HAW",
-           "Utah": "UTAH", "TCU": "TCU"}
+           "Utah": "UTAH", "TCU": "TCU", "Oregon State": "ORST", "Houston": "HOU",
+           "Rice": "RICE"}
 DIR = {k: {"abbr": v, "conference": "Planted", "logo": None} for k, v in SCHOOLS.items()}
 CFB_SCHED = [
     sg("memphis-usf", "Memphis", "South Florida", "2026-11-13T01:00:00.000Z"),
@@ -283,12 +325,24 @@ CFB_SCHED = [
     sg("navy-army-neutral", "Navy", "Army", "2026-12-12T20:00:00.000Z", neutral=True),
     # 11:59pm Eastern on the schedule, moved to 12:30am Eastern (the next date) on the board
     sg("fresno-hawaii-midnight", "Fresno State", "Hawai'i", "2026-11-15T04:59:00.000Z"),
-    # the same two teams two weeks later: the board holds only the first meeting
-    sg("usf-memphis-rematch", "South Florida", "Memphis", "2026-11-27T17:00:00.000Z"),
+    # the same two teams 6 days 16 hours later, the closest a football rematch comes: a
+    # Saturday-night finale, then the conference title game the next Saturday at noon. The
+    # board holds only the first meeting, and the finished card must never read it.
+    sg("usf-memphis-rematch", "South Florida", "Memphis", "2026-11-19T17:00:00.000Z"),
     # the board holds TWO records for this pair
     sg("utah-tcu-two-records", "Utah", "TCU", "2026-11-14T21:00:00.000Z"),
     # neither school is in the directory (FCS); the board's same-day game is unresolved too
     sg("idahost-nau-unresolved", "Idaho State", "Northern Arizona", "2026-11-14T21:00:00.000Z"),
+    # the stored schedule pairs two teams the board has in two DIFFERENT games that day (a
+    # matchup re-booked, or a stale schedule file): Duke is in b2, UCLA in b4
+    sg("duke-ucla-matchup-moved", "Duke", "UCLA", "2026-11-14T20:30:00.000Z"),
+    # both sides one directory entry: the prefix walk reads Ohio Dominican (Division II, a
+    # real schedule name) as Ohio, so the card would show Ohio's odds under both teams
+    sg("ohiodom-ohio-one-entry", "Ohio Dominican", "Ohio", "2026-11-14T17:00:00.000Z"),
+    # the Odds API still names Houston Christian "Houston Baptist Huskies" (b12 below). Read
+    # as Houston, Houston was in two board games that day and its OWN card drew no odds
+    sg("orst-houston", "Oregon State", "Houston", "2026-11-14T16:00:00.000Z"),
+    sg("hc-rice", "Houston Christian", "Rice", "2026-11-14T23:00:00.000Z"),
 ]
 CFB_BOARD = {"games": [
     bg("b1", "Memphis Tigers", "South Florida Bulls", "2026-11-13T01:00:00Z", (-200, 180), (64.6, 35.4)),
@@ -301,6 +355,8 @@ CFB_BOARD = {"games": [
     bg("b8", "Utah Utes", "TCU Horned Frogs", "2026-11-14T21:00:00Z", (-110, -110), (50.0, 50.0)),
     bg("b9", "Utah Utes", "TCU Horned Frogs", "2026-11-14T21:00:00Z", (-150, 125), (58.0, 42.0)),
     bg("b10", "Weber State Wildcats", "Montana Grizzlies", "2026-11-14T21:00:00Z", (190, -230), (33.0, 67.0)),
+    bg("b11", "Oregon State Beavers", "Houston Cougars", "2026-11-14T16:00:00Z", (155, -185), (38.2, 61.8)),
+    bg("b12", "Houston Baptist Huskies", "Rice Owls", "2026-11-14T23:00:00Z", (1400, -5000), (4.0, 96.0)),
 ]}
 CFB_WANT = {
     "memphis-usf": (-200, 180, 64.6, 35.4),
@@ -311,6 +367,8 @@ CFB_WANT = {
     # schedule away = Navy: Navy's own -142 and 55.6, never Army's (the board's away side)
     "navy-army-neutral": (-142, 120, 55.6, 44.4),
     "fresno-hawaii-midnight": (-170, 145, 61.0, 39.0),
+    # Houston's own numbers, with "Houston Baptist Huskies" on the board the same day
+    "orst-houston": (155, -185, 38.2, 61.8),
 }
 R = run("ncaaf", DIR, CFB_SCHED, CFB_BOARD)
 ck(R is not None, "⚠️ the page's own code ran in node on the planted college feeds", "")
@@ -356,7 +414,33 @@ if RN is not None:
     want_odds(RN, NFL_WANT, "NFL")
 
 # ══════════════════════════════════════════════════════════════════════
-section("3. ⚪ TODAY'S LIVE FILES (MEASURED, NEVER ASSERTED)")
+section("3. ⛔ NO TWO SPORTSBOOK NAMES ARE ONE TEAM (EVERY STORED NAME, RECORDED)")
+# ══════════════════════════════════════════════════════════════════════
+# THE CLASS behind Houston. The join refuses a team it finds in two board games that day, so
+# a board name the resolver reads as ANOTHER school blanks that school's own card (and the
+# Odds tab gives the other school its logo and conference). Section 1 plants the one case
+# found; this asks it of every name the Odds API has sent: every away/home name in every
+# stored gamelines snapshot, both leagues, with CFBD's FBS directory, RECORDED in research/
+# on 2026-11-13 (a test asks the code, never production). No directory entry may be reached
+# by two different names. ⚠️ And the resolver must still be asked something: at least 100
+# college names resolve (138 when recorded; the Odds tab's coverage is test_conf_filter.py's),
+# and every one of the 32 NFL names does.
+REC = json.load(open(os.path.join(ROOT, "research", "fb_board_names_20261113.json"),
+                     encoding="utf-8"))
+for lg, teams, floor in (("ncaaf", REC["teams_ncaaf"], 100), ("nfl", "nfl", 32)):
+    NR = run(lg, teams, [], {"games": []}, names=REC["names"][lg])
+    ck(NR is not None, "⚠️ the page's resolver ran in node on the recorded %s names" % lg, "")
+    if NR is None:
+        continue
+    NR = NR["names"]
+    ck(not NR["collide"] and NR["resolved"] >= floor,
+       "⛔ %s: no two of the %d recorded sportsbook names resolve to one team, and at least %d "
+       "resolve" % (lg, NR["n"], floor),
+       "%d resolve%s" % (NR["resolved"], ("; one team, two names: %r" % NR["collide"])
+                         if NR["collide"] else ""))
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. ⚪ TODAY'S LIVE FILES (MEASURED, NEVER ASSERTED)")
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -383,4 +467,5 @@ for lg in ("ncaaf", "nfl"):
         continue
     L = L["live"]
     note("%s live: %d of %d board games join a schedule game (%d card(s) draw odds), "
-         "%s" % (lg, L["joined"], L["board"], L["cards"], scheds[-1]))
+         "%s; one team, two board names: %s" % (lg, L["joined"], L["board"], L["cards"],
+                                                scheds[-1], L["collide"] or "none"))
