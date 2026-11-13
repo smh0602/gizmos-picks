@@ -1,0 +1,4228 @@
+{
+ "date": "2026-11-13",
+ "league": "ncaaf",
+ "generated_at": "2026-11-13T15:52:05Z",
+ "generated_by": "card_fb.py",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-11-13T15:44:37Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own+game-HC",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": null,
+ "denominator": "every game he appears in (union denominator)",
+ "min_games": 6,
+ "n_gated_by_measurement": 2,
+ "rate_gates": {
+  "min_reception_line": 3.5,
+  "measured_markets": [
+   "player_anytime_td",
+   "player_pass_yds",
+   "player_reception_yds",
+   "player_receptions",
+   "player_rush_yds"
+  ],
+  "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
+ },
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Houston Cougars",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "fanduel",
+   "price": -350,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 81,
+   "break_even": 77.8,
+   "edge": 3.2,
+   "why": [
+    "The game model gives Houston Cougars 81% to win; the price -350 needs 77.8%."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Pittsburgh Panthers",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -165,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "break_even": 62.3,
+   "edge": 0.8,
+   "why": [
+    "The game model gives Pittsburgh Panthers 63% to win; the price -165 needs 62.3%."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Houston Cougars",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -8.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "break_even": 52.4,
+   "edge": 10.7,
+   "why": [
+    "The game model gives Houston Cougars 63% to cover -8.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Illinois Fighting Illini",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 9.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": 105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 48.8,
+   "edge": 7.2,
+   "why": [
+    "The game model gives Illinois Fighting Illini 56% to cover +9.5; the price +105 needs 48.8%."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 4
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Pittsburgh Panthers",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -3.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "draftkings",
+   "price": -102,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 50.5,
+   "edge": 4.0,
+   "why": [
+    "The game model gives Pittsburgh Panthers 54% to cover -3.5; the price -102 needs 50.5%."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 5
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 52.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "break_even": 52.4,
+   "edge": 0.1,
+   "why": [
+    "The game model gives Under 52% at 52.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 6
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Houston Cougars",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -8.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 63,
+   "break_even": 52.4,
+   "edge": 10.7,
+   "why": [
+    "The game model gives Houston Cougars 63% to cover -8.5; the price -110 needs 52.4%.",
+    "The model's predicted score: Houston Cougars 32, Colorado Buffaloes 19 (total 51).",
+    "The Houston Cougars score 35.4 and allow 21.3 points a game this season (9 games).",
+    "The Colorado Buffaloes score 19.8 and allow 28.3 points a game this season (9 games).",
+    "Against teams the model rates above average this season: Houston Cougars 5-2, Colorado Buffaloes 1-6."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives Houston Cougars 63% to cover -8.5; the price -110 needs 52.4%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Illinois Fighting Illini",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 9.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": 105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 48.8,
+   "edge": 7.2,
+   "why": [
+    "The game model gives Illinois Fighting Illini 56% to cover +9.5; the price +105 needs 48.8%.",
+    "The model's predicted score: Illinois Fighting Illini 20, UCLA Bruins 27 (total 47).",
+    "The Illinois Fighting Illini score 28.4 and allow 23 points a game this season (9 games).",
+    "The UCLA Bruins score 33.6 and allow 14.1 points a game this season (9 games).",
+    "Against teams the model rates above average this season: Illinois Fighting Illini 2-2, UCLA Bruins 3-0."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 2,
+   "why_card": [
+    "The game model gives Illinois Fighting Illini 56% to cover +9.5; the price +105 needs 48.8%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Pittsburgh Panthers",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -3.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "draftkings",
+   "price": -102,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 50.5,
+   "edge": 4.0,
+   "why": [
+    "The game model gives Pittsburgh Panthers 54% to cover -3.5; the price -102 needs 50.5%.",
+    "The model's predicted score: Florida State Seminoles 23, Pittsburgh Panthers 28 (total 51).",
+    "The Florida State Seminoles score 30.7 and allow 28.3 points a game this season (9 games).",
+    "The Pittsburgh Panthers score 31.9 and allow 19.8 points a game this season (9 games).",
+    "Against teams the model rates above average this season: Florida State Seminoles 1-5, Pittsburgh Panthers 2-2."
+   ],
+   "priced_at": "2026-11-13T15:44:36Z",
+   "rank": 3,
+   "why_card": [
+    "The game model gives Pittsburgh Panthers 54% to cover -3.5; the price -102 needs 50.5%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-11-13",
+  "card_slate": "2026-11-13",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-11-13T15:51:41Z",
+  "ladder_built_at": "2026-11-13T15:51:51Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "score": {
+    "home": 28,
+    "away": 23
+   }
+  },
+  {
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "score": {
+    "home": 27,
+    "away": 20
+   }
+  },
+  {
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "score": {
+    "home": 19,
+    "away": 32
+   }
+  },
+  {
+   "away": "Cincinnati Bearcats",
+   "home": "Iowa State Cyclones",
+   "score": {
+    "home": 32,
+    "away": 28
+   }
+  },
+  {
+   "away": "Texas Tech Red Raiders",
+   "home": "Oklahoma State Cowboys",
+   "score": {
+    "home": 31,
+    "away": 33
+   }
+  },
+  {
+   "away": "Utah Utes",
+   "home": "Arizona Wildcats",
+   "score": {
+    "home": 24,
+    "away": 28
+   }
+  },
+  {
+   "away": "Auburn Tigers",
+   "home": "Mississippi State Bulldogs",
+   "score": {
+    "home": 26,
+    "away": 25
+   }
+  },
+  {
+   "away": "Duke Blue Devils",
+   "home": "Miami Hurricanes",
+   "score": {
+    "home": 34,
+    "away": 20
+   }
+  },
+  {
+   "away": "Louisville Cardinals",
+   "home": "North Carolina Tar Heels",
+   "score": {
+    "home": 28,
+    "away": 32
+   }
+  },
+  {
+   "away": "Syracuse Orange",
+   "home": "NC State Wolfpack",
+   "score": {
+    "home": 28,
+    "away": 25
+   }
+  },
+  {
+   "away": "Wake Forest Demon Deacons",
+   "home": "SMU Mustangs",
+   "score": {
+    "home": 28,
+    "away": 33
+   }
+  },
+  {
+   "away": "Wisconsin Badgers",
+   "home": "Maryland Terrapins",
+   "score": {
+    "home": 17,
+    "away": 26
+   }
+  },
+  {
+   "away": "Northwestern Wildcats",
+   "home": "Ohio State Buckeyes",
+   "score": {
+    "home": 29,
+    "away": 16
+   }
+  },
+  {
+   "away": "James Madison Dukes",
+   "home": "UConn Huskies",
+   "score": {
+    "home": 24,
+    "away": 34
+   }
+  },
+  {
+   "away": "Georgia Tech Yellow Jackets",
+   "home": "Clemson Tigers",
+   "score": {
+    "home": 30,
+    "away": 18
+   }
+  },
+  {
+   "away": "Nebraska Cornhuskers",
+   "home": "Rutgers Scarlet Knights",
+   "score": {
+    "home": 19,
+    "away": 33
+   }
+  },
+  {
+   "away": "Alabama Crimson Tide",
+   "home": "Vanderbilt Commodores",
+   "score": {
+    "home": 17,
+    "away": 33
+   }
+  },
+  {
+   "away": "East Carolina Pirates",
+   "home": "Charlotte 49ers",
+   "score": {
+    "home": 15,
+    "away": 31
+   }
+  },
+  {
+   "away": "UAB Blazers",
+   "home": "Temple Owls",
+   "score": {
+    "home": 26,
+    "away": 22
+   }
+  },
+  {
+   "away": "Arkansas State Red Wolves",
+   "home": "Coastal Carolina Chanticleers",
+   "score": {
+    "home": 27,
+    "away": 25
+   }
+  },
+  {
+   "away": "Kansas State Wildcats",
+   "home": "TCU Horned Frogs",
+   "score": {
+    "home": 27,
+    "away": 17
+   }
+  },
+  {
+   "away": "Tulane Green Wave",
+   "home": "Rice Owls",
+   "score": {
+    "home": 23,
+    "away": 26
+   }
+  },
+  {
+   "away": "Kennesaw State Owls",
+   "home": "Sam Houston State Bearkats",
+   "score": {
+    "home": 20,
+    "away": 26
+   }
+  },
+  {
+   "away": "Tennessee Volunteers",
+   "home": "Texas A&M Aggies",
+   "score": {
+    "home": 20,
+    "away": 23
+   }
+  },
+  {
+   "away": "New Mexico State Aggies",
+   "home": "Missouri State Bears",
+   "score": {
+    "home": 27,
+    "away": 23
+   }
+  },
+  {
+   "away": "Florida International Panthers",
+   "home": "Delaware Blue Hens",
+   "score": {
+    "home": 30,
+    "away": 24
+   }
+  },
+  {
+   "away": "Arizona State Sun Devils",
+   "home": "UCF Knights",
+   "score": {
+    "home": 27,
+    "away": 22
+   }
+  },
+  {
+   "away": "Baylor Bears",
+   "home": "BYU Cougars",
+   "score": {
+    "home": 26,
+    "away": 22
+   }
+  },
+  {
+   "away": "Missouri Tigers",
+   "home": "Georgia Bulldogs",
+   "score": {
+    "home": 32,
+    "away": 16
+   }
+  },
+  {
+   "away": "Texas Longhorns",
+   "home": "LSU Tigers",
+   "score": {
+    "home": 25,
+    "away": 22
+   }
+  },
+  {
+   "away": "Boston College Eagles",
+   "home": "Notre Dame Fighting Irish",
+   "score": {
+    "home": 41,
+    "away": 12
+   }
+  },
+  {
+   "away": "California Golden Bears",
+   "home": "Virginia Cavaliers",
+   "score": {
+    "home": 31,
+    "away": 16
+   }
+  },
+  {
+   "away": "USC Trojans",
+   "home": "Indiana Hoosiers",
+   "score": {
+    "home": 32,
+    "away": 19
+   }
+  },
+  {
+   "away": "Michigan Wolverines",
+   "home": "Oregon Ducks",
+   "score": {
+    "home": 27,
+    "away": 12
+   }
+  },
+  {
+   "away": "Florida Atlantic Owls",
+   "home": "Tulsa Golden Hurricane",
+   "score": {
+    "home": 41,
+    "away": 33
+   }
+  },
+  {
+   "away": "Nevada Wolf Pack",
+   "home": "Northern Illinois Huskies",
+   "score": {
+    "home": 20,
+    "away": 28
+   }
+  },
+  {
+   "away": "Georgia Southern Eagles",
+   "home": "Georgia State Panthers",
+   "score": {
+    "home": 27,
+    "away": 30
+   }
+  },
+  {
+   "away": "Jacksonville State Gamecocks",
+   "home": "Western Kentucky Hilltoppers",
+   "score": {
+    "home": 24,
+    "away": 31
+   }
+  },
+  {
+   "away": "Middle Tennessee Blue Raiders",
+   "home": "Liberty Flames",
+   "score": {
+    "home": 37,
+    "away": 16
+   }
+  },
+  {
+   "away": "Fresno State Bulldogs",
+   "home": "Texas State Bobcats",
+   "score": {
+    "home": 34,
+    "away": 26
+   }
+  },
+  {
+   "away": "Ole Miss Rebels",
+   "home": "Oklahoma Sooners",
+   "score": {
+    "home": 24,
+    "away": 26
+   }
+  },
+  {
+   "away": "Washington Huskies",
+   "home": "Michigan State Spartans",
+   "score": {
+    "home": 20,
+    "away": 24
+   }
+  },
+  {
+   "away": "Southern Mississippi Golden Eagles",
+   "home": "Louisiana Tech Bulldogs",
+   "score": {
+    "home": 37,
+    "away": 19
+   }
+  },
+  {
+   "away": "Kansas Jayhawks",
+   "home": "West Virginia Mountaineers",
+   "score": {
+    "home": 34,
+    "away": 33
+   }
+  },
+  {
+   "away": "Oregon State Beavers",
+   "home": "Boise State Broncos",
+   "score": {
+    "home": 37,
+    "away": 27
+   }
+  },
+  {
+   "away": "Appalachian State Mountaineers",
+   "home": "Marshall Thundering Herd",
+   "score": {
+    "home": 26,
+    "away": 27
+   }
+  },
+  {
+   "away": "Florida Gators",
+   "home": "Kentucky Wildcats",
+   "score": {
+    "home": 28,
+    "away": 25
+   }
+  },
+  {
+   "away": "Minnesota Golden Gophers",
+   "home": "Penn State Nittany Lions",
+   "score": {
+    "home": 26,
+    "away": 16
+   }
+  },
+  {
+   "away": "San Jose State Spartans",
+   "home": "Air Force Falcons",
+   "score": {
+    "home": 30,
+    "away": 18
+   }
+  },
+  {
+   "away": "Troy Trojans",
+   "home": "South Alabama Jaguars",
+   "score": {
+    "home": 30,
+    "away": 25
+   }
+  },
+  {
+   "away": "Stanford Cardinal",
+   "home": "Virginia Tech Hokies",
+   "score": {
+    "home": 36,
+    "away": 22
+   }
+  },
+  {
+   "away": "Purdue Boilermakers",
+   "home": "Iowa Hawkeyes",
+   "score": {
+    "home": 34,
+    "away": 14
+   }
+  },
+  {
+   "away": "UNLV Rebels",
+   "home": "New Mexico Lobos",
+   "score": {
+    "home": 31,
+    "away": 16
+   }
+  },
+  {
+   "away": "South Carolina Gamecocks",
+   "home": "Arkansas Razorbacks",
+   "score": {
+    "home": 22,
+    "away": 29
+   }
+  },
+  {
+   "away": "North Texas Mean Green",
+   "home": "UTSA Roadrunners",
+   "score": {
+    "home": 36,
+    "away": 41
+   }
+  },
+  {
+   "away": "Utah State Aggies",
+   "home": "San Diego State Aztecs",
+   "score": {
+    "home": 21,
+    "away": 22
+   }
+  },
+  {
+   "away": "Wyoming Cowboys",
+   "home": "UTEP Miners",
+   "score": {
+    "home": 15,
+    "away": 25
+   }
+  },
+  {
+   "away": "Colorado State Rams",
+   "home": "Washington State Cougars",
+   "score": {
+    "home": 38,
+    "away": 28
+   }
+  },
+  {
+   "away": "North Dakota State Bison",
+   "home": "Hawaii Rainbow Warriors",
+   "score": {
+    "home": 12,
+    "away": 26
+   }
+  },
+  {
+   "away": "Ball State Cardinals",
+   "home": "Ohio Bobcats",
+   "score": {
+    "home": 33,
+    "away": 17
+   }
+  },
+  {
+   "away": "Eastern Michigan Eagles",
+   "home": "Western Michigan Broncos",
+   "score": {
+    "home": 32,
+    "away": 15
+   }
+  },
+  {
+   "away": "Miami (OH) RedHawks",
+   "home": "Kent State Golden Flashes",
+   "score": {
+    "home": 18,
+    "away": 29
+   }
+  },
+  {
+   "away": "Akron Zips",
+   "home": "UMass Minutemen",
+   "score": {
+    "home": 26,
+    "away": 19
+   }
+  },
+  {
+   "away": "Central Michigan Chippewas",
+   "home": "Buffalo Bulls",
+   "score": {
+    "home": 23,
+    "away": 21
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 6 pick(s) for 2026-11-13 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Amari Thomas",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 51.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624389878&selectionId=104984187",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 75,
+   "model_p": 75.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 21.7,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ty Dieffenbach",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 21.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2585692548976738725",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 56,
+   "model_p": 56.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": 1.5,
+   "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Patrick Overmyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 45.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/9132431329594573215",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "12 of 22",
+   "record": "12 of 22",
+   "rate": 65,
+   "break_even": 53.5,
+   "edge": 1.5,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 3,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.869,
+    "weighted_n": 13.0,
+    "mean_all": 38.227
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 26.46,
+   "projection": 38.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game.",
+   "why": [
+    "<b>Patrick Overmyer</b> went under 45.5 rec yds in <b>3 of 9 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.6,
+   "rank": 4
+  }
+ ],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 4,
+  "same_game_already_listed": 61,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 68,
+  "cap": 10,
+  "distinct_games": 3,
+  "shared_with_board_head": 3,
+  "board_head_size": 10
+ },
+ "top_plays_rule": "The 3 most likely to hit for 2026-11-13 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 3 game(s). 61 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "parlays": {
+  "2": [
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Ty Dieffenbach u21.5 rush yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -120
+    ],
+    "multiplier": 3.428,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 42.0,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     56
+    ],
+    "break_even": 29.2,
+    "edge": 12.8,
+    "ev_30": 13.19
+   },
+   {
+    "legs": [
+     "Amari Thomas u51.5 rush yds",
+     "Hudson Clement o3.5 rec"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -138
+    ],
+    "multiplier": 3.237,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 41.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     55
+    ],
+    "break_even": 30.9,
+    "edge": 10.4,
+    "ev_30": 10.06
+   },
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Patrick Overmyer u45.5 rec yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115
+    ],
+    "multiplier": 3.495,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 41.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     55
+    ],
+    "break_even": 28.6,
+    "edge": 12.6,
+    "ev_30": 13.25
+   },
+   {
+    "legs": [
+     "Semaj Morgan u4.5 rec",
+     "Amari Thomas u51.5 rush yds"
+    ],
+    "games": [
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Florida State Seminoles @ Pittsburgh Panthers"
+    ],
+    "game_ids": [
+     "bc528be865b10cd4a63a9e642c90d554",
+     "eff5d01c8683ed700c896743f0490989"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114
+    ],
+    "multiplier": 2.92,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 40.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     54,
+     75
+    ],
+    "break_even": 34.2,
+    "edge": 6.3,
+    "ev_30": 5.48
+   },
+   {
+    "legs": [
+     "Amari Thomas u51.5 rush yds",
+     "Aidan Laughery o45.5 rush yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 40.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     54
+    ],
+    "break_even": 28.4,
+    "edge": 12.1,
+    "ev_30": 12.81
+   },
+   {
+    "legs": [
+     "Amari Thomas u51.5 rush yds",
+     "Patrick Overmyer u44.5 rec yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 40.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     54
+    ],
+    "break_even": 28.4,
+    "edge": 12.1,
+    "ev_30": 12.81
+   },
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Wayne Knight u86.5 rush yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -110
+    ],
+    "multiplier": 3.569,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 40.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     54
+    ],
+    "break_even": 28.0,
+    "edge": 12.5,
+    "ev_30": 13.37
+   },
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Aidan Laughery o46.5 rush yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115
+    ],
+    "multiplier": 3.495,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 40.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     54
+    ],
+    "break_even": 28.6,
+    "edge": 11.9,
+    "ev_30": 12.47
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Ty Dieffenbach u21.5 rush yds",
+     "Patrick Overmyer u45.5 rec yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -120,
+     -115
+    ],
+    "multiplier": 6.408,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 23.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     56,
+     55
+    ],
+    "break_even": 15.6,
+    "edge": 7.5,
+    "ev_30": 14.41
+   },
+   {
+    "legs": [
+     "Amari Thomas u51.5 rush yds",
+     "Hudson Clement o3.5 rec",
+     "Patrick Overmyer u44.5 rec yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -138,
+     -114
+    ],
+    "multiplier": 6.077,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 22.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     55,
+     54
+    ],
+    "break_even": 16.5,
+    "edge": 5.8,
+    "ev_30": 10.61
+   },
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Patrick Overmyer u45.5 rec yds",
+     "Wayne Knight u86.5 rush yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Houston Cougars @ Colorado Buffaloes",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "73d83d88b3a35eeb4bcf8462ff2070b2",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115,
+     -110
+    ],
+    "multiplier": 6.673,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 22.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     55,
+     54
+    ],
+    "break_even": 15.0,
+    "edge": 7.3,
+    "ev_30": 14.59
+   },
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Patrick Overmyer u45.5 rec yds",
+     "Aidan Laughery o46.5 rush yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Houston Cougars @ Colorado Buffaloes",
+     "Illinois Fighting Illini @ UCLA Bruins"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "73d83d88b3a35eeb4bcf8462ff2070b2",
+     "bc528be865b10cd4a63a9e642c90d554"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115,
+     -115
+    ],
+    "multiplier": 6.535,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 22.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     55,
+     54
+    ],
+    "break_even": 15.3,
+    "edge": 7.0,
+    "ev_30": 13.67
+   },
+   {
+    "legs": [
+     "Semaj Morgan u4.5 rec",
+     "Amari Thomas u51.5 rush yds",
+     "Patrick Overmyer u44.5 rec yds"
+    ],
+    "games": [
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "bc528be865b10cd4a63a9e642c90d554",
+     "eff5d01c8683ed700c896743f0490989",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114,
+     -114
+    ],
+    "multiplier": 5.482,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     54,
+     75,
+     54
+    ],
+    "break_even": 18.2,
+    "edge": 3.6,
+    "ev_30": 5.96
+   },
+   {
+    "legs": [
+     "Amari Thomas u51.5 rush yds",
+     "Aidan Laughery o45.5 rush yds",
+     "Patrick Overmyer u44.5 rec yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     75,
+     54,
+     54
+    ],
+    "break_even": 15.1,
+    "edge": 6.8,
+    "ev_30": 13.4
+   },
+   {
+    "legs": [
+     "Aidan Mizell u2.5 rec",
+     "Amari Thomas u51.5 rush yds",
+     "Patrick Overmyer u44.5 rec yds"
+    ],
+    "games": [
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "bc528be865b10cd4a63a9e642c90d554",
+     "eff5d01c8683ed700c896743f0490989",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -188,
+     -114,
+     -114
+    ],
+    "multiplier": 5.398,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 21.1,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     52,
+     75,
+     54
+    ],
+    "break_even": 18.5,
+    "edge": 2.5,
+    "ev_30": 4.11
+   },
+   {
+    "legs": [
+     "Jasen Lopez u45.5 rec yds",
+     "Ty Dieffenbach u21.5 rush yds",
+     "Patrick Overmyer u45.5 rec yds"
+    ],
+    "games": [
+     "Florida State Seminoles @ Pittsburgh Panthers",
+     "Illinois Fighting Illini @ UCLA Bruins",
+     "Houston Cougars @ Colorado Buffaloes"
+    ],
+    "game_ids": [
+     "eff5d01c8683ed700c896743f0490989",
+     "bc528be865b10cd4a63a9e642c90d554",
+     "73d83d88b3a35eeb4bcf8462ff2070b2"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -110,
+     -120,
+     -115
+    ],
+    "multiplier": 6.543,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 18.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     59,
+     56,
+     55
+    ],
+    "break_even": 15.3,
+    "edge": 2.9,
+    "ev_30": 5.67
+   }
+  ],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 14,
+  "rated_legs": 68,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 2,
+    "taken": 2
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 66,
+    "taken": 12
+   },
+   {
+    "decimal": "2-3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 1327,
+   "same_player": 0,
+   "mixed_book": 85,
+   "out_of_band": 0
+  },
+  "note": "68 rated legs, 14 in the stratified pool. Rejected: 1327 same game, 0 same player, 85 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [
+   {
+    "legs": [
+     "Amari Thomas u51.5 rush yds",
+     "Pittsburgh Panthers -3.5 spread"
+    ],
+    "game": "Florida State Seminoles @ Pittsburgh Panthers",
+    "game_id": "eff5d01c8683ed700c896743f0490989",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -105
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.665,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 75,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     75
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Pittsburgh Panthers -3.5 spread"
+    ],
+    "game": "Florida State Seminoles @ Pittsburgh Panthers",
+    "game_id": "eff5d01c8683ed700c896743f0490989",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -105
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.65,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 75,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     75
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Patrick Overmyer u45.5 rec yds",
+     "Under 51.5 total"
+    ],
+    "game": "Houston Cougars @ Colorado Buffaloes",
+    "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -105
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.65,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Wayne Knight u86.5 rush yds",
+     "Aidan Laughery o46.5 rush yds"
+    ],
+    "game": "Illinois Fighting Illini @ UCLA Bruins",
+    "game_id": "bc528be865b10cd4a63a9e642c90d554",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -110,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.569,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54,
+     54
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Patrick Overmyer u44.5 rec yds",
+     "Under 51.5 total"
+    ],
+    "game": "Houston Cougars @ Colorado Buffaloes",
+    "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -115
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.51,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Ty Dieffenbach u21.5 rush yds",
+     "Wayne Knight u86.5 rush yds"
+    ],
+    "game": "Illinois Fighting Illini @ UCLA Bruins",
+    "game_id": "bc528be865b10cd4a63a9e642c90d554",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -110
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.5,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     54
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Amari Thomas u50.5 rush yds",
+     "Jasen Lopez u45.5 rec yds",
+     "Pittsburgh Panthers -3.5 spread"
+    ],
+    "game": "Florida State Seminoles @ Pittsburgh Panthers",
+    "game_id": "eff5d01c8683ed700c896743f0490989",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -110,
+     -105
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.968,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 59,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     75,
+     59
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jasen Lopez u45.5 rec yds",
+     "Cataurus Hicks o48.5 rec yds",
+     "Pittsburgh Panthers -3.5 spread"
+    ],
+    "game": "Florida State Seminoles @ Pittsburgh Panthers",
+    "game_id": "eff5d01c8683ed700c896743f0490989",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -110,
+     -110,
+     -105
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -102,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 7.116,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     59,
+     54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Ty Dieffenbach u21.5 rush yds",
+     "Wayne Knight u86.5 rush yds",
+     "Aidan Laughery o46.5 rush yds"
+    ],
+    "game": "Illinois Fighting Illini @ UCLA Bruins",
+    "game_id": "bc528be865b10cd4a63a9e642c90d554",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -110,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.543,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     54,
+     54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Hudson Clement o3.5 rec",
+     "Aidan Laughery o45.5 rush yds",
+     "Semaj Morgan u4.5 rec"
+    ],
+    "game": "Illinois Fighting Illini @ UCLA Bruins",
+    "game_id": "bc528be865b10cd4a63a9e642c90d554",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -138,
+     -114,
+     -180
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 5.036,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54,
+     54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Patrick Overmyer u44.5 rec yds",
+     "Trent Walker o39.5 rec yds",
+     "Under 51.5 total"
+    ],
+    "game": "Houston Cougars @ Colorado Buffaloes",
+    "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -115
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.588,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 53,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54,
+     53
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Patrick Overmyer u45.5 rec yds",
+     "Isaac Wilson u220.5 pass yds",
+     "Under 51.5 total"
+    ],
+    "game": "Houston Cougars @ Colorado Buffaloes",
+    "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115,
+     -105
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.824,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 52,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     52
+    ],
+    "band_floor": 3.0
+   }
+  ]
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 3,
+  "games_with_a_line_row": 2,
+  "games_used": 3,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 96,
+   "mixed_book": 327,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "3 game(s) on this card carry a rated leg and 2 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {
+  "Ashton Daniels|player_anytime_td|yes|None": {
+   "v": 1.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 1.2 TD a game."
+  },
+  "Carson Kent|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Cataurus Hicks|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Damon Ferguson Jr.|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.8 TD a game."
+  },
+  "Gemari Sands|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Holden Geriner|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Micahi Danzy|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Ashton Daniels|player_pass_yds|over|217.5": {
+   "v": 226.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 226.4 pass yds a game."
+  },
+  "Ashton Daniels|player_pass_yds|under|217.5": {
+   "v": 226.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 226.4 pass yds a game."
+  },
+  "Ashton Daniels|player_pass_yds|over|221.5": {
+   "v": 226.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 226.4 pass yds a game."
+  },
+  "Ashton Daniels|player_pass_yds|under|221.5": {
+   "v": 226.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 226.4 pass yds a game."
+  },
+  "Holden Geriner|player_pass_yds|over|211.5": {
+   "v": 126.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 126.6 pass yds a game."
+  },
+  "Holden Geriner|player_pass_yds|under|211.5": {
+   "v": 126.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 126.6 pass yds a game."
+  },
+  "Carson Kent|player_reception_yds|over|32.5": {
+   "v": 28.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 28.6 rec yds a game."
+  },
+  "Carson Kent|player_reception_yds|under|32.5": {
+   "v": 28.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 28.6 rec yds a game."
+  },
+  "Carson Kent|player_reception_yds|over|33.5": {
+   "v": 28.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 28.6 rec yds a game."
+  },
+  "Carson Kent|player_reception_yds|under|33.5": {
+   "v": 28.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 28.6 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|over|48.5": {
+   "v": 58.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 58.9 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|under|48.5": {
+   "v": 58.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 58.9 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|over|53.5": {
+   "v": 58.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 58.9 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|under|53.5": {
+   "v": 58.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 58.9 rec yds a game."
+  },
+  "Micahi Danzy|player_reception_yds|over|62.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "Micahi Danzy|player_reception_yds|under|62.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "Micahi Danzy|player_reception_yds|over|63.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "Micahi Danzy|player_reception_yds|under|63.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "Ashton Daniels|player_rush_yds|over|44.5": {
+   "v": 53.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 53.3 rush yds a game."
+  },
+  "Ashton Daniels|player_rush_yds|under|44.5": {
+   "v": 53.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 53.3 rush yds a game."
+  },
+  "Ashton Daniels|player_rush_yds|over|46.5": {
+   "v": 53.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 53.3 rush yds a game."
+  },
+  "Ashton Daniels|player_rush_yds|under|46.5": {
+   "v": 53.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 53.3 rush yds a game."
+  },
+  "Damon Ferguson Jr.|player_rush_yds|over|75.5": {
+   "v": 73.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 73.6 rush yds a game."
+  },
+  "Damon Ferguson Jr.|player_rush_yds|under|75.5": {
+   "v": 73.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 73.6 rush yds a game."
+  },
+  "Damon Ferguson Jr.|player_rush_yds|over|77.5": {
+   "v": 73.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 73.6 rush yds a game."
+  },
+  "Damon Ferguson Jr.|player_rush_yds|under|77.5": {
+   "v": 73.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 73.6 rush yds a game."
+  },
+  "Aidan Laughery|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Anthony Woods|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Collin Dixon|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.8 TD a game."
+  },
+  "Hudson Clement|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jaivian Thomas|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Jordan Anderson|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Katin Houser|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Semaj Morgan|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Wayne Knight|player_anytime_td|yes|None": {
+   "v": 1.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 1.1 TD a game."
+  },
+  "Katin Houser|player_pass_yds|over|210.5": {
+   "v": 262.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 262.8 pass yds a game."
+  },
+  "Katin Houser|player_pass_yds|under|210.5": {
+   "v": 262.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 262.8 pass yds a game."
+  },
+  "Katin Houser|player_pass_yds|over|212.5": {
+   "v": 262.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 262.8 pass yds a game."
+  },
+  "Katin Houser|player_pass_yds|under|212.5": {
+   "v": 262.8,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 262.8 pass yds a game."
+  },
+  "Collin Dixon|player_reception_yds|over|83.5": {
+   "v": 66.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 66.0 rec yds a game."
+  },
+  "Collin Dixon|player_reception_yds|under|83.5": {
+   "v": 66.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 66.0 rec yds a game."
+  },
+  "Collin Dixon|player_reception_yds|over|84.5": {
+   "v": 66.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 66.0 rec yds a game."
+  },
+  "Collin Dixon|player_reception_yds|under|84.5": {
+   "v": 66.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 66.0 rec yds a game."
+  },
+  "Hudson Clement|player_reception_yds|over|50.5": {
+   "v": 47.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 47.3 rec yds a game."
+  },
+  "Hudson Clement|player_reception_yds|under|50.5": {
+   "v": 47.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 47.3 rec yds a game."
+  },
+  "Semaj Morgan|player_reception_yds|over|44.5": {
+   "v": 38.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 38.4 rec yds a game."
+  },
+  "Semaj Morgan|player_reception_yds|under|44.5": {
+   "v": 38.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 38.4 rec yds a game."
+  },
+  "Semaj Morgan|player_reception_yds|over|46.5": {
+   "v": 38.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 38.4 rec yds a game."
+  },
+  "Semaj Morgan|player_reception_yds|under|46.5": {
+   "v": 38.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 38.4 rec yds a game."
+  },
+  "Wayne Knight|player_reception_yds|over|11.5": {
+   "v": 24.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 24.0 rec yds a game."
+  },
+  "Wayne Knight|player_reception_yds|under|11.5": {
+   "v": 24.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 24.0 rec yds a game."
+  },
+  "Wayne Knight|player_reception_yds|over|12.5": {
+   "v": 24.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 24.0 rec yds a game."
+  },
+  "Wayne Knight|player_reception_yds|under|12.5": {
+   "v": 24.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 24.0 rec yds a game."
+  },
+  "Collin Dixon|player_receptions|over|6.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Collin Dixon|player_receptions|under|6.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Hudson Clement|player_receptions|over|3.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Hudson Clement|player_receptions|under|3.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Semaj Morgan|player_receptions|over|4.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 3.2 rec a game."
+  },
+  "Semaj Morgan|player_receptions|under|4.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 3.2 rec a game."
+  },
+  "Aidan Laughery|player_rush_yds|over|45.5": {
+   "v": 55.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 55.4 rush yds a game."
+  },
+  "Aidan Laughery|player_rush_yds|under|45.5": {
+   "v": 55.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 55.4 rush yds a game."
+  },
+  "Aidan Laughery|player_rush_yds|over|46.5": {
+   "v": 55.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 55.4 rush yds a game."
+  },
+  "Aidan Laughery|player_rush_yds|under|46.5": {
+   "v": 55.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 55.4 rush yds a game."
+  },
+  "Anthony Woods|player_rush_yds|over|46.5": {
+   "v": 40.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 40.9 rush yds a game."
+  },
+  "Anthony Woods|player_rush_yds|under|46.5": {
+   "v": 40.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 40.9 rush yds a game."
+  },
+  "Anthony Woods|player_rush_yds|over|48.5": {
+   "v": 40.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 40.9 rush yds a game."
+  },
+  "Anthony Woods|player_rush_yds|under|48.5": {
+   "v": 40.9,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 40.9 rush yds a game."
+  },
+  "Wayne Knight|player_rush_yds|over|81.5": {
+   "v": 94.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 94.0 rush yds a game."
+  },
+  "Wayne Knight|player_rush_yds|under|81.5": {
+   "v": 94.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 94.0 rush yds a game."
+  },
+  "Wayne Knight|player_rush_yds|over|86.5": {
+   "v": 94.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 94.0 rush yds a game."
+  },
+  "Wayne Knight|player_rush_yds|under|86.5": {
+   "v": 94.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 94.0 rush yds a game."
+  },
+  "Amare Thomas|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Conner Weigman|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.8 TD a game."
+  },
+  "DJ Butler|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Damian Henderson II|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.0 TD a game."
+  },
+  "DeAndre Moore Jr.|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Dekalon Taylor|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Isaac Wilson|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.1 TD a game."
+  },
+  "JaQuail Smith|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Joseph Williams|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Koby Young|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Makhi Hughes|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Patrick Overmyer|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Quanell Farrakhan Jr.|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Richard Young|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Trent Walker|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Conner Weigman|player_pass_yds|over|234.5": {
+   "v": 226.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 226.5 pass yds a game."
+  },
+  "Conner Weigman|player_pass_yds|under|234.5": {
+   "v": 226.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 226.5 pass yds a game."
+  },
+  "Conner Weigman|player_pass_yds|over|237.5": {
+   "v": 226.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 226.5 pass yds a game."
+  },
+  "Conner Weigman|player_pass_yds|under|237.5": {
+   "v": 226.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 226.5 pass yds a game."
+  },
+  "Isaac Wilson|player_pass_yds|over|213.5": {
+   "v": 176.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 176.5 pass yds a game."
+  },
+  "Isaac Wilson|player_pass_yds|under|213.5": {
+   "v": 176.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 176.5 pass yds a game."
+  },
+  "Isaac Wilson|player_pass_yds|over|220.5": {
+   "v": 176.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 176.5 pass yds a game."
+  },
+  "Isaac Wilson|player_pass_yds|under|220.5": {
+   "v": 176.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 176.5 pass yds a game."
+  },
+  "Amare Thomas|player_reception_yds|over|71.5": {
+   "v": 75.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 75.6 rec yds a game."
+  },
+  "Amare Thomas|player_reception_yds|under|71.5": {
+   "v": 75.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 75.6 rec yds a game."
+  },
+  "Amare Thomas|player_reception_yds|over|72.5": {
+   "v": 75.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 75.6 rec yds a game."
+  },
+  "Amare Thomas|player_reception_yds|under|72.5": {
+   "v": 75.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 75.6 rec yds a game."
+  },
+  "DeAndre Moore Jr.|player_reception_yds|over|50.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "DeAndre Moore Jr.|player_reception_yds|under|50.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "DeAndre Moore Jr.|player_reception_yds|over|51.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "DeAndre Moore Jr.|player_reception_yds|under|51.5": {
+   "v": 55.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game."
+  },
+  "Joseph Williams|player_reception_yds|over|72.5": {
+   "v": 70.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 70.6 rec yds a game."
+  },
+  "Joseph Williams|player_reception_yds|under|72.5": {
+   "v": 70.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 70.6 rec yds a game."
+  },
+  "Joseph Williams|player_reception_yds|over|75.5": {
+   "v": 70.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 70.6 rec yds a game."
+  },
+  "Joseph Williams|player_reception_yds|under|75.5": {
+   "v": 70.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 70.6 rec yds a game."
+  },
+  "Koby Young|player_reception_yds|over|35.5": {
+   "v": 34.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 34.4 rec yds a game."
+  },
+  "Koby Young|player_reception_yds|under|35.5": {
+   "v": 34.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 34.4 rec yds a game."
+  },
+  "Patrick Overmyer|player_reception_yds|over|44.5": {
+   "v": 38.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game."
+  },
+  "Patrick Overmyer|player_reception_yds|under|44.5": {
+   "v": 38.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game."
+  },
+  "Patrick Overmyer|player_reception_yds|over|45.5": {
+   "v": 38.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game."
+  },
+  "Patrick Overmyer|player_reception_yds|under|45.5": {
+   "v": 38.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game."
+  },
+  "Quanell Farrakhan Jr.|player_reception_yds|over|25.5": {
+   "v": 33.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 33.6 rec yds a game."
+  },
+  "Quanell Farrakhan Jr.|player_reception_yds|under|25.5": {
+   "v": 33.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 33.6 rec yds a game."
+  },
+  "Quanell Farrakhan Jr.|player_reception_yds|over|26.5": {
+   "v": 33.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 33.6 rec yds a game."
+  },
+  "Quanell Farrakhan Jr.|player_reception_yds|under|26.5": {
+   "v": 33.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 33.6 rec yds a game."
+  },
+  "Trent Walker|player_reception_yds|over|39.5": {
+   "v": 63.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 63.1 rec yds a game."
+  },
+  "Trent Walker|player_reception_yds|under|39.5": {
+   "v": 63.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 63.1 rec yds a game."
+  },
+  "Trent Walker|player_reception_yds|over|40.5": {
+   "v": 63.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 63.1 rec yds a game."
+  },
+  "Trent Walker|player_reception_yds|under|40.5": {
+   "v": 63.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 63.1 rec yds a game."
+  },
+  "Conner Weigman|player_rush_yds|over|33.5": {
+   "v": 44.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 44.6 rush yds a game."
+  },
+  "Conner Weigman|player_rush_yds|under|33.5": {
+   "v": 44.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 44.6 rush yds a game."
+  },
+  "Conner Weigman|player_rush_yds|over|34.5": {
+   "v": 44.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 44.6 rush yds a game."
+  },
+  "Conner Weigman|player_rush_yds|under|34.5": {
+   "v": 44.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 44.6 rush yds a game."
+  },
+  "Makhi Hughes|player_rush_yds|over|63.5": {
+   "v": 52.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 52.1 rush yds a game."
+  },
+  "Makhi Hughes|player_rush_yds|under|63.5": {
+   "v": 52.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 52.1 rush yds a game."
+  },
+  "Makhi Hughes|player_rush_yds|over|65.5": {
+   "v": 52.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 52.1 rush yds a game."
+  },
+  "Makhi Hughes|player_rush_yds|under|65.5": {
+   "v": 52.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 52.1 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.982,
+ "n_priced": 70,
+ "single_day": true,
+ "slate_date": "2026-11-13",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 70,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-11-13 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": null,
+ "short_reason": null,
+ "coverage": "70 priced football rows for 2026-11-13 across 3 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. There are not enough graded College Football plays yet to say whether these confidence numbers hold up \u2014 15 so far, and no band has reached 20. Treat every one as unproven.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Amari Thomas",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 51.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624389878&selectionId=104984187",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 75,
+   "model_p": 75.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 21.7,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jasen Lopez",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 45.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/160680821506834856",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 59,
+   "model_p": 59.2,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 6.6,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ty Dieffenbach",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 21.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2585692548976738725",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 56,
+   "model_p": 56.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": 1.5,
+   "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Patrick Overmyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 45.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/9132431329594573215",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "12 of 22",
+   "record": "12 of 22",
+   "rate": 65,
+   "break_even": 53.5,
+   "edge": 1.5,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 3,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.869,
+    "weighted_n": 13.0,
+    "mean_all": 38.227
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 26.46,
+   "projection": 38.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game.",
+   "why": [
+    "<b>Patrick Overmyer</b> went under 45.5 rec yds in <b>3 of 9 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.6,
+   "rank": 4
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Hudson Clement",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": -138,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624246371&selectionId=102439536",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "10 of 21",
+   "record": "10 of 21",
+   "rate": 48,
+   "break_even": 58.0,
+   "edge": -3.0,
+   "season_detail": {
+    "h25": 3,
+    "n25": 13,
+    "h26": 7,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.312,
+    "weighted_n": 12.33,
+    "mean_all": 3.476
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.77,
+   "projection": 3.5,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 3.5 rec a game.",
+   "why": [
+    "<b>Hudson Clement</b> went over 3.5 rec in <b>7 of 8 games</b> in 2026 and 3 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.9,
+   "rank": 5,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Cataurus Hicks",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 48.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/965417779922600359",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "11 of 19",
+   "record": "11 of 19",
+   "rate": 52,
+   "break_even": 52.4,
+   "edge": 1.6,
+   "season_detail": {
+    "h25": 3,
+    "n25": 10,
+    "h26": 8,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.304,
+    "weighted_n": 12.08,
+    "mean_all": 58.947
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.2,
+   "projection": 58.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 58.9 rec yds a game.",
+   "why": [
+    "<b>Cataurus Hicks</b> went over 48.5 rec yds in <b>8 of 9 games</b> in 2026 and 3 of 10 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.4,
+   "rank": 6
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ashton Daniels",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 46.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2914737546760159660",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "8 of 13",
+   "record": "8 of 13",
+   "rate": 77,
+   "break_even": 52.4,
+   "edge": 1.6,
+   "season_detail": {
+    "h25": 1,
+    "n25": 4,
+    "h26": 7,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.824,
+    "weighted_n": 10.23,
+    "mean_all": 53.308
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 70.0,
+   "projection": 53.3,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 53.3 rush yds a game.",
+   "why": [
+    "<b>Ashton Daniels</b> went under 46.5 rush yds in <b>7 of 9 games</b> in 2026 and 1 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.2,
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Wayne Knight",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 86.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4739612818039505318",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "9 of 23",
+   "record": "9 of 23",
+   "rate": 63,
+   "break_even": 52.4,
+   "edge": 1.6,
+   "season_detail": {
+    "h25": 5,
+    "n25": 14,
+    "h26": 4,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.874,
+    "weighted_n": 13.31,
+    "mean_all": 94.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 98.07,
+   "projection": 94.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 94.0 rush yds a game.",
+   "why": [
+    "<b>Wayne Knight</b> went under 86.5 rush yds in <b>4 of 9 games</b> in 2026 and 5 of 14 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.3,
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aidan Laughery",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 45.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624246365&selectionId=102439599",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "10 of 18",
+   "record": "10 of 18",
+   "rate": 50,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 9,
+    "h26": 7,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.337,
+    "weighted_n": 11.77,
+    "mean_all": 55.389
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.44,
+   "projection": 55.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 55.4 rush yds a game.",
+   "why": [
+    "<b>Aidan Laughery</b> went over 45.5 rush yds in <b>7 of 9 games</b> in 2026 and 3 of 9 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.9,
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Semaj Morgan",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": -180,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624247203&selectionId=102997612",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "12 of 18",
+   "record": "12 of 18",
+   "rate": 67,
+   "break_even": 64.3,
+   "edge": -10.3,
+   "season_detail": {
+    "h25": 8,
+    "n25": 9,
+    "h26": 4,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.794,
+    "weighted_n": 11.77,
+    "mean_all": 3.167
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.22,
+   "projection": 3.2,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 3.2 rec a game.",
+   "why": [
+    "<b>Semaj Morgan</b> went under 4.5 rec in <b>4 of 9 games</b> in 2026 and 8 of 9 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.2,
+   "rank": 10,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aidan Mizell",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 30.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2246903959394582915",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 0.6,
+   "rank": 11
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brian Rowe Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 24.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8870960139442717067",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 53.4,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 0.6,
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Trent Walker",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 39.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624367427&selectionId=102364681",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "12 of 20",
+   "record": "12 of 20",
+   "rate": 48,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 7,
+    "n25": 11,
+    "h26": 5,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.383,
+    "weighted_n": 12.38,
+    "mean_all": 63.1
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 74.82,
+   "projection": 63.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 63.1 rec yds a game.",
+   "why": [
+    "<b>Trent Walker</b> went over 39.5 rec yds in <b>5 of 9 games</b> in 2026 and 7 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.8,
+   "rank": 13,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Holden Geriner",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 211.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -130,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/876260581049500076",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "5 of 7",
+   "record": "5 of 7",
+   "rate": 66,
+   "break_even": 56.5,
+   "edge": -3.5,
+   "season_detail": {
+    "h25": 1,
+    "n25": 1,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.652,
+    "weighted_n": 6.4,
+    "mean_all": 126.571
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 0.0,
+   "projection": 126.6,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 126.6 pass yds a game.",
+   "why": [
+    "<b>Holden Geriner</b> went under 211.5 pass yds in <b>4 of 6 games</b> in 2026 and 1 of 1 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.3,
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Collin Dixon",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 6.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": -130,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624246372&selectionId=102439520",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "17 of 22",
+   "record": "17 of 22",
+   "rate": 76,
+   "break_even": 56.5,
+   "edge": -3.5,
+   "season_detail": {
+    "h25": 13,
+    "n25": 13,
+    "h26": 4,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.922,
+    "weighted_n": 13.0,
+    "mean_all": 4.636
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.69,
+   "projection": 4.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 4.6 rec a game.",
+   "why": [
+    "<b>Collin Dixon</b> went under 6.5 rec in <b>4 of 9 games</b> in 2026 and 13 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.0,
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Micahi Danzy",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 62.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6367591086069776808",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "11 of 19",
+   "record": "11 of 19",
+   "rate": 67,
+   "break_even": 52.4,
+   "edge": -0.4,
+   "season_detail": {
+    "h25": 7,
+    "n25": 11,
+    "h26": 4,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.793,
+    "weighted_n": 11.67,
+    "mean_all": 55.684
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 51.91,
+   "projection": 55.7,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game.",
+   "why": [
+    "<b>Micahi Danzy</b> went under 62.5 rec yds in <b>4 of 8 games</b> in 2026 and 7 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.0,
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Hudson Clement",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 50.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/9209468983309369734",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "7 of 21",
+   "record": "7 of 21",
+   "rate": 37,
+   "break_even": 52.4,
+   "edge": -0.4,
+   "season_detail": {
+    "h25": 2,
+    "n25": 13,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.288,
+    "weighted_n": 12.33,
+    "mean_all": 47.333
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 34.92,
+   "projection": 47.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 47.3 rec yds a game.",
+   "why": [
+    "<b>Hudson Clement</b> went over 50.5 rec yds in <b>5 of 8 games</b> in 2026 and 2 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.5,
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Wayne Knight",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 11.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7656211996494397830",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "16 of 23",
+   "record": "16 of 23",
+   "rate": 57,
+   "break_even": 52.4,
+   "edge": -0.4,
+   "season_detail": {
+    "h25": 10,
+    "n25": 14,
+    "h26": 6,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.454,
+    "weighted_n": 13.31,
+    "mean_all": 24.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 28.36,
+   "projection": 24.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 24.0 rec yds a game.",
+   "why": [
+    "<b>Wayne Knight</b> went over 11.5 rec yds in <b>6 of 9 games</b> in 2026 and 10 of 14 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.1,
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ashton Daniels",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "over",
+   "line": 217.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624389665&selectionId=60287873",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "6 of 13",
+   "record": "6 of 13",
+   "rate": 39,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 2,
+    "n25": 4,
+    "h26": 4,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.329,
+    "weighted_n": 10.23,
+    "mean_all": 226.385
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 199.25,
+   "projection": 226.4,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 226.4 pass yds a game.",
+   "why": [
+    "<b>Ashton Daniels</b> went over 217.5 pass yds in <b>4 of 9 games</b> in 2026 and 2 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.6,
+   "rank": 19,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Collin Dixon",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 84.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624246368&selectionId=102439520",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "15 of 22",
+   "record": "15 of 22",
+   "rate": 72,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 11,
+    "n25": 13,
+    "h26": 4,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.889,
+    "weighted_n": 13.0,
+    "mean_all": 66.045
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.15,
+   "projection": 66.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 66.0 rec yds a game.",
+   "why": [
+    "<b>Collin Dixon</b> went under 84.5 rec yds in <b>4 of 9 games</b> in 2026 and 11 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.3,
+   "rank": 20,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "DeAndre Moore Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 51.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624367314&selectionId=102331559",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "10 of 19",
+   "record": "10 of 19",
+   "rate": 42,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 5,
+    "n25": 11,
+    "h26": 5,
+    "n26": 8,
+    "w25": 0.333,
+    "p0": 0.281,
+    "weighted_n": 11.67,
+    "mean_all": 55.684
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 48.36,
+   "projection": 55.7,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 55.7 rec yds a game.",
+   "why": [
+    "<b>DeAndre Moore Jr.</b> went over 51.5 rec yds in <b>5 of 8 games</b> in 2026 and 5 of 11 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.7,
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Quanell Farrakhan Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 25.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624367624&selectionId=104025435",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "4 of 9",
+   "record": "4 of 9",
+   "rate": 54,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 0,
+    "n25": 2,
+    "h26": 4,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.546,
+    "weighted_n": 7.73,
+    "mean_all": 33.556
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 8.5,
+   "projection": 33.6,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 33.6 rec yds a game.",
+   "why": [
+    "<b>Quanell Farrakhan Jr.</b> went over 25.5 rec yds in <b>4 of 7 games</b> in 2026 and 0 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.7,
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Conner Weigman",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 34.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624366629&selectionId=50234410",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "11 of 22",
+   "record": "11 of 22",
+   "rate": 67,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 5,
+    "n25": 13,
+    "h26": 6,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.762,
+    "weighted_n": 13.0,
+    "mean_all": 44.636
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 54.08,
+   "projection": 44.6,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 44.6 rush yds a game.",
+   "why": [
+    "<b>Conner Weigman</b> went under 34.5 rush yds in <b>6 of 9 games</b> in 2026 and 5 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.1,
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Damon Ferguson Jr.",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 77.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4764662311239680396",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "6 of 9",
+   "record": "6 of 9",
+   "rate": 77,
+   "break_even": 53.5,
+   "edge": -1.5,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 6,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.842,
+    "weighted_n": 9.0,
+    "mean_all": 73.556
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 73.56,
+   "projection": 73.6,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 73.6 rush yds a game.",
+   "why": [
+    "<b>Damon Ferguson Jr.</b> went under 77.5 rush yds in <b>6 of 9 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 52.4,
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brayden Trimble",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 17.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7430310735498051974",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.4,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.5,
+   "edge": -1.5,
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Amari Thomas",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 51.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624389878&selectionId=104984187",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "The Pittsburgh Panthers allow 68.9 rushing yards a game to running backs (4th fewest of 138).",
+    "The Pittsburgh Panthers list LB Cameron Lindsey (Out).",
+    "The model gives it <b>75%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "confidence": 75,
+   "model_p": 75.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 21.7,
+   "rank": 1,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jasen Lopez",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 45.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/160680821506834856",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "The Pittsburgh Panthers allow 199.5 receiving yards a game to wide receivers (15th most of 138).",
+    "The Pittsburgh Panthers list LB Cameron Lindsey (Out), DB Allen Bryant (Out), DB Isaac Patterson (Out).",
+    "The model gives it <b>59%</b>; at -110 it needs 52.4% to pay."
+   ],
+   "confidence": 59,
+   "model_p": 59.2,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 6.6,
+   "rank": 2,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ty Dieffenbach",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 21.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2585692548976738725",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "The Illinois Fighting Illini allow 13.8 rushing yards a game to quarterbacks (25th fewest of 138).",
+    "The Illinois Fighting Illini list LB Grant Beerman (Out), DL Carter Smith (Out).",
+    "The model gives it <b>56%</b>; at -120 it needs 54.5% to pay."
+   ],
+   "confidence": 56,
+   "model_p": 56.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": 1.5,
+   "rank": 3,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Patrick Overmyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 45.5,
+   "game": "Houston Cougars @ Colorado Buffaloes",
+   "game_id": "73d83d88b3a35eeb4bcf8462ff2070b2",
+   "away": "Houston Cougars",
+   "home": "Colorado Buffaloes",
+   "commence": "2026-11-14T03:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/9132431329594573215",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "12 of 22",
+   "record": "12 of 22",
+   "rate": 65,
+   "break_even": 53.5,
+   "edge": 1.5,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 3,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.869,
+    "weighted_n": 13.0,
+    "mean_all": 38.227
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 26.46,
+   "projection": 38.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 38.2 rec yds a game.",
+   "why": [
+    "<b>Patrick Overmyer</b> went under 45.5 rec yds in <b>3 of 9 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in.",
+    "The Colorado Buffaloes allow 41.4 receiving yards a game to tight ends (34th most of 138).",
+    "The Colorado Buffaloes list DB Naeten Mitchell (Out), DB Braylon Edwards (Doubtful).",
+    "The model gives it <b>55%</b>; at -115 it needs 53.5% to pay."
+   ],
+   "model_p": 54.6,
+   "rank": 4,
+   "why_card": [
+    "<b>Patrick Overmyer</b> went under 45.5 rec yds in <b>3 of 9 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Cataurus Hicks",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 48.5,
+   "game": "Florida State Seminoles @ Pittsburgh Panthers",
+   "game_id": "eff5d01c8683ed700c896743f0490989",
+   "away": "Florida State Seminoles",
+   "home": "Pittsburgh Panthers",
+   "commence": "2026-11-14T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/965417779922600359",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "11 of 19",
+   "record": "11 of 19",
+   "rate": 52,
+   "break_even": 52.4,
+   "edge": 1.6,
+   "season_detail": {
+    "h25": 3,
+    "n25": 10,
+    "h26": 8,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.304,
+    "weighted_n": 12.08,
+    "mean_all": 58.947
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.2,
+   "projection": 58.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 58.9 rec yds a game.",
+   "why": [
+    "<b>Cataurus Hicks</b> went over 48.5 rec yds in <b>8 of 9 games</b> in 2026 and 3 of 10 in 2025, in the games he appears in.",
+    "The Florida State Seminoles allow 192.9 receiving yards a game to wide receivers (21st most of 138).",
+    "The Florida State Seminoles list DB Quindarrius Jones (Out), DB Karson Hobbs (Out), DB Jamari Howard (Out), LB Izayia Williams (Out).",
+    "The model gives it <b>54%</b>; at -110 it needs 52.4% to pay."
+   ],
+   "model_p": 54.4,
+   "rank": 5,
+   "why_card": [
+    "<b>Cataurus Hicks</b> went over 48.5 rec yds in <b>8 of 9 games</b> in 2026 and 3 of 10 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aidan Laughery",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 45.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624246365&selectionId=102439599",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "10 of 18",
+   "record": "10 of 18",
+   "rate": 50,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 3,
+    "n25": 9,
+    "h26": 7,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.337,
+    "weighted_n": 11.77,
+    "mean_all": 55.389
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 42.44,
+   "projection": 55.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 55.4 rush yds a game.",
+   "why": [
+    "<b>Aidan Laughery</b> went over 45.5 rush yds in <b>7 of 9 games</b> in 2026 and 3 of 9 in 2025, in the games he appears in.",
+    "The UCLA Bruins allow 81 rushing yards a game to running backs (18th fewest of 138).",
+    "The UCLA Bruins list OLB Ryan McCulloch (Out), DL Ashton Sanders (Out).",
+    "The model gives it <b>54%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 53.9,
+   "rank": 6,
+   "why_card": [
+    "<b>Aidan Laughery</b> went over 45.5 rush yds in <b>7 of 9 games</b> in 2026 and 3 of 9 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aidan Mizell",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 30.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2246903959394582915",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "The Illinois Fighting Illini allow 179 receiving yards a game to wide receivers (40th most of 138).",
+    "The Illinois Fighting Illini list DB Jacob Eberhart (Out), DB Tywan Cox (Out), LB Grant Beerman (Out).",
+    "The model gives it <b>53%</b>; at -110 it needs 52.4% to pay."
+   ],
+   "confidence": 53,
+   "model_p": 52.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 0.6,
+   "rank": 7,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brian Rowe Jr.",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 24.5,
+   "game": "Illinois Fighting Illini @ UCLA Bruins",
+   "game_id": "bc528be865b10cd4a63a9e642c90d554",
+   "away": "Illinois Fighting Illini",
+   "home": "UCLA Bruins",
+   "commence": "2026-11-14T02:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8870960139442717067",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "The Illinois Fighting Illini allow 179 receiving yards a game to wide receivers (40th most of 138).",
+    "The Illinois Fighting Illini list DB Jacob Eberhart (Out), DB Tywan Cox (Out), LB Grant Beerman (Out).",
+    "The model gives it <b>53%</b>; at -110 it needs 52.4% to pay."
+   ],
+   "confidence": 53,
+   "model_p": 53.4,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 0.6,
+   "rank": 8,
+   "why_card": []
+  }
+ ],
+ "n_longshots_excluded": 9,
+ "price_ceiling": 400,
+ "market_max_share": null,
+ "board_mixed": false,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}
