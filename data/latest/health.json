@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-14T07:30:24Z",
+ "checked_at": "2026-11-14T11:53:16Z",
  "et_date": "2026-11-14",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 12,
  "findings": [
   {
    "key": "late:lineups:mlb",
@@ -42,10 +42,10 @@
    "repair": null
   },
   {
-   "key": "late:gamelines:ncaaf",
+   "key": "late:fb-scores:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf gamelines was built 66 minutes after it was due",
-   "why": "due 2026-11-13T19:00Z, built 2026-11-13T20:05Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "what": "ncaaf fb-scores was built 232 minutes after it was due",
+   "why": "due 2026-11-14T08:00Z, built 2026-11-14T11:52Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -77,6 +77,13 @@
    "repair": null
   },
   {
+   "key": "late:fb-scores:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl fb-scores was built 233 minutes after it was due",
+   "why": "due 2026-11-14T08:00Z, built 2026-11-14T11:53Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:news:nfl",
    "severity": "DEGRADED",
    "what": "nfl news was built 104 minutes after it was due",
@@ -89,15 +96,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 16705,
-  "pulled_at": "2026-11-14T01:04:06Z",
+  "balance": 16507,
+  "pulled_at": "2026-11-14T11:52:22Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 6.4,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-14T01:04:06Z",
-  "source": "data/ncaaf/2026-11-14/gamelines/0104.json.gz",
-  "readings_on_disk": 1646,
+  "newest_paid_pull": "2026-11-14T11:52:22Z",
+  "source": "data/nfl/2026-11-14/props-player/1152.json.gz",
+  "readings_on_disk": 1652,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
