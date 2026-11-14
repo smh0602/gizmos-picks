@@ -1,16 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-14T15:22:02Z",
+ "checked_at": "2026-11-14T15:39:09Z",
  "et_date": "2026-11-14",
  "healthy": false,
  "broken": 3,
- "degraded": 10,
+ "degraded": 9,
  "findings": [
   {
    "key": "day:ncaaf:game_lines",
    "severity": "BROKEN",
    "what": "the ncaaf game lines say 2026-11-14 and carry rows on 2026-11-15",
-   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader \u26d4 `card-fb` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card-fb"
@@ -19,7 +19,7 @@
    "key": "day:ncaaf:game_lines_liked",
    "severity": "BROKEN",
    "what": "the ncaaf game lines liked say 2026-11-14 and carry rows on 2026-11-15",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card-fb` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card-fb"
@@ -28,7 +28,7 @@
    "key": "day:ncaaf:picks",
    "severity": "BROKEN",
    "what": "the ncaaf picks say 2026-11-14 and carry rows on 2026-11-15",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card-fb` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card-fb"
@@ -76,13 +76,6 @@
    "repair": null
   },
   {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 101 minutes after it was due",
-   "why": "due 2026-11-14T13:00Z, built 2026-11-14T14:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-record was built 153 minutes after it was due",
@@ -115,7 +108,7 @@
   "pulled_at": "2026-11-14T15:21:41Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-14T15:21:41Z",
   "source": "data/nfl/2026-11-14/props-player/1521.json.gz",
