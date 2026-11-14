@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-14T14:58:23Z",
+ "checked_at": "2026-11-14T15:22:02Z",
  "et_date": "2026-11-14",
  "healthy": false,
  "broken": 3,
@@ -10,25 +10,28 @@
    "key": "day:ncaaf:game_lines",
    "severity": "BROKEN",
    "what": "the ncaaf game lines say 2026-11-14 and carry rows on 2026-11-15",
-   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader",
-   "repair": "card-fb",
-   "repair_attempts": 2
+   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card-fb"
   },
   {
    "key": "day:ncaaf:game_lines_liked",
    "severity": "BROKEN",
    "what": "the ncaaf game lines liked say 2026-11-14 and carry rows on 2026-11-15",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list",
-   "repair": "card-fb",
-   "repair_attempts": 2
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card-fb"
   },
   {
    "key": "day:ncaaf:picks",
    "severity": "BROKEN",
    "what": "the ncaaf picks say 2026-11-14 and carry rows on 2026-11-15",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list",
-   "repair": "card-fb",
-   "repair_attempts": 2
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card-fb"
   },
   {
    "key": "late:alt-lines:ncaaf",
@@ -101,22 +104,22 @@
    "repair": null
   }
  ],
- "repairs": [
-  "card-fb"
+ "repairs": [],
+ "unrepairable": [
+  "day"
  ],
- "unrepairable": [],
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 16101,
-  "pulled_at": "2026-11-14T14:40:05Z",
+  "balance": 16029,
+  "pulled_at": "2026-11-14T15:21:41Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.3,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-14T14:40:05Z",
-  "source": "data/nfl/2026-11-14/gamelines/1440.json.gz",
-  "readings_on_disk": 1655,
+  "newest_paid_pull": "2026-11-14T15:21:41Z",
+  "source": "data/nfl/2026-11-14/props-player/1521.json.gz",
+  "readings_on_disk": 1657,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
