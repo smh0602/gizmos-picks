@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-15T10:42:37Z",
+ "checked_at": "2026-11-15T11:33:53Z",
  "et_date": "2026-11-15",
  "healthy": false,
  "broken": 3,
- "degraded": 6,
+ "degraded": 3,
  "findings": [
   {
    "key": "day:ncaaf:game_lines",
@@ -32,27 +32,6 @@
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card-fb"
-  },
-  {
-   "key": "late:gamelines:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb gamelines was built 257 minutes after it was due",
-   "why": "due 2026-11-14T20:00Z, built 2026-11-15T00:16Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-batter:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb props-batter was built 256 minutes after it was due",
-   "why": "due 2026-11-14T20:00Z, built 2026-11-15T00:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-batter build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-pitcher:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb props-pitcher was built 256 minutes after it was due",
-   "why": "due 2026-11-14T20:00Z, built 2026-11-15T00:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-pitcher build is on time (within 60 minutes).",
-   "repair": null
   },
   {
    "key": "late:card-fb:ncaaf",
@@ -83,15 +62,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 15093,
-  "pulled_at": "2026-11-15T00:16:34Z",
+  "balance": 14940,
+  "pulled_at": "2026-11-15T11:32:30Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 10.4,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-15T00:16:34Z",
-  "source": "data/2026-11-15/props-pitcher/0016.json.gz",
-  "readings_on_disk": 1673,
+  "newest_paid_pull": "2026-11-15T11:32:25Z",
+  "source": "data/nfl/2026-11-15/alt-lines/1132.json.gz",
+  "readings_on_disk": 1679,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
