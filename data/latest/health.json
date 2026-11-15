@@ -1,11 +1,19 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-15T18:00:26Z",
+ "checked_at": "2026-11-15T18:21:06Z",
  "et_date": "2026-11-15",
  "healthy": false,
- "broken": 0,
+ "broken": 1,
  "degraded": 10,
  "findings": [
+  {
+   "key": "day:ncaaf:game_lines_liked",
+   "severity": "BROKEN",
+   "what": "the ncaaf game lines liked say 2026-11-15 and carry rows on 2026-11-17",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list",
+   "repair": "card-fb",
+   "repair_attempts": 2
+  },
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
@@ -77,20 +85,22 @@
    "repair": null
   }
  ],
- "repairs": [],
+ "repairs": [
+  "card-fb"
+ ],
  "unrepairable": [],
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14822,
-  "pulled_at": "2026-11-15T15:13:38Z",
+  "balance": 14815,
+  "pulled_at": "2026-11-15T18:08:06Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.8,
+  "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-15T15:13:31Z",
-  "source": "data/nfl/2026-11-15/alt-lines/1513.json.gz",
-  "readings_on_disk": 1685,
+  "newest_paid_pull": "2026-11-15T18:08:06Z",
+  "source": "data/ncaaf/2026-11-15/gamelines/1808.json.gz",
+  "readings_on_disk": 1686,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
