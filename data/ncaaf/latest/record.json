@@ -1,5 +1,5 @@
 {
- "built_at": "2026-11-14T20:29:42Z",
+ "built_at": "2026-11-15T00:44:09Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -11,29 +11,29 @@
   "pct": 52.7
  },
  "board": {
-  "w": 462,
-  "n": 906,
+  "w": 465,
+  "n": 912,
   "pct": 51.0
  },
  "game_lines": {
-  "w": 111,
-  "n": 240,
-  "pct": 46.2,
+  "w": 114,
+  "n": 246,
+  "pct": 46.3,
   "overall": {
-   "w": 111,
-   "n": 240,
-   "pct": 46.2
+   "w": 114,
+   "n": 246,
+   "pct": 46.3
   },
   "shown": 266,
   "voids": 1,
-  "pending": 25,
+  "pending": 19,
   "unresolved": 0,
   "from": "2026-10-03",
   "by_market": {
    "moneyline": {
-    "w": 31,
-    "n": 49,
-    "pct": 63.3
+    "w": 32,
+    "n": 51,
+    "pct": 62.7
    },
    "spread": {
     "w": 23,
@@ -41,9 +41,9 @@
     "pct": 46.9
    },
    "alternate_spread": {
-    "w": 34,
-    "n": 100,
-    "pct": 34.0
+    "w": 36,
+    "n": 104,
+    "pct": 34.6
    },
    "total": {
     "w": 23,
@@ -58,9 +58,9 @@
     "pct": 91.7
    },
    "MODEL": {
-    "w": 100,
-    "n": 228,
-    "pct": 43.9
+    "w": 103,
+    "n": 234,
+    "pct": 44.0
    }
   },
   "by_day": [
@@ -305,21 +305,21 @@
     "pending": 0
    },
    {
-    "w": 0,
-    "n": 0,
-    "pct": null,
+    "w": 3,
+    "n": 6,
+    "pct": 50.0,
     "date": "2026-11-14",
     "voids": 0,
-    "pending": 25
+    "pending": 19
    }
   ]
  },
  "alt_spreads": {
   "basis": "MARKET + MODEL",
   "overall": {
-   "w": 30,
-   "n": 96,
-   "pct": 31.2
+   "w": 32,
+   "n": 100,
+   "pct": 32.0
   },
   "shown": 110,
   "by_basis": {
@@ -329,13 +329,13 @@
     "pct": 87.5
    },
    "MODEL": {
-    "w": 23,
-    "n": 88,
-    "pct": 26.1
+    "w": 25,
+    "n": 92,
+    "pct": 27.2
    }
   },
   "voids": 0,
-  "pending": 14,
+  "pending": 10,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -1790,8 +1790,8 @@
     "break_even": 59.2,
     "game": "Georgia Tech Yellow Jackets @ Clemson Tigers",
     "commence": "2026-11-14T17:30:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-14",
@@ -1835,8 +1835,8 @@
     "break_even": 47.2,
     "game": "Syracuse Orange @ NC State Wolfpack",
     "commence": "2026-11-14T17:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-11-14",
@@ -1850,8 +1850,8 @@
     "break_even": 41.7,
     "game": "James Madison Dukes @ UConn Huskies",
     "commence": "2026-11-14T17:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-11-14",
@@ -1925,8 +1925,8 @@
     "break_even": 35.7,
     "game": "Wake Forest Demon Deacons @ SMU Mustangs",
     "commence": "2026-11-14T17:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-11-14",
@@ -2674,7 +2674,7 @@
    "carded": 25,
    "voids": 0,
    "unresolved": 25,
-   "owed": 6
+   "owed": 18
   }
  ],
  "days_graded": 40,
@@ -2701,7 +2701,7 @@
   },
   {
    "date": "2026-11-14",
-   "why": "nothing settled yet \u2014 the log does not reach this slate"
+   "why": "nothing settled yet \u2014 not in the log yet; the game is final but not in the log"
   }
  ],
  "join_note": "A pick is joined to a game log by player name and a \u00b11-day window around kickoff. The window is there because the two leagues date a game differently \u2014 college logs a kickoff on its UTC date, so a Thursday night game lands on Friday, while the NFL logs the Eastern one \u2014 and it is safe because a player has at most one game inside any three-day window."

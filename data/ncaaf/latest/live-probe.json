@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-11-14T21:16:07Z",
+ "written_at": "2026-11-15T00:49:45Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -53,7 +53,6 @@
    "shortName",
    "status",
    "uid",
-   "weather",
    "week"
   ],
   "competition": [
@@ -74,7 +73,6 @@
    "notes",
    "playByPlayAvailable",
    "recent",
-   "situation",
    "startDate",
    "status",
    "timeValid",
@@ -108,7 +106,8 @@
    "statistics",
    "team",
    "type",
-   "uid"
+   "uid",
+   "winner"
   ],
   "team": [
    "abbreviation",
@@ -139,87 +138,87 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "in": 19,
-  "post": 21,
-  "pre": 27
+  "post": 42,
+  "in": 15,
+  "pre": 10
  },
- "in_progress": 19,
+ "in_progress": 15,
  "live_sample": [
   {
-   "id": "401862825",
-   "away": "East Carolina Pirates",
-   "home": "Charlotte 49ers",
+   "id": "401871099",
+   "away": "Southern Miss Golden Eagles",
+   "home": "Louisiana Tech Bulldogs",
    "away_score": "17",
-   "home_score": "16",
+   "home_score": "55",
    "state": "in",
-   "detail": "7:06 - 4th",
-   "clock": "7:06",
+   "detail": "12:48 - 4th",
+   "clock": "12:48",
    "period": 4,
-   "start": "2026-11-14T18:00Z"
+   "start": "2026-11-14T22:00Z"
   },
   {
-   "id": "401862829",
-   "away": "UAB Blazers",
-   "home": "Temple Owls",
-   "away_score": "36",
-   "home_score": "10",
-   "state": "in",
-   "detail": "1:21 - 4th",
-   "clock": "1:21",
-   "period": 4,
-   "start": "2026-11-14T18:00Z"
-  },
-  {
-   "id": "401869937",
-   "away": "Arkansas State Red Wolves",
-   "home": "Coastal Carolina Chanticleers",
-   "away_score": "21",
-   "home_score": "28",
-   "state": "in",
-   "detail": "1:55 - 4th",
-   "clock": "1:55",
-   "period": 4,
-   "start": "2026-11-14T18:00Z"
-  },
-  {
-   "id": "401856862",
-   "away": "Kansas State Wildcats",
-   "home": "TCU Horned Frogs",
-   "away_score": "3",
-   "home_score": "17",
-   "state": "in",
-   "detail": "2:00 - 3rd",
-   "clock": "2:00",
-   "period": 3,
-   "start": "2026-11-14T19:00Z"
-  },
-  {
-   "id": "401870769",
-   "away": "Kennesaw State Owls",
-   "home": "Sam Houston Bearkats",
-   "away_score": "20",
+   "id": "401856857",
+   "away": "Arizona State Sun Devils",
+   "home": "UCF Knights",
+   "away_score": "16",
    "home_score": "7",
    "state": "in",
-   "detail": "5:34 - 3rd",
-   "clock": "5:34",
+   "detail": "6:48 - 3rd",
+   "clock": "6:48",
    "period": 3,
-   "start": "2026-11-14T19:00Z"
+   "start": "2026-11-14T22:30Z"
+  },
+  {
+   "id": "401858521",
+   "away": "Washington Huskies",
+   "home": "Michigan State Spartans",
+   "away_score": "14",
+   "home_score": "14",
+   "state": "in",
+   "detail": "8:00 - 3rd",
+   "clock": "8:00",
+   "period": 3,
+   "start": "2026-11-14T22:30Z"
+  },
+  {
+   "id": "401860914",
+   "away": "Oregon State Beavers",
+   "home": "Boise State Broncos",
+   "away_score": "20",
+   "home_score": "29",
+   "state": "in",
+   "detail": "0:12 - 2nd",
+   "clock": "0:12",
+   "period": 2,
+   "start": "2026-11-14T23:00Z"
+  },
+  {
+   "id": "401869928",
+   "away": "App State Mountaineers",
+   "home": "Marshall Thundering Herd",
+   "away_score": "6",
+   "home_score": "13",
+   "state": "in",
+   "detail": "Halftime",
+   "clock": "0:00",
+   "period": 2,
+   "start": "2026-11-14T23:00Z"
   }
  ],
  "live_state_fields": {
-  "with a running clock": 19,
-  "with a period": 19,
-  "with both scores": 19,
-  "of": 19
+  "with a running clock": 15,
+  "with a period": 15,
+  "with both scores": 15,
+  "of": 15
  },
  "join": {
   "our_schedule_season": 2026,
-  "our_games": 3691,
+  "our_games": 3686,
   "espn_events": 67,
   "join_field": "our `id` vs ESPN `events[].id`",
   "matched_on_our_id": 67,
   "matched_on_our_espn_column": 67,
-  "our_games_carrying_an_espn_column": 3691,
+  "our_games_carrying_an_espn_column": 3686,
   "ids_in_common": 67,
   "pct_of_espn_events_matched": 100.0,
   "verdict": "EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all",
@@ -307,20 +306,20 @@
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
  "refresh_check": {
   "seconds_apart": 45,
-  "live_games_compared": 19,
-  "games_whose_clock_or_period_changed": 13,
+  "live_games_compared": 15,
+  "games_whose_clock_or_period_changed": 6,
   "example": {
-   "id": "401862825",
-   "was": "7:06 Q4",
-   "now": "6:53 Q4"
+   "id": "401871099",
+   "was": "12:48 Q4",
+   "now": "12:46 Q4"
   },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 13 of 19 live games in 45s, so the feed is live enough for a polling tab"
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 6 of 15 live games in 45s, so the feed is live enough for a polling tab"
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=5",
+  "cache_control": "max-age=9",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "67 events via [groups=80 (FBS)], 19 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.0% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "67 events via [groups=80 (FBS)], 15 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.0% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
