@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-11-15T07:46:49Z",
+ "written_at": "2026-11-15T22:35:13Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -53,7 +53,6 @@
    "shortName",
    "status",
    "uid",
-   "weather",
    "week"
   ],
   "competition": [
@@ -67,17 +66,16 @@
    "format",
    "geoBroadcasts",
    "groups",
+   "headlines",
    "highlights",
    "id",
    "leaders",
    "neutralSite",
    "notes",
-   "odds",
    "playByPlayAvailable",
    "recent",
    "startDate",
    "status",
-   "tickets",
    "timeValid",
    "type",
    "uid",
@@ -102,14 +100,15 @@
    "curatedRank",
    "homeAway",
    "id",
-   "leaders",
+   "linescores",
    "order",
    "records",
    "score",
    "statistics",
    "team",
    "type",
-   "uid"
+   "uid",
+   "winner"
   ],
   "team": [
    "abbreviation",
@@ -140,8 +139,7 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "pre": 1,
-  "post": 66
+  "post": 67
  },
  "in_progress": 0,
  "live_sample": [],
@@ -244,7 +242,7 @@
  "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=1",
+  "cache_control": "max-age=2",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
