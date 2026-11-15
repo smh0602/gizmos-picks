@@ -1,7 +1,7 @@
 {
  "date": "2026-11-15",
  "league": "nfl",
- "generated_at": "2026-11-15T15:56:10Z",
+ "generated_at": "2026-11-15T18:00:23Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-15T15:13:31Z",
@@ -1524,8 +1524,8 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-15T15:55:57Z",
-  "ladder_built_at": "2026-11-15T15:56:00Z",
+  "model_built_at": "2026-11-15T17:59:34Z",
+  "ladder_built_at": "2026-11-15T18:00:13Z",
   "alt_spreads": 11
  },
  "scores_shown": [
@@ -1949,7 +1949,7 @@
     "car": 1.0,
     "n": 1
    },
-   "rank": 9
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -2144,17 +2144,17 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 17,
-  "same_game_already_listed": 13,
+  "same_player_already_listed": 10,
+  "same_game_already_listed": 203,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 591,
+  "pool_after_price_gate": 217,
   "cap": 10,
-  "distinct_games": 10,
-  "shared_with_board_head": 5,
+  "distinct_games": 4,
+  "shared_with_board_head": 3,
   "board_head_size": 10
  },
- "top_plays_rule": "The 10 most likely to hit for 2026-11-15 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 5 of 10, over 10 game(s). 13 row(s) were held back because their game was already represented and 17 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 4 most likely to hit for 2026-11-15 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 4 game(s). 203 row(s) were held back because their game was already represented and 10 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -3053,7 +3053,7 @@
  },
  "parlay_meta": {
   "pool": 36,
-  "rated_legs": 591,
+  "rated_legs": 217,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -3062,17 +3062,17 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 35,
+    "available": 14,
     "taken": 12
    },
    {
     "decimal": "1.6-2",
-    "available": 500,
+    "available": 186,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 56,
+    "available": 17,
     "taken": 12
    },
    {
@@ -3082,12 +3082,12 @@
    }
   ],
   "rejected": {
-   "same_game": 34932,
+   "same_game": 58872,
    "same_player": 0,
-   "mixed_book": 28338,
-   "out_of_band": 1
+   "mixed_book": 7152,
+   "out_of_band": 0
   },
-  "note": "591 rated legs, 36 in the stratified pool. Rejected: 34932 same game, 0 same player, 28338 would need two books, 1 outside Sam's bands."
+  "note": "217 rated legs, 36 in the stratified pool. Rejected: 58872 same game, 0 same player, 7152 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -3187,6 +3187,38 @@
    },
    {
     "legs": [
+     "Emmett Johnson u73.5 rush yds",
+     "Josh Downs o2.5 rec"
+    ],
+    "game": "Kansas City Chiefs @ Atlanta Falcons",
+    "game_id": "3c71d515b726f1096aabb435badb83fd",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -112,
+     129
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 4.335,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 73,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     88,
+     73
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
      "Keenan Allen o22.5 rec yds",
      "Over 55.5 total"
     ],
@@ -3246,38 +3278,6 @@
      76
     ],
     "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Emmett Johnson u73.5 rush yds",
-     "Josh Downs o2.5 rec"
-    ],
-    "game": "Kansas City Chiefs @ Atlanta Falcons",
-    "game_id": "3c71d515b726f1096aabb435badb83fd",
-    "same_game": true,
-    "book": "draftkings",
-    "prices": [
-     -112,
-     129
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 4.335,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 73,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     88,
-     73
-    ],
-    "band_floor": 1.8
    }
   ],
   "3": [
@@ -3312,6 +3312,41 @@
     "leg_confidences": [
      79,
      66
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Deion Burks u2.5 rec",
+     "Anthony Gould u16.5 rec yds",
+     "Ashton Dulin u1.5 rec"
+    ],
+    "game": "Miami Dolphins @ Indianapolis Colts",
+    "game_id": "b5700b4d938fd94429f60d4622cc9c0a",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -225,
+     -113,
+     -140
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 4.668,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 60,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     67,
+     62,
+     60
     ],
     "band_floor": 3.0
    },
@@ -3450,52 +3485,17 @@
      60
     ],
     "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Deion Burks u2.5 rec",
-     "Anthony Gould u16.5 rec yds",
-     "Ashton Dulin u1.5 rec"
-    ],
-    "game": "Miami Dolphins @ Indianapolis Colts",
-    "game_id": "b5700b4d938fd94429f60d4622cc9c0a",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -225,
-     -113,
-     -140
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 4.668,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 60,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     67,
-     62,
-     60
-    ],
-    "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 11,
+  "games_with_rated_legs": 4,
   "games_with_a_line_row": 4,
-  "games_used": 11,
+  "games_used": 4,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 759,
-   "mixed_book": 940,
+   "same_player": 259,
+   "mixed_book": 388,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -3503,7 +3503,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "11 game(s) on this card carry a rated leg and 4 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "4 game(s) on this card carry a rated leg and 4 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -10434,19 +10434,19 @@
   }
  },
  "name_match_rate": 0.948,
- "n_priced": 606,
+ "n_priced": 229,
  "single_day": true,
  "slate_date": "2026-11-15",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 606,
+ "n_on_slate_day": 229,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-15 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "606 priced football rows for 2026-11-15 across 12 board games; 25 shown.",
+ "coverage": "229 priced football rows for 2026-11-15 across 12 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 53.7% against a claimed 54.1% (-0.4 pts, n=136). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 136 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -10859,40 +10859,6 @@
   {
    "kind": "fb",
    "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Fernando Mendoza",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 181.5,
-   "game": "Seattle Seahawks @ Las Vegas Raiders",
-   "game_id": "6079a5cbabf99b265a17edfc92a1da60",
-   "away": "Seattle Seahawks",
-   "home": "Las Vegas Raiders",
-   "commence": "2026-11-15T21:05:00Z",
-   "book": "draftkings",
-   "price": -112,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387987065%232359657714_13L88808Q1-1708651926Q20",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 68,
-   "model_p": 68.0,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.8,
-   "edge": 15.2,
-   "role": {
-    "snap": 0.17,
-    "tgt_share": 0.0,
-    "car": 1.0,
-    "n": 1
-   },
-   "rank": 9
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
    "basis": "RECORD + MARKET \u2014 his own rate",
    "player": "Travis Hunter",
    "market": "player_receptions",
@@ -10941,8 +10907,42 @@
     "car": 0.3,
     "n": 3
    },
-   "rank": 10,
+   "rank": 9,
    "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Fernando Mendoza",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 181.5,
+   "game": "Seattle Seahawks @ Las Vegas Raiders",
+   "game_id": "6079a5cbabf99b265a17edfc92a1da60",
+   "away": "Seattle Seahawks",
+   "home": "Las Vegas Raiders",
+   "commence": "2026-11-15T21:05:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA387987065%232359657714_13L88808Q1-1708651926Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 68,
+   "model_p": 68.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.8,
+   "edge": 15.2,
+   "role": {
+    "snap": 0.17,
+    "tgt_share": 0.0,
+    "car": 1.0,
+    "n": 1
+   },
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -11384,60 +11384,6 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Zach Charbonnet",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 65.5,
-   "game": "Seattle Seahawks @ Las Vegas Raiders",
-   "game_id": "6079a5cbabf99b265a17edfc92a1da60",
-   "away": "Seattle Seahawks",
-   "home": "Las Vegas Raiders",
-   "commence": "2026-11-15T21:05:00Z",
-   "book": "fanduel",
-   "price": -113,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624416820&selectionId=41074195",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 61,
-   "raw": "7 of 10",
-   "record": "7 of 10",
-   "rate": 61,
-   "break_even": 53.1,
-   "edge": 7.9,
-   "season_detail": {
-    "h25": 7,
-    "n25": 9,
-    "h26": 0,
-    "n26": 1,
-    "w25": 0.8,
-    "p0": 0.553,
-    "weighted_n": 8.2,
-    "mean_all": 49.0
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 45.89,
-   "projection": 49.0,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 10 games this record is built from \u2014 49.0 rush yds a game.",
-   "why": [
-    "<b>Zach Charbonnet</b> went under 65.5 rush yds in <b>0 of 1 games</b> in 2026 and 7 of 9 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 60.6,
-   "role": {
-    "snap": 0.47,
-    "tgt_share": 0.0945,
-    "car": 11.0,
-    "n": 2
-   },
-   "rank": 22
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Brian Thomas Jr",
    "market": "player_receptions",
    "market_label": "Receptions",
@@ -11486,8 +11432,97 @@
     "car": 0.0,
     "n": 3
    },
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Noah Fant",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 0.5,
+   "game": "Carolina Panthers @ New Orleans Saints",
+   "game_id": "e5aa20e1364dd639f042af1c2281bbe2",
+   "away": "Carolina Panthers",
+   "home": "New Orleans Saints",
+   "commence": "2026-11-15T18:00:00Z",
+   "book": "fanduel",
+   "price": -260,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624955460&selectionId=16545785",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 61,
+   "model_p": 60.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 72.2,
+   "edge": -11.2,
+   "role": {
+    "snap": 0.5033,
+    "tgt_share": 0.0495,
+    "car": 0.0,
+    "n": 3
+   },
    "rank": 23,
    "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Zach Charbonnet",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 65.5,
+   "game": "Seattle Seahawks @ Las Vegas Raiders",
+   "game_id": "6079a5cbabf99b265a17edfc92a1da60",
+   "away": "Seattle Seahawks",
+   "home": "Las Vegas Raiders",
+   "commence": "2026-11-15T21:05:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624416820&selectionId=41074195",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 61,
+   "break_even": 53.1,
+   "edge": 7.9,
+   "season_detail": {
+    "h25": 7,
+    "n25": 9,
+    "h26": 0,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.553,
+    "weighted_n": 8.2,
+    "mean_all": 49.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 45.89,
+   "projection": 49.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 49.0 rush yds a game.",
+   "why": [
+    "<b>Zach Charbonnet</b> went under 65.5 rush yds in <b>0 of 1 games</b> in 2026 and 7 of 9 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 60.6,
+   "role": {
+    "snap": 0.47,
+    "tgt_share": 0.0945,
+    "car": 11.0,
+    "n": 2
+   },
+   "rank": 24
   },
   {
    "kind": "fb",
@@ -11538,41 +11573,6 @@
     "snap": 0.52,
     "tgt_share": 0.0486,
     "car": 0.3,
-    "n": 3
-   },
-   "rank": 24,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Noah Fant",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "over",
-   "line": 0.5,
-   "game": "Carolina Panthers @ New Orleans Saints",
-   "game_id": "e5aa20e1364dd639f042af1c2281bbe2",
-   "away": "Carolina Panthers",
-   "home": "New Orleans Saints",
-   "commence": "2026-11-15T18:00:00Z",
-   "book": "fanduel",
-   "price": -260,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624955460&selectionId=16545785",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 61,
-   "model_p": 60.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 72.2,
-   "edge": -11.2,
-   "role": {
-    "snap": 0.5033,
-    "tgt_share": 0.0495,
-    "car": 0.0,
     "n": 3
    },
    "rank": 25,
@@ -12873,7 +12873,7 @@
    ]
   }
  ],
- "n_longshots_excluded": 67,
+ "n_longshots_excluded": 27,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
