@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-14T23:45:39Z",
+ "checked_at": "2026-11-15T00:50:49Z",
  "et_date": "2026-11-14",
  "healthy": false,
  "broken": 3,
- "degraded": 6,
+ "degraded": 8,
  "findings": [
   {
    "key": "day:ncaaf:game_lines",
@@ -34,10 +34,24 @@
    "repair_withdrawn": "card-fb"
   },
   {
-   "key": "fresh:mlb",
+   "key": "late:gamelines:mlb",
    "severity": "DEGRADED",
-   "what": "mlb tabs are showing data older than promised (gamelines, props-batter, props-pitcher)",
-   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "what": "mlb gamelines was built 257 minutes after it was due",
+   "why": "due 2026-11-14T20:00Z, built 2026-11-15T00:16Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-batter:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb props-batter was built 256 minutes after it was due",
+   "why": "due 2026-11-14T20:00Z, built 2026-11-15T00:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-batter build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-pitcher:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb props-pitcher was built 256 minutes after it was due",
+   "why": "due 2026-11-14T20:00Z, built 2026-11-15T00:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-pitcher build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -84,14 +98,14 @@
  "credits": {
   "state": "HEALTHY",
   "balance": 15093,
-  "pulled_at": "2026-11-14T19:14:09Z",
+  "pulled_at": "2026-11-15T00:16:34Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 4.5,
+  "reading_age_hours": 0.6,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-14T19:14:09Z",
-  "source": "data/ncaaf/2026-11-14/alt-lines/1914.json.gz",
-  "readings_on_disk": 1670,
+  "newest_paid_pull": "2026-11-15T00:16:34Z",
+  "source": "data/2026-11-15/props-pitcher/0016.json.gz",
+  "readings_on_disk": 1673,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
