@@ -55,7 +55,7 @@
     "ok": true,
     "refused": [],
     "rows": 1569,
-    "wrote": true
+    "wrote": false
    },
    "B10": {
     "checked_at": "2026-11-15T20:15:46Z",
@@ -64,7 +64,7 @@
     "ok": true,
     "refused": [],
     "rows": 1398,
-    "wrote": true
+    "wrote": false
    },
    "B12": {
     "checked_at": "2026-11-15T02:25:27Z",
@@ -99,79 +99,140 @@
     "ok": true,
     "refused": [],
     "rows": 903,
-    "wrote": true
+    "wrote": false
    }
   }
  },
- "built_at": "2026-11-15T20:15:46Z",
- "calls": 11,
+ "built_at": "2026-11-15T21:00:45Z",
+ "calls": 7,
  "duplicates": 1,
  "error": null,
  "kind": "DIAGNOSTIC",
  "note": "College injury reports (SEC, ACC, Big Ten, Big 12, MAC through HD Intelligence; Sun Belt; Pac-12). A refused report is named with its reason; nothing refused is stored. research/cfb_injuries_design.md.",
  "ok": true,
  "posted_after_fetch": [],
- "refused": [],
+ "refused": [
+  {
+   "id": "10003210",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "MAC",
+   "teams": [
+    "Eastern Mich.",
+    "Western Mich."
+   ]
+  },
+  {
+   "id": "10003211",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "MAC",
+   "teams": [
+    "Ball St.",
+    "Ohio"
+   ]
+  },
+  {
+   "id": "10003212",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "MAC",
+   "teams": [
+    "Miami (OH)",
+    "Kent St."
+   ]
+  },
+  {
+   "id": "10003213",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "MAC",
+   "teams": [
+    "Akron",
+    "Massachusetts"
+   ]
+  },
+  {
+   "id": "10003214",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "MAC",
+   "teams": [
+    "Central Mich.",
+    "Buffalo"
+   ]
+  },
+  {
+   "id": "10003224",
+   "label": "Report Pending",
+   "reason": "report pending",
+   "source": "MAC",
+   "teams": [
+    "Bowling Green",
+    "Toledo"
+   ]
+  }
+ ],
  "season": 2026,
  "snapshot": {
-  "age_h": 2.33,
+  "age_h": 3.08,
   "fetched_at": "2026-11-15T17:56:13Z",
   "path": "data/ncaaf/2026-11-15/injury-reports/1756.json.gz",
   "wrote": false
  },
  "sources": {
   "ACC": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
    "n_refused": 0,
    "n_reports": 8,
    "ok": true
   },
   "B10": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
    "n_refused": 0,
    "n_reports": 9,
    "ok": true
   },
   "B12": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
    "n_refused": 0,
    "n_reports": 8,
    "ok": true
   },
   "MAC": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
-   "n_refused": 0,
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
+   "n_refused": 6,
    "n_reports": 0,
    "ok": true
   },
   "PAC12": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
    "n_refused": 0,
    "n_reports": 0,
    "ok": true
   },
   "SBC": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
    "n_refused": 0,
    "n_reports": 0,
    "ok": true
   },
   "SEC": {
-   "fetched_at": "2026-11-15T20:15:46Z",
-   "last_ok_at": "2026-11-15T20:15:46Z",
+   "fetched_at": "2026-11-15T21:00:45Z",
+   "last_ok_at": "2026-11-15T21:00:45Z",
    "n_refused": 0,
    "n_reports": 8,
    "ok": true
   }
  },
  "unknown": {
-  "exempt": 638,
+  "exempt": 633,
   "names": [],
   "positions": {
    "38": 1,
