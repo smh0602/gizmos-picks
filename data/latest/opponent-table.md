@@ -1,6 +1,6 @@
-# MLB opponent table — through 2026-11-14
+# MLB opponent table — through 2026-11-15
 
-Built 2026-11-15T10:04:51Z from `data/latest/pitchers.json.gz` (pulled 2026-11-15T10:04:51Z). DESCRIPTIVE. **4858 starts**, centering constant **C = 4.6929**, ΔE[K] = (meanK − C) × 0.5803 (card.py K_OPP_B).
+Built 2026-11-16T10:05:07Z from `data/latest/pitchers.json.gz` (pulled 2026-11-16T10:05:07Z). DESCRIPTIVE. **4858 starts**, centering constant **C = 4.6929**, ΔE[K] = (meanK − C) × 0.5803 (card.py K_OPP_B).
 
 team|n|meanK|ΔE[K]|mean outs allowed
 ---|---|---|---|---
