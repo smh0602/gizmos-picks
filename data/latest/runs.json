@@ -1,25 +1,25 @@
 {
- "generated_at": "2026-11-16T08:02:02Z",
+ "generated_at": "2026-11-16T08:34:38Z",
  "kind": "DESCRIPTIVE",
  "note": "Every workflow run of the last 48 hours, read from the GitHub Actions API by the hourly runs watcher. A failed run lists the step(s) that failed and its error annotations. Evidence only: whether a workflow is broken is decided in the runs watcher's issue.",
  "window_hours": 48,
- "window_from": "2026-11-14T08:02:02Z",
+ "window_from": "2026-11-14T08:34:38Z",
  "covered": true,
  "pages_read": 5,
- "n_runs": 419,
+ "n_runs": 421,
  "n_failed": 1,
  "by_workflow": {
   "browser": {
    "file": ".github/workflows/browser.yml",
-   "runs": 3,
+   "runs": 4,
    "failed": 0,
    "cancelled": 0,
    "latest": {
-    "run_number": 242,
+    "run_number": 243,
     "trigger": "schedule",
-    "started": "2026-11-15T19:26:52Z",
-    "status": "completed",
-    "conclusion": "success"
+    "started": "2026-11-16T08:31:54Z",
+    "status": "in_progress",
+    "conclusion": null
    }
   },
   "budget": {
@@ -93,24 +93,24 @@
    "failed": 0,
    "cancelled": 83,
    "latest": {
-    "run_number": 12119,
+    "run_number": 12122,
     "trigger": "dynamic",
-    "started": "2026-11-16T06:36:37Z",
+    "started": "2026-11-16T08:32:48Z",
     "status": "completed",
     "conclusion": "success"
    }
   },
   "runs": {
    "file": ".github/workflows/runs.yml",
-   "runs": 8,
+   "runs": 9,
    "failed": 0,
    "cancelled": 0,
    "latest": {
-    "run_number": 422,
+    "run_number": 423,
     "trigger": "schedule",
-    "started": "2026-11-16T01:22:22Z",
-    "status": "completed",
-    "conclusion": "success"
+    "started": "2026-11-16T08:34:18Z",
+    "status": "in_progress",
+    "conclusion": null
    }
   },
   "status": {
@@ -141,6 +141,11 @@
   }
  },
  "runs": [
+  {"workflow": "runs", "file": ".github/workflows/runs.yml", "run_number": 423, "run_id": 43832296118, "attempt": 1, "trigger": "schedule", "started": "2026-11-16T08:34:18Z", "status": "in_progress", "conclusion": null, "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43832296118", "cron": "41 * * * *"},
+  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 12122, "run_id": 43832096287, "attempt": 1, "trigger": "dynamic", "started": "2026-11-16T08:32:48Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43832096287"},
+  {"workflow": "browser", "file": ".github/workflows/browser.yml", "run_number": 243, "run_id": 43831972178, "attempt": 1, "trigger": "schedule", "started": "2026-11-16T08:31:54Z", "status": "in_progress", "conclusion": null, "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43831972178", "cron": "37 1 * * *"},
+  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 12121, "run_id": 43830065357, "attempt": 1, "trigger": "dynamic", "started": "2026-11-16T08:17:40Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43830065357"},
+  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 12120, "run_id": 43828110803, "attempt": 1, "trigger": "dynamic", "started": "2026-11-16T08:02:32Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43828110803"},
   {"workflow": "collect", "file": ".github/workflows/collect.yml", "run_number": 3940, "run_id": 43825688039, "attempt": 1, "trigger": "schedule", "started": "2026-11-16T07:42:27Z", "status": "in_progress", "conclusion": null, "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43825688039", "cron": "5 13,19,1 * * *"},
   {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 12119, "run_id": 43817924368, "attempt": 1, "trigger": "dynamic", "started": "2026-11-16T06:36:37Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43817924368"},
   {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 12118, "run_id": 43817901019, "attempt": 1, "trigger": "dynamic", "started": "2026-11-16T06:36:25Z", "status": "completed", "conclusion": "cancelled", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43817901019"},
@@ -556,9 +561,6 @@
   {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11811, "run_id": 43581208771, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T09:34:37Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43581208771"},
   {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11810, "run_id": 43580010722, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T09:19:33Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43580010722"},
   {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11809, "run_id": 43578788824, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T09:04:28Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43578788824"},
-  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11808, "run_id": 43577591570, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T08:49:01Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43577591570"},
-  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11807, "run_id": 43576423020, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T08:33:57Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43576423020"},
-  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11806, "run_id": 43575226655, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T08:18:53Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43575226655"},
-  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11805, "run_id": 43573998351, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T08:03:48Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43573998351"}
+  {"workflow": "pages build and deployment", "file": "dynamic/pages/pages-build-deployment", "run_number": 11808, "run_id": 43577591570, "attempt": 1, "trigger": "dynamic", "started": "2026-11-14T08:49:01Z", "status": "completed", "conclusion": "success", "url": "https://github.com/smh0602/gizmos-picks/actions/runs/43577591570"}
  ]
 }
