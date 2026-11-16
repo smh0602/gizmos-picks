@@ -3,49 +3,18 @@
  "kind": "DESCRIPTIVE",
  "title": "What the model showed, graded",
  "from": "2026-09-24",
- "built_at": "2026-11-15T20:50:30Z",
- "snapshots": 507,
+ "built_at": "2026-11-16T00:53:59Z",
+ "snapshots": 508,
  "spec": "research/fb_model_live_spec.md",
  "record": {
   "game_model": {
    "moneyline": {
     "picks": {
-     "value": 67,
+     "value": 73,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 37,
-     "basis": "DESCRIPTIVE"
-    },
-    "hit_rate": {
-     "value": 55.2,
-     "basis": "DESCRIPTIVE"
-    },
-    "break_even": {
-     "value": 52.7,
-     "basis": "MARKET"
-    },
-    "pending": {
-     "value": 10,
-     "basis": "DESCRIPTIVE"
-    },
-    "verdict": {
-     "basis": "DESCRIPTIVE",
-     "label": "NOT YET MEASURABLE",
-     "picks": 113,
-     "min_picks": 300,
-     "p": 0.1974,
-     "games": 113,
-     "edge_points": 3.9
-    }
-   },
-   "spread": {
-    "picks": {
-     "value": 93,
-     "basis": "DESCRIPTIVE"
-    },
-    "hits": {
-     "value": 51,
+     "value": 40,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
@@ -53,52 +22,83 @@
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 51.3,
+     "value": 52.9,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 19,
+     "value": 6,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 209,
+     "picks": 119,
      "min_picks": 300,
-     "p": 0.2406,
-     "games": 209,
+     "p": 0.2942,
+     "games": 119,
      "edge_points": 2.4
+    }
+   },
+   "spread": {
+    "picks": {
+     "value": 101,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 56,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": 55.4,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": 51.4,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 16,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 216,
+     "min_picks": 300,
+     "p": 0.2294,
+     "games": 216,
+     "edge_points": 2.5
     }
    },
    "total": {
     "picks": {
-     "value": 82,
+     "value": 88,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 48,
+     "value": 51,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 58.5,
+     "value": 58.0,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 51.8,
+     "value": 51.9,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 17,
+     "value": 13,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 191,
+     "picks": 196,
      "min_picks": 300,
-     "p": 0.4293,
-     "games": 191,
-     "edge_points": 0.6
+     "p": 0.4642,
+     "games": 196,
+     "edge_points": 0.3
     }
    }
   },
@@ -296,12 +296,222 @@
    "model": "game_model",
    "market": "total",
    "market_label": "total",
+   "game": "Jacksonville Jaguars at New York Giants",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 46.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:25:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Jacksonville Jaguars at New York Giants",
+   "player": null,
+   "team": "Jacksonville Jaguars",
+   "side": "away",
+   "line": {
+    "value": -6.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 55.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:25:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Las Vegas Raiders at Denver Broncos",
+   "player": null,
+   "team": "Denver Broncos",
+   "side": "home",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 57.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:25:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Jacksonville Jaguars at New York Giants",
+   "player": null,
+   "team": "Jacksonville Jaguars",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -260,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 73.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 72.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:25:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "New York Jets at Los Angeles Chargers",
+   "player": null,
+   "team": "Under",
+   "side": "under",
+   "line": {
+    "value": 40.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 55.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:05:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "New York Jets at Los Angeles Chargers",
+   "player": null,
+   "team": "New York Jets",
+   "side": "away",
+   "line": {
+    "value": 3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 61.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:05:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "New York Jets at Los Angeles Chargers",
+   "player": null,
+   "team": "New York Jets",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 156,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 39.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T21:05:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
    "game": "Arizona Cardinals at Kansas City Chiefs",
    "player": null,
    "team": "Over",
    "side": "over",
    "line": {
-    "value": 41.5,
+    "value": 40.5,
     "basis": "MARKET"
    },
    "price": {
@@ -310,7 +520,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 62.9,
+    "value": 60.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -318,7 +528,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -335,20 +545,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -115,
+    "value": -105,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 56.9,
+    "value": 56.4,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 53.5,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -365,20 +575,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -115,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 54.7,
+    "value": 59.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 53.5,
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -391,7 +601,7 @@
    "team": "Over",
    "side": "over",
    "line": {
-    "value": 48.5,
+    "value": 49.5,
     "basis": "MARKET"
    },
    "price": {
@@ -408,7 +618,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -430,7 +640,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 56.4,
+    "value": 58.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -438,7 +648,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -451,7 +661,7 @@
    "team": "Over",
    "side": "over",
    "line": {
-    "value": 47.5,
+    "value": 46.5,
     "basis": "MARKET"
    },
    "price": {
@@ -460,7 +670,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 59.9,
+    "value": 62.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -468,7 +678,37 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Tennessee Titans at Dallas Cowboys",
+   "player": null,
+   "team": "Under",
+   "side": "under",
+   "line": {
+    "value": 52.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T18:00:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -481,24 +721,24 @@
    "team": "Arizona Cardinals",
    "side": "away",
    "line": {
-    "value": 14.0,
+    "value": 15.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -105,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 68.6,
+    "value": 70.4,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -520,7 +760,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 61.0,
+    "value": 58.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -528,7 +768,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -545,20 +785,50 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": 100,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 62.7,
+    "value": 59.8,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 50.0,
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "New Orleans Saints at Chicago Bears",
+   "player": null,
+   "team": "New Orleans Saints",
+   "side": "away",
+   "line": {
+    "value": 9.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T18:00:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -580,7 +850,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 59.3,
+    "value": 59.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -588,7 +858,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -601,24 +871,54 @@
    "team": "Tampa Bay Buccaneers",
    "side": "away",
    "line": {
-    "value": 3.5,
+    "value": 5.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -115,
+    "value": -105,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 69.1,
+    "value": 71.2,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 53.5,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Tennessee Titans at Dallas Cowboys",
+   "player": null,
+   "team": "Tennessee Titans",
+   "side": "away",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-11-22T18:00:00Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -640,7 +940,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 65.2,
+    "value": 62.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -648,7 +948,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -670,7 +970,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 71.7,
+    "value": 72.0,
     "basis": "MODEL"
    },
    "break_even": {
@@ -678,7 +978,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -695,50 +995,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 150,
+    "value": 210,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 59.1,
+    "value": 55.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 40.0,
+    "value": 32.3,
     "basis": "MARKET"
    },
    "commence": "2026-11-22T18:00:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
-   "state": "pending",
-   "won": null
-  },
-  {
-   "model": "game_model",
-   "market": "total",
-   "market_label": "total",
-   "game": "Indianapolis Colts at Houston Texans",
-   "player": null,
-   "team": "Over",
-   "side": "over",
-   "line": {
-    "value": 44.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": -110,
-    "basis": "MARKET"
-   },
-   "book": "DraftKings",
-   "model_probability": {
-    "value": 53.9,
-    "basis": "MODEL"
-   },
-   "break_even": {
-    "value": 52.4,
-    "basis": "MARKET"
-   },
-   "commence": "2026-11-20T01:15:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -748,27 +1018,27 @@
    "market_label": "spread",
    "game": "Indianapolis Colts at Houston Texans",
    "player": null,
-   "team": "Houston Texans",
-   "side": "home",
+   "team": "Indianapolis Colts",
+   "side": "away",
    "line": {
-    "value": 10.0,
+    "value": 9.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": 100,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 54.5,
+    "value": 53.0,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 50.0,
     "basis": "MARKET"
    },
    "commence": "2026-11-20T01:15:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -790,7 +1060,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 62.5,
+    "value": 62.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -798,7 +1068,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-17T01:15:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -828,7 +1098,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -858,7 +1128,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -888,7 +1158,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -918,7 +1188,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -948,7 +1218,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -978,7 +1248,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -1008,7 +1278,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -1038,7 +1308,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -1068,7 +1338,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -1098,7 +1368,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -1120,7 +1390,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.3,
+    "value": 54.2,
     "basis": "MODEL"
    },
    "break_even": {
@@ -1128,7 +1398,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -1141,16 +1411,16 @@
    "team": "Pittsburgh Steelers",
    "side": "away",
    "line": {
-    "value": 3.5,
+    "value": 4.0,
     "basis": "MARKET"
    },
    "price": {
     "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 53.6,
+    "value": 55.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -1158,7 +1428,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-11-16T01:20:00Z",
-   "shown_at": "2026-11-15T20:50:30Z",
+   "shown_at": "2026-11-16T00:53:59Z",
    "state": "pending",
    "won": null
   },
@@ -6109,8 +6379,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6139,8 +6409,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6169,8 +6439,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6199,8 +6469,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6229,8 +6499,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6259,8 +6529,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6289,8 +6559,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6319,8 +6589,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6349,8 +6619,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6379,8 +6649,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6409,8 +6679,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6439,8 +6709,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6469,8 +6739,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6499,8 +6769,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6529,8 +6799,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6559,8 +6829,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6589,8 +6859,8 @@
    },
    "commence": "2026-11-15T18:00:00Z",
    "shown_at": "2026-11-15T17:59:53Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -6889,8 +7159,8 @@
    },
    "commence": "2026-11-15T14:30:00Z",
    "shown_at": "2026-11-15T11:33:24Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -6919,8 +7189,8 @@
    },
    "commence": "2026-11-15T14:30:00Z",
    "shown_at": "2026-11-15T11:33:24Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -6949,8 +7219,8 @@
    },
    "commence": "2026-11-15T14:30:00Z",
    "shown_at": "2026-11-15T11:33:24Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
