@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-16T11:49:14Z",
+ "checked_at": "2026-11-16T16:40:49Z",
  "et_date": "2026-11-16",
  "healthy": false,
  "broken": 0,
- "degraded": 10,
+ "degraded": 11,
  "findings": [
+  {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Mon 11:49Z",
+   "why": "gamelines is past due with no collect run for nfl since then (oldest: gamelines, due 2026-11-16T12:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
   {
    "key": "late:alt-lines:ncaaf",
    "severity": "DEGRADED",
@@ -86,7 +93,7 @@
   "pulled_at": "2026-11-16T11:48:14Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 4.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-16T11:48:14Z",
   "source": "data/nfl/2026-11-16/props-player/1148.json.gz",
