@@ -1,5 +1,5 @@
 {
- "built_at": "2026-11-17T00:15:09Z",
+ "built_at": "2026-11-17T15:02:29Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -2692,19 +2692,28 @@
    "voids": 0,
    "unresolved": 2,
    "owed": 0
+  },
+  {
+   "date": "2026-11-17",
+   "w": 0,
+   "n": 0,
+   "carded": 4,
+   "voids": 0,
+   "unresolved": 4,
+   "owed": 4
   }
  ],
  "days_graded": 42,
- "cards_seen": 42,
+ "cards_seen": 43,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
  "distinct_players": 365,
  "distinct_games": 232,
- "carded_rows": 757,
+ "carded_rows": 761,
  "voids": 0,
- "unresolved": 62,
- "coverage_note": "695 of 757 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 62 could not be settled at all.",
+ "unresolved": 66,
+ "coverage_note": "695 of 761 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 66 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -2718,7 +2727,7 @@
   },
   {
    "date": "2026-11-17",
-   "why": "nothing settled yet \u2014 its list is empty, nothing to grade"
+   "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
  "join_note": "A pick is joined to a game log by player name and a \u00b11-day window around kickoff. The window is there because the two leagues date a game differently \u2014 college logs a kickoff on its UTC date, so a Thursday night game lands on Friday, while the NFL logs the Eastern one \u2014 and it is safe because a player has at most one game inside any three-day window."
