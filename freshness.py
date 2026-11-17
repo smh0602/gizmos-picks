@@ -1363,11 +1363,36 @@ def _literal(module, name):
 
 
 def champion_inputs(league, champion=None):
-    """[(file pattern, deadline key)] behind fb_model.CHAMPION[league]; its writer is
-    `nfl-logs` (NFL) or `cfb-probe` (college), the league's logs / CFBD run."""
+    """[(file pattern under latest/, deadline key)] behind fb_model.CHAMPION[league]; its writer is
+    `nfl-logs` (NFL) or `cfb-probe` (college), the league's logs / CFBD run.
+    `[2026-11-17]` ~~its `input` alone~~: AND every other file it declares (`files`), one per
+    declared season (`seasons`), late only when missing. H and HC read their history seasons
+    through `files` alone (`input` None), so the live college champion HC's four files stayed
+    "Stored only" rows that never planned a run: a missing or unreadable one was never repaired."""
     name = (champion or _literal("fb_model.py", "CHAMPION")).get(league)
-    inp = _literal("fb_challengers.py", "CHALLENGERS")[name]["input"] if name else None
+    if not name:
+        return []
+    c = _literal("fb_challengers.py", "CHALLENGERS")[name]
+    out = _input_rows(c)
+    for f in c.get("files") or ():
+        if any(f == x[0] for x in out):
+            continue                     # its input: this season's file, on the input's deadlines
+        for s in c.get("seasons") or ("{s}",):
+            out.append((f.replace("{s}", str(s)), None))
+    return out
+
+
+def _input_rows(c):
+    """A champion's `input`: [(file pattern, deadline key)], or none."""
+    inp = c.get("input")
     return [inp] if inp else []          # T66's S reads no file of its own
+
+
+def champion_path(data, pattern, season):
+    """A champion_inputs pattern -> the file's path: under latest/, or a sibling of it (`../`,
+    H and HC's history seasons, data/<lg>/history/)."""
+    rel = pattern.format(s=season)
+    return f"{data}/{rel[3:]}" if rel.startswith("../") else f"{data}/latest/{rel}"
 
 
 def _football_contract(league, data, picks, now):
@@ -1650,10 +1675,12 @@ def _football_contract(league, data, picks, now):
     # `[Sam, 2026-10-12]` T65: once Sam names a game-model CHAMPION, the file
     #    behind its input is a row like the others (talent: once a season,
     #    so only a missing season's file is late).
+    #    `[2026-11-17]` and every file it declares: HC's history seasons (`champion_path`).
     for fname, due in champion_inputs(league):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
-                     ("file", f"{latest}/{fname.format(s=season)}"),
+                     ("file", champion_path(data, fname, season)),
                      T[due] if due else [], False, CHAMPION_INPUT))
+    _champ = {r[1][1] for r in rows if r[4] == CHAMPION_INPUT}
     # `[Sam, 2026-10-14]` NEW DATA, STORED ONLY (see STORED_ONLY): the daily
     #    NWS forecasts and, by league, injuries / advanced stats, venues and CFBD
     #    weather. History seasons and once-a-season files are late only when
@@ -1676,10 +1703,14 @@ def _football_contract(league, data, picks, now):
         ((2023, 2024), ("schedule", "lines"))
     for _y in _hist[0]:
         for _k in _hist[1]:
+            if f"{data}/history/{_k}-{_y}.json.gz" in _champ:
+                continue                 # `[2026-11-17]` the champion's input (H, HC): its row is above
             rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                          ("file", f"{data}/history/{_k}-{_y}.json.gz"), [], False,
                          "Stored only — older seasons for a challenger"))
     for _stem, _due in _store:
+        if f"{latest}/{_stem}.json.gz" in _champ:
+            continue                     # `[2026-11-17]` WX's weather, IN's injuries: a champion's input
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{_stem}.json.gz"), _due, False,
                      "Stored only — no tab or model reads it yet"))
@@ -2016,6 +2047,35 @@ def stored_only(r):
 
 CHAMPION_INPUT = "Game model champion's input"
 
+# 🔴 `[2026-11-17]` A REBUILD ITS WRITER COULD NOT LAND IS RETRIED ONCE A DAY, NOT EVERY PASS.
+#    A champion's history file (H, HC) is a CHAMPION_INPUT row, so a missing or unreadable one
+#    plans its writer (`cfb-probe`, `nfl-logs`). If that run cannot land it (CFBD's price check
+#    refuses, the source fails or has nothing), the row stays stale, and without a hold every
+#    hourly pass would plan `cfb-probe` again: a whole CFBD sweep (cfbd_budget prices 16 calls a
+#    build; November's measured 38-41) each time, for a file it cannot write. The writer names
+#    each file it tried and could not land in its folder's REBUILD_ATTEMPTS (fb_history); for
+#    REBUILD_RETRY_MIN after that try the row is `held`: still stale, still reported (the
+#    watchdog's `held:<lg>`), never planned (`owes`) and never a reason a cron's run cannot stand
+#    down (`stand_down`). The writer's own daily run still retries it, and refreshes the time.
+REBUILD_ATTEMPTS = "rebuild-attempts.json"
+REBUILD_RETRY_MIN = 20 * 60
+
+
+def rebuild_held(path, now=None):
+    """-> {"tried_at", "outcome"} when the writer recorded a try at the file at `path` that did not
+    land (its folder's REBUILD_ATTEMPTS) less than REBUILD_RETRY_MIN ago, else None. ⛔ An
+    unreadable record or a time it cannot read holds nothing (an unknown never stops a repair)."""
+    try:
+        with open(os.path.join(os.path.dirname(path), REBUILD_ATTEMPTS), encoding="utf-8") as fh:
+            got = (json.load(fh).get("files") or {}).get(os.path.basename(path))
+    except (OSError, ValueError, AttributeError):
+        return None
+    when = _parse(got.get("tried_at")) if isinstance(got, dict) else None
+    if when is None:
+        return None
+    age = ((now or datetime.datetime.now(UTC)) - when).total_seconds() / 60.0
+    return dict(got) if 0 <= age < REBUILD_RETRY_MIN else None
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A FILE WRITTEN ON TIME CAN STILL BE A FILE THAT SAYS NOTHING NEW.
 #    `[2026-10-17]` (college injuries, review of part P3)
@@ -2190,7 +2250,8 @@ def _injury_check_health(path, now):
 HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_probe_health),
           (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health),
           (re.compile(r"/(?:nfl|ncaaf)/latest/injury-check\.json$"), _injury_check_health))
-# Modes whose `health` finding is reported (stale: a soft warning, a `fresh:` finding) but
+# Modes whose `health` finding is reported (stale: a soft warning, a ~~`fresh:`~~ `held:` finding
+#    `[2026-11-17]`, never "the converge loop repairs this") but
 # never planned again (`plan`). See INJURY_FAILED_SLOTS.
 REPORT_ONLY_HEALTH = {"injury-check"}
 
@@ -2355,12 +2416,14 @@ def fired_cron(env=None):
 
 def stand_down(rows, mode, now, env=None):
     """-> the minute of the cron that named `mode` when that cron's work is
-    already done (see STAND_DOWN), else None: run it."""
+    already done (see STAND_DOWN), else None: run it.
+    `[2026-11-17]` A `held` row (REBUILD_ATTEMPTS: its writer tried within a day and could not
+    land it) is no reason to run: a late cron would sweep CFBD again for a file it cannot write."""
     if mode not in STAND_DOWN:
         return None
     cron = fired_cron(env)
     since = cron_last_fire(cron, now) if cron else None
-    mine = [r for r in rows if r["mode"] == mode]
+    mine = [r for r in rows if r["mode"] == mode and not r.get("held")]
     if since is None or not mine or any(r["stale"] or r["missing"] for r in mine):
         return None
     dated = [r for r in mine if r.get("due_at")]
@@ -2708,6 +2771,10 @@ def survey(data="data", picks="picks", now=None, entries=None):
             # ⛔ a row no tab reads stays off the reader's stale banner
             "page": mode not in OFF_PAGE,
         })
+        # `[2026-11-17]` a rebuild its writer could not land: not replanned for a day (REBUILD_ATTEMPTS)
+        held = rebuild_held(path, now) if stale and kind == "file" else None
+        if held:
+            rows[-1]["held"] = held
     return rows
 
 
@@ -2920,6 +2987,7 @@ def owes(r, allow_paid=True):
     `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
     of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH."""
     return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
+                and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: once a day
                 and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
 
 

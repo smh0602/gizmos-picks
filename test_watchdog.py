@@ -54,6 +54,22 @@ itself, and section 2 drives that exact clock.
 #   find:             stale = [r for r in stale if str(r.get("path")) not in nostamp]
 #   with:             pass
 #
+# `[2026-11-17]` ONLY A ROW THE CONTRACT OWES IS ONE "THE CONVERGE LOOP REPAIRS".
+# @vacuity 🔴 fresh: counts only the rows freshness.owes (the stored-only split dropped)
+#   file: watchdog.py
+#   find: stale = [r for r in stale if F.owes(r)]
+#   with: stale = list(stale)
+#
+# @vacuity 🔴 a stale stored-only row is named under stored:, with its writer
+#   file: watchdog.py
+#   find: _stored_finding(rep, lg, [r for r in stale if F.stored_only(r)])
+#   with: None
+#
+# @vacuity 🔴 a stale row the contract will not plan now is named under held:, with its reason
+#   file: watchdog.py
+#   find: _held_finding(rep, lg, [r for r in stale if not F.stored_only(r) and not F.owes(r)])
+#   with: None
+#
 # @vacuity 🔴 an all-zero schedule day owes no card (#200)
 #   file: freshness.py
 #   find:     return bool(seen) and all(n == 0 for n in seen)
@@ -1260,15 +1276,23 @@ with Tree() as t:
        "got %r" % [(i["key"], i["why"][:120]) for i in _rep.items])
     ck("   ...and only that one: not a file that is absent, a directory, a file merely late, "
        "one a repair has just written with its stamp (asked of the file now, not of freshness.json), "
-       "or a truncated one (a rebuild repairs that)",
+       "or a truncated one (~~a rebuild repairs that~~ `[2026-11-17]` a staleness like a missing one)",
        _ns and "1 nfl file" in _ns[0]["what"] and "2019" not in _ns[0]["why"]
        and "2020" not in _ns[0]["why"]
        and "players-2026" not in _ns[0]["why"] and "record.json" not in _ns[0]["why"],
        "got %r" % (_ns and (_ns[0]["what"], _ns[0]["why"][:160]),))
     _fr = [i for i in _rep.items if i["key"] == "fresh:nfl"]
-    ck("   ...and the staleness itself is still reported, the truncated file in it and without the "
-       "unstamped one (the converge loop cannot repair that one)",
-       len(_fr) == 1 and "5 artifact(s)" in _fr[0]["why"], _fr and _fr[0]["why"][:120])
+    _st = [i for i in _rep.items if i["key"] == "stored:nfl"]
+    # `[2026-11-17]` ~~"the truncated file in it" (fresh:, "the converge loop repairs this")~~: an NFL
+    #    history season is a STORED-ONLY row while H is not champion, which converge never plans, so it
+    #    is named under stored:nfl with its writer, and fresh:nfl counts only the 3 rows converge owes.
+    ck("   ...and the staleness itself is still reported without the unstamped one (the converge loop "
+       "cannot repair that one): fresh: the 3 rows converge owes; stored: the truncated and the absent "
+       "history season, which only nfl-logs rewrites",
+       len(_fr) == 1 and "3 artifact(s)" in _fr[0]["why"] and len(_st) == 1
+       and "schedule-2020" in _st[0]["why"] and "schedule-2019" in _st[0]["why"]
+       and "schedule-2018" not in _st[0]["why"] and "nfl-logs" in _st[0]["why"],
+       [(i["key"], i["why"][:160]) for i in _rep.items])
 with Tree() as t:
     _gz(t, "data/nfl/history/schedule-2018.json.gz", {"season": 2018, "games": []})
     t.write("data/nfl/latest/freshness.json", {"artifacts": [
@@ -1279,6 +1303,63 @@ with Tree() as t:
     eq(sorted(i["key"] for i in _rep.items), ["nostamp:nfl"],
        "🔴 the live shape (every stale row an unstamped file) is the no-stamp finding alone: no "
        "'0 artifact(s) are stale' line saying the converge loop will repair it")
+
+print("\n═══ 🔴 ONLY A ROW THE CONTRACT OWES IS ONE \"THE CONVERGE LOOP REPAIRS\" ═══")
+# `[2026-11-17]` Every stale row landed in fresh:<lg> and its sentence. 9 of 9 sampled
+#    `fresh:ncaaf` findings 10-14 -> 11-01 were STORED-ONLY rows (weather, adv, venues, the history
+#    seasons, roster, defense), which converge never plans: both sentences were false. The split is
+#    freshness's own (`owes`, `stored_only`), asked of planted rows.
+_SO = "Stored only — no tab or model reads it yet"
+with Tree() as t:
+    t.write("data/nfl/latest/freshness.json", {"artifacts": [
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/latest/weather-2026.json.gz", "why": _SO,
+         "missing": False, "stale": True, "paid": False},
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/latest/injuries-2025.json.gz", "why": _SO,
+         "missing": True, "stale": True, "paid": False}]})
+    _rep = W.Report()
+    W.check_freshness(_rep, _now)
+    _all = " ".join(i["what"] + " " + i["why"] for i in _rep.items)
+    _st = [i for i in _rep.items if i["key"] == "stored:nfl"]
+    ck("🔴 only stale STORED-ONLY rows: no fresh: finding and no 'the converge loop repairs' line; one "
+       "stored:nfl, DEGRADED, no repair, naming both files and their writer, saying converge never plans "
+       "them",
+       [i["key"] for i in _rep.items] == ["stored:nfl"] and "repairs this on its own" not in _all
+       and _st[0]["severity"] == "DEGRADED" and _st[0]["repair"] is None
+       and "weather-2026" in _st[0]["why"] and "injuries-2025" in _st[0]["why"]
+       and "nfl-logs" in _st[0]["why"] and "never plans" in _st[0]["why"],
+       [(i["key"], i["what"], i["why"][:200]) for i in _rep.items])
+with Tree() as t:
+    t.write("data/nfl/latest/freshness.json", {"artifacts": [
+        {"mode": "card-fb", "kind": "file", "path": "data/nfl/latest/fb-model.json", "why": "Model picks",
+         "missing": False, "stale": True, "paid": False},
+        {"mode": "gamelines", "kind": "file", "path": "data/nfl/latest/board.json", "why": "Odds",
+         "missing": False, "stale": True, "paid": True},
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/latest/weather-2026.json.gz", "why": _SO,
+         "missing": False, "stale": True, "paid": False},
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2021.json.gz",
+         "why": F.CHAMPION_INPUT, "missing": True, "stale": True, "paid": False,
+         "held": {"tried_at": "2026-10-27T14:00:00Z", "outcome": "failed: RuntimeError: nflverse hiccup"}},
+        {"mode": "injury-check", "kind": "file", "path": "data/nfl/latest/injury-check.json", "why": "Injuries",
+         "missing": False, "stale": True, "paid": False,
+         "unhealthy": "weekly_rosters has not answered at the last 2 game-day checks"}]})
+    _rep = W.Report()
+    W.check_freshness(_rep, _now)
+    _k = {i["key"]: i for i in _rep.items}
+    ck("🔴 a mixed contract: fresh:nfl counts only the 2 rows converge owes (card-fb, gamelines), and "
+       "names only their modes",
+       sorted(_k) == ["fresh:nfl", "held:nfl", "stored:nfl"] and "2 artifact(s)" in _k["fresh:nfl"]["why"]
+       and "card-fb" in _k["fresh:nfl"]["what"] and "gamelines" in _k["fresh:nfl"]["what"]
+       and "nfl-logs" not in _k["fresh:nfl"]["what"] and "injury-check" not in _k["fresh:nfl"]["what"],
+       [(i["key"], i["what"], i["why"][:160]) for i in _rep.items])
+    ck("   ...the stored-only file under stored:nfl alone",
+       "weather-2026" in _k.get("stored:nfl", {}).get("why", "") and "1 stored-only" in _k["stored:nfl"]["what"])
+    ck("🔴 ...and the rows the contract will not plan now under held:nfl, each with its reason: a champion's "
+       "history season its writer could not rebuild (when, and why), and a report-only health row; "
+       "DEGRADED, no repair",
+       "schedule-2021" in _k.get("held:nfl", {}).get("why", "") and "2026-10-27T14:00:00Z" in _k["held:nfl"]["why"]
+       and "nflverse hiccup" in _k["held:nfl"]["why"] and "weekly_rosters" in _k["held:nfl"]["why"]
+       and _k["held:nfl"]["severity"] == "DEGRADED" and _k["held:nfl"]["repair"] is None,
+       _k.get("held:nfl"))
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the watchdog catches "
      "everything. It catches the four shapes that have actually bitten — "

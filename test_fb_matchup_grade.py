@@ -703,6 +703,14 @@ section("9. 🔴 league(): 15 CHALLENGERS A LEAGUE, EACH BUILT AND SCORED, alpha
 T9 = tree()
 _g9 = league_games(TEAMS, 32, 75, start=datetime.date(2025, 3, 2))       # 192 games: fits need 150
 plant(T9, _g9)
+# `[2026-11-17]` H and HC train on every declared history season or none (fb_challengers.need_history):
+#    registered here, they need their files; planted readable, adding no training row or rating game.
+for _hn in FC.HIST:
+    for _p in FC.history_files(_hn, T9):
+        _s = int(os.path.basename(_p).split("-")[1][:4])
+        put(T9, os.path.relpath(_p, T9), {"season": _s, "games": (
+            {"x": {"spread": 1.0, "total": 40.0}} if os.path.basename(_p).startswith("lines-") else
+            [{"id": "x%d" % _s, "start": "%d-09-01T17:00" % _s, "home": "T1", "away": "T2", "final": False}])})
 # `[Sam, 2026-11-10]` ~~13~~: T75 (§3k) adds QB, QP and QBC, QPC.
 WANT15 = {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "QB", "QP", "RS", "S", "SM", "WL", "WX"],
           "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "QBC", "QPC", "RSC", "SMC", "T", "TS", "WLC", "WXC"]}

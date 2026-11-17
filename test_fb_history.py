@@ -72,6 +72,82 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #   file: freshness.py
 #   find:                          r"|/history/(schedule|lines)-\d{4}\.json\.gz$")
 #   with:                          r"|/nowhere/x$")
+#
+# `[2026-11-17]` A STORED FILE THAT CANNOT BE READ (§4, §5).
+# @vacuity 🔴 a truncated gzip is corrupt, never a crash (EOFError)
+#   file: fb_history.py
+#   find: except (EOFError, zlib.error, OSError, ValueError) as e:
+#   with: except (OSError, ValueError) as e:
+#
+# @vacuity 🔴 a readable file with no games is corrupt too
+#   file: fb_history.py
+#   find: if not isinstance(doc, dict) or not doc.get("games"):
+#   with: if not isinstance(doc, dict):
+#
+# @vacuity 🔴 store_nfl rebuilds an unreadable season (it saw a file and moved on)
+#   file: fb_history.py
+#   find: if state == "present":               # NFL: a readable file is never rebuilt
+#   with: if os.path.exists(p):               # NFL: a readable file is never rebuilt
+#
+# @vacuity 🔴 store_cfb rebuilds an unreadable file (it saw a file and moved on)
+#   file: fb_history.py
+#   find: if state == "present":               # college: a readable file costs no call
+#   with: if os.path.exists(p):               # college: a readable file costs no call
+#
+# @vacuity 🔴 NFL: the unreadable file is moved aside, never overwritten
+#   file: fb_history.py
+#   find: moved = _aside(p) if state == "corrupt" else None     # NFL: once the new one is in hand
+#   with: moved = None     # NFL: once the new one is in hand
+#
+# @vacuity 🔴 college: the unreadable file is moved aside, never overwritten
+#   file: fb_history.py
+#   find: moved = _aside(p) if state == "corrupt" else None     # college: once the new one is in hand
+#   with: moved = None     # college: once the new one is in hand
+#
+# @vacuity 🔴 a rebuild that did not land is named for the contract's hold
+#   file: fb_history.py
+#   find: files[name] = {"tried_at": _stamp(), "outcome": str(outcome)[:300]}
+#   with: pass
+#
+# @vacuity 🔴 H / HC never train on part of their seasons
+#   file: fb_challengers.py
+#   find: need_history(lg, root)
+#   with: None
+#
+# @vacuity 🔴 ...an unreadable season counts, not only a missing one
+#   file: fb_challengers.py
+#   find: if st != "present"]
+#   with: if st == "missing"]
+#
+# @vacuity 🔴 a champion's declared history files are its inputs (never stored only)
+#   file: freshness.py
+#   find: for f in c.get("files") or ():
+#   with: for f in ():
+#
+# @vacuity 🔴 ...one row each (the stored-only row gives way)
+#   file: freshness.py
+#   find: continue                 # `[2026-11-17]` the champion's input (H, HC): its row is above
+#   with: pass                 # `[2026-11-17]` the champion's input (H, HC): its row is above
+#
+# @vacuity 🔴 a rebuild that failed within a day is held (never a CFBD sweep every pass)
+#   file: freshness.py
+#   find: held = rebuild_held(path, now) if stale and kind == "file" else None
+#   with: held = None
+#
+# @vacuity 🔴 ...a held row is not owed
+#   file: freshness.py
+#   find: and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: once a day
+#   with: and True              # `[2026-11-17]` REBUILD_ATTEMPTS: once a day
+#
+# @vacuity 🔴 ...for REBUILD_RETRY_MIN only, then owed again
+#   file: freshness.py
+#   find: return dict(got) if 0 <= age < REBUILD_RETRY_MIN else None
+#   with: return dict(got)
+#
+# @vacuity 🔴 ...and a late cron stands down past a held row
+#   file: freshness.py
+#   find: mine = [r for r in rows if r["mode"] == mode and not r.get("held")]
+#   with: mine = [r for r in rows if r["mode"] == mode]
 """
 import atexit
 import gzip
@@ -117,6 +193,26 @@ def g(gid, day, home, away, hs, as_, **k):
 
 
 quiet = lambda m: None  # noqa: E731
+
+
+def fill(root, name):
+    """Plant every history file challenger `name` declares that the tree lacks, readable and
+    adding no training row (a game not yet final; a line for a game no schedule holds)."""
+    for p in FC.history_files(name, root):
+        if not os.path.exists(p):
+            s = int(os.path.basename(p).split("-")[1][:4])
+            put(root, os.path.relpath(p, root), {"season": s, "written_at": "2026-10-15T00:00:00Z", "games": (
+                {"x%d" % s: {"spread": 1.0, "total": 40.0, "ml_home": None, "ml_away": None}}
+                if os.path.basename(p).startswith("lines-") else
+                [g("x%d" % s, "%d-09-01" % s, "ZZ1", "ZZ2", 0, 0, final=False)])})
+
+
+def attempts(root, lg):
+    """The files a run could not land (fb_history.ATTEMPTS), {} when none is recorded."""
+    try:
+        return json.load(open(os.path.join(root, "data", lg, "history", HX.ATTEMPTS), encoding="utf-8"))["files"]
+    except (OSError, ValueError, KeyError):
+        return {}
 
 # ══════════════════════════════════════════════════════════════════════
 section("1. 🔴 STORING THE HISTORY: ONCE, OUTSIDE latest/, NEVER RAISING")
@@ -201,8 +297,14 @@ try:
                              "awayMoneyline": 145}]}]
     C = tree()
     out = HX.store_cfb(quiet, C)
-    ck(set(out.values()) == {"refused"} and not asked and not os.path.exists(C + "/data/ncaaf/history"),
-       "🔴 a refused CFBD history call fetches nothing and writes nothing", out)
+    # `[2026-11-17]` ~~"and writes nothing" (no history folder at all)~~: a refusal now names each
+    #    file it could not land in ATTEMPTS (the contract's hold, §5), and writes no history file.
+    ck(set(out.values()) == {"refused"} and not asked
+       and os.path.isdir(C + "/data/ncaaf/history") and os.listdir(C + "/data/ncaaf/history") == [HX.ATTEMPTS]
+       and {k: v["outcome"] for k, v in attempts(C, "ncaaf").items()}
+       == {"%s.json.gz" % k: "refused" for k in out},
+       "🔴 a refused CFBD history call fetches nothing and writes no history file: only the refusals, "
+       "named for the contract's hold", out)
     allow["v"] = True
     out = HX.store_cfb(quiet, C)
     L = HX.lines(C)
@@ -232,6 +334,7 @@ ck(champ_own == (None, None) and row["sig"]["h_own"][0] is not None and row["sig
 eq([round(v, 6) for v in FC.extend("H", row, "spread", ["ignored"])],
    [round((row["sig"]["h_own"][0] - 3.0) / 10, 6), 0.0, 0.0],
    "🔴 H's inputs are the own term, neutral and dome only (the champion's others don't exist for history)")
+fill(H, "H")       # `[2026-11-17]` H trains on every declared season or none (need_history)
 hr = FC.history_rows("nfl", H)
 eq((len(hr), hr[0]["M"], hr[0]["T"], hr[0]["final"]), (8, 3.0, 44.5, True),
    "🔴 one training row per final history game, labelled at its closing line by fb_model.training_line")
@@ -242,6 +345,7 @@ CC = tree()
 put(CC, "data/ncaaf/history/schedule-2024.json.gz", {"season": 2024, "games": [
     g("f1", "2024-09-07", "A", "B", 30, 20, home_class="fbs", away_class="fbs"),
     g("f2", "2024-09-07", "C", "D", 50, 0, home_class="fbs", away_class="fcs")]})
+fill(CC, "HC")
 eq([r["id"] for r in FC.history_rows("ncaaf", CC)], ["hist:f1"], "🔴 college history rows are FBS vs FBS only")
 # `[2026-10-15]` caught by the sweep's leak check: a test running `collect.py nfl-logs` from a
 #    copy wrote data/nfl/history/ into the repo, because the writer defaulted to its own folder.
@@ -274,3 +378,207 @@ ck(len(hist) == 7 and all(r[0] == "nfl-logs" and r[2] == [] and F.stored_only({"
 eq(len([r for r in F.contract(P + "/data/ncaaf", P + "/picks", None)
         if "/history/schedule-" in r[1][1] or "/history/lines-" in r[1][1]]), 4,
    "   ...and college's 2 seasons x schedule and lines")
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴 A HISTORY FILE THAT CANNOT BE READ IS REBUILT, AND H / HC NEVER TRAIN ON PART OF IT")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-11-17]` The reader caught only OSError / ValueError: a truncated gzip raised EOFError out
+#    of games() and lines() (the module said "Never raises"), a bad-JSON file read as None while
+#    store_nfl / store_cfb saw a file and moved on, so neither was ever rebuilt; and HC, the live
+#    college champion, either crashed its build or trained on one season of two (798 rows of
+#    1,590, on copies of the real files, 2026-11-13). Planted files, fake sources, no network.
+def raw(root, rel, b):
+    p = os.path.join(root, rel)
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    with open(p, "wb") as fh:
+        fh.write(b)
+    return p
+
+
+def cut(doc, n=40):
+    """A gzip written `n` bytes and stopped: a write cut short."""
+    return gzip.compress(json.dumps(doc).encode("utf-8"))[:n]
+
+
+def aside(root, lg):
+    d = os.path.join(root, "data", lg, "history", HX.CORRUPT_DIR)
+    return sorted(os.listdir(d)) if os.path.isdir(d) else []
+
+
+B = tree()
+fill(B, "H")
+_np = {s: os.path.join(B, "data", "nfl", "history", "schedule-%d.json.gz" % s) for s in HX.NFL_SEASONS}
+raw(B, "data/nfl/history/schedule-2020.json.gz", cut({"season": 2020, "games": [g("a", "2020-10-04", "LV", "KC", 1, 2)]}))
+raw(B, "data/nfl/history/schedule-2021.json.gz", gzip.compress(b'{"season": 2021, "games": ['))
+put(B, "data/nfl/history/schedule-2022.json.gz", {"season": 2022, "games": []})
+_was = {s: open(_np[s], "rb").read() for s in (2020, 2021, 2022)}
+eq({s: HX.state_of(_np[s]) for s in (2019, 2020, 2021, 2022)},
+   {2019: "present", 2020: "corrupt: EOFError", 2021: "corrupt: JSONDecodeError", 2022: "corrupt: no games"},
+   "🔴 one reader names each stored file: present, or corrupt with why (a truncated gzip is EOFError, "
+   "never a crash)")
+try:
+    _g, _l, _err = HX.games("nfl", B), HX.lines(B), None
+except Exception as e:        # noqa: BLE001
+    _g, _l, _err = None, None, e
+ck(_err is None and len(_g) == 4,
+   "🔴 games() and lines() never raise on a truncated or bad file: they read the 4 readable seasons", _err)
+try:
+    FC.history_rows("nfl", B)
+    _hx = None
+except Exception as e:        # noqa: BLE001
+    _hx = e
+ck(isinstance(_hx, FC.HistoryIncomplete) and all("schedule-%d" % s in str(_hx) for s in (2020, 2021, 2022))
+   and "2019" not in str(_hx),
+   "🔴 H never trains on part of its seasons: history_rows raises HistoryIncomplete naming the 3 unreadable "
+   "files (not EOFError, and not 4 seasons of 7 in silence)", repr(_hx)[:300])
+_built = []
+
+
+def nfl_build(s):
+    _built.append(s)
+    if s == 2023 and _fail23["v"]:
+        raise RuntimeError("nflverse hiccup")
+    return {"season": s, "games": [g("r%d" % s, "%d-10-06" % s, "SEA", "DEN", 20, 17)]}
+
+
+_fail23 = {"v": False}
+_res = HX.store_nfl(quiet, B, build=nfl_build)
+_moved = aside(B, "nfl")
+ck(sorted(_built) == [2020, 2021, 2022]
+   and all(str(_res[s]).startswith("rebuilt (was corrupt") for s in (2020, 2021, 2022))
+   and all(HX.state_of(_np[s]) == "present" for s in HX.NFL_SEASONS),
+   "🔴 store_nfl rebuilds exactly the 3 unreadable seasons (nflverse, free) and leaves 7 readable files",
+   (_built, {s: _res.get(s) for s in (2020, 2021, 2022)}))
+eq(sorted(open(os.path.join(B, "data/nfl/history", HX.CORRUPT_DIR, m), "rb").read() for m in _moved),
+   sorted(_was.values()),
+   "🔴 ...each old file moved aside byte for byte into history/%s/ (never deleted)" % HX.CORRUPT_DIR)
+ck(len(_moved) == 3 and not any(m.endswith(".json.gz") for m in _moved) and len(HX.games("nfl", B)) == 7,
+   "   ...under a name no reader globs (not .json.gz, in its own folder): games() reads the 7 seasons only",
+   _moved)
+ck(len(FC.history_rows("nfl", B)) == 3, "   ...and H trains again, on every season (3 rebuilt finals)")
+_built.clear()
+eq((HX.store_nfl(quiet, B, build=nfl_build), _built, aside(B, "nfl")), ({}, [], _moved),
+   "   ...and the next run reads 7 good files: no build, nothing moved")
+# a rebuild that cannot land leaves the unreadable file where it is, and is named for the contract
+raw(B, "data/nfl/history/schedule-2023.json.gz", cut({"season": 2023, "games": []}))
+_was23 = open(_np[2023], "rb").read()
+_fail23["v"] = True
+_res = HX.store_nfl(quiet, B, build=nfl_build)
+_att = {"files": attempts(B, "nfl")}
+ck(str(_res.get(2023)).startswith("failed") and open(_np[2023], "rb").read() == _was23
+   and aside(B, "nfl") == _moved and "schedule-2023.json.gz" in _att["files"],
+   "🔴 a rebuild that fails moves nothing (the file stays, byte for byte) and is named in %s for the "
+   "contract's hold" % HX.ATTEMPTS, (_res.get(2023), _att.get("files")))
+_fail23["v"] = False
+HX.store_nfl(quiet, B, build=nfl_build)
+_att = {"files": attempts(B, "nfl")}
+ck(HX.state_of(_np[2023]) == "present" and "schedule-2023.json.gz" not in _att["files"],
+   "   ...and once a run lands it, it leaves the list", _att.get("files"))
+
+# ── college: the same reader, every CFBD call priced first, none for a readable file ──
+CB = tree()
+put(CB, "data/ncaaf/history/schedule-2024.json.gz", {"season": 2024, "written_at": "2026-10-15T00:00:00Z", "games": [
+    g("9", "2024-09-07", "A", "B", 30, 20, home_class="fbs", away_class="fbs")]})
+fill(CB, "HC")
+_cp = {k: os.path.join(CB, "data", "ncaaf", "history", "%s.json.gz" % k)
+       for k in ("schedule-2023", "lines-2023", "schedule-2024", "lines-2024")}
+_old = (cfb._priced, cfb.build_schedule, cfb.get)
+priced, fetched, allow = [], [], {"v": True}
+try:
+    cfb._priced = lambda calls, purpose, log=None: priced.append((calls, purpose)) or allow["v"]
+    cfb.build_schedule = lambda s, log=None: (fetched.append(("/games", s)) or
+                                              ({"season": s, "games": [g("c%d" % s, "%d-09-06" % s, "A", "B", 1, 0)]}, {}))
+    cfb.get = lambda path, params, timeout=90, tries=4: fetched.append((path, int(params["year"]))) or [
+        {"id": 9, "lines": [{"provider": "consensus", "spread": -3.0, "overUnder": 51.5,
+                             "homeMoneyline": -160, "awayMoneyline": 135}]}]
+    eq((HX.store_cfb(quiet, CB), priced, fetched), ({}, [], []),
+       "🔴 every college history file readable: store_cfb prices nothing and makes ZERO CFBD calls")
+    raw(CB, "data/ncaaf/history/lines-2024.json.gz", cut({"season": 2024, "games": {"1": {}}}))
+    _wasl = open(_cp["lines-2024"], "rb").read()
+    try:
+        FC.history_rows("ncaaf", CB)
+        _hx = None
+    except Exception as e:        # noqa: BLE001
+        _hx = e
+    ck(isinstance(_hx, FC.HistoryIncomplete) and "lines-2024" in str(_hx) and "schedule-2024" not in str(_hx),
+       "🔴 HC never trains on part of its seasons: a truncated lines-2024 is HistoryIncomplete, named",
+       repr(_hx)[:300])
+    allow["v"] = False
+    _res = HX.store_cfb(quiet, CB)
+    _att = {"files": attempts(CB, "ncaaf")}
+    ck(_res == {"lines-2024": "refused"} and priced == [(1, "history lines 2024")] and not fetched
+       and open(_cp["lines-2024"], "rb").read() == _wasl and not aside(CB, "ncaaf")
+       and "lines-2024.json.gz" in _att["files"],
+       "🔴 refused by the CFBD price check: no call, the file stays byte for byte, and it is named for the "
+       "contract's hold", (_res, priced, fetched))
+    allow["v"], priced[:] = True, []
+    _res = HX.store_cfb(quiet, CB)
+    _att = {"files": attempts(CB, "ncaaf")}
+    ck(str(_res.get("lines-2024")).startswith("rebuilt (was corrupt: EOFError")
+       and priced == [(1, "history lines 2024")] and fetched == [("/lines", 2024)]
+       and [open(os.path.join(CB, "data/ncaaf/history", HX.CORRUPT_DIR, m), "rb").read()
+            for m in aside(CB, "ncaaf")] == [_wasl]
+       and HX.state_of(_cp["lines-2024"]) == "present" and not _att["files"],
+       "🔴 allowed: ONE priced call (/lines 2024), the old file moved aside byte for byte, the new one "
+       "readable, the hold cleared", (_res, priced, fetched))
+    eq([(r["id"], r["M"]) for r in FC.history_rows("ncaaf", CB)], [("hist:9", 3.0)],
+       "   ...and HC trains again, on every season, at the rebuilt line")
+finally:
+    cfb._priced, cfb.build_schedule, cfb.get = _old
+
+# ══════════════════════════════════════════════════════════════════════
+section("5. 🔴 A CHAMPION'S HISTORY FILES ARE ITS INPUTS: PLANNED WHEN UNREADABLE, ONCE A DAY WHEN A REBUILD FAILS")
+# ══════════════════════════════════════════════════════════════════════
+import datetime  # noqa: E402
+
+NOW = datetime.datetime(2026, 11, 17, 16, 0, tzinfo=datetime.timezone.utc)
+_ci = F.champion_inputs
+F.champion_inputs = lambda league, champion=None: _ci(league, {"nfl": None, "ncaaf": "HC"})
+try:
+    def hist_rows(root):
+        return {os.path.basename(r["path"]): r for r in F.survey(root + "/data/ncaaf", root + "/picks", NOW)
+                if "/history/schedule-" in r["path"] or "/history/lines-" in r["path"]}
+
+    S0 = tree()
+    _r = hist_rows(S0)
+    ck(sorted(_r) == sorted(os.path.basename(p) for p in FC.history_files("HC", S0))
+       and all(r["why"] == F.CHAMPION_INPUT and not F.stored_only(r) and r["mode"] == "cfb-probe"
+               and r["stale"] and F.owes(r) for r in _r.values()),
+       "🔴 CHAMPION HC: each of its 4 history files is a champion's-input row (never 'stored only'), and a "
+       "MISSING one is owed: cfb-probe is planned", {k: (v["why"], v["stale"]) for k, v in _r.items()})
+    fill(S0, "HC")
+    _r = hist_rows(S0)
+    ck(not any(r["stale"] or F.owes(r) for r in _r.values()),
+       "🔴 all 4 present and readable: nothing stale, nothing owed (no extra cfb-probe, so no extra CFBD call)",
+       {k: v["stale"] for k, v in _r.items()})
+    raw(S0, "data/ncaaf/history/schedule-2023.json.gz", cut({"season": 2023, "games": []}))
+    _r = hist_rows(S0)
+    ck(_r["schedule-2023.json.gz"]["stale"] and F.owes(_r["schedule-2023.json.gz"])
+       and not any(F.owes(v) for k, v in _r.items() if k != "schedule-2023.json.gz"),
+       "🔴 an UNREADABLE one reads missing and is owed: its writer is planned and rebuilds it")
+    with open(os.path.join(S0, "data/ncaaf/history", F.REBUILD_ATTEMPTS), "w", encoding="utf-8") as fh:
+        json.dump({"files": {"schedule-2023.json.gz": {"tried_at": "2026-11-17T15:00:00Z",
+                                                        "outcome": "refused"}}}, fh)
+    _h = hist_rows(S0)["schedule-2023.json.gz"]
+    ck(_h["stale"] and _h.get("held") and not F.owes(_h),
+       "🔴 its writer tried an hour ago and could not land it: still stale, HELD, not owed (no CFBD sweep "
+       "every pass for a file the price check refuses)", _h.get("held"))
+    _late = [r for r in F.survey(S0 + "/data/ncaaf", S0 + "/picks", NOW + datetime.timedelta(hours=20, minutes=1))
+             if r["path"].endswith("/history/schedule-2023.json.gz")][0]
+    ck(_late["stale"] and not _late.get("held") and F.owes(_late),
+       "   ...and once REBUILD_RETRY_MIN (%d h) has passed, it is owed again" % (F.REBUILD_RETRY_MIN // 60))
+    _ev = os.path.join(tree(), "event.json")
+    with open(_ev, "w", encoding="utf-8") as fh:
+        json.dump({"schedule": "4 7 * * *"}, fh)
+    _env = {"GITHUB_EVENT_NAME": "schedule", "GITHUB_EVENT_PATH": _ev}
+    _served = {"mode": "cfb-probe", "path": "data/ncaaf/latest/players-2026.json.gz", "stale": False,
+               "missing": False, "due_at": "2026-11-17T07:00Z", "age_min": 530.0}
+    _sd = [_served, dict(_h)]
+    eq((F.stand_down(_sd, "cfb-probe", NOW, env=_env),
+        F.stand_down([_served, {k: v for k, v in _h.items() if k != "held"}], "cfb-probe", NOW, env=_env)),
+       (datetime.datetime(2026, 11, 17, 7, 4, tzinfo=datetime.timezone.utc), None),
+       "🔴 a late `4 7` cron stands down past a HELD row (it would sweep CFBD again for a file it cannot "
+       "write); an owed one still runs it")
+finally:
+    F.champion_inputs = _ci

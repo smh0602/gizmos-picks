@@ -661,6 +661,13 @@ note boxes, tags and the stale bar now require their absence.
   rewrite is how an nflverse outage is seen. Only the check skips an unchanged rewrite. The first
   build took the deadline off, and a 10-day outage read stale nowhere: a check weakened to let a
   change pass, caught in review.
+  `[2026-11-17]` A stale stored-only row is the watchdog's `stored:<lg>` (DEGRADED, no repair:
+  only its writer's own run rewrites it), never `fresh:<lg>`, whose "the converge loop repairs
+  this" now covers only rows `freshness.owes` (9 of 9 sampled `fresh:ncaaf` 10-14 -> 11-01 were
+  stored-only rows). ⛔ Every file a named CHAMPION declares (`fb_challengers.CHALLENGERS[...]
+  ["files"]`, each declared season: HC's four history files) is its input
+  (`freshness.champion_inputs`), never stored only: HC had been the college champion since
+  11-10 with its history still "Stored only". `test_fb_refit.py` (the class), `test_watchdog.py`.
 - 🔴 **THE GAME-DAY INJURY CHECK: 9AM, 12PM AND 7PM ET, BOTH FOOTBALL LEAGUES.** `[Sam,
   2026-10-26]` *"make sure we're looking at injury status at 12pm of games starting and 7pm so we
   can make sure the models adjusted for injuries when deciding outcome for a vame"*; asked "Should
@@ -1290,6 +1297,11 @@ note boxes, tags and the stale bar now require their absence.
   a block scalar (`test_wfparse.py` §3). Not seen: a `rest` file against its own 600s (no
   per-file time outside the job log); a one-pass run of a holding job before the last
   quarter of its room. `test_job_clocks.py`.
+  ✅ `[2026-11-17]` `watchdog.check_freshness` splits stale rows by the contract's own
+  predicates: `fresh:<lg>` ("the converge loop repairs this") only the rows `freshness.owes`;
+  `stored:<lg>` the stored-only rows (only their writer's run rewrites them); `held:<lg>` the
+  rest, each with its reason (a `held` rebuild, a REPORT_ONLY_HEALTH row). All DEGRADED, no
+  repair named. `test_watchdog.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -1576,6 +1588,10 @@ fb_challengers.py T65's frozen challengers to the football game model
                   and defence opponent-adjusted); `[Sam, 2026-11-10]` T75 QB/QBC
                   (the expected starter's grade, fb_qb.py) and QP/QPC (plus the
                   other positions out). fb_model reads it only for a named CHAMPION.
+                  `[2026-11-17]` `history_rows` fails closed (`need_history`,
+                  HistoryIncomplete) when any season H / HC declares is missing or
+                  unreadable: one bad college schedule had trained HC on 798 rows of
+                  1,590 in silence. `history_files`: the declaration, as paths.
 fb_qb.py          T75's BACKUP-QB BACKGROUND CHECK (Sam, 2026-11-10): one
                   league's stored QB starts, each start's mark against the own
                   ratings, a QB's grade shrunk toward replacement level, the
@@ -1602,6 +1618,16 @@ fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   `nfl-logs` / `cfb-probe`. ⛔ Never in latest/; never raises.
                   `[2026-10-27]` Every file is stamped (`written_at`); an unstamped
                   stored one is stamped in place once, its games untouched.
+                  `[2026-11-17]` ~~once while missing~~ once while missing OR
+                  UNREADABLE: `_stored` is the one reader (a truncated gzip, bad
+                  JSON or no games is corrupt; ~~`_jz` let EOFError out and read
+                  bad JSON as a file to skip~~). A corrupt file is rebuilt like a
+                  missing one (college priced first) and only then moved to
+                  `history/corrupt/<name>.<UTC time>`: ⛔ never deleted, never read.
+                  A file a run could not land is named in `history/rebuild-attempts.json`
+                  (`freshness.rebuild_held`). H / HC train on every declared season or
+                  none (`fb_challengers.need_history`, HistoryIncomplete: card-fb keeps
+                  the last good fb-model.json). `test_fb_history.py` §4-§5.
 fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   and FBS-vs-FBS college games within 7 days at outdoor US
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
@@ -1766,6 +1792,14 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   next pass ("Yes, build it": a merged model change is live
                   within the hour). Parsed, never imported; no model file
                   beside it plans nothing. test_code_moves.py.
+                  `[2026-11-17]` `champion_inputs`: ~~the champion's `input`~~
+                  every file it declares (`files` x `seasons`, `champion_path`), so
+                  HC's history seasons plan `cfb-probe` when missing or unreadable;
+                  never a stored-only row beside one (WX's weather, IN's injuries
+                  had both). `rebuild_held` (REBUILD_ATTEMPTS, REBUILD_RETRY_MIN 20 h):
+                  a rebuild its writer tried and could not land is `held`: stale, not
+                  owed, no reason a cron cannot stand down, so a refused CFBD price
+                  check is retried by the writer's daily run, never a sweep a pass.
                   `health` also judges both leagues' slot logs (the last 2
                   slots read nothing, any cause).
                   ⛔ It imports no other repo module ~~(none at all)~~ at load

@@ -95,6 +95,16 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:     for fname, due in champion_inputs(league):
 #   with:     for fname, due in []:
 #
+# @vacuity 🔴 ...one for EVERY file a champion declares (H and HC's history seasons: the class)
+#   file: freshness.py
+#   find: for f in c.get("files") or ():
+#   with: for f in ():
+#
+# @vacuity 🔴 ...and never a stored-only row beside it (WX's weather, IN's injuries)
+#   file: freshness.py
+#   find: continue                     # `[2026-11-17]` WX's weather, IN's injuries: a champion's input
+#   with: pass                     # `[2026-11-17]` WX's weather, IN's injuries: a champion's input
+#
 # @vacuity 🔴 the Monday email shows the section
 #   file: status.py
 #   find:     L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now, W.last_due_for(
@@ -333,6 +343,20 @@ def put(root, rel, doc):
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with (gzip.open(p, "wt") if p.endswith(".gz") else open(p, "w", encoding="utf-8")) as fh:
         json.dump(doc, fh)
+
+
+def fill_history(root, names):
+    """`[2026-11-17]` Plant every history file the named challengers (H, HC) declare that `root`
+    lacks, readable and adding no training row and no rating game (one game not yet final; one
+    line for a game no schedule holds): they train on every declared season or none."""
+    for n in names:
+        for p in FC.history_files(n, root):
+            if os.path.exists(p):
+                continue
+            s = int(os.path.basename(p).split("-")[1][:4])
+            put(root, os.path.relpath(p, root), {"season": s, "written_at": "2026-10-15T00:00:00Z", "games": (
+                {"x": {"spread": 1.0, "total": 40.0}} if os.path.basename(p).startswith("lines-") else
+                [{"id": "x%d" % s, "start": "%d-09-01T17:00" % s, "home": "T1", "away": "T2", "final": False}])})
 
 
 def row(gid, lg, day, home, away, season=2026, **kw):
@@ -616,6 +640,31 @@ finally:
     F.champion_inputs = _ci
 ck(len(fr) == 1 and fr[0]["stale"] and fr[0]["mode"] == "nfl-logs",
    "🔴 CHAMPION E's missing def-epa file is a stale freshness row like the others", fr)
+# 🔴 `[2026-11-17]` THE CLASS: every challenger that DECLARES files (`files`), named champion, has one
+#    champion's-input row per declared file, each declared season (`seasons`) or this season's, and no
+#    "Stored only" row beside it. HC, the live college champion since 11-10, had none: its four
+#    history files stayed stored-only rows that never planned a run (input None; `files` was ignored).
+_ci2, _miss = F.champion_inputs, {}
+for _n, _c in FC.CHALLENGERS.items():
+    if not _c.get("files"):
+        continue
+    _d = T6.replace("\\", "/") + "/data/" + _c["league"]
+    F.champion_inputs = lambda lg, champion=None, _x={_c["league"]: _n}: _ci2(lg, _x)
+    try:
+        _rs = F.contract(_d, T6, NOW)
+    finally:
+        F.champion_inputs = _ci2
+    _yr = F.current_football_season(NOW)
+    _want = {os.path.normpath("%s/latest/%s" % (_d, f.format(s=s)))
+             for f in _c["files"] for s in (_c.get("seasons") or (_yr,))}
+    _by = {}
+    for _r in _rs:
+        _by.setdefault(os.path.normpath(_r[1][1]), []).append(_r[4])
+    _bad = sorted(os.path.basename(p) for p in _want if _by.get(p) != [F.CHAMPION_INPUT])
+    if _bad:
+        _miss[_n] = _bad
+eq(_miss, {}, "🔴 every challenger that declares files (E, P, T, TS, WX, WXC, IN, H, HC), named champion, has "
+   "exactly one champion's-input row per declared file (never a stored-only one beside it)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("7. 🔴 THE MONDAY EMAIL: THE SECTION, A WINS UNDER \"NEEDS YOU\", AND AN OLD REPORT")
@@ -928,6 +977,10 @@ ck(".github/workflows/fb-refit.yml" in _deep and all(_deep.values()),
 # ══════════════════════════════════════════════════════════════════════
 section("13. 🔴 league() SCORES EVERY REGISTERED CHALLENGER; ONE IT CANNOT BUILD IS NOT APPLICABLE")
 # ══════════════════════════════════════════════════════════════════════
+# `[2026-11-17]` H and HC train on every declared history season or none (fb_challengers.need_history):
+#    registered here by `added`, they need their files. Planted readable, adding no training row and
+#    no rating game (one game not yet final; one line for a game no schedule holds).
+fill_history(T11, FC.HIST)
 for _lg, _sm in (("nfl", "SM"), ("ncaaf", "SMC")):
     _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == _lg]
     _bare = [dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in _rows11[_lg]]
@@ -1097,6 +1150,7 @@ for _i, g in enumerate(_sch[:48]):                       # six years earlier, cl
                       closing_spread=3.0 if _fav else -3.0, closing_total=44.5,
                       closing_ml_home=-160 if _fav else 140, closing_ml_away=140 if _fav else -160))
 put(T16, "data/nfl/history/schedule-2019.json.gz", {"season": 2019, "games": _hist})
+fill_history(T16, ("H",))                # `[2026-11-17]` every declared season, or H is not built
 _rows16 = [dict(r, sig=dict(r["sig"])) for r in _rows11["nfl"]]
 FC.attach("H", "nfl", _rows16, T16)
 

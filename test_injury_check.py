@@ -1279,7 +1279,7 @@ try:
         _hard, _soft = F.classify([_r4], "data/nfl", refused=False, block={"state": None})
         ck(_r4["stale"] and "weekly_rosters has not answered at the last 2 game-day checks" in (_r4["unhealthy"] or "")
            and not _hard and len(_soft) == 1 and "injury-check" not in planned(".", "nfl", Z("2026-10-25 16:50")),
-           "🔴 9:00 and 12:00 both read nothing: the row is STALE with the reason (a soft warning, a `fresh:` "
+           "🔴 9:00 and 12:00 both read nothing: the row is STALE with the reason (a soft warning, a ~~`fresh:`~~ `held:` "
            "finding), and NOT planned again (it would rebuild the card every pass)", _r4.get("unhealthy"))
         eq([len(v["failing_slots"]) for _k, v in sorted(_a4["sources"].items())], [2, 2],
            "   (the probe counts the slots each source failed at in a row)")
@@ -1388,7 +1388,7 @@ try:
            and "TypeError" in (_rv2["unhealthy"] or "") and not _hv and len(_sv) == 1
            and "injury-check" not in planned(".", "nfl", Z("2026-11-01 18:15")),
            "🔴 NFL: 9:00 and 12:00 both raised in OUR code: the row is unhealthy, naming the error (a soft "
-           "warning, a `fresh:` finding), and NOT replanned", _rv2.get("unhealthy"))
+           "warning, a ~~`fresh:`~~ `held:` finding), and NOT replanned", _rv2.get("unhealthy"))
     W = tree()
     cfb_sched(W, ["2026-10-31T23:30:00.000Z"])                  # Saturday 7:30 pm EDT
     _cr, _cn = CI.run, CI.newest_snapshot

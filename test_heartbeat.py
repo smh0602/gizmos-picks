@@ -592,7 +592,7 @@ REPO_DECIDED = {
     "daystore.py:archive": (1, 0, "a dated, write-once archive, never in place (`same_as` copies "
                                   "latest's bytes)"),
     "dossier_fb.py:build": (1, 1, "heartbeat"),
-    "fb_history.py:_write": (1, 0, "an older season, written once while missing"),
+    "fb_history.py:_write": (1, 0, "an older season, written once while missing or unreadable"),
     "fb_weather.py:run": (1, 0, "stored-only forecasts whose `last` moves every run: content"),
     "game_lines_fb.py:build": (1, 1, "heartbeat"),
     "mlb_refit.py:main": (2, 0, "the refit's start logs, its own weekly job's"),

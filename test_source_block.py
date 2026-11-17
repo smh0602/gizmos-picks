@@ -197,9 +197,13 @@ def _gate(age_days, state="refused"):
     _built = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
     # `[2026-10-14]` ⛔ stored-only files (F.STORED_ONLY) are never judged hard,
     #    so the source block never applies to them: they are left out here.
+    # `[2026-11-17]` ...and so is a row with NO deadline (`due_at` None: late only when missing),
+    #    which no age makes stale: HC's history seasons are the college champion's inputs now
+    #    (freshness.champion_inputs), present and fresh, and never reach the gate. Ageing them
+    #    left 4 of 8 rows fresh and this sandbox check red on correct code.
     _probe_arts = sorted({r["path"] for r in F.survey(
         data=f"{d}/data/ncaaf", picks=f"{d}/picks", now=NOW)
-        if r["mode"] == "cfb-probe" and r["kind"] == "file" and not F.stored_only(r)})
+        if r["mode"] == "cfb-probe" and r["kind"] == "file" and not F.stored_only(r) and r["due_at"]})
     for _art in _probe_arts:
         _gz = _art.endswith(".gz")
         _doc = {}
@@ -221,7 +225,7 @@ def _gate(age_days, state="refused"):
             with io.open(_art, "w", encoding="utf-8") as _fh:
                 json.dump(_doc, _fh)
     _after = [r for r in F.survey(data=f"{d}/data/ncaaf", picks=f"{d}/picks",
-                                  now=NOW) if r["mode"] == "cfb-probe" and not F.stored_only(r)]
+                                  now=NOW) if r["mode"] == "cfb-probe" and not F.stored_only(r) and r["due_at"]]
     _AGED.append((len(_probe_arts), len(_after),
                   all(r["stale"] and not r["missing"] for r in _after)))
     # 🔴 `[2026-09-28]` AND AN UNBLOCKED STALE ROW IS PLANTED, not borrowed.

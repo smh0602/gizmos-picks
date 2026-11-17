@@ -14,12 +14,26 @@ history file there would change the live model without a test. ⛔ Written once
 while missing by the daily runs (`nfl-logs`, `cfb-probe`); every CFBD call
 priced first by `cfbd_budget.preflight`; a refusal fetches and writes nothing.
 ⛔ Never raises. Stdlib only.
+
+`[2026-11-17]` A STORED FILE THAT CANNOT BE READ IS REBUILT, NOT SKIPPED. The old reader
+caught only OSError / ValueError: a truncated gzip raised EOFError out of every reader,
+and a bad-JSON file read as None while its writer saw a file and moved on, so neither
+was ever rebuilt (and with HC the college champion, either one crashed its build or
+trained it on one season of two). ✅ `_stored` is the one reader: present (a dict with
+games), missing or corrupt. A corrupt file is rebuilt by the same path as a missing
+one, and only once the new one is in hand is the old one moved to
+`history/corrupt/<name>.<UTC time>`: never deleted, never read (no reader looks in that
+folder, and the name no longer ends in .json.gz). A missing or corrupt file a run could
+not land is named in `history/rebuild-attempts.json` (`ATTEMPTS`), which
+`freshness.rebuild_held` reads: a CHAMPION's file is replanned once a day, never every
+pass (each `cfb-probe` is a CFBD sweep).
 """
 import datetime
 import glob
 import gzip
 import json
 import os
+import zlib
 
 import freshness as _F       # stdlib only: the contract's own stamp reader
 
@@ -27,6 +41,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 NFL_SEASONS = (2018, 2019, 2020, 2021, 2022, 2023, 2024)     # ⛔ §3d
 CFB_SEASONS = (2023, 2024)                                   # ⛔ §3d
 ALIAS = {"OAK": "LV"}                                        # ⛔ §3d: Oakland became Las Vegas in 2020
+CORRUPT_DIR = "corrupt"          # history/corrupt/: an unreadable file, moved aside, never read
+ATTEMPTS = _F.REBUILD_ATTEMPTS   # history/rebuild-attempts.json: the files a run could not land
 
 
 def log(m):
@@ -37,12 +53,73 @@ def hdir(lg, root=None):
     return os.path.join(root or ROOT, "data", lg, "history")
 
 
-def _jz(p):
+def _stored(p):
+    """-> (doc, state, why): THE ONE READER of a stored history file. `state` is "present" (a
+    dict with non-empty `games`), "missing" or "corrupt" (`why`: the error's name, or "no
+    games"). ⛔ Never raises: a truncated gzip (EOFError), a damaged stream (zlib.error), a
+    bad header (OSError) or bad JSON or text (ValueError) is corrupt, never a crash."""
+    if not os.path.exists(p):
+        return None, "missing", None
     try:
         with gzip.open(p, "rt", encoding="utf-8") as fh:
-            return json.load(fh)
-    except (OSError, ValueError):
-        return None
+            doc = json.load(fh)
+    except (EOFError, zlib.error, OSError, ValueError) as e:
+        return None, "corrupt", type(e).__name__
+    if not isinstance(doc, dict) or not doc.get("games"):
+        return None, "corrupt", "no games"
+    return doc, "present", None
+
+
+def state_of(p):
+    """"present", "missing" or "corrupt: <why>" (fb_challengers.need_history names it)."""
+    _doc, state, why = _stored(p)
+    return state if why is None else "%s: %s" % (state, why)
+
+
+def _aside(p):
+    """Move an unreadable stored file to history/corrupt/<name>.<UTC time>; -> where.
+    ⛔ Never deleted (rule 13: deleting data is Sam's) and never read again."""
+    d = os.path.join(os.path.dirname(p), CORRUPT_DIR)
+    os.makedirs(d, exist_ok=True)
+    base = os.path.join(d, "%s.%s" % (os.path.basename(p),
+                                      datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")))
+    dst, n = base, 1
+    while os.path.exists(dst):
+        n += 1
+        dst = "%s-%d" % (base, n)
+    os.replace(p, dst)
+    return dst
+
+
+def _record_attempts(lg, root, tried):
+    """`tried`: {file name: outcome} for every missing or corrupt file this run tried. One that
+    landed ("written", "rebuilt") leaves ATTEMPTS; one that did not is kept with this run's time,
+    so `freshness.rebuild_held` replans its row once a day, never every pass. Written only when
+    it changes. ⛔ Never raises."""
+    if not tried:
+        return
+    p = os.path.join(hdir(lg, root), ATTEMPTS)
+    try:
+        with open(p, encoding="utf-8") as fh:
+            have = json.load(fh).get("files") or {}
+    except (OSError, ValueError, AttributeError):
+        have = {}
+    files = dict(have)
+    for name, outcome in tried.items():
+        if str(outcome).startswith(("written", "rebuilt")):
+            files.pop(name, None)
+        else:
+            files[name] = {"tried_at": _stamp(), "outcome": str(outcome)[:300]}
+    if files == have:
+        return
+    try:
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p + ".tmp", "w", encoding="utf-8") as fh:
+            json.dump({"kind": "DESCRIPTIVE", "league": lg, "written_at": _stamp(), "files": files},
+                      fh, indent=1, sort_keys=True)
+        os.replace(p + ".tmp", p)
+    except OSError:
+        pass
 
 
 def _stamp():
@@ -76,16 +153,16 @@ def alias(doc):
 
 
 def store_nfl(log=log, root=None, build=None):
-    """Each missing NFL history season, from nflverse (free). `build(season) -> doc`
+    """Each missing or unreadable NFL history season, from nflverse (free). `build(season) -> doc`
     (tests plant one). -> {season: outcome}. ⛔ Never raises."""
-    out, rows = {}, None
+    out, rows, tried = {}, None, {}
     for s in NFL_SEASONS:
         p = os.path.join(hdir("nfl", root), "schedule-%d.json.gz" % s)
+        doc, state, why = _stored(p)
         try:
-            if os.path.exists(p):
+            if state == "present":               # NFL: a readable file is never rebuilt
                 # `[2026-10-27]` a stored file the contract reads no stamp in (its own reader,
                 # so one list of stamp fields) is stamped once: its games untouched
-                doc = _jz(p)
                 if doc and doc.get("games") and _F.stamp_of(p) is None:
                     _write(p, doc)
                     out[s] = "stamped (%d games)" % len(doc["games"])
@@ -104,11 +181,18 @@ def store_nfl(log=log, root=None, build=None):
                 out[s] = "not written: no games"
                 continue
             doc = alias(dict(doc, kind="DESCRIPTIVE", history=True))
+            moved = _aside(p) if state == "corrupt" else None     # NFL: once the new one is in hand
             _write(p, doc)
-            out[s] = "written (%d games)" % len(doc["games"])
+            out[s] = ("written (%d games)" % len(doc["games"]) if moved is None else
+                      "rebuilt (was corrupt: %s; the old file is %s)"
+                      % (why, os.path.relpath(moved, hdir("nfl", root)).replace(os.sep, "/")))
         except Exception as e:
             out[s] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
+        finally:
+            if state != "present":
+                tried["schedule-%d.json.gz" % s] = out.get(s)
         log("  history nfl %d: %s" % (s, out[s]))
+    _record_attempts("nfl", root, tried)
     return out
 
 
@@ -134,9 +218,11 @@ def pick_lines(data):
 
 
 def store_cfb(log=log, root=None):
-    """Each missing college history season's schedule (2 calls) and lines (1 call),
-    every call priced first. -> {file: outcome}. ⛔ Never raises."""
-    out = {}
+    """Each missing or unreadable college history season's schedule (2 calls) and lines (1 call),
+    every call priced first. -> {file: outcome}. ⛔ Never raises.
+    `[2026-11-17]` A present file costs no call; a corrupt one is priced and rebuilt like a
+    missing one, and moved aside only once the new one is in hand."""
+    out, tried = {}, {}
     try:
         import cfb as _cfb
     except Exception as e:
@@ -145,7 +231,8 @@ def store_cfb(log=log, root=None):
     for s in CFB_SEASONS:
         for kind, calls in (("schedule", 2), ("lines", 1)):
             p = os.path.join(hdir("ncaaf", root), "%s-%d.json.gz" % (kind, s))
-            if os.path.exists(p):
+            _doc, state, why = _stored(p)
+            if state == "present":               # college: a readable file costs no call
                 continue
             key = "%s-%d" % (kind, s)
             try:
@@ -157,36 +244,45 @@ def store_cfb(log=log, root=None):
                     if not (doc or {}).get("games"):
                         out[key] = "not written: no games"
                         continue
-                    _write(p, dict(doc, history=True))
-                    out[key] = "written (%d games)" % len(doc["games"])
+                    doc = dict(doc, history=True)
                 else:
                     lines = pick_lines(_cfb.get("/lines", {"year": str(s), "seasonType": "regular"}))
                     if not lines:
                         out[key] = "not written: no lines"
                         continue
-                    _write(p, {"season": s, "kind": "DESCRIPTIVE", "endpoint": "/lines",
-                               "built_at": stamp, "games": lines})
-                    out[key] = "written (%d games)" % len(lines)
+                    doc = {"season": s, "kind": "DESCRIPTIVE", "endpoint": "/lines",
+                           "built_at": stamp, "games": lines}
+                moved = _aside(p) if state == "corrupt" else None     # college: once the new one is in hand
+                _write(p, doc)
+                out[key] = ("written (%d games)" % len(doc["games"]) if moved is None else
+                            "rebuilt (was corrupt: %s; the old file is %s)"
+                            % (why, os.path.relpath(moved, hdir("ncaaf", root)).replace(os.sep, "/")))
             except Exception as e:
                 out[key] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
+            finally:
+                tried["%s.json.gz" % key] = out.get(key)
             log("  history ncaaf %s: %s" % (key, out[key]))
+    _record_attempts("ncaaf", root, tried)
     return out
 
 
 def games(lg, root=None):
-    """Every stored history game, with its season."""
+    """Every stored history game, with its season. ⛔ Never raises: an unreadable file adds
+    nothing here (a history challenger asks fb_challengers.need_history first)."""
     out = []
     for p in sorted(glob.glob(os.path.join(hdir(lg, root), "schedule-*.json.gz"))):
-        doc = _jz(p) or {}
+        doc = _stored(p)[0] or {}
         for g in doc.get("games") or []:
-            if g.get("start") and g.get("home") and g.get("away"):
+            if isinstance(g, dict) and g.get("start") and g.get("home") and g.get("away"):
                 out.append(dict(g, season=doc.get("season")))
     return out
 
 
 def lines(root=None):
-    """College history lines, every season, in t60r's shape."""
+    """College history lines, every season, in t60r's shape. ⛔ Never raises."""
     out = {}
     for p in sorted(glob.glob(os.path.join(hdir("ncaaf", root), "lines-*.json.gz"))):
-        out.update((_jz(p) or {}).get("games") or {})
+        got = (_stored(p)[0] or {}).get("games")
+        if isinstance(got, dict):
+            out.update(got)
     return out

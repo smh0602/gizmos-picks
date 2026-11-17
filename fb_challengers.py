@@ -535,10 +535,43 @@ def h_own(lg, rows, root=None):
     return rows
 
 
+class HistoryIncomplete(RuntimeError):
+    """§3d: H / HC train on EVERY history season they declare, or not at all (`need_history`)."""
+
+
+def history_files(name, root=None):
+    """The files history challenger `name` declares (`files` x `seasons`), as paths: the same
+    declaration freshness.champion_inputs turns into the champion's contract rows."""
+    c = CHALLENGERS[name]
+    return [os.path.normpath(os.path.join(latest(c["league"], root), f.format(s=s)))
+            for s in c["seasons"] for f in c["files"]]
+
+
+def need_history(lg, root=None):
+    """`[2026-11-17]` FAIL CLOSED. Raise HistoryIncomplete naming every file the league's history
+    challenger (H, HC) declares that is missing or unreadable (fb_history.state_of). With one
+    college schedule unreadable, HC trained on 798 history rows of 1,590 and said nothing; with
+    a truncated one it raised EOFError. ⛔ Never a subset: card-fb logs the error and keeps the
+    last good fb-model.json, and the champion's contract row (freshness.champion_inputs) plans
+    the file's writer, which rebuilds it."""
+    import fb_history
+    base = os.path.join(root or FM.ROOT, "data")
+    for name in HIST:
+        if CHALLENGERS[name]["league"] != lg:
+            continue
+        bad = ["%s (%s)" % (os.path.relpath(p, base).replace(os.sep, "/"), st)
+               for p in history_files(name, root) for st in (fb_history.state_of(p),) if st != "present"]
+        if bad:
+            raise HistoryIncomplete("%s trains on every history season or none, and %d of its files "
+                                    "cannot be read: %s" % (name, len(bad), ", ".join(bad)))
+
+
 def history_rows(lg, root=None):
     """§3d: one training row per final history game (college FBS vs FBS), labelled
-    at its closing line by fb_model.training_line, with its own numbers."""
+    at its closing line by fb_model.training_line, with its own numbers.
+    `[2026-11-17]` Only from every declared season (`need_history`), never a subset."""
     import fb_history
+    need_history(lg, root)
     cfb = fb_history.lines(root) if lg == "ncaaf" else None
     out = []
     for g in fb_history.games(lg, root):
