@@ -1562,6 +1562,14 @@ def check_learner_landing(rep, now):
 #    sweep outgrew it three times, vacuity.yml).
 # ⚠️ A stale or missing run list says nothing here: its own freshness row (`runs`)
 #    already reports it, and a planted tree without one is a clean tree.
+# ⚠️ `[2026-11-17, the review]` NOR DOES A FRESH ONE THE PREVIOUS CODE WROTE (no
+#    `clock_runs` key): that is main's runs.json the hour this merges, and only
+#    runs.yml's next publish (GitHub drops most of its cron) or collect's `runs` row
+#    rewrites it. ~~DEGRADED `clock:unread`~~ said only "the new writer has not run
+#    yet", for hours; it is the note now. A job recorded unread, or a refused jobs
+#    call, is still DEGRADED: those really could not be read.
+# ⚠️ A job that holds on purpose (collect's 320-minute hold) is judged on its time
+#    PAST the hold, against the room its clock leaves (runs_report.job_holds).
 def check_job_clocks(rep, now):
     """The slowest run of each job in the last 7 days at 75%+ of its clock -> DEGRADED,
     one finding per workflow; a job time that could not be read -> DEGRADED too."""
@@ -1570,26 +1578,27 @@ def check_job_clocks(rep, now):
         rep.note_clocks = {"could_not_look": why}
         return
     r = RR.clock_report(doc, now)
+    if not r["looked"]:
+        rep.note_clocks = {"could_not_look": r["why"]}
+        return
     rep.note_clocks = {"jobs_measured": r["n"], "days": RR.CLOCK_DAYS, "warn_at": RR.CLOCK_WARN,
                        "slowest": RR.clock_words(r["slowest"]) if r["slowest"] else None}
-    if not r["looked"]:
-        rep.warn("clock:unread", "how close the jobs came to their clocks could not be read",
-                 r["why"] + ".")
-        return
     by = {}
     for row in r["over"]:
         by.setdefault(row["file"], []).append(row)
     for f, rows in sorted(by.items()):
         top = rows[0]
         rep.warn("clock:%s" % os.path.basename(f or "?")[:-4],
-                 "%s's %s used %d%% of its clock in the last %d days" % (
-                     top.get("workflow"), top["job"], int(top["pct"] * 100), RR.CLOCK_DAYS),
+                 "%s's %s used %d%% of %s in the last %d days" % (
+                     top.get("workflow"), top["job"], int(top["pct"] * 100),
+                     "the room its clock leaves past its hold" if top["clock"].startswith("hold ")
+                     else "its clock", RR.CLOCK_DAYS),
                  "%s. %d job(s) of this workflow were at %d%% or more: %s. ⛔ %s: a clock this "
                  "close is one slow runner from killing the job." % (
                      RR.clock_words(top), len(rows), int(RR.CLOCK_WARN * 100),
                      "; ".join("%s %d%%" % (x["job"] + ("" if x["clock"] == "job" else " (%s)" % x["clock"]),
                                             int(x["pct"] * 100)) for x in rows[:6]),
-                     RR.clock_advice(f or "", top["job"], top["clock"]).capitalize()))
+                     RR.sentence(RR.clock_advice(f or "", top["job"], top["clock"]))))
     if r["unread"]:
         rep.warn("clock:unread", "%d job time(s) of the last %d days could not be read" % (
             len(r["unread"]), RR.CLOCK_DAYS),

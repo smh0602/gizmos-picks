@@ -108,7 +108,11 @@ def _scan(lines):
             continue
         pad, dash, key, val = m.group(1), m.group(2) or "", m.group(3), m.group(4)
         indent = len(pad) + len(dash)
-        if not _BLOCK.match(val):
+        # ⚠️ `[2026-11-17, the review]` the indicator is read with its comment cut, like
+        #    every other value: `run: |   # the script` is a block scalar (legal YAML),
+        #    and ~~`_BLOCK.match(val)`~~ read it as the one-line value "|   # the
+        #    script", then its body as keys (test_wfparse.py §3).
+        if not _BLOCK.match(_uncomment(val)):
             yield (i, indent, key, val, None)
             i += 1
             continue

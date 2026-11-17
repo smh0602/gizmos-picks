@@ -1239,14 +1239,102 @@ def status_doc(raw, now, names, prior=None, fetch_json=None,
 #    that step runs ~240 files and a per-file time is only in the job log (2.4 MB a
 #    job). The slowest such file was 172s on 11-12 (29%).
 # 💰 THE API: one call per finished run, never twice (a run already in
-#    `clock_runs` is not asked again), at most CLOCK_READS_PER_WRITE an hour;
-#    Pages' runs declare no clock and cost nothing. Measured 11-06 -> 11-13: 276
-#    finished runs in 7 days, about 1.7 calls an hour.
+#    `clock_runs` is not asked again), at most CLOCK_READS_PER_WRITE per WRITE of
+#    runs.json. ~~"at most 40 an hour"~~ `[2026-11-17, the review]`: TWO writers
+#    write it, runs.yml's hourly `publish` and collect's `runs` contract row (a
+#    converge pass that finds the run list past due), and two that start from the
+#    same committed file both ask for the runs it does not hold yet: at most about
+#    80 calls in an hour. Pages' runs declare no clock and cost nothing. Measured
+#    11-06 -> 11-13: 276 finished runs in 7 days, about 1.7 calls an hour at
+#    steady state.
 CLOCK_DAYS = 7
 CLOCK_WARN = 0.75
 CLOCK_READS_PER_WRITE = 40
 SWEEP_JOB = re.compile(r"\bsweep \d+/\d+\b")
 SWEEP_FILE = "test_vacuity.py"
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A JOB THAT HOLDS ON PURPOSE IS JUDGED PAST ITS HOLD, NEVER AS A SHARE OF
+#    ITS CLOCK. `[2026-11-17, the review of this check]`
+# ══════════════════════════════════════════════════════════════════════
+# collect.yml's scheduled MLB runs and relay links hold for LOOP_MINUTES (320)
+# inside a 350-minute clock (`[Sam, 2026-10-06]` the relay), so every held run
+# is 91%+ of its clock by design. The first version of this check held every job
+# to 75% of its clock: `clock:collect` DEGRADED every hour of every week, with
+# advice ("make it shorter") that only cutting Sam's hold could follow, and a
+# healthy hold read the same as a run one minute from its kill. ⛔ A guard that
+# fires on correct code is the other failure, not a safe one.
+# ✅ A job with a step that reads HOLD_ENV holds (`job_holds`: the number READ
+#    from the workflow, the env's own or the largest the step it names writes
+#    to $GITHUB_OUTPUT, never written down here). It is held to the time it ran
+#    PAST its longest hold, against the room its clock leaves after the hold
+#    (`clock - hold`), at the same 75%. `[measured]` That still reads DEGRADED
+#    on 2026-11-17, and correctly: collect's hold was counted from the END of its
+#    Tests step, which takes 10-30 minutes, so the room had to hold the tests
+#    too. 11-11's run took 348.9 of 350 minutes (96% of the room, 11 s from the
+#    kill). The fix is staged (docs/upload/collect.yml, the hold counts from the
+#    job's start); the room is then the last pass alone.
+# ⚠️ WHAT IT DOES NOT SEE: a run of a holding job that did not hold (a push, a
+#    football pass) is judged as one that did, so it reads near its clock only
+#    in the last quarter of the room (342.5 of 350 minutes); its kill is still
+#    the timed-out alarm's (`hit_its_clock`).
+HOLD_ENV = "LOOP_MINUTES"
+_STEP_OUTPUT = re.compile(r"^\$\{\{\s*steps\.([\w-]+)\.outputs\.([\w-]+)\s*\}\}$")
+
+
+def _hold_minutes(val, sts):
+    """One HOLD_ENV value -> minutes, or wfparse.UNREADABLE. A number is itself; a
+    `${{ steps.<id>.outputs.<key> }}` is the largest `<key>=N` that step writes to
+    $GITHUB_OUTPUT (a shell comment writes nothing)."""
+    if re.fullmatch(r"\d+", val or ""):
+        return int(val)
+    m = _STEP_OUTPUT.match(val or "")
+    src = next((s for s in sts if m and s.id == m.group(1)), None)
+    nums = [int(n) for ln in ((src.run or "") if src else "").splitlines()
+            if "GITHUB_OUTPUT" in ln and not ln.strip().startswith("#")
+            for n in re.findall(r"\b%s=(\d+)\b" % re.escape(m.group(2)), ln)] if m else []
+    return max(nums) if nums else wfparse.UNREADABLE
+
+
+def job_holds(root="."):
+    """`.github/workflows/<file>` -> {a job's declared name: its LONGEST hold in
+    minutes, or wfparse.UNREADABLE}: every job with a step whose own `env:` sets
+    HOLD_ENV. A workflow with no such job is not listed. ⛔ DECLARED, NOT
+    REMEMBERED, the way `job_clocks` reads the clocks."""
+    out = {}
+    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        lines, shown, mine = wfparse.read(p).splitlines(), wfparse.job_names(p), {}
+        for jb in wfparse.jobs(p):
+            sts = wfparse.steps(p, jb.name)
+            for st in sts:
+                if not any(HOLD_ENV in ln for ln in lines[st.start:st.end]):
+                    continue
+                env = wfparse.step_env(p, step_id=st.id, step_name=st.name, job=jb.name) or {}
+                if HOLD_ENV not in env:
+                    continue
+                mins, key = _hold_minutes(env[HOLD_ENV], sts), shown.get(jb.name) or jb.name
+                if mins is wfparse.UNREADABLE or mine.get(key) is wfparse.UNREADABLE:
+                    mine[key] = wfparse.UNREADABLE
+                else:
+                    mine[key] = max(mins, mine.get(key, 0))
+        if mine:
+            out[".github/workflows/" + os.path.basename(p)] = mine
+    return out
+
+
+def _own_hold(name, holds):
+    """The longest hold of any job that could carry the name (`_can_show`), 0 when
+    none holds; UNREADABLE when any of them cannot be read."""
+    got = [m for d, m in (holds or {}).items() if _can_show(d, name or "")]
+    if any(m is wfparse.UNREADABLE for m in got):
+        return wfparse.UNREADABLE
+    return max(got, default=0)
+
+
+def sentence(s):
+    """`s` with its first letter raised and NOTHING ELSE touched. ⛔ Never
+    `str.capitalize()`, which lowers every other letter: the nightly's advice
+    read "a sam upload" in the Monday email (the review of this check)."""
+    return s[:1].upper() + s[1:]
 
 
 def sweep_clock(root="."):
@@ -1262,11 +1350,13 @@ def sweep_clock(root="."):
     return ("Tests", alone.group(1), int(lim.group(1))) if lim else None
 
 
-def clock_record(r, jobs, mine, sweep, names=None):
+def clock_record(r, jobs, mine, sweep, names=None, holds=None):
     """One finished run and its jobs -> its record in `clock_runs`.
 
     `mine`: the run's workflow {declared name: minutes} (`job_clocks`); `sweep`:
-    `sweep_clock()`. Each entry of "jobs" is {job, clock, secs, limit} (seconds);
+    `sweep_clock()`; `holds`: the workflow's `job_holds()` entry. Each entry of
+    "jobs" is {job, clock, secs, limit} (seconds); a holding job's is its time
+    PAST its hold against the room its clock leaves (clock "hold <minutes>").
     "unread" names every job that ran and could not be measured."""
     path = r.get("path") or ""
     rec = {"run_id": r.get("id"), "attempt": r.get("run_attempt"),
@@ -1281,19 +1371,36 @@ def clock_record(r, jobs, mine, sweep, names=None):
         if b is None:
             rec["unread"].append("%s: started and never finished" % name)
             continue
-        lim = _own_clock(name, mine) * 60
+        lim, hold, secs = _own_clock(name, mine) * 60, _own_hold(name, holds), round((b - a).total_seconds())
         if lim <= 0:
             rec["unread"].append("%s: its timeout-minutes cannot be read" % name)
+        elif hold is wfparse.UNREADABLE:
+            rec["unread"].append("%s: its hold (%s) cannot be read" % (name, HOLD_ENV))
+        elif hold and hold * 60 >= lim:
+            rec["unread"].append("%s: its %d-minute hold leaves no room in its %d-minute clock"
+                                 % (name, hold, lim // 60))
+        elif hold:
+            # 🔴 past the hold, against the room after it: a healthy hold reads its last pass
+            rec["jobs"].append({"job": name, "clock": "hold %d" % hold,
+                                "secs": max(0, secs - hold * 60), "limit": lim - hold * 60})
         else:
-            rec["jobs"].append({"job": name, "secs": round((b - a).total_seconds()), "limit": lim})
+            rec["jobs"].append({"job": name, "secs": secs, "limit": lim})
         if path.endswith("/pr-tests.yml") and SWEEP_JOB.search(name):
-            st = next((s for s in j.get("steps") or [] if sweep and s.get("name") == sweep[0]), None)
+            steps = j.get("steps") or []
+            st = next((s for s in steps if sweep and s.get("name") == sweep[0]), None)
             sa, sb = (_dt(st.get("started_at")), _dt(st.get("completed_at"))) if st else (None, None)
             if sweep is None:
                 rec["unread"].append("%s: pr-tests.yml no longer says which file a sweep part runs "
                                      "alone, or that file's clock" % name)
-            elif sa is None or sb is None:
-                rec["unread"].append("%s: its %s step has no time" % (name, sweep[0]))
+            elif not steps or (st is not None and (sa is None or st.get("conclusion") == "skipped")):
+                # `[2026-11-17, the review]` the part never reached its Tests step (cancelled
+                #    in the queue, or a setup step failed): test_vacuity.py never ran, so its
+                #    clock never ran. ~~"its Tests step has no time"~~ stood DEGRADED 7 days.
+                pass
+            elif st is None:
+                rec["unread"].append("%s: its steps list no %s step" % (name, sweep[0]))
+            elif sb is None:
+                rec["unread"].append("%s: its %s step started and never finished" % (name, sweep[0]))
             else:
                 rec["jobs"].append({"job": name, "clock": "file %s" % sweep[1],
                                     "secs": round((sb - sa).total_seconds()), "limit": sweep[2]})
@@ -1309,7 +1416,7 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
     floor = now - datetime.timedelta(days=CLOCK_DAYS)
     kept = {(p.get("run_id"), p.get("attempt")): p for p in prior or []
             if (_dt(p.get("at")) or floor) > floor}
-    clocks, sweep = job_clocks(root), sweep_clock(root)
+    clocks, sweep, holds = job_clocks(root), sweep_clock(root), job_holds(root)
     todo = [r for r in raw or [] if r.get("status") == "completed"
             and (r.get("path") or "") in clocks and (r.get("id"), r.get("run_attempt")) not in kept]
     todo.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
@@ -1324,14 +1431,18 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
             errors.append({"run_id": r.get("id"), "file": r.get("path"),
                            "why": ("%s: %s" % (type(e).__name__, e))[:200]})
             continue
-        rec = clock_record(r, jobs, clocks[r["path"]], sweep, names)
+        rec = clock_record(r, jobs, clocks[r["path"]], sweep, names, holds.get(r["path"]))
         kept[(rec["run_id"], rec["attempt"])] = rec
     out = sorted(kept.values(), key=lambda p: (p.get("at") or "", str(p.get("run_id"))), reverse=True)
     return out, errors
 
 
 def clock_advice(f, job, clock):
-    """What to do about a job near its clock. ⛔ Never "raise the clock"."""
+    """What to do about a job near its clock. ⛔ Never "raise the clock". Print it
+    through `sentence`, never `str.capitalize()`."""
+    if clock.startswith("hold "):
+        return ("count the hold from the job's start, or shorten what runs outside it "
+                "(the steps before it, its last pass); do not raise the clock")
     if clock.startswith("file ") or SWEEP_JOB.search(job or "") or (f.endswith("/vacuity.yml")
                                                                      and (job or "").startswith("sweep")):
         where = ("pr-tests.yml's `shard:` matrix" if f.endswith("/pr-tests.yml")
@@ -1375,6 +1486,12 @@ def clock_report(doc, now, days=CLOCK_DAYS, warn=CLOCK_WARN):
 def clock_words(row):
     """One row of `clock_report` as a reader reads it."""
     lim = row["limit"]
+    if row["clock"].startswith("hold "):
+        hold = int(row["clock"][5:])
+        return ("%s's %s ran %ds past its %d-minute hold, %d%% of the %ds its %d-minute clock "
+                "leaves after it (run %s, %s)" % (
+                    row.get("workflow"), row["job"], row["secs"], hold, int(row["pct"] * 100), lim,
+                    hold + lim // 60, row.get("run_number"), str(row.get("at"))[:16]))
     clock = ("its %d-minute job clock" % (lim // 60) if row["clock"] == "job"
              else "%s's %ds clock" % (row["clock"][5:], lim))
     return "%s's %s used %d%% of %s (%ds, run %s, %s)" % (

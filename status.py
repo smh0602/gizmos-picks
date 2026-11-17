@@ -421,7 +421,7 @@ def clock_lines(runs, stale, now):
     out = ["- The slowest: %s." % R.clock_words(r["slowest"]) if r["slowest"]
            else "- No job was measured."]
     out += ["- At %d%% or more: %s. %s." % (int(R.CLOCK_WARN * 100), R.clock_words(x),
-                                         R.clock_advice(x["file"] or "", x["job"], x["clock"]).capitalize())
+                                         R.sentence(R.clock_advice(x["file"] or "", x["job"], x["clock"])))
             for x in r["over"][:8]]
     if not r["over"]:
         out.append("- None at %d%% or more of its clock." % int(R.CLOCK_WARN * 100))

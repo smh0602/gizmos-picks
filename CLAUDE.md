@@ -1186,7 +1186,9 @@ note boxes, tags and the stale bar now require their absence.
   cron landed at 15:52Z. ✅ collect.yml's last step runs `relay.py`; a
   scheduled MLB run, a push and a relay link each dispatch ONE successor
   (`workflow_dispatch`, `relay=true`) that holds 320 minutes and only ever
-  `converge`s. ⛔ None when another MLB run is queued or running, past
+  `converge`s (`[2026-11-17]` counted from the job's start, staged, not after its
+  Tests step: a held run reached 348.9 of its 350-minute clock on 11-11; see A JOB OR
+  TEST FILE NEAR ITS OWN CLOCK). ⛔ None when another MLB run is queued or running, past
   `RELAY_DAY_CAP` (5) links a UTC day, on a re-run, or when every stored
   schedule says neither the last card deadline's day nor the next one's has
   MLB games (the off-season; fail closed, so one off-day between game days
@@ -1237,17 +1239,30 @@ note boxes, tags and the stale bar now require their absence.
   ones, an exclusion list), never on a card whose rows are graded as they will stay; a
   final game the log does not hold stays owed. ✅ `[2026-11-13]` A JOB OR TEST FILE NEAR
   ITS OWN CLOCK IS DEGRADED BEFORE THE CLOCK KILLS IT: pr-tests' sweep parts reached 79% of
-  test_vacuity.py's 5,400s clock (11-12) and only the PR page said so. The hourly runs
-  watcher reads every finished run's jobs once (`runs_report.read_clocks`, at most 40 calls
-  an hour, about 2 at steady state) into runs.json `clock_runs` (7 days): each job beside
-  its own `timeout-minutes`, a sweep part's Tests step beside test_vacuity.py's own clock
-  (read from the step, `sweep_clock`). `watchdog.check_job_clocks` is DEGRADED, no repair,
-  for the slowest run at 75%+ (`clock:<workflow>`) and for a job time it could not read
-  (`clock:unread`); the Monday email lists the slowest. ⛔ The answer is more parts or a
-  shorter job, never a higher clock. A `timeout-minutes` with a trailing comment is read
-  (it read as "no clock"), and one that is set but not a number is `wfparse.UNREADABLE`,
-  never None (`test_wfparse.py` §3). Not seen: a `rest` file against its own 600s (no
-  per-file time outside the job log). `test_job_clocks.py`.
+  test_vacuity.py's 5,400s clock (11-12) and only the PR page said so. The runs watcher
+  reads every finished run's jobs once (`runs_report.read_clocks`: at most 40 jobs calls
+  per write of runs.json, which runs.yml's hourly publish and collect's `runs` row both
+  write, so at most about 80 in an hour; about 2 an hour at steady state) into runs.json
+  `clock_runs` (7 days): each job beside its own `timeout-minutes`, a sweep part's Tests
+  step beside test_vacuity.py's own clock (read from the step, `sweep_clock`; a part that
+  never reached the step had no file clock running). `watchdog.check_job_clocks` is
+  DEGRADED, no repair, for the slowest run at 75%+ (`clock:<workflow>`) and for a job time
+  it could not read (`clock:unread`; a fresh runs.json the previous code wrote, with no
+  `clock_runs`, is only the note); the Monday email lists the slowest. ⛔ The answer is
+  more parts or a shorter job, never a higher clock. ✅ `[2026-11-17]` A JOB THAT HOLDS ON
+  PURPOSE is judged on its time PAST the hold against the room its clock leaves
+  (`runs_report.job_holds`, the hold READ from its `LOOP_MINUTES` step): collect's 320-minute
+  hold is 91% of its 350-minute clock by design, and the first version read it DEGRADED for
+  good. Measured that way it is still DEGRADED, and rightly: the hold was counted from the
+  END of the Tests step (10-30 minutes, 29.9 on 11-11), so a held run took 348.9 of 350
+  minutes on 11-11, 11 seconds from a kill that cancels the run and skips the relay. Fixed
+  in the staged `docs/upload/collect.yml` (`UPLOAD-collect-hold.md`): the job's first step
+  stamps `JOB_STARTED_AT` and the hold counts from it (test_job_clocks.py §8 drives the
+  loop). A `timeout-minutes` with a trailing comment is read (it read as "no clock"), one
+  that is set but not a number is `wfparse.UNREADABLE`, never None, and `run: |   # note` is
+  a block scalar (`test_wfparse.py` §3). Not seen: a `rest` file against its own 600s (no
+  per-file time outside the job log); a one-pass run of a holding job before the last
+  quarter of its room. `test_job_clocks.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -1842,6 +1857,8 @@ wfparse.py        the one HAND parser for a workflow file -- jobs,
                   `[2026-11-13]` Every scalar value through `_value` (its
                   ` # comment` cut, then quotes); a `timeout-minutes` that
                   is set but not a number is `UNREADABLE`, never None.
+                  `[2026-11-17]` A block indicator too: `run: |   # x` is
+                  a block scalar, its body never scanned as keys.
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
 self_repair.py    self-repair triage: which watcher issue the repair agent
@@ -1869,7 +1886,9 @@ runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
                   `test_runs_timeout.py`. `[2026-11-13]` runs.json also keeps
                   7 days of `clock_runs`: each finished run's jobs beside their
                   own clocks, read once (`read_clocks`), judged by
-                  `clock_report` for the watchdog and status.py.
+                  `clock_report` for the watchdog and status.py; a job
+                  that holds on purpose (`job_holds`, its `LOOP_MINUTES`
+                  read from the workflow) by its time past the hold.
                   `test_job_clocks.py`.
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a

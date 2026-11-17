@@ -9,6 +9,12 @@ own clock in runs.json (`runs_report.read_clocks` -> `clock_runs`), `clock_repor
 it, the watchdog reports DEGRADED at 75%+ (`check_job_clocks`) and the Monday email lists
 it (`status.clock_lines`).
 
+`[2026-11-17, the review]` A job that HOLDS on purpose (collect's 320-minute hold inside a
+350-minute clock) is judged on its time PAST the hold against the room its clock leaves, never
+as a share of the clock: the first version read `clock:collect` DEGRADED every hour for good.
+And collect's hold now counts from the job's start (staged docs/upload/collect.yml), since its
+Tests step ate the room: 11-11's held run took 348.9 of 350 minutes (§7, §8).
+
 ⛔ A TEST ASKS THE CODE, NEVER PRODUCTION: every run, job and runs.json below is planted,
 and the clock is pinned. Nothing here reads data/latest/runs.json or the API.
 
@@ -24,8 +30,48 @@ and the clock is pinned. Nothing here reads data/latest/runs.json or the API.
 #
 # @vacuity 🔴 a job is held to ITS OWN clock, never GitHub's 360
 #   file: runs_report.py
-#   find:         lim = _own_clock(name, mine) * 60
-#   with:         lim = DEFAULT_CLOCK * 60
+#   find:         lim, hold, secs = _own_clock(name, mine) * 60, _own_hold(name, holds), round((b - a).total_seconds())
+#   with:         lim, hold, secs = DEFAULT_CLOCK * 60, _own_hold(name, holds), round((b - a).total_seconds())
+#
+# @vacuity 🔴🔴 a job that holds on purpose is judged on its time PAST the hold, against the room after it
+#   file: runs_report.py
+#   find:                                 "secs": max(0, secs - hold * 60), "limit": lim - hold * 60})
+#   with:                                 "secs": secs, "limit": lim})
+#
+# @vacuity 🔴 the hold is READ from the workflow, the env collect.yml's loop reads
+#   file: runs_report.py
+#   find: HOLD_ENV = "LOOP_MINUTES"
+#   with: HOLD_ENV = "LOOP_MINUTES_X"
+#
+# @vacuity 🔴 ...the LONGEST hold its step can write
+#   file: runs_report.py
+#   find:     return max(nums) if nums else wfparse.UNREADABLE
+#   with:     return min(nums) if nums else wfparse.UNREADABLE
+#
+# @vacuity ⚠️ ...only what the step writes to $GITHUB_OUTPUT, never a comment
+#   file: runs_report.py
+#   find:             if "GITHUB_OUTPUT" in ln and not ln.strip().startswith("#")
+#   with:             if True
+#
+# @vacuity ⚠️ a hold that cannot be read is "could not look", never a whole-clock reading
+#   file: runs_report.py
+#   find:             rec["unread"].append("%s: its hold (%s) cannot be read" % (name, HOLD_ENV))
+#   with:             pass
+#
+# @vacuity ⚠️ a sweep part that never reached its Tests step had no file clock running
+#   file: runs_report.py
+#   find:             elif not steps or (st is not None and (sa is None or st.get("conclusion") == "skipped")):
+#   with:             elif False:
+#
+# @vacuity ⚠️ ...but one whose Tests step started and never finished could not be read
+#   file: runs_report.py
+#   find:                 rec["unread"].append("%s: its %s step started and never finished" % (name, sweep[0]))
+#   with:                 pass
+#
+# @vacuity ⚠️ the advice keeps its own capitals ("a Sam upload"), never str.capitalize()
+#   file: runs_report.py
+#   find:     return s[:1].upper() + s[1:]
+#   with:     return s.capitalize()
 #
 # @vacuity 🔴🔴 a sweep part's Tests step is held to test_vacuity.py's own clock
 #   file: runs_report.py
@@ -82,6 +128,21 @@ and the clock is pinned. Nothing here reads data/latest/runs.json or the API.
 #   find:     if r["unread"]:
 #   with:     if False:
 #
+# @vacuity ⚠️ a fresh run list the previous code wrote (no clocks in it) is a note, not a finding
+#   file: watchdog.py
+#   find:         rep.note_clocks = {"could_not_look": r["why"]}
+#   with:         rep.warn("clock:unread", "how close the jobs came to their clocks could not be read", r["why"])
+#
+# @vacuity 🔴🔴 collect's hold counts from the job's start: the stamp is the job's first step
+#   file: docs/upload/collect.yml
+#   find:         run: echo "JOB_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+#   with:         run: echo "the hold starts after the tests"
+#
+# @vacuity 🔴🔴 ...and the loop's deadline is counted from it
+#   file: docs/upload/collect.yml
+#   find:           DEADLINE=$(( ${JOB_STARTED_AT:-$(date +%s)} + LOOP_MINUTES * 60 ))
+#   with:           DEADLINE=$(( $(date +%s) + LOOP_MINUTES * 60 ))
+#
 # @vacuity 🔴 ...and the check is registered
 #   file: watchdog.py
 #   find:           check_job_clocks,
@@ -92,11 +153,15 @@ and the clock is pinned. Nothing here reads data/latest/runs.json or the API.
 #   find:     L += ["", "## Job clocks (last %d days)" % R.CLOCK_DAYS] + clock_lines(runs, stale, now)
 #   with:     pass
 """
+import ast
 import copy
 import datetime
+import glob
 import json
 import os
+import re
 import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -107,6 +172,7 @@ sys.path.insert(0, ROOT)
 import runs_report as R  # noqa: E402
 import status as S  # noqa: E402
 import watchdog as W  # noqa: E402
+import wfparse  # noqa: E402
 
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 11, 13, 5, 0, tzinfo=UTC)
@@ -181,18 +247,35 @@ _rec = R.clock_record(run(1), [
     job("tests (a champion named)", 0, conclusion="skipped"),
     job("tests (off-season, no games)", 900, ended=False),             # started, never finished
     job("tests (ubuntu-26.04) · sweep 2/4", 3000, steps=[step("Set up job", 5)]),
+    # `[2026-11-17, the review]` parts that never reached their Tests step: no file clock ran
+    job("tests · sweep 3/4", 380, conclusion="cancelled"),             # no steps (39007201224's shape)
+    job("tests · sweep 4/4", 70, conclusion="failure", steps=[
+        step("Set up job", 5), dict(step("Tests", 0), conclusion="skipped", started_at=None,
+                                    completed_at=None)]),
+    job("tests (ubuntu-26.04) · sweep 3/4", 90, conclusion="cancelled", steps=[
+        step("Set up job", 5), dict(step("Tests", 0), conclusion="cancelled", started_at=None,
+                                    completed_at=None)]),
+    job("tests (ubuntu-26.04) · sweep 4/4", 4000, steps=[
+        step("Set up job", 5), dict(step("Tests", 3900), completed_at=None)]),
 ], MINE, SWEEP, NAMES)
 eq(sorted((j["job"], j.get("clock", "job"), j["secs"], j["limit"]) for j in _rec["jobs"]), sorted([
     ("tests · sweep 1/4", "job", 4400, 7200),
     ("tests · sweep 1/4", "file test_vacuity.py", 4320, 5400),
     ("render (ubuntu-26.04)", "job", 600, 1500),
-    ("tests (ubuntu-26.04) · sweep 2/4", "job", 3000, 7200)]),
+    ("tests (ubuntu-26.04) · sweep 2/4", "job", 3000, 7200),
+    ("tests · sweep 3/4", "job", 380, 7200),
+    ("tests · sweep 4/4", "job", 70, 7200),
+    ("tests (ubuntu-26.04) · sweep 3/4", "job", 90, 7200),
+    ("tests (ubuntu-26.04) · sweep 4/4", "job", 4000, 7200)]),
    "🔴🔴 each job is held to ITS OWN clock (120 / 25 minutes), and a sweep part's Tests step to 5400s")
 eq(sorted(_rec.get("unread") or []), sorted([
     "tests (off-season, no games): started and never finished",
-    "tests (ubuntu-26.04) · sweep 2/4: its Tests step has no time"]),
-   "⚠️ a job that never finished, and a sweep part with no Tests time, are named as unread; a job "
-   "that never ran (queued or skipped) had no clock running")
+    "tests (ubuntu-26.04) · sweep 2/4: its steps list no Tests step",
+    "tests (ubuntu-26.04) · sweep 4/4: its Tests step started and never finished"]),
+   "⚠️ a job that never finished, a sweep part whose steps list no Tests step, and a Tests step "
+   "that started and never finished are named as unread; a job that never ran (queued or "
+   "skipped), and a sweep part that never reached its Tests step (no steps, or the step skipped "
+   "or cancelled before it started), had no clock running")
 _unr = R.clock_record(run(2), [job("tests", 60)], {"tests": R.UNREADABLE_CLOCK}, SWEEP, NAMES)
 eq((_unr["jobs"], _unr.get("unread")), ([], ["tests: its timeout-minutes cannot be read"]),
    "⚠️ a job whose clock cannot be read is \"could not look\", never skipped and never 360")
@@ -252,8 +335,11 @@ eq(R.clock_advice(PR, "tests · sweep 1/4", "file test_vacuity.py"),
 eq(R.clock_advice(".github/workflows/vacuity.yml", "sweep (2)", "job"),
    "add parts (vacuity.yml's `part:` matrix, a Sam upload); do not raise the clock",
    "   ...and so is a nightly part")
-eq(R.clock_advice(".github/workflows/collect.yml", "collect", "job"),
+eq(R.clock_advice(".github/workflows/browser.yml", "render", "job"),
    "make it shorter or split it; do not raise the clock", "   ...and any other job is told to shorten")
+eq(R.clock_advice(".github/workflows/collect.yml", "collect", "hold 320"),
+   "count the hold from the job's start, or shorten what runs outside it (the steps before it, its "
+   "last pass); do not raise the clock", "   ...and a job that holds, never to cut its hold or raise its clock")
 _none = R.clock_report({"generated_at": T(10), "runs": []}, NOW)
 eq((_none["looked"], _none["over"]), (False, []),
    "⚠️ a runs.json that carries no clocks is \"could not look\", never \"nothing near its clock\"")
@@ -296,8 +382,15 @@ ck("   ...and health.json still carries the slowest, finding or not",
 _fu, _ = watch(doc(rec(1, [_SW(1000)], unread=["tests (off-season, no games): started and never finished"])))
 eq([(i["key"], i["severity"]) for i in _fu], [("clock:unread", "DEGRADED")],
    "🔴 a job time it could not read is DEGRADED: a job nobody measured could be at its clock")
-_fn, _ = watch({"generated_at": T(10), "runs": []})
-eq([i["key"] for i in _fn], ["clock:unread"], "⚠️ a run list with no clocks in it is \"could not look\" too")
+_fn, _nn = watch({"generated_at": T(10), "runs": []})
+eq((_fn, (_nn or {}).get("could_not_look")),
+   ([], "runs.json carries no job clocks: the hourly runs watcher has not written them yet"),
+   "⚠️ a FRESH run list with no clocks in it (main's runs.json the hour this merges, written by "
+   "the previous code) is the note, not a finding: it clears itself on the next write "
+   "(the review: ~~DEGRADED `clock:unread`~~ for hours)")
+_fe, _ = watch(doc(rec(1, [_SW(1000)]), errors=[{"run_id": 9, "file": PR, "why": "RuntimeError: HTTP 502"}]))
+eq([(i["key"], i["severity"]) for i in _fe], [("clock:unread", "DEGRADED")],
+   "🔴 ...while a jobs call the API refused is still DEGRADED: that job really could not be read")
 _fs, _ns = watch(doc(rec(1, [_SW(5000)]), generated=6 * 60))
 eq((_fs, (_ns or {}).get("could_not_look")), ([], "the run list is 6 hours old"),
    "⚠️ a STALE run list says nothing here (its own freshness row reports it) and the note says why")
@@ -343,8 +436,39 @@ ck("🔴 ...inside the weekly body, under its own heading",
    "## Job clocks (last 7 days)\n- The slowest: pr-tests's tests · sweep 1/4 used 80%" in _body,
    _body[_body.find("## Job clocks"):][:200])
 
+# ── `[2026-11-17, the review]` the advice keeps its own capitals ──
+_VY = ".github/workflows/vacuity.yml"
+_nightly = doc(rec(3, [{"job": "sweep (2)", "secs": 6000, "limit": 7200}], path=_VY, workflow="vacuity"))
+_SAM = "Add parts (vacuity.yml's `part:` matrix, a Sam upload); do not raise the clock"
+_fv, _ = watch(_nightly)
+ck("🔴 the advice keeps its own capitals: a nightly part reads \"a Sam upload\" in the email and the "
+   "finding, never \"a sam upload\" (str.capitalize() lowers every letter but the first)",
+   any(ln.endswith(_SAM + ".") for ln in S.clock_lines(_nightly, None, NOW))
+   and len(_fv) == 1 and _SAM in _fv[0]["why"],
+   (S.clock_lines(_nightly, None, NOW), _fv and _fv[0]["why"]))
+eq(R.sentence("count the hold from the job's start; ask Sam"), "Count the hold from the job's start; ask Sam",
+   "   ...`sentence` raises the first letter and touches nothing else")
+# ⚠️ THE CLASS: no module raises a sentence with str.capitalize(); `runs_report.sentence` does it.
+#    Parsed, so a comment or a docstring that names it is not a call.
+
+
+def capitalize_calls(path):
+    tree = ast.parse(open(path, encoding="utf-8").read())
+    return ["%s:%d" % (os.path.basename(path), n.lineno) for n in ast.walk(tree)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "capitalize"]
+
+
+_cap = [c for f in sorted(glob.glob(os.path.join(ROOT, "*.py")))
+        if not os.path.basename(f).startswith("test_") for c in capitalize_calls(f)]
+eq(_cap, [], "⚠️ no module calls str.capitalize(), which lowers every capital after the first "
+             "(Sam, GitHub, MLB): runs_report.sentence raises the first letter only")
+_cp = os.path.join(tempfile.mkdtemp(prefix="jobclocks-cap-"), "planted.py")
+TREES.append(os.path.dirname(_cp))
+open(_cp, "w", encoding="utf-8").write('"""str.capitalize() named in a docstring"""\nx = "a Sam".capitalize()\n')
+eq(capitalize_calls(_cp), ["planted.py:2"], "   ...and the sweep finds a planted call, and not the docstring")
+
 # ════════════════════════════════════════════════════════════════════════
-section("5. 💰 EACH FINISHED RUN IS READ ONCE, AT MOST 40 AN HOUR, AND A FAILED CALL IS RETRIED")
+section("5. 💰 EACH FINISHED RUN IS READ ONCE, AT MOST 40 A WRITE, AND A FAILED CALL IS RETRIED")
 # ════════════════════════════════════════════════════════════════════════
 _raw = [run(101), run(102), run(103, status="in_progress"),
         run(104, path="dynamic/pages/pages-build-deployment", name="pages build and deployment")]
@@ -363,7 +487,8 @@ _many = [run(1000 + k, ended_ago=k) for k in range(R.CLOCK_READS_PER_WRITE + 5)]
 _api3 = Api({})
 _recs3, _ = R.read_clocks(_many, NOW, NAMES, [], _api3, ROOT)
 eq((len(_api3.calls), _api3.calls[0]), (R.CLOCK_READS_PER_WRITE, "actions/runs/1000/jobs?per_page=100"),
-   "💰 at most CLOCK_READS_PER_WRITE (%d) calls an hour, the newest runs first" % R.CLOCK_READS_PER_WRITE)
+   "💰 at most CLOCK_READS_PER_WRITE (%d) calls a write of runs.json, the newest runs first (two "
+   "writers: runs.yml's publish and collect's `runs` row)" % R.CLOCK_READS_PER_WRITE)
 _old = [rec(7, [_SW(100)], ended_ago=8 * 24 * 60), rec(8, [_SW(100)], ended_ago=60)]
 _recs4, _ = R.read_clocks([], NOW, NAMES, _old, Api({}), ROOT)
 eq([r["run_id"] for r in _recs4], [8], "⚠️ a record older than 7 days is dropped")
@@ -397,6 +522,165 @@ ck("⛔ a test that injects its own run list and no jobs fetcher never reaches t
    _reached is None and _kept and sorted(r["run_id"] for r in _kept["clock_runs"]) == [201, 202]
    and _kept["clock_errors"] == [],
    _reached or (_kept and ([r["run_id"] for r in _kept["clock_runs"]], _kept["clock_errors"])))
+
+# ════════════════════════════════════════════════════════════════════════
+section("7. 🔴🔴 A JOB THAT HOLDS ON PURPOSE IS JUDGED PAST ITS HOLD, AGAINST THE ROOM ITS CLOCK LEAVES")
+# ════════════════════════════════════════════════════════════════════════
+# `[2026-11-17, the review]` collect's scheduled MLB runs hold LOOP_MINUTES inside their clock
+# (`[Sam, 2026-10-06]` the relay): a held run is 91%+ of its clock BY DESIGN, and the first
+# version read `clock:collect` DEGRADED for good, telling Sam to shorten his hold.
+_DEMO = """\
+name: demo
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+jobs:
+  hold:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    steps:
+      - name: Decide
+        id: mode
+        run: |
+          # loop_minutes=999 is a comment, never a write
+          echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
+          echo "loop_minutes=80" >> "$GITHUB_OUTPUT"
+          X="loop_minutes=500"
+      - name: Hold
+        env:
+          LOOP_MINUTES: ${{ steps.mode.outputs.loop_minutes }}
+        run: |
+          echo hold
+  literal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Wait
+        env:
+          LOOP_MINUTES: 20   # a literal
+        run: echo w
+  lost:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Hold
+        env:
+          LOOP_MINUTES: ${{ steps.gone.outputs.loop_minutes }}
+        run: echo l
+  plain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - run: echo p
+"""
+_hd = tempfile.mkdtemp(prefix="jobclocks-holds-")
+TREES.append(_hd)
+os.makedirs(os.path.join(_hd, ".github", "workflows"))
+open(os.path.join(_hd, ".github", "workflows", "demo.yml"), "w", encoding="utf-8").write(_DEMO)
+_dh = R.job_holds(_hd).get(".github/workflows/demo.yml") or {}
+eq((_dh.get("hold"), _dh.get("literal"), "plain" in _dh), (80, 20, False),
+   "🔴 a hold is READ: the longest `loop_minutes=N` its step writes to $GITHUB_OUTPUT (never a "
+   "comment, never another line), or the env's own number; a job that holds nothing is not listed")
+ck("⚠️ a hold whose source cannot be read is UNREADABLE, never 0", _dh.get("lost") is wfparse.UNREADABLE,
+   _dh.get("lost"))
+_dc = R.job_clocks(_hd)[".github/workflows/demo.yml"]
+_lost = R.clock_record(run(31, path=".github/workflows/demo.yml", name="demo"),
+                       [job("lost", 600), job("hold", 85 * 60)], _dc, SWEEP, NAMES, _dh)
+eq((_lost["jobs"], _lost.get("unread")),
+   ([{"job": "hold", "clock": "hold 80", "secs": 300, "limit": 1200}],
+    ["lost: its hold (LOOP_MINUTES) cannot be read"]),
+   "🔴 a held job is measured PAST its hold, against the room its clock leaves; one whose hold "
+   "cannot be read is \"could not look\", never a whole-clock reading")
+eq(R.clock_record(run(32, path=".github/workflows/demo.yml", name="demo"), [job("literal", 600)],
+                  {"literal": 20}, SWEEP, NAMES, {"literal": 20}).get("unread"),
+   ["literal: its 20-minute hold leaves no room in its 20-minute clock"],
+   "⚠️ a hold no shorter than its clock cannot be judged, and says so")
+
+CO = ".github/workflows/collect.yml"
+_H = (R.job_holds(ROOT).get(CO) or {}).get("collect")
+_C = R.job_clocks(ROOT)[CO].get("collect")
+ck("🔴 collect's hold is read from collect.yml itself, and is shorter than its clock (%r of %r minutes)"
+   % (_H, _C), isinstance(_H, int) and 0 < _H < (_C or 0))
+_H, _C = (_H, _C) if isinstance(_H, int) and 0 < _H < (_C or 0) else (320, 350)
+_ROOM = (_C - _H) * 60
+
+
+def collect_run(i, secs):
+    """One collect run whose job took `secs`, read the way read_clocks reads it."""
+    return R.clock_record(run(i, path=CO, name="collect"), [job("collect", secs)],
+                          R.job_clocks(ROOT)[CO], SWEEP, NAMES, R.job_holds(ROOT).get(CO))
+
+
+_cases = (("a healthy hold: 7 minutes of tests, the hold, a 1-minute last pass", (7 + _H + 1) * 60, []),
+          ("a hold with 15 minutes to spare", (_C - 15) * 60, []),
+          ("a one-pass run (a push, a football pass)", 25 * 60, []),
+          ("11-11's run, 11 seconds from the kill", _C * 60 - 11, ["clock:collect"]),
+          ("a run 7 minutes from the kill, 77% of the room", (_C - 7) * 60, ["clock:collect"]))
+for _what, _secs, _want in _cases:
+    _fc, _ = watch(doc(collect_run(41, _secs)))
+    eq([i["key"] for i in _fc], _want, "🔴🔴 %s (%d of %d minutes): %s" % (
+        _what, _secs // 60, _C, "DEGRADED" if _want else "silent"))
+_fk, _ = watch(doc(collect_run(42, _C * 60 - 11)))
+ck("🔴 ...and it says what it measured and what to do: never shorten the hold, never raise the clock",
+   _fk and "the room its clock leaves past its hold" in _fk[0]["what"]
+   and "ran %ds past its %d-minute hold" % (_ROOM - 11, _H) in _fk[0]["why"]
+   and "Count the hold from the job's start" in _fk[0]["why"] and "do not raise the clock" in _fk[0]["why"],
+   _fk and (_fk[0]["what"], _fk[0]["why"]))
+_sw80, _ = watch(doc(collect_run(43, (7 + _H + 1) * 60), rec(44, [_SW(4320)])))
+eq([i["key"] for i in _sw80], ["clock:pr-tests"],
+   "🔴 a healthy collect hold beside a sweep part at 80%: only the sweep part is DEGRADED")
+
+# ════════════════════════════════════════════════════════════════════════
+section("8. 🔴🔴 COLLECT'S HOLD ENDS LOOP_MINUTES AFTER THE JOB STARTED, WHATEVER ITS TESTS TOOK")
+# ════════════════════════════════════════════════════════════════════════
+# `[2026-11-17]` The hold's DEADLINE was counted from the start of "Converge and hold", after a
+# Tests step of 10-30 minutes, so the room past the hold had to hold the tests too: 348.9 of
+# 350 minutes on 11-11. ✅ The job's FIRST step stamps the time; the loop counts from it. The
+# REAL loop is driven, as it will be live (a staged copy wins), with `date` and `sleep` stubbed
+# onto one fake clock: the tests took 30 minutes, the hold is 60.
+_WF = wfparse.effective_workflows(ROOT)["collect.yml"]
+_first = (wfparse.steps(_WF, "collect") or [None])[0]
+_stamp = re.search(r'echo "(\w+)=\$\(date \+%s\)" >> "\$GITHUB_ENV"', (_first and _first.run) or "")
+ck("🔴 the job's FIRST step stamps the job's start into its env (%s)" % os.path.relpath(_WF, ROOT),
+   bool(_stamp), "first step %r: %r" % (_first and _first.name, _first and _first.run))
+_VAR = _stamp.group(1) if _stamp else "JOB_STARTED_AT"
+_LOOP = (wfparse.step_run(_WF, step_id="collect") or "").replace("\r", "")
+ck("⚠️ the loop is read (rule 67: a drive of nothing proves nothing)",
+   "DEADLINE=" in _LOOP and "LOOP_MINUTES" in _LOOP and 'sleep "$SLEEP"' in _LOOP, len(_LOOP))
+_T0 = 1800000000
+_dd = tempfile.mkdtemp(prefix="jobclocks-hold-")
+TREES.append(_dd)
+_bin = os.path.join(_dd, "bin")
+os.makedirs(_bin)
+_stubs = {
+    "python": "#!/bin/sh\nexit 0\n",
+    "git": "#!/bin/sh\nexit 0\n",
+    "date": '#!/bin/sh\nif [ "$*" = "+%s" ]; then cat "$FAKE_CLOCK"; else echo 2026-11-17T05:00:00Z; fi\n',
+    "sleep": '#!/bin/sh\necho $(( $(cat "$FAKE_CLOCK") + $1 )) > "$FAKE_CLOCK"\necho "$1" >> "$SLEEPS"\n',
+}
+for _n, _sb in _stubs.items():
+    with open(os.path.join(_bin, _n), "w", encoding="utf-8", newline="\n") as _fh:
+        _fh.write(_sb)
+    os.chmod(os.path.join(_bin, _n), 0o755)
+_clock, _sleeps = os.path.join(_dd, "clock"), os.path.join(_dd, "sleeps")
+with open(_clock, "w", newline="\n") as _fh:
+    _fh.write(str(_T0 + 30 * 60))                    # the tests took 30 minutes
+open(_sleeps, "w").close()
+with open(os.path.join(_dd, "loop.sh"), "w", encoding="utf-8", newline="\n") as _fh:
+    _fh.write(_LOOP)                                 # ⚠️ a file, never `bash -c` (cut past ~8K on Windows)
+_env = dict(os.environ, PATH=_bin + os.pathsep + os.environ["PATH"], FAKE_CLOCK=_clock, SLEEPS=_sleeps,
+            LEAGUES="mlb", LEAGUE="mlb", MODES="converge", SEASON="2026", LOOP_MINUTES="60",
+            GITHUB_RUN_NUMBER="1", GITHUB_OUTPUT=os.path.join(_dd, "out"), ODDS_API_KEY="", CFBD_API_KEY="")
+_env[_VAR] = str(_T0)
+try:
+    subprocess.run(["bash", "loop.sh"], cwd=_dd, env=_env, capture_output=True, text=True, timeout=120)
+    _end = int(open(_clock).read().strip()) - _T0
+except subprocess.TimeoutExpired:
+    _end = "the loop never ended"
+_slept = [int(x) for x in open(_sleeps).read().split()]
+eq(_end, 60 * 60, "🔴🔴 the hold ends 60 minutes after the job started, not 60 after the 30 minutes "
+                  "of tests (~~90~~): the room past the hold is the last pass's alone")
+ck("⚠️ ...and the drive really held: it slept to its deadline in steps, on the fake clock",
+   len(_slept) >= 2 and sum(_slept) == 30 * 60, _slept)
 
 note("⛔ WHAT THIS DOES NOT SEE: a file in the `rest` shard against its own 600s clock, since that "
      "step runs every file but one and a per-file time is only in the job log. The slowest was "

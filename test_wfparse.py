@@ -21,7 +21,7 @@ runner, so on the machine that matters they assert nothing about the parse.
 
 # @vacuity 🔴 a block scalar read as structure is caught
 #   file: wfparse.py
-#   find:         if not _BLOCK.match(val):
+#   find:         if not _BLOCK.match(_uncomment(val)):
 #   with:         if True:
 #
 # @vacuity ⚠️ a hardcoded step column is caught
@@ -80,6 +80,11 @@ runner, so on the machine that matters they assert nothing about the parse.
 #   file: watchdog.py
 #   find:         lim = [LANDING_TIMEOUT_DEFAULT if m is wfparse.UNREADABLE else (m or LANDING_TIMEOUT_DEFAULT)
 #   with:         lim = [m if m is wfparse.UNREADABLE else (m or LANDING_TIMEOUT_DEFAULT)
+#
+# @vacuity 🔴 `run: |   # a comment` is still a block scalar: its body is the script, never keys
+#   file: wfparse.py
+#   find:         if not _BLOCK.match(_uncomment(val)):
+#   with:         if not _BLOCK.match(val):
 """
 import glob
 import io
@@ -297,7 +302,7 @@ jobs:
           STATE: ok   # the state
           HASH: a#b
           QUOTED: "a # b"
-        run: |
+        run: |   # the script
           git add data/demo
   quoted:
     runs-on: ubuntu-24.04
@@ -331,6 +336,10 @@ eq(W.step_env(_COMMENTED, step_name="Tell Sam"), {"STATE": "ok", "HASH": "a#b", 
    "⚠️ a step's env loses its comment; `a#b` and a quoted `a # b` are values, as in YAML")
 eq(W.jobs(_COMMENTED)[0].permissions, {"contents": "write"},
    "⚠️ a permission's level loses its comment")
+# `[2026-11-17, the review]` the block indicator was matched with its comment still on, so
+#    `run: |   # the script` read as the one-line value "|   # the script" and its body as keys
+eq((_st.run, W.git_adds(_COMMENTED)), ("git add data/demo\n", ["data/demo"]),
+   "🔴 `run: |   # the script` is a block scalar: the step's run is its body, never the indicator")
 
 # ── end to end: the two callers that read a clock ──
 _R = tempfile.mkdtemp(prefix="wfparse-clock-")
@@ -372,6 +381,10 @@ def value_problems(path):
     vals = [("workflow permission " + k, v) for k, v in W.permissions(txt).items()]
     for st in W.steps(txt):
         vals += [("step name", st.name), ("step id", st.id), ("step if", st.cond)]
+        # a plain scalar never starts with `|` or `>`: a one-line run that does is an
+        #    indicator read as a value, and its body was scanned as keys
+        if st.run is not None and "\n" not in st.run and st.run.strip()[:1] in ("|", ">"):
+            out.append("step %r: its run is the block indicator %r, not its body" % (st.name, st.run))
         if st.name:
             vals += [("step env " + k, v) for k, v in (W.step_env(txt, step_name=st.name) or {}).items()]
     for j, env in W.job_env(txt).items():
@@ -397,9 +410,12 @@ _t60 = W.read(os.path.join(ROOT, ".github", "workflows", "t60r.yml"))
 _pl = re.sub(r"(?m)^(    timeout-minutes: \d+)$", r"\1   # the grade's clock", _t60, count=1)
 _pl = re.sub(r"(?m)^(      - name: [^\n#]+)$", r"\1   # a step", _pl, count=1)
 _pl = re.sub(r"(?m)^( +contents: \w+)$", r"\1   # its scope", _pl, count=1)
+_pl = re.sub(r"(?m)^(        run: \|)$", r"\1   # the script", _pl, count=1)
 ck("⚠️ the planted copy of t60r.yml really carries the comments",
    _pl.count("   # the grade's clock") == 1 and _pl.count("   # a step") == 1
-   and _pl.count("   # its scope") == 1,
+   and _pl.count("   # its scope") == 1 and _pl.count("run: |   # the script") == 1,
    "⛔ a planted case with nothing planted proves nothing (rule 67)")
 eq(value_problems(_pl), [], "🔴🔴 ...and the sweep finds no clock lost and no comment kept in it")
 eq(W.job_timeouts(_pl), W.job_timeouts(_t60), "   ...and its clocks are the uncommented file's")
+eq([s.run for s in W.steps(_pl)], [s.run for s in W.steps(_t60)],
+   "   ...and its step scripts are the uncommented file's, the commented `run: |` one included")
