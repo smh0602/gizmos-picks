@@ -17,6 +17,12 @@ one of 27 sampled equal in content to its own commit's latest file.
   §2  the CLASS: every function in this repo that writes a document to a
       latest/ gzip AND archives that same document passes `same_as`. A new
       one is red until it does (the dossier is the only one today).
+  §3  `[2026-11-17]` a same_as copy the DAY already holds is not written again: a
+      stamp-only pass kept latest's bytes, so its copy was the previous archive's
+      bytes under a new HHMM name (one blob in git, a full file in the working tree
+      and on the Pages site: 63 dossier copies, 16.5 MB, measured on origin/main
+      2026-11-17). Only the same_as copy, only within one day, only against the
+      reading just before; every reader of a day finds the same bytes it read before.
 
 ⛔ A TEST ASKS THE CODE: every tree here is planted.
 
@@ -39,6 +45,26 @@ one of 27 sampled equal in content to its own commit's latest file.
 #   file: dossier_fb.py
 #   find:     arch, _wrote = daystore.archive(doc, data, "dossiers", log=log, same_as=p)
 #   with:     arch, _wrote = daystore.archive(doc, data, "dossiers", log=log)
+#
+# @vacuity 🔴 [2026-11-17] a stamp-only pass writes no second copy of the day's previous archive
+#   file: daystore.py
+#   find:         if prev and _bytes(prev) == buf:
+#   with:         if False:
+#
+# @vacuity 🔴 [2026-11-17] the skip never reaches into another day: the next day's first pass writes
+#   file: daystore.py
+#   find:     return os.path.join(d, names[-1]) if names else None
+#   with:     return os.path.join(d, names[-1]) if names else next(iter(sorted(__import__("glob").glob(os.path.join(os.path.dirname(os.path.dirname(d)), "*", os.path.basename(d), "*.json.gz")), reverse=True)), None)
+#
+# @vacuity 🔴 [2026-11-17] it compares with the reading just before, never an earlier one (A, B, A is three)
+#   file: daystore.py
+#   find:     return os.path.join(d, names[-1]) if names else None
+#   with:     return os.path.join(d, names[0]) if names else None
+#
+# @vacuity 🔴 [2026-11-17] a dump is never skipped: one file per pass (the news archive's freshness row)
+#   file: daystore.py
+#   find:     if os.path.exists(p):
+#   with:     if os.listdir(os.path.dirname(p)):
 """
 import ast
 import datetime
@@ -288,5 +314,105 @@ eq(_pf, ["aliased.py:build line 7", "bad.py:build line 7", "research/bare.py:bui
    "archive of another document, it is not")
 eq(sorted(_pm), ["aliased.py:build line 7", "bad.py:build line 7", "fine.py:build line 7",
                  "research/bare.py:build line 7"], "   ...and the fine one is still counted as a member")
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("3. `[2026-11-17]` A COPY THE DAY ALREADY HOLDS IS NOT WRITTEN AGAIN")
+# ══════════════════════════════════════════════════════════════════════
+def dossier(state, built):
+    return {"league": "nfl", "built_at": built,
+            "dossiers": [{"board_id": 7, "sections": [{"n": 1, "name": "Weather", "state": state}]}]}
+
+
+def files(root):
+    """{day: [HHMM.json.gz, ...]} of the planted tree's dossier archives."""
+    out = {}
+    for f in sorted(glob.glob(os.path.join(root, "*", "dossiers", "*.json.gz"))):
+        out.setdefault(os.path.basename(os.path.dirname(os.path.dirname(f))), []).append(os.path.basename(f))
+    return out
+
+
+# The passes dossier_fb.build makes: collect.write(heartbeat) to latest/, then the same_as archive.
+# OK is one content, UNAVAILABLE another; every other pass moves only the stamps.
+_rp = os.path.join(TMP, "passes")
+_lat = os.path.join(_rp, "latest", "dossiers.json.gz")
+_PASSES = [(datetime.datetime(2026, 11, 4, 10, 5, tzinfo=UTC), "OK"),
+           (datetime.datetime(2026, 11, 4, 11, 5, tzinfo=UTC), "OK"),
+           (datetime.datetime(2026, 11, 4, 12, 5, tzinfo=UTC), "OK"),
+           (datetime.datetime(2026, 11, 4, 13, 5, tzinfo=UTC), "UNAVAILABLE"),
+           (datetime.datetime(2026, 11, 4, 14, 5, tzinfo=UTC), "UNAVAILABLE"),
+           (datetime.datetime(2026, 11, 5, 0, 5, tzinfo=UTC), "UNAVAILABLE"),     # the next UTC day
+           (datetime.datetime(2026, 11, 5, 1, 5, tzinfo=UTC), "UNAVAILABLE")]
+_ran, _said, _after2, _said1 = [], [], None, []
+for _i, (_wh, _state) in enumerate(_PASSES):
+    _doc = dossier(_state, _wh.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    _C.write(_lat, _doc, compress=True, heartbeat=True)
+    _got, _wrote = D.archive(_doc, _rp, "dossiers", log=_said.append, when=_wh, same_as=_lat)
+    _ran.append((_wh, blob(_lat), _got, _wrote))
+    if _i == 1:
+        _after2, _said1 = files(_rp), list(_said)
+eq(_after2, {"2026-11-04": ["1005.json.gz"]},
+   "🔴🔴 a pass whose document moved only its stamps writes NO second copy of the day's previous "
+   "archive (the defect: the same bytes under a new HHMM name, a full file on the site)")
+ck(not _ran[1][3] and os.path.basename(_ran[1][2]) == "1005.json.gz"
+   and any("not written" in m and "1005.json.gz" in m for m in _said1),
+   "   ...it returns the archive that holds those bytes (wrote False) and says so in the log",
+   "returned %s wrote=%s; log %s" % (os.path.basename(_ran[1][2]), _ran[1][3], _said1[-1:]))
+ck(_ran[3][3] and blob(_ran[3][2]) == _ran[3][1]
+   and json.load(gzip.open(_ran[3][2], "rt"))["dossiers"][0]["sections"][0]["state"] == "UNAVAILABLE",
+   "🔴 a CHANGED document is written: a second file, holding the new reading")
+ck(_ran[5][3] and os.path.basename(_ran[5][2]) == "0005.json.gz"
+   and os.path.basename(os.path.dirname(os.path.dirname(_ran[5][2]))) == "2026-11-05",
+   "🔴 ...and the next UTC day's first pass writes its copy, the same bytes as yesterday's last: a "
+   "reader of ONE day (shadow_fb reads the newest archive of that day) finds every day a pass ran",
+   "returned %s wrote=%s" % (_ran[5][2], _ran[5][3]))
+eq(files(_rp), {"2026-11-04": ["1005.json.gz", "1305.json.gz"], "2026-11-05": ["0005.json.gz"]},
+   "   7 passes, 2 readings, 2 days: 3 files (it was 7)")
+# Every reader's answer is unchanged: at every pass, the day's newest archive at or before that pass
+#    holds exactly the bytes that pass would have archived (the question a reader of "the reading in
+#    force at time T" asks; shadow_fb's "newest of the day" is the day's last pass).
+_wrong = []
+for _wh, _lb, _g, _w in _ran:
+    _day, _hm = _wh.strftime("%Y-%m-%d"), _wh.strftime("%H%M") + ".json.gz"
+    _have = [n for n in files(_rp).get(_day, []) if n <= _hm]
+    if not _have or blob(os.path.join(_rp, _day, "dossiers", _have[-1])) != _lb:
+        _wrong.append((_day, _hm, _have[-1:] or None))
+eq(_wrong, [], "🔴🔴 at every pass, the day's newest archive at or before it holds the bytes that pass "
+               "would have written: no reader of a day, or of a moment, reads a different reading")
+os.environ.setdefault("LEAGUE", "nfl")
+import shadow_fb  # noqa: E402  (the one reader of dossier archives)
+_sec = {}
+for _day in ("2026-11-04", "2026-11-05"):
+    _last = [r for r in _ran if r[0].strftime("%Y-%m-%d") == _day][-1]
+    _out, _from, _none = shadow_fb.sections_for(_day, _rp)
+    _want = json.loads(gzip.decompress(_last[1]).decode("utf-8"))["dossiers"][0]["sections"][0]["state"]
+    _sec[_day] = (_out.get(7), _want, _from and blob(os.path.join(_rp, _day, "dossiers", _from)) == _last[1])
+ck(all(v[0] == {"Weather": v[1]} and v[2] for v in _sec.values()),
+   "🔴 shadow_fb.sections_for, the one reader of dossier archives, reads each day's last reading, from a "
+   "file holding exactly its bytes", "%s" % _sec)
+
+# A, B, A: a return to an earlier reading is a new reading. Deterministic gzips (mtime 0), so the
+#    third latest is byte-for-byte the first; only the reading JUST BEFORE decides.
+_ra = os.path.join(TMP, "aba")
+_la = os.path.join(_ra, "latest", "x.json.gz")
+os.makedirs(os.path.dirname(_la))
+for _hh, _state in ((10, "OK"), (11, "UNAVAILABLE"), (12, "OK")):
+    _dd = dossier(_state, "2026-11-04T%02d:05:00Z" % _hh)
+    with open(_la, "wb") as fh:
+        fh.write(gzip.compress(json.dumps(dossier(_state, "2026-11-04T10:05:00Z")).encode("utf-8"), mtime=0))
+    D.archive(_dd, _ra, "dossiers", log=lambda *a: None,
+              when=datetime.datetime(2026, 11, 4, _hh, 5, tzinfo=UTC), same_as=_la)
+eq(files(_ra), {"2026-11-04": ["1005.json.gz", "1105.json.gz", "1205.json.gz"]},
+   "🔴 OK, UNAVAILABLE, OK is three readings: the copy is compared with the reading JUST BEFORE it, "
+   "never with any earlier one (else the 12:05 reading would read as UNAVAILABLE)")
+
+# A dump is never skipped, so a caller that wants one file per pass keeps it: the news archive's
+#    freshness row asks when the newest file in TODAY's directory was written.
+_rd = os.path.join(TMP, "dumps")
+for _hh in (10, 11):
+    D.archive({"items": ["same"]}, _rd, "news", log=lambda *a: None,
+              when=datetime.datetime(2026, 11, 4, _hh, 5, tzinfo=UTC))
+eq(sorted(os.listdir(os.path.join(_rd, "2026-11-04", "news"))), ["1005.json.gz", "1105.json.gz"],
+   "🔴 the same document DUMPED twice (no same_as) is two files: one per pass, as before")
 
 shutil.rmtree(TMP, ignore_errors=True)

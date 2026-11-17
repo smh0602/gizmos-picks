@@ -43,7 +43,7 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from tcheck import ck, note, section
+from tcheck import ck, eq, note, section
 
 import repo_watch as R
 
@@ -68,6 +68,46 @@ import repo_watch as R
 #   file: repo_watch.py
 #   find:     return path.endswith(".gz") and versions > 1
 #   with:     return versions > 1
+#
+# @vacuity [2026-11-17] the series walks main's own commits: a branch authored before the base is not a day
+#   file: repo_watch.py
+#   find:         log = _git("log", "--first-parent", "--format=%H %cd", "--date=short",
+#   with:         log = _git("log", "--format=%H %ad", "--date=short",
+#
+# @vacuity [2026-11-17] each day counts only what it introduced, so the days sum to the window
+#   file: repo_watch.py
+#   find:         rng = (end, "^" + prev, "^" + base)
+#   with:         rng = (end, "^" + base)
+#
+# @vacuity [2026-11-17] the working tree is the files' bytes, from git ls-tree
+#   file: repo_watch.py
+#   find:             tot += int(f[3])
+#   with:             tot += 1
+#
+# @vacuity [2026-11-17] the working tree's growth is HEAD's tree against the base's
+#   file: repo_watch.py
+#   find:         rep["tree_mb_day"] = (rep["tree_bytes"] - b0) / 1e6 / days
+#   with:         rep["tree_mb_day"] = rep["tree_bytes"] / 1e6 / days
+#
+# @vacuity [2026-11-17] the report prints the working tree's size
+#   file: repo_watch.py
+#   find:         o.append("| working tree (the Pages site is built from it) | **%.1f MB** "
+#   with:         o.append("| working tree (the Pages site is built from it) | **%.0f kB** "
+#
+# @vacuity [2026-11-17] the pack's 1 GiB is called a recommendation
+#   file: repo_watch.py
+#   find:                  "not a forecast. GitHub Pages' *recommended* size for a site's source "
+#   with:                  "not a forecast. GitHub Pages' size limit for a site's source "
+#
+# @vacuity [2026-11-17] the working tree's 1 GB is called a hard limit
+#   file: repo_watch.py
+#   find:                      "larger than 1 GB: a hard limit** |"
+#   with:                      "larger than 1 GB** |"
+#
+# @vacuity [2026-11-17] a tree that cannot be read is said on the report
+#   file: repo_watch.py
+#   find:         o.append("| working tree | ⚠️ could not be read: %s |" % rep["tree_error"])
+#   with:         pass
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -396,3 +436,127 @@ ck("⛔ ...and `unknown` never closes an open issue",
    "🔴 'I could not look' is not 'it is fine' — both watchers in this "
    "file must honour that. got %d"
    % _Y.count("leaving any open issue alone"))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("6. 🔴 `[2026-11-17]` A BRANCH AUTHORED BEFORE THE WINDOW AND MERGED IN IT")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ Issue #330's per-day series summed 122.24 MB against an 84.7 MB window: a
+#    side-branch commit authored before the base (the HC champion branch) became
+#    a day of its own, and the next day's range reached back past the base. The
+#    first bench (§1) is one straight line, so it never had this shape.
+def _merge(d, branch, days_ago):
+    when = (datetime.datetime.now(datetime.timezone.utc)
+            - datetime.timedelta(days=days_ago)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+    subprocess.run(["git", "-C", d, "merge", "-q", "--no-ff", "-m", "merge", branch],
+                   check=True, capture_output=True,
+                   env=dict(os.environ, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when))
+
+
+def _bench_merge():
+    d = tempfile.mkdtemp(prefix="repowatch-merge-")
+    _g("init", "-q", d, cwd="/")
+    _g("-C", d, "config", "user.email", "t@t")
+    _g("-C", d, "config", "user.name", "t")
+    _g("-C", d, "config", "core.autocrlf", "false")
+    W = R.WINDOW_DAYS
+    _commit(d, {"README": b"anchor"}, W + 13)
+    main = _g("-C", d, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    _g("-C", d, "branch", "side")
+    # main, before the window: stored already, so never part of it
+    _commit(d, {"data/latest/old.json.gz": gzip.compress(os.urandom(200000))}, W + 5)
+    _commit(d, {"README": b"the base"}, W + 2)
+    # the branch: authored BEFORE the base, merged inside the window
+    _g("-C", d, "checkout", "-q", "side")
+    _commit(d, {"data/side/feature.json.gz": gzip.compress(os.urandom(30000))}, W + 8)
+    _g("-C", d, "checkout", "-q", main)
+    for n in range(3):
+        _commit(d, {"data/latest/board.json.gz": gzip.compress(os.urandom(40000)),
+                    "data/2026-01-0%d/k/0100.json.gz" % (n + 1): gzip.compress(os.urandom(20000))},
+                5 - n)
+    _merge(d, "side", 2)
+    _commit(d, {"data/latest/board.json.gz": gzip.compress(os.urandom(40000))}, 1)
+    _g("-C", d, "gc", "-q", "--prune=now")
+    return d
+
+
+_MB = _bench_merge()
+_M = R.judge(R.measure(root=_MB))
+_MRAW, _MDISK = _independent(_MB)
+_mser = _M.get("series", [])
+ck("⚠️ the merge bench produced a readable report, its window based on main's own commit",
+   _M["state"] in ("OK", "BAD")
+   and _g("-C", _MB, "show", "%s:README" % R.window_base(root=_MB)) == "the base"
+   and abs(_M.get("disk_mb", -1) - _MDISK / 1e6) < 1e-6,
+   "⛔ rule 67: every check below is asked of this report. state=%s why=%s"
+   % (_M["state"], _M.get("why", "")[:120]))
+ck("🔴🔴 the per-day series SUMS TO THE WINDOW TOTAL with a merged branch in it",
+   abs(sum(d["disk_mb"] for d in _mser) - _MDISK / 1e6) < 1e-6,
+   "⛔ #330: 122.24 MB of days against an 84.7 MB window. series=%.6f window=%.6f MB, days %s"
+   % (sum(d["disk_mb"] for d in _mser), _MDISK / 1e6,
+      [(d["day"], round(d["disk_mb"], 4)) for d in _mser]))
+ck("🔴 ...and no day in it is older than the window's base",
+   bool(_mser) and min(d["day"] for d in _mser) >= _M.get("base_date", "9999"),
+   "⛔ a day before the base is the branch's author date, and the day after it counts "
+   "what the base already stored. base %s, days %s"
+   % (_M.get("base_date"), [d["day"] for d in _mser]))
+_count = int(_g("-C", _MB, "rev-list", "--count",
+                "%s..HEAD" % R.window_base(root=_MB)).strip())
+eq(sum(d["commits"] for d in _mser), _count,
+   "   ...and its commits are every commit the window introduced, the branch's on its merge day")
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴 `[2026-11-17]` THE WORKING TREE BESIDE THE PACK, EACH WITH ITS OWN LIMIT")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ #330 called 1 GiB of pack "a limit". It is GitHub Pages' RECOMMENDATION for a
+#    source repository; the HARD limit is the published site's 1 GB, and the site is
+#    built from the working tree (a one-commit-deep checkout), which history never
+#    enters. The tree's size is asked of the files on disk here, not of git.
+def _walk_bytes(d):
+    tot = 0
+    for dp, dns, fns in os.walk(d):
+        dns[:] = [x for x in dns if x != ".git"]
+        tot += sum(os.path.getsize(os.path.join(dp, f)) for f in fns if f != ".git")
+    return tot
+
+
+_wt = tempfile.mkdtemp(prefix="repowatch-base-")
+_g("-C", _MB, "worktree", "add", "-q", "--detach", _wt + "/b", R.window_base(root=_MB))
+_tree_head, _tree_base = _walk_bytes(_MB), _walk_bytes(_wt + "/b")
+_g("-C", _MB, "worktree", "remove", "--force", _wt + "/b")
+shutil.rmtree(_wt, ignore_errors=True)
+ck("🔴 the report's working tree IS the bytes of the checked-out files",
+   _M.get("tree_bytes") == _tree_head and _tree_head > 0,
+   "⛔ asked of the files, not of git. report=%s on disk=%d" % (_M.get("tree_bytes"), _tree_head))
+ck("🔴 ...and its growth is the HEAD tree against the base's, over the window",
+   abs(_M.get("tree_mb_day", -1) - (_tree_head - _tree_base) / 1e6 / R.WINDOW_DAYS) < 1e-9
+   and _M.get("tree_mb_day", 0) > 0,
+   "report %.6f MB/day; files on disk: %d -> %d bytes"
+   % (_M.get("tree_mb_day", -1), _tree_base, _tree_head))
+# GitHub: "Published GitHub Pages sites may be no larger than 1 GB" (read as 10^9 bytes, the
+#    nearer reading). Written here, not read from the module, so the module cannot move it.
+ck("   ...with a projection to the site's 1 GB",
+   abs(_M.get("tree_days_to_limit", -1)
+       - (1e9 - _tree_head) / 1e6 / _M.get("tree_mb_day", 1)) < 1e-6,
+   "got %s" % _M.get("tree_days_to_limit"))
+_txt = R.render(_M)
+_lines = _txt.splitlines()
+_pk = [l for l in _lines if l.startswith("| pack to")]
+_tr = [l for l in _lines if l.startswith("| working tree to")]
+ck("🔴🔴 the report names BOTH figures: the pack and the working tree",
+   ("%.2f MiB" % _M["pack_mib"]) in _txt and ("%.1f MB" % (_tree_head / 1e6)) in _txt,
+   "⛔ the pack alone is the number #330 printed. %s" % _txt[:300])
+ck("🔴🔴 ...the pack's 1 GiB is called a RECOMMENDATION, not a hard limit, beside GitHub's 10 GB",
+   len(_pk) == 1 and "recommended" in _pk[0] and "not a hard limit" in _pk[0]
+   and "10 GB" in _pk[0],
+   "⛔ #330 said 'to 1 GiB' as if it were a wall. %s" % _pk)
+ck("🔴🔴 ...and the working tree's 1 GB is called what it is: the Pages site's HARD limit",
+   len(_tr) == 1 and "1 GB" in _tr[0] and "hard limit" in _tr[0] and "days" in _tr[0],
+   "⛔ the limit that is enforced is the one #330 never printed. %s" % _tr)
+_ue = R.render(dict(_M, tree_error="CalledProcessError: planted"))
+ck("⛔ a tree that cannot be read is SAID, never left out",
+   "could not be read: CalledProcessError: planted" in _ue and "| working tree to" not in _ue,
+   _ue[:300])
+
+shutil.rmtree(_MB, ignore_errors=True)

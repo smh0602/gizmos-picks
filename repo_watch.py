@@ -47,6 +47,18 @@ is the correct design and is never flagged. A file rewritten every run
 has many, and if it is a gzip then git stored every one of them in full.
 
 ══════════════════════════════════════════════════════════════════════
+🔴 `[2026-11-17]` AND THE WORKING TREE, BECAUSE THE LIMIT THAT IS HARD IS ITS.
+══════════════════════════════════════════════════════════════════════
+The report called 1 GiB of PACK a limit; it is GitHub Pages' RECOMMENDATION
+for a source repository. The hard one is the published site's 1 GB, and the
+site is built from a one-commit-deep checkout: the TREE, which history never
+enters. They move differently: a dated archive is one blob to the pack at any
+number of paths, and a full file to the tree at each one. So the report
+prints both, each beside the limit it actually has (`SITE_GB`, `LIMIT_GIB`,
+`REPO_REC_GB`), measured with `git ls-tree -r -l` (no checkout). ⛔ Neither
+projection changes the judgement: the bars below are the pack's, as before.
+
+══════════════════════════════════════════════════════════════════════
 ⛔ THE THRESHOLDS ARE WELL CLEAR OF THE MEASURED BASELINE.
 ══════════════════════════════════════════════════════════════════════
 `CLAUDE.md`: *a guard that fires on correct code is the other failure,
@@ -91,9 +103,19 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 PACK_WARN_MIB = 500.0        # ~5x the 105.14 MiB measured 2026-09-19
 GROWTH_WARN_MB_DAY = 20.0    # ~4x the 5.34 MB/day measured 2026-09-19
 WINDOW_DAYS = 7
-# ⚠️ GitHub's soft warning for a repository. Used ONLY for the projection,
-#    which is labelled a projection wherever it is printed.
+# ⚠️ THE LIMITS, EACH AS WHAT IT IS (GitHub's docs, read 2026-11-17). Used ONLY for the
+#    projections, which are labelled projections wherever they are printed, and never by
+#    judge(). `[2026-11-17]` ~~"GitHub's soft warning for a repository"~~ was wrong:
+#    LIMIT_GIB    Pages: "source repositories have a recommended limit of 1 GB". The PACK.
+#                 A recommendation, not a hard stop.
+#    REPO_REC_GB  Repository limits: on-disk size "10 GB", recommended. The PACK.
+#    SITE_GB      Pages: "Published GitHub Pages sites may be no larger than 1 GB". HARD,
+#                 and it is the WORKING TREE's: the site is built from a depth-1 checkout
+#                 of main, so history never enters it. Read as 10^9 bytes, the nearer of
+#                 the two readings of "GB".
 LIMIT_GIB = 1.0
+REPO_REC_GB = 10.0
+SITE_GB = 1.0
 TOP_N = 12
 GIT_TIMEOUT = 300
 
@@ -152,6 +174,19 @@ def pack_mib(root=ROOT):
     return int(got["size-pack"]) / 1024.0, int(got.get("in-pack", 0))
 
 
+def tree_bytes(rev="HEAD", root=ROOT):
+    """(bytes, files) of the TREE at `rev`: every blob's size from `git ls-tree -r -l`,
+    no checkout. ⚠️ Not the pack: a dated archive written once costs the pack one blob
+    whatever path it sits at, and the tree (the Pages site) its full size at EVERY path."""
+    tot = n = 0
+    for line in _git("ls-tree", "-r", "-l", "--full-tree", rev, cwd=root).splitlines():
+        f = line.split("\t", 1)[0].split()
+        if len(f) == 4 and f[1] == "blob" and f[3] != "-":
+            tot += int(f[3])
+            n += 1
+    return tot, n
+
+
 def window_base(days=WINDOW_DAYS, root=ROOT):
     """The newest commit at least `days` old, or None if history is short."""
     out = _git("rev-list", "-1", "--before=%d days ago" % days, "HEAD",
@@ -188,6 +223,16 @@ def measure(days=WINDOW_DAYS, root=ROOT, top_n=TOP_N):
                     "window to measure. A `fetch-depth: 1` checkout has one "
                     "commit and cannot answer this." % days)
     rep["base"] = base[:8]
+    # 🔴 `[2026-11-17]` AND THE WORKING TREE, BESIDE THE PACK: the Pages site is built from
+    #    it, and its 1 GB is the one HARD limit near this repository (see SITE_GB). Its
+    #    growth is HEAD's tree against the base's, over the same window. ⛔ A tree that
+    #    cannot be read is said so on the report, never left out silently.
+    try:
+        rep["tree_bytes"], rep["tree_files"] = tree_bytes("HEAD", root)
+        b0, _n0 = tree_bytes(base, root)
+        rep["tree_mb_day"] = (rep["tree_bytes"] - b0) / 1e6 / days
+    except Exception as e:
+        rep["tree_error"] = "%s: %s" % (type(e).__name__, e)
     try:
         rep["base_date"] = _git("log", "-1", "--format=%ad", "--date=short",
                                 base, cwd=root).strip()
@@ -254,6 +299,11 @@ def measure(days=WINDOW_DAYS, root=ROOT, top_n=TOP_N):
     if rep["complete_clone"] and rep["disk_mb_day"] > 0:
         left = LIMIT_GIB * 1024.0 - rep["pack_mib"]
         rep["days_to_limit"] = left * 1.048576 / rep["disk_mb_day"]
+        rep["days_to_repo_rec"] = ((REPO_REC_GB * 1e9 - rep["pack_mib"] * 1048576.0)
+                                   / 1e6 / rep["disk_mb_day"])
+    if rep.get("tree_mb_day", 0) > 0:
+        rep["tree_days_to_limit"] = ((SITE_GB * 1e9 - rep["tree_bytes"]) / 1e6
+                                     / rep["tree_mb_day"])
     return rep
 
 
@@ -291,31 +341,39 @@ def _series(base, days, root=ROOT):
     ⚠️ `test_repo_watch.py` asserts the series RECONCILES with the window
     total, which is what catches this class of mistake rather than a
     reader noticing the numbers look large.
+
+    🔴 `[2026-11-17]` ~~every commit in `base..HEAD` by author date~~ OVER-COUNTED A
+    MERGED BRANCH. A side-branch commit authored before the window and merged inside
+    it became a day of its own and the next `prev`; the following day's `prev..end`
+    then reached back past the base and counted ~41 MB already stored (issue #330's
+    series summed 122.24 MB against an 84.7 MB window). ✅ Main's OWN commits
+    (`--first-parent`, oldest first, by commit day), and each day counts
+    `end ^prev ^base`: a merged branch lands on the day it was merged, and no day
+    can reach past the base, so the days sum to the window by construction.
     """
     out = []
     try:
-        log = _git("log", "--format=%H %ad", "--date=short",
+        log = _git("log", "--first-parent", "--format=%H %cd", "--date=short",
                    "%s..HEAD" % base, cwd=root).splitlines()
     except Exception:
         return out
-    # oldest first; the last commit seen on a day is that day's end
-    day_end, order = {}, []
+    # oldest first; a run of main's commits on one day ends at that day's last
+    runs = []
     for line in reversed(log):
         sha, _, day = line.partition(" ")
         day = day.strip()
-        if day not in day_end:
-            order.append(day)
-        day_end[day] = sha
+        if runs and runs[-1][0] == day:
+            runs[-1][1] = sha
+        else:
+            runs.append([day, sha])
     prev = base
-    counts = collections.Counter()
-    for line in log:
-        counts[line.partition(" ")[2].strip()] += 1
-    for day in order:
+    seen = {}
+    for day, end in runs:
+        rng = (end, "^" + prev, "^" + base)
         try:
             names = [l.split(" ", 1)[0] for l in
-                     _git("rev-list", "--objects",
-                          "%s..%s" % (prev, day_end[day]),
-                          cwd=root).splitlines()]
+                     _git("rev-list", "--objects", *rng, cwd=root).splitlines()]
+            commits = int(_git("rev-list", "--count", *rng, cwd=root).strip())
             if names:
                 proc = subprocess.run(
                     ["git", "cat-file",
@@ -329,9 +387,14 @@ def _series(base, days, root=ROOT):
                 tot = 0
         except Exception:
             continue
-        out.append({"day": day, "disk_mb": tot / 1e6,
-                    "commits": counts[day]})
-        prev = day_end[day]
+        # ⚠️ a commit day out of order (a clock behind) joins its day's line
+        if day in seen:
+            seen[day]["disk_mb"] += tot / 1e6
+            seen[day]["commits"] += commits
+        else:
+            seen[day] = {"day": day, "disk_mb": tot / 1e6, "commits": commits}
+            out.append(seen[day])
+        prev = end
     return out
 
 
@@ -380,21 +443,50 @@ def render(rep):
         o.append("")
     o.append("| | |")
     o.append("|---|---|")
-    o.append("| pack | **%.2f MiB** (%s objects) |"
+    o.append("| pack (the repository, with its history) | **%.2f MiB** (%s objects) |"
              % (rep["pack_mib"], "{:,}".format(rep["objects"])))
     o.append("| packed growth | **%.2f MB/day** over %d days |"
              % (rep["disk_mb_day"], rep["window_days"]))
     o.append("| raw blob bytes | %.2f MB/day (%.2fx the packed figure) |"
              % (rep["raw_mb_day"], rep["raw_over_disk"]))
     if "days_to_limit" in rep:
-        o.append("| to %.0f GiB | ~%.0f days — **a projection at today's "
-                 "rate**, not a forecast |"
-                 % (LIMIT_GIB, rep["days_to_limit"]))
+        o.append("| pack to %.0f GiB | ~%.0f days — **a projection at today's rate**, "
+                 "not a forecast. GitHub Pages' *recommended* size for a site's source "
+                 "repository (\"1 GB\"): **not a hard limit**. GitHub recommends a "
+                 "repository stay under %.0f GB on disk: ~%.0f days at this rate |"
+                 % (LIMIT_GIB, rep["days_to_limit"], REPO_REC_GB,
+                    rep["days_to_repo_rec"]))
+    if "tree_error" in rep:
+        o.append("| working tree | ⚠️ could not be read: %s |" % rep["tree_error"])
+    elif "tree_bytes" in rep:
+        o.append("| working tree (the Pages site is built from it) | **%.1f MB** "
+                 "(%s files) |" % (rep["tree_bytes"] / 1e6, "{:,}".format(rep["tree_files"])))
+        o.append("| working-tree growth | **%.2f MB/day** over %d days |"
+                 % (rep["tree_mb_day"], rep["window_days"]))
+        if "tree_days_to_limit" in rep:
+            o.append("| working tree to %.0f GB | ~%.0f days — **a projection at today's "
+                     "rate**, not a forecast. **A published GitHub Pages site may be no "
+                     "larger than 1 GB: a hard limit** |"
+                     % (SITE_GB, rep["tree_days_to_limit"]))
+        else:
+            o.append("| working tree to %.0f GB | not growing over the window. **A published "
+                     "GitHub Pages site may be no larger than 1 GB: a hard limit** |" % SITE_GB)
     o.append("")
     o.append("⛔ The raw figure is what a `du` diff would show. The packed "
              "figure is what the repository pays, and they differ because "
              "git deltas text and **cannot delta a gzip at all**.")
     o.append("")
+    if "tree_bytes" in rep and "tree_error" not in rep:
+        o.append("⚠️ **Two sizes, two kinds of limit.** The pack is the history: GitHub only "
+                 "*recommends* sizes for it. The working tree is what the Pages build "
+                 "checks out (one commit deep) and publishes, and its 1 GB is enforced. A "
+                 "file written once costs the pack one copy, and the tree one copy at "
+                 "every path it sits at.%s"
+                 % ("" if "tree_days_to_limit" not in rep or "days_to_limit" not in rep else
+                    " At today's rates the **%s** reaches its line first."
+                    % ("working tree" if rep["tree_days_to_limit"] <= rep["days_to_limit"]
+                       else "pack")))
+        o.append("")
     o.append("### Per day")
     o.append("")
     o.append("```")
@@ -432,9 +524,11 @@ def main():
                          % rep.get("why", "?"))
         return 2
     if rep["state"] == "OK":
-        sys.stderr.write("OK  pack %.2f MiB  growth %.2f MB/day over %dd\n"
+        sys.stderr.write("OK  pack %.2f MiB  growth %.2f MB/day over %dd  tree %s\n"
                          % (rep["pack_mib"], rep["disk_mb_day"],
-                            rep["window_days"]))
+                            rep["window_days"],
+                            "%.1f MB" % (rep["tree_bytes"] / 1e6) if "tree_bytes" in rep
+                            else "unread"))
         return 0
     return 1
 

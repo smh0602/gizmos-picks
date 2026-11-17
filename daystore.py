@@ -58,6 +58,25 @@ def path(data, kind, when=None):
     return os.path.join(data, day, kind, hhmm + ".json.gz")
 
 
+def previous(p):
+    """The archive just before `p` in p's own day-and-kind directory (the newest whose
+    HHMM name sorts before p's), or None. ⛔ Never another day's: see archive()."""
+    d, me = os.path.split(p)
+    try:
+        names = sorted(n for n in os.listdir(d) if n.endswith(".json.gz") and n < me)
+    except OSError:
+        return None
+    return os.path.join(d, names[-1]) if names else None
+
+
+def _bytes(p):
+    try:
+        with open(p, "rb") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
 def same_bytes(path, doc):
     """The bytes of the gzip at `path` when it stores `doc` apart from its stamps
     (freshness.same_but_stamps, the heartbeat's own compare: as JSON stores it, so int
@@ -101,6 +120,19 @@ def archive(doc, data, kind, log=print, when=None, same_as=None):
     `latest/dossiers.json.gz` on every `card-fb` run (267 archives, 63.8 MB of
     new gzip from 2026-10-25 to 11-08, every one sampled equal in content to the
     latest file of its commit). Any other difference, and it dumps `doc` as before.
+
+    🔴 `[2026-11-17]` AND A COPY THE DAY ALREADY HOLDS IS NOT WRITTEN AGAIN. A run whose
+    document moved only its stamps keeps latest's bytes (the heartbeat), so its `same_as`
+    copy was the previous archive's bytes under a new HHMM name: one blob in git, but a
+    full file in the working tree and on the Pages site (measured 2026-11-17: 63 such
+    dossier copies, 16.5 MB). When the archive of `kind` just before this one in the SAME
+    day directory holds exactly these bytes, nothing is written and that file is returned
+    (wrote False). ⛔ Only the `same_as` copy, only within one day, compared by bytes:
+      * a DUMP is never skipped: its gzip header carries its own write time, and its
+        callers want one file per pass (the news archive's freshness row asks when the
+        newest file in TODAY's directory was written; cfb_injuries reads its snapshot's age);
+      * a reader of one day (shadow_fb.sections_for reads the newest archive OF THAT DAY)
+        still finds every day a pass ran, holding the same bytes it would have read.
     """
     p = path(data, kind, when)
     parts = os.path.normpath(p).split(os.sep)
@@ -115,6 +147,11 @@ def archive(doc, data, kind, log=print, when=None, same_as=None):
         return p, False
     buf = same_bytes(same_as, doc) if same_as else None
     if buf is not None:
+        prev = previous(p)
+        if prev and _bytes(prev) == buf:
+            log("daystore: %s not written — %s, the day's previous %s archive, holds these "
+                "same bytes" % (p, os.path.basename(prev), kind))
+            return prev, False
         with open(p, "wb") as fh:          # the write-once check is the one above, as for a dump
             fh.write(buf)
         return p, True
