@@ -1078,7 +1078,13 @@ note boxes, tags and the stale bar now require their absence.
   and the same one. It fails closed the same way. So no two sportsbook names
   may resolve to one team: "Houston Baptist Huskies" (Houston Christian)
   read as Houston and blanked Houston's own card (`FB_CONTINUES` now holds
-  'baptist'). `test_fb_scores_odds.py`.
+  'baptist'). An FBS team against an FCS school (outside teams.json, CFBD's
+  FBS list) joins on the FBS side alone (`fbBoardForFcs`): FBS by the
+  schedule's OWN class (Division II's "Minnesota Duluth" reads as Minnesota),
+  in exactly one board game that day, against a side outside the directory
+  too. ⛔ A UTC date is not the game's date here either: CFBD's midnight
+  placeholder and a 10:30pm Eastern kickoff are a day apart in UTC.
+  `test_fb_scores_odds.py`.
 - 🔴 **`run_line` is the HOME team's point, by MAJORITY across books, then
   cross-checked against the MONEYLINE.** ⛔ Never take it from one book.
   Books split on which side they show laying the runs — 11 to 6 on TB@DET,

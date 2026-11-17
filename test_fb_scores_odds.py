@@ -35,6 +35,17 @@ It asks:
   3. ⛔ no two sportsbook names resolve to one team: Houston's card had drawn no odds beside
      "Houston Baptist Huskies" (Houston Christian, read as Houston). Planted in 1, and asked of
      every name in every stored gamelines snapshot, both leagues, RECORDED in research/.
+  `[2026-11-13, review round 2]` Two more, planted in 1:
+  * 🔴 an FBS team against an FCS school (outside CFBD's FBS directory, so it never resolves)
+    draws its odds: Chattanooga @ Alabama, Minnesota at Northern Iowa (the FCS side at home on
+    the board), Houston Christian @ Rice. ⛔ And it fails closed: Division II's "Minnesota
+    Duluth" reads as Minnesota (the schedule's own class must say FBS), an FBS team in two
+    board games that day (Samford @ Auburn), an FBS team whose one board game is against
+    another FBS team (Tennessee Tech @ Mississippi State), and two FBS schools missing from a
+    stale directory beside a board game that is missing from it too (Missouri State @ Delaware);
+  * 🔴 CFBD's midnight placeholder for a NIGHT game: the board's 10:30pm Eastern kickoff is the
+    next UTC date and 22.5 hours away (Indiana @ Washington), so neither a UTC date nor a
+    12-hour window can stand in for the Eastern date.
 ⛔ A TEST ASKS THE CODE, NEVER PRODUCTION: every case is planted or recorded, the clock is
 never read by an assertion. Today's live college and NFL files are measured as a `note()` only.
 
@@ -63,15 +74,45 @@ never read by an assertion. Today's live college and NFL files are measured as a
 #   find: return (withH.length === 1 && withA.length === 1 && withH[0] === withA[0])
 #   with: return (withH.filter(x => withA.indexOf(x) > -1).length > 0)
 #
-# @vacuity ⛔ two unresolved teams match any board game whose teams are unresolved too
+# @vacuity ⛔ neither side in the directory: two missing FBS schools borrow a missing pair's odds
 #   file: index.html
-#   find: if (!h || !a || h === a) return null;
-#   with: if (false) return null;
+#   find: if (h === a) return null;
+#   with: if (h && h === a) return null;
 #
 # @vacuity 🔴 a neutral site: each team's numbers are read by the board's name for THAT team
 #   file: index.html
-#   find: return fbResolve(b.home) === e ? b.home : fbResolve(b.away) === e ? b.away : null;
-#   with: return fbResolve(b.home) === e ? b.away : fbResolve(b.away) === e ? b.home : null;
+#   find: if (e) return bh === e ? b.home : ba === e ? b.away : null;
+#   with: if (e) return bh === e ? b.away : ba === e ? b.home : null;
+#
+# @vacuity 🔴 an FBS team against an FCS school: the card fails closed again and draws nothing
+#   file: index.html
+#   find: if (!h || !a) return fbBoardForFcs(g, B, has, h ? 'home' : 'away');
+#   with: if (!h || !a) return null;
+#
+# @vacuity ⛔ the schedule's own class unread: Division II's "Minnesota Duluth" takes Minnesota's
+#   file: index.html
+#   find: if (String(g[side + '_class'] || '').toLowerCase() !== 'fbs') return null;
+#   with: if (false) return null;
+#
+# @vacuity ⛔ an FBS team in two board games that day: the first one is taken
+#   file: index.html
+#   find: if (day.length !== 1) return null;
+#   with: if (!day.length) return null;
+#
+# @vacuity ⛔ the FBS team's one board game is against another FBS team: the FCS card takes it
+#   file: index.html
+#   find: return fbResolve(other) ? null : x;
+#   with: return x;
+#
+# @vacuity 🔴 the FCS team's own numbers: read by the board's side outside the directory
+#   file: index.html
+#   find: return (bh && !ba) ? b.away : (ba && !bh) ? b.home : null;
+#   with: return (bh && !ba) ? b.home : (ba && !bh) ? b.away : null;
+#
+# @vacuity 🔴 a UTC date is not a game's date: CFBD's placeholder beside a 10:30pm Eastern kickoff
+#   file: index.html
+#   find: || (d < 25 * 3600e3 && etDate(x.getTime()) === etDate(y.getTime()));
+#   with: || (d < 25 * 3600e3 && x.toISOString().slice(0, 10) === y.toISOString().slice(0, 10));
 #
 # @vacuity 🔴 CFBD's midnight placeholder for a time not yet set is the same game day
 #   file: index.html
@@ -90,8 +131,8 @@ never read by an assertion. Today's live college and NFL files are measured as a
 #
 # @vacuity ⛔ both sides one directory entry (Ohio Dominican read as Ohio): Ohio's odds twice
 #   file: index.html
-#   find: if (!h || !a || h === a) return null;
-#   with: if (!h || !a) return null;
+#   find: if (h === a) return null;
+#   with: if (!h && !a) return null;
 #
 # @vacuity ⛔ the game-day window widened past a week: the finale reads the title game's odds
 #   file: index.html
@@ -274,6 +315,12 @@ def sg(key, away, home, start, neutral=False):
             "neutral": neutral, "final": False, "home_score": None, "away_score": None}
 
 
+def cg(key, away, home, start, cls=("fbs", "fbs"), neutral=False):
+    """A CFBD-style schedule game: `sg` plus CFBD's own division of each side
+    (`away_class`, `home_class`: 'fbs', 'fcs', 'ii', 'iii')."""
+    return dict(sg(key, away, home, start, neutral=neutral), away_class=cls[0], home_class=cls[1])
+
+
 def sgn(v):
     return ("+%d" % v) if v > 0 else str(v)
 
@@ -311,38 +358,65 @@ SCHOOLS = {"Memphis": "MEM", "South Florida": "USF", "Duke": "DUKE", "Miami": "M
            "South Carolina": "SC", "Clemson": "CLEM", "Army": "ARMY", "Navy": "NAVY",
            "Texas Tech": "TTU", "Baylor": "BAY", "Fresno State": "FRES", "Hawai'i": "HAW",
            "Utah": "UTAH", "TCU": "TCU", "Oregon State": "ORST", "Houston": "HOU",
-           "Rice": "RICE"}
+           "Rice": "RICE", "Alabama": "ALA", "Minnesota": "MINN", "Auburn": "AUB",
+           "Tennessee": "TENN", "Mississippi State": "MSST", "Arkansas": "ARK",
+           "Indiana": "IND", "Washington": "WASH"}
 DIR = {k: {"abbr": v, "conference": "Planted", "logo": None} for k, v in SCHOOLS.items()}
 CFB_SCHED = [
-    sg("memphis-usf", "Memphis", "South Florida", "2026-11-13T01:00:00.000Z"),
-    sg("duke-miami", "Duke", "Miami", "2026-11-14T17:00:00.000Z"),
-    sg("ohio-miamioh", "Ohio", "Miami (OH)", "2026-11-14T17:00:00.000Z"),
-    sg("usc-ucla", "USC", "UCLA", "2026-11-14T20:30:00.000Z"),
-    sg("sc-clemson", "South Carolina", "Clemson", "2026-11-14T20:30:00.000Z"),
+    cg("memphis-usf", "Memphis", "South Florida", "2026-11-13T01:00:00.000Z"),
+    cg("duke-miami", "Duke", "Miami", "2026-11-14T17:00:00.000Z"),
+    cg("ohio-miamioh", "Ohio", "Miami (OH)", "2026-11-14T17:00:00.000Z"),
+    cg("usc-ucla", "USC", "UCLA", "2026-11-14T20:30:00.000Z"),
+    cg("sc-clemson", "South Carolina", "Clemson", "2026-11-14T20:30:00.000Z"),
     # CFBD files a kickoff time not yet set at midnight Eastern (05:00Z in November)
-    sg("ttu-baylor-tbd", "Texas Tech", "Baylor", "2026-11-21T05:00:00.000Z"),
+    cg("ttu-baylor-tbd", "Texas Tech", "Baylor", "2026-11-21T05:00:00.000Z"),
     # a neutral site: CFBD calls Army the home side, the board calls Navy the home side
-    sg("navy-army-neutral", "Navy", "Army", "2026-12-12T20:00:00.000Z", neutral=True),
+    cg("navy-army-neutral", "Navy", "Army", "2026-12-12T20:00:00.000Z", neutral=True),
     # 11:59pm Eastern on the schedule, moved to 12:30am Eastern (the next date) on the board
-    sg("fresno-hawaii-midnight", "Fresno State", "Hawai'i", "2026-11-15T04:59:00.000Z"),
+    cg("fresno-hawaii-midnight", "Fresno State", "Hawai'i", "2026-11-15T04:59:00.000Z"),
     # the same two teams 6 days 16 hours later, the closest a football rematch comes: a
     # Saturday-night finale, then the conference title game the next Saturday at noon. The
     # board holds only the first meeting, and the finished card must never read it.
-    sg("usf-memphis-rematch", "South Florida", "Memphis", "2026-11-19T17:00:00.000Z"),
+    cg("usf-memphis-rematch", "South Florida", "Memphis", "2026-11-19T17:00:00.000Z"),
     # the board holds TWO records for this pair
-    sg("utah-tcu-two-records", "Utah", "TCU", "2026-11-14T21:00:00.000Z"),
+    cg("utah-tcu-two-records", "Utah", "TCU", "2026-11-14T21:00:00.000Z"),
     # neither school is in the directory (FCS); the board's same-day game is unresolved too
-    sg("idahost-nau-unresolved", "Idaho State", "Northern Arizona", "2026-11-14T21:00:00.000Z"),
+    cg("idahost-nau-unresolved", "Idaho State", "Northern Arizona", "2026-11-14T21:00:00.000Z",
+       ("fcs", "fcs")),
     # the stored schedule pairs two teams the board has in two DIFFERENT games that day (a
     # matchup re-booked, or a stale schedule file): Duke is in b2, UCLA in b4
-    sg("duke-ucla-matchup-moved", "Duke", "UCLA", "2026-11-14T20:30:00.000Z"),
+    cg("duke-ucla-matchup-moved", "Duke", "UCLA", "2026-11-14T20:30:00.000Z"),
     # both sides one directory entry: the prefix walk reads Ohio Dominican (Division II, a
     # real schedule name) as Ohio, so the card would show Ohio's odds under both teams
-    sg("ohiodom-ohio-one-entry", "Ohio Dominican", "Ohio", "2026-11-14T17:00:00.000Z"),
+    cg("ohiodom-ohio-one-entry", "Ohio Dominican", "Ohio", "2026-11-14T17:00:00.000Z", ("ii", "fbs")),
     # the Odds API still names Houston Christian "Houston Baptist Huskies" (b12 below). Read
     # as Houston, Houston was in two board games that day and its OWN card drew no odds
-    sg("orst-houston", "Oregon State", "Houston", "2026-11-14T16:00:00.000Z"),
-    sg("hc-rice", "Houston Christian", "Rice", "2026-11-14T23:00:00.000Z"),
+    cg("orst-houston", "Oregon State", "Houston", "2026-11-14T16:00:00.000Z"),
+    # ...and Houston Christian (FCS) @ Rice is an FBS-vs-FCS game, joined on Rice (below)
+    cg("hc-rice", "Houston Christian", "Rice", "2026-11-14T23:00:00.000Z", ("fcs", "fbs")),
+    # CFBD's midnight placeholder beside a NIGHT kickoff: 10:30pm Eastern on the board is
+    # 03:30Z the NEXT UTC date and 22.5 hours away. Only the Eastern date joins them.
+    cg("ind-wash-tbd-night", "Indiana", "Washington", "2026-11-21T05:00:00.000Z"),
+    # ── `[2026-11-13, review round 2]` AN FBS TEAM AGAINST AN FCS SCHOOL ──
+    # teams.json is CFBD's FBS directory, so the FCS side never resolves. The FBS side's
+    # one board game that day, whose other side is outside the directory too, is its game.
+    cg("chatt-alabama-fcs", "Chattanooga", "Alabama", "2026-11-21T19:00:00.000Z", ("fcs", "fbs")),
+    # an FBS team at an FCS school's ground: the board's HOME side is the unresolved one
+    cg("minnesota-at-uni-fcs", "Minnesota", "Northern Iowa", "2026-11-21T20:00:00.000Z",
+       ("fbs", "fcs")),
+    # ⛔ Division II, the same day: "Minnesota Duluth" reads as Minnesota, and Minnesota's one
+    # board game is against an unresolved school. Only the schedule's own class refuses it.
+    cg("augustana-umd-d2", "Augustana (SD)", "Minnesota Duluth", "2026-11-21T19:00:00.000Z",
+       ("ii", "ii")),
+    # ⛔ the board lists the FBS team in TWO games that day (b16, b17): neither is taken
+    cg("samford-auburn-two-games", "Samford", "Auburn", "2026-11-21T17:00:00.000Z", ("fcs", "fbs")),
+    # ⛔ the FBS team's one board game is against another FBS team (b18: a re-booked schedule):
+    # never the FCS opponent's odds
+    cg("ttech-msst-fbs-opponent", "Tennessee Tech", "Mississippi State", "2026-11-21T18:00:00.000Z",
+       ("fcs", "fbs")),
+    # ⛔ two FBS schools a stale directory is missing (both unresolved), beside the day's one
+    # board game whose two schools it is missing too (b19): never that game's odds
+    cg("mostate-delaware-gap", "Missouri State", "Delaware", "2026-11-28T19:00:00.000Z"),
 ]
 CFB_BOARD = {"games": [
     bg("b1", "Memphis Tigers", "South Florida Bulls", "2026-11-13T01:00:00Z", (-200, 180), (64.6, 35.4)),
@@ -357,6 +431,13 @@ CFB_BOARD = {"games": [
     bg("b10", "Weber State Wildcats", "Montana Grizzlies", "2026-11-14T21:00:00Z", (190, -230), (33.0, 67.0)),
     bg("b11", "Oregon State Beavers", "Houston Cougars", "2026-11-14T16:00:00Z", (155, -185), (38.2, 61.8)),
     bg("b12", "Houston Baptist Huskies", "Rice Owls", "2026-11-14T23:00:00Z", (1400, -5000), (4.0, 96.0)),
+    bg("b13", "Indiana Hoosiers", "Washington Huskies", "2026-11-22T03:30:00Z", (-240, 198), (68.0, 32.0)),
+    bg("b14", "Chattanooga Mocs", "Alabama Crimson Tide", "2026-11-21T19:00:00Z", (2200, -8000), (3.1, 96.9)),
+    bg("b15", "Minnesota Golden Gophers", "Northern Iowa Panthers", "2026-11-21T20:00:00Z", (-900, 600), (88.5, 11.5)),
+    bg("b16", "Samford Bulldogs", "Auburn Tigers", "2026-11-21T17:00:00Z", (2000, -6000), (3.4, 96.6)),
+    bg("b17", "Mercer Bears", "Auburn Tigers", "2026-11-21T21:00:00Z", (1600, -4000), (4.6, 95.4)),
+    bg("b18", "Arkansas Razorbacks", "Mississippi State Bulldogs", "2026-11-21T18:00:00Z", (135, -160), (41.5, 58.5)),
+    bg("b19", "Jacksonville State Gamecocks", "Kennesaw State Owls", "2026-11-28T19:00:00Z", (-145, 122), (57.0, 43.0)),
 ]}
 CFB_WANT = {
     "memphis-usf": (-200, 180, 64.6, 35.4),
@@ -369,6 +450,11 @@ CFB_WANT = {
     "fresno-hawaii-midnight": (-170, 145, 61.0, 39.0),
     # Houston's own numbers, with "Houston Baptist Huskies" on the board the same day
     "orst-houston": (155, -185, 38.2, 61.8),
+    "ind-wash-tbd-night": (-240, 198, 68.0, 32.0),
+    # FBS against FCS: the FCS school's own numbers are the board's side outside the directory
+    "hc-rice": (1400, -5000, 4.0, 96.0),
+    "chatt-alabama-fcs": (2200, -8000, 3.1, 96.9),
+    "minnesota-at-uni-fcs": (-900, 600, 88.5, 11.5),
 }
 R = run("ncaaf", DIR, CFB_SCHED, CFB_BOARD)
 ck(R is not None, "⚠️ the page's own code ran in node on the planted college feeds", "")

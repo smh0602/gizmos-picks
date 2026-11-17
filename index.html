@@ -5265,14 +5265,24 @@ function fbLogoFail(img){
    NFL flex moved two games 3h25m) or within `FB_KICK_WINDOW_H` hours (a
    kickoff moved across midnight). Two teams never meet twice in one
    football day; a rematch is weeks later.
-   ⛔ IT FAILS CLOSED, like MLB's `boardFor`: an unresolved side, both sides
-   one entry, two board records for the pair, or a team in two board games
-   that game day (two schools collapsed into one entry, Miami and Miami
-   (OH)) returns null and the card shows no odds. A card missing its odds
-   is a card missing its odds; a card showing another game's odds is
+   ⛔ IT FAILS CLOSED, like MLB's `boardFor`: neither side resolved, both
+   sides one entry, two board records for the pair, or a team in two board
+   games that game day (two schools collapsed into one entry, Miami and
+   Miami (OH)) returns null and the card shows no odds. A card missing its
+   odds is a card missing its odds; a card showing another game's odds is
    misinformation. Home and away may be swapped (a neutral site): every
    number is read by the board's own name for THAT team (`fbBoardKey`),
    never by ours. test_fb_scores_odds.py.
+   🔴 ONE SIDE OUTSIDE THE DIRECTORY: AN FBS TEAM AGAINST AN FCS SCHOOL.
+   `[2026-11-13, review]` teams.json is CFBD's FBS list, so Chattanooga
+   never resolves and Alabama's card against it drew no odds: 25 of the 26
+   priced games of the 09-05 board that did not join (131 of 133 join now;
+   the 2 left are kickoffs a day apart), 123 games across the stored
+   snapshots. `fbBoardForFcs` joins one only when the side that resolves is
+   FBS by the schedule's OWN class (⛔ never by the resolver alone: "Minnesota
+   Duluth", Division II, reads as Minnesota), that team is in exactly ONE
+   board game that game day, and that game's other side does not resolve
+   either. An FBS team plays once a day, so that game is its game.
    ══════════════════════════════════════════════════════════════════ */
 const FB_KICK_WINDOW_H = 4;
 
@@ -5288,8 +5298,9 @@ function fbBoardFor(g){
   const B = (FBBOARD[LEAGUE] || {}).games || [];
   if (!B.length || !g) return null;
   const h = fbResolve(g.home), a = fbResolve(g.away);
-  if (!h || !a || h === a) return null;
+  if (h === a) return null;   // ⛔ neither side in the directory, or both one entry (Ohio Dominican read as Ohio)
   const has = (x, t) => fbResolve(x.home) === t || fbResolve(x.away) === t;
+  if (!h || !a) return fbBoardForFcs(g, B, has, h ? 'home' : 'away');
   // ⚠️ the teams first (memoised), so the clock is asked about one or two records, not 76
   const day = B.filter(x => x && (has(x, h) || has(x, a)) && fbSameGameDay(g.start, x.commence));
   const withH = day.filter(x => has(x, h)), withA = day.filter(x => has(x, a));
@@ -5298,13 +5309,28 @@ function fbBoardFor(g){
     ? withH[0] : null;
 }
 
+/* An FBS team (`side` of `g`, resolved) against a school outside the directory:
+   its ONE board game that game day, when that game's other side is outside the
+   directory too. ⛔ Anything else fails closed. See fbBoardFor. */
+function fbBoardForFcs(g, B, has, side){
+  const t = fbResolve(g[side]);
+  if (String(g[side + '_class'] || '').toLowerCase() !== 'fbs') return null;   // the schedule's own class
+  const day = B.filter(x => x && has(x, t) && fbSameGameDay(g.start, x.commence));
+  if (day.length !== 1) return null;   // ⛔ the FBS team in exactly ONE board game that day
+  const x = day[0], other = fbResolve(x.home) === t ? x.away : x.home;
+  return fbResolve(other) ? null : x;   // ⛔ and its opponent there is outside the directory too
+}
+
 /* The board's own name for one of OUR teams, or null. ⚠️ Every number on a
    board row (`win_pct`, `best_ml`) is keyed by the sportsbook's spelling
-   ("Memphis Tigers"), so it is read by this, never by the schedule's name. */
+   ("Memphis Tigers"), so it is read by this, never by the schedule's name.
+   ⚠️ `t` is a team of the game fbBoardFor joined `b` to: a team outside the
+   directory (an FCS opponent) is the board's ONE side outside it. */
 function fbBoardKey(b, t){
-  const e = fbResolve(t);
-  if (!b || !e) return null;
-  return fbResolve(b.home) === e ? b.home : fbResolve(b.away) === e ? b.away : null;
+  if (!b || !t) return null;
+  const e = fbResolve(t), bh = fbResolve(b.home), ba = fbResolve(b.away);
+  if (e) return bh === e ? b.home : ba === e ? b.away : null;
+  return (bh && !ba) ? b.away : (ba && !bh) ? b.home : null;
 }
 
 function fbGameCard(g){
