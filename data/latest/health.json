@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-17T20:05:52Z",
+ "checked_at": "2026-11-17T20:07:09Z",
  "et_date": "2026-11-17",
  "healthy": false,
  "broken": 0,
@@ -9,8 +9,8 @@
   {
    "key": "late:alt-lines:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf alt-lines was built 140 minutes after it was due",
-   "why": "due 2026-11-17T12:30Z, built 2026-11-17T14:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "what": "ncaaf alt-lines was built 66 minutes after it was due",
+   "why": "due 2026-11-17T19:00Z, built 2026-11-17T20:06Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -44,22 +44,22 @@
   {
    "key": "late:gamelines:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf gamelines was built 230 minutes after it was due",
-   "why": "due 2026-11-17T11:00Z, built 2026-11-17T14:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "what": "ncaaf gamelines was built 67 minutes after it was due",
+   "why": "due 2026-11-17T19:00Z, built 2026-11-17T20:06Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:props-board:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf props-board was built 140 minutes after it was due",
-   "why": "due 2026-11-17T12:30Z, built 2026-11-17T14:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "what": "ncaaf props-board was built 67 minutes after it was due",
+   "why": "due 2026-11-17T19:00Z, built 2026-11-17T20:06Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:props-player:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf props-player was built 140 minutes after it was due",
-   "why": "due 2026-11-17T12:30Z, built 2026-11-17T14:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "what": "ncaaf props-player was built 66 minutes after it was due",
+   "why": "due 2026-11-17T19:00Z, built 2026-11-17T20:06Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -103,15 +103,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14622,
-  "pulled_at": "2026-11-17T20:05:36Z",
+  "balance": 14595,
+  "pulled_at": "2026-11-17T20:06:48Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-17T20:05:36Z",
-  "source": "data/nfl/2026-11-17/gamelines/2005.json.gz",
-  "readings_on_disk": 1731,
+  "newest_paid_pull": "2026-11-17T20:06:42Z",
+  "source": "data/ncaaf/2026-11-17/alt-lines/2006.json.gz",
+  "readings_on_disk": 1734,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
