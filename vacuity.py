@@ -427,16 +427,17 @@ def rotted(root=ROOT):
 # test_fb_refit.py's 14 green runs in one part were one experiment run 14 times.
 # ✅ SO A TEST'S GREEN RUN IS RUN ONCE PER SWEEP, AFTER THE SWEEP'S LAST RED
 #    RUN, and answers for every declaration of that test whose tree was provably
-#    HEAD again after its revert (`_pristine`: git shows no change, no untracked
-#    or ignored file and no untracked or ignored directory, bytecode aside, which
-#    `run_test` purges before every run). Every worker tree is a detached
-#    worktree of the clean root's HEAD (`_pool`), so a pristine tree is HEAD. The
-#    green runs on a tree that is pristine THEN (`_pool`'s `then`, or one fresh
-#    worktree of HEAD when none is), so it is the control for every red run it
-#    answers for: a test that went red unmutated at any point in the sweep, for
-#    whatever reason, is red there too, and every declaration it answers for is
-#    RED_BOTH_WAYS. Until it has run, such a row IS RED_BOTH_WAYS
-#    (`green_owed`): a row nobody resolved is a finding, never a pass.
+#    HEAD again after its revert (`_pristine`: git status shows no tracked file
+#    changed, and `git clean -ndx` no untracked or ignored file or directory, an
+#    EMPTY one included, bytecode aside, which `run_test` purges before every
+#    run). Every worker tree is a detached worktree of the clean root's HEAD
+#    (`_pool`), so a pristine tree is HEAD. The green runs on a tree that is
+#    pristine THEN (`_pool`'s `then`, or one fresh worktree of HEAD when none
+#    is), so it is the control for every red run it answers for: a test still
+#    red unmutated once the sweep's red runs are done, for whatever reason, is
+#    red there too, and every declaration it answers for is RED_BOTH_WAYS. Until
+#    it has run, such a row IS RED_BOTH_WAYS (`green_owed`): a row nobody
+#    resolved is a finding, never a pass.
 # ~~✅ RUN ONCE PER SWEEP AND REUSED~~ `[2026-11-17, the review]` The first
 #    version ran a test's green after its FIRST red run and reused that answer
 #    for the rest. ⛔ That green could be hours older than a later red run, in
@@ -461,12 +462,13 @@ def rotted(root=ROOT):
 #    test is still one green per test at the end of the sweep. A new declaration
 #    on a test that already has one costs its red run only (6.3s average, of 21s).
 def _pristine(root):
-    """Is `root` exactly its HEAD? No change, no untracked or ignored file and no
-    untracked or ignored directory (an EMPTY one too, which git status never
-    lists), bytecode aside. ⛔ Fails closed: a git that cannot answer is not
-    pristine."""
+    """Is `root` exactly its HEAD, bytecode aside? No tracked file changed (git
+    status), and no untracked or ignored file or directory (`git clean -ndx`,
+    which lists an EMPTY directory too, as git status never does). Each question
+    has one asker, so each is guarded on its own (`test_vacuity_greens.py`).
+    ⛔ Fails closed: a git that cannot answer is not pristine."""
     seen = []
-    for ask in (["git", "status", "--porcelain", "--ignored", "--untracked-files=all"],
+    for ask in (["git", "status", "--porcelain", "--untracked-files=no"],
                 ["git", "clean", "-ndx"]):
         try:
             p = subprocess.run(ask, cwd=root, capture_output=True, text=True, timeout=120)

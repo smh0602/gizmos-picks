@@ -6,8 +6,9 @@
 the GREEN-on-revert run was ~80% of the sweep's cost on its five costliest files:
 the whole file, on the same unmutated tree, once per declaration. `vacuity.py` now
 runs each test's green ONCE per sweep, at the end, for every declaration whose tree
-was PRISTINE after its revert (`_pristine`: git shows no change, no untracked or
-ignored file and no untracked or ignored directory), on a tree pristine then.
+was PRISTINE after its revert (`_pristine`: git status shows no tracked file
+changed, and `git clean -ndx` no untracked or ignored file or directory), on a tree
+pristine then.
 `[2026-11-17, the review]` ~~It ran the green after the first red run and reused
 it~~: that green was the control for every later red run too, so a test that went
 red mid-sweep for an outside reason read BITES; and an EMPTY directory a red run
@@ -18,9 +19,9 @@ left behind was invisible to git status (§2b, §5).
     three, and all three BITE;
   · a test red unmutated is RED_BOTH_WAYS for EVERY declaration it carries;
   · two tests never share a green run;
-  · a red run that leaves a file behind, even an IGNORED one, or an EMPTY
-    directory, is never answered for by a green on another tree: that declaration
-    runs its own green and reads the leftover;
+  · a red run that leaves something behind (an IGNORED file, an EMPTY directory,
+    a TRACKED file changed) is never answered for by a green on another tree: that
+    declaration runs its own green and reads the leftover (§2, §2b, §2c);
   · a dirty root (swept in place) runs every green, as before;
   · `_pristine` fails closed where git cannot answer, an owed green is a finding
     until it has run, and an owed green with no tree to run on is a finding;
@@ -33,15 +34,20 @@ This file runs no real sweep, so it carries declarations of its own.
 #   find:     if defer and _pristine(root):
 #   with:     if defer:
 #
-# @vacuity 🔴 an IGNORED leftover is a change too (`--ignored`)
+# @vacuity 🔴 an IGNORED leftover is a change too (`-x`; git status asks only about tracked files)
 #   file: vacuity.py
-#   find:     for ask in (["git", "status", "--porcelain", "--ignored", "--untracked-files=all"],
-#   with:     for ask in (["git", "status", "--porcelain", "--untracked-files=all"],
+#   find:                 ["git", "clean", "-ndx"]):
+#   with:                 ["git", "clean", "-nd"]):
 #
 # @vacuity 🔴 an EMPTY directory left behind is a change too (`git clean -ndx`; git status never lists one)
 #   file: vacuity.py
 #   find:                 ["git", "clean", "-ndx"]):
-#   with:                 ["git", "status", "--porcelain"]):
+#   with:                 ["git", "status", "--porcelain", "--ignored", "--untracked-files=all"]):
+#
+# @vacuity 🔴 a TRACKED file a red run changed is a change too (git status; git clean lists none)
+#   file: vacuity.py
+#   find:     for ask in (["git", "status", "--porcelain", "--untracked-files=no"],
+#   with:     for ask in (["git", "clean", "-ndx"],
 #
 # @vacuity ✅ the green run really is run once per test (the headroom itself)
 #   file: vacuity.py
@@ -124,8 +130,9 @@ def plant(commit=True):
     TREES.append(d)
     w = lambda n, s: open(os.path.join(d, n), "w", encoding="utf-8").write(s)
     w("subject.py", "A = 1\nB = 2\nC = 3\nMODE = 'a'\nLEAVE = False\nEMPTY = False\nX = 1\n"
-      "P = 1\nQ = 1\n")
+      "P = 1\nQ = 1\nTOUCH = False\nY = 1\n")
     w(".gitignore", "*.cache\n")
+    w("notes.txt", "kept\n")
     # three declarations, one test: every one must BITE, with ONE green run
     w("test_many.py", "".join(_DECL % (w_, "subject.py", f, r) for w_, f, r in (
         ("a", "A = 1", "A = 9"), ("b", "B = 2", "B = 9"), ("c", "C = 3", "C = 9")))
@@ -150,6 +157,15 @@ def plant(commit=True):
       + _PROBE + "import subject\n_log('hollow')\n"
       "if os.path.isdir('made'):\n    sys.exit(1)\n"
       "if subject.EMPTY:\n    os.makedirs('made')\n    sys.exit(1)\n"
+      "sys.exit(0 if subject.MODE == 'a' else 1)\n")
+    # `[2026-11-17, the review]` its 2nd mutation CHANGES A TRACKED FILE, which git clean
+    #    never lists and which turns it red after; its 3rd is VACUOUS (Y is never read)
+    w("test_touch.py", _DECL % ("mode", "subject.py", "MODE = 'a'", "MODE = 'z'")
+      + _DECL % ("touch", "subject.py", "TOUCH = False", "TOUCH = True")
+      + _DECL % ("vacuous", "subject.py", "Y = 1", "Y = 2")
+      + _PROBE + "import subject\n_log('touch')\n"
+      "if open('notes.txt').read().strip() != 'kept':\n    sys.exit(1)\n"
+      "if subject.TOUCH:\n    open('notes.txt', 'a').write('changed\\n')\n    sys.exit(1)\n"
       "sys.exit(0 if subject.MODE == 'a' else 1)\n")
     # `[2026-11-17, the review]` an outside thing that BREAKS after this test's second
     #    run, for good (a disk that filled, a stale lock): both mutations really bite
@@ -236,7 +252,7 @@ ck("✅ no worker tree leaked, and the root is pristine again",
    not _leaks and V._pristine(_d), "leaks=%r porcelain=%r" % (_leaks, V._porcelain(_d)))
 
 # ════════════════════════════════════════════════════════════════════════
-section("2. 🔴🔴 A RED RUN THAT LEFT SOMETHING BEHIND RUNS ITS OWN GREEN — AN IGNORED FILE, AN EMPTY DIRECTORY")
+section("2. 🔴🔴 A RED RUN THAT LEFT SOMETHING BEHIND RUNS ITS OWN GREEN — AN IGNORED FILE, AN EMPTY DIRECTORY, A TRACKED FILE")
 # ════════════════════════════════════════════════════════════════════════
 # ⚠️ Serial (jobs=1), so the order is the file's: `mode` first (red, revert,
 #    pristine: its green is owed to the end), then `leave`, whose red run writes
@@ -253,8 +269,8 @@ eq(count(_rs2, "leaves", "green"), 2,
 ck("⚠️ ...and the leftover really was an IGNORED file, invisible to the leak check",
    os.path.exists(os.path.join(_d, "made.cache")) and V._porcelain(_d) == set()
    and not V._pristine(_d),
-   "⛔ without `--ignored` the pristine check is the leak check, and this case is "
-   "the one it cannot see. porcelain=%r" % V._porcelain(_d))
+   "⛔ without `-x` the pristine check sees no ignored file, as the leak check sees "
+   "none, and this case is the one it cannot see. porcelain=%r" % V._porcelain(_d))
 ck("⚠️ ...`mode` BITES on a root left changed, so its owed green ran on a fresh tree of HEAD, released after",
    worktrees(_d) == 1, "worktrees=%d" % worktrees(_d))
 os.remove(os.path.join(_d, "made.cache"))
@@ -278,6 +294,22 @@ ck("⚠️ ...and the leftover really was an EMPTY directory git status cannot s
 if os.path.isdir(_made):
     os.rmdir(_made)
 ck("   ...and once it is gone the tree is pristine again", V._pristine(_d), V._porcelain(_d))
+
+# ── 2c. `[2026-11-17, the review]` a TRACKED file changed: git clean never lists one ──
+# `touch`'s red run appends to the committed notes.txt and dies; `vacuous` changes Y,
+# which the test never reads, so its red run is red ONLY because of notes.txt.
+clear()
+_res2c = V.tier2(_d, jobs=1, only={"test_touch.py"})
+eq([(r["why_declared"], r["state"]) for r in _res2c],
+   [("mode", "BITES"), ("touch", "RED_BOTH_WAYS"), ("vacuous", "RED_BOTH_WAYS")],
+   "🔴🔴 the vacuous guard after a changed tracked file is RED_BOTH_WAYS, never BITES")
+_cl = [ln for ln in git(_d, "clean", "-ndx").stdout.splitlines() if "__pycache__" not in ln]
+ck("⚠️ ...and the leftover really was a TRACKED file changed, which git clean cannot see",
+   " M notes.txt" in (V._porcelain(_d) or set()) and not _cl and not V._pristine(_d),
+   "⛔ a planted leftover git clean shows would not test git status (rule 67). "
+   "porcelain=%r clean=%r" % (V._porcelain(_d), _cl))
+git(_d, "checkout", "--", "notes.txt")
+ck("   ...and once it is restored the tree is pristine again", V._pristine(_d), V._porcelain(_d))
 
 # ════════════════════════════════════════════════════════════════════════
 section("3. 🔴 A DIRTY ROOT IS SWEPT IN PLACE AND RUNS EVERY GREEN, AS BEFORE")

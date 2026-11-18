@@ -216,8 +216,9 @@ failed recurring runs, i would like to avoid that"*. So:
    per sweep, ~~and reused for its other declarations~~ `[2026-11-17, the
    review]` AFTER the sweep's last red run, on a tree that is exactly HEAD
    then, for every declaration whose tree was exactly HEAD after its revert
-   (`vacuity._owed_greens`, `_pristine`: git status AND `git clean -ndx`, which
-   lists the empty directory git status never shows; `test_vacuity_greens.py`).
+   (`vacuity._owed_greens`, `_pristine`: git status for a tracked file changed,
+   `git clean -ndx` for any untracked or ignored file or directory, the empty
+   one git status never shows; `test_vacuity_greens.py`).
    A green reused from before a later red run was no control for it: a test
    that went red mid-sweep for an outside reason read BITES. Until its green
    has run, such a row is RED_BOTH_WAYS. Parts were at 79% of their 5,400s
@@ -1267,8 +1268,8 @@ note boxes, tags and the stale bar now require their absence.
   cancels the run and skips the relay (`[measured, jobs API]` run 42980218347, 20,934 of
   21,000 s; the first figure written here was wrong). Counting the hold from the job's
   start is its own change and its own hand upload of collect.yml; until it lands, this
-  check reading collect DEGRADED is the finding. ~~Fixed in the staged
-  `docs/upload/collect.yml`~~ (not in this change). A `timeout-minutes` with a trailing comment is read (it read as "no clock"), one
+  check reading collect DEGRADED is the finding. A `timeout-minutes` with a trailing
+  comment is read (it read as "no clock"), one
   that is set but not a number is `wfparse.UNREADABLE`, never None, and `run: |   # note` is
   a block scalar (`test_wfparse.py` §3). Not seen: a `rest` file against its own 600s (no
   per-file time outside the job log); a one-pass run of a holding job before the last
