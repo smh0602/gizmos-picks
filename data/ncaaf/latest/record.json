@@ -1,5 +1,5 @@
 {
- "built_at": "2026-11-17T23:32:29Z",
+ "built_at": "2026-11-18T14:43:41Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -11,22 +11,22 @@
   "pct": 52.5
  },
  "board": {
-  "w": 491,
-  "n": 960,
+  "w": 492,
+  "n": 963,
   "pct": 51.1
  },
  "game_lines": {
-  "w": 126,
-  "n": 265,
-  "pct": 47.5,
+  "w": 127,
+  "n": 268,
+  "pct": 47.4,
   "overall": {
-   "w": 126,
-   "n": 265,
-   "pct": 47.5
+   "w": 127,
+   "n": 268,
+   "pct": 47.4
   },
-  "shown": 269,
+  "shown": 271,
   "voids": 1,
-  "pending": 3,
+  "pending": 2,
   "unresolved": 0,
   "from": "2026-10-03",
   "by_market": {
@@ -36,9 +36,9 @@
     "pct": 61.5
    },
    "spread": {
-    "w": 29,
-    "n": 57,
-    "pct": 50.9
+    "w": 30,
+    "n": 60,
+    "pct": 50.0
    },
    "alternate_spread": {
     "w": 42,
@@ -58,9 +58,9 @@
     "pct": 91.7
    },
    "MODEL": {
-    "w": 115,
-    "n": 253,
-    "pct": 45.5
+    "w": 116,
+    "n": 256,
+    "pct": 45.3
    }
   },
   "by_day": [
@@ -313,12 +313,20 @@
     "pending": 0
    },
    {
+    "w": 1,
+    "n": 3,
+    "pct": 33.3,
+    "date": "2026-11-17",
+    "voids": 0,
+    "pending": 0
+   },
+   {
     "w": 0,
     "n": 0,
     "pct": null,
-    "date": "2026-11-17",
+    "date": "2026-11-18",
     "voids": 0,
-    "pending": 3
+    "pending": 2
    }
   ]
  },
@@ -2701,19 +2709,28 @@
    "voids": 0,
    "unresolved": 5,
    "owed": 5
+  },
+  {
+   "date": "2026-11-18",
+   "w": 0,
+   "n": 0,
+   "carded": 8,
+   "voids": 0,
+   "unresolved": 8,
+   "owed": 8
   }
  ],
  "days_graded": 42,
- "cards_seen": 43,
+ "cards_seen": 44,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
  "distinct_players": 365,
  "distinct_games": 232,
- "carded_rows": 762,
+ "carded_rows": 770,
  "voids": 0,
- "unresolved": 67,
- "coverage_note": "695 of 762 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 67 could not be settled at all.",
+ "unresolved": 75,
+ "coverage_note": "695 of 770 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 75 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -2727,6 +2744,10 @@
   },
   {
    "date": "2026-11-17",
+   "why": "nothing settled yet \u2014 the log does not reach this slate"
+  },
+  {
+   "date": "2026-11-18",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
