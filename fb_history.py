@@ -309,23 +309,42 @@ def store_cfb(log=log, root=None):
     return out
 
 
-def games(lg, root=None):
+def stored(lg, kind, root=None):
+    """Every STORED history file of `kind` ("schedule", "lines") for `lg`, sorted: the one list
+    games() and lines() read."""
+    return sorted(glob.glob(os.path.join(hdir(lg, root), "%s-*.json.gz" % kind)))
+
+
+def _read(p, bad):
+    """The file's doc through the one reader (`_stored`), or None; an unreadable one is added to
+    `bad` as (path, state_of's words) when a list is passed."""
+    doc, state, why = _stored(p)
+    if doc is None and bad is not None:
+        bad.append((p, state if why is None else "%s: %s" % (state, why)))
+    return doc
+
+
+def games(lg, root=None, bad=None):
     """Every stored history game, with its season. ⛔ Never raises: an unreadable file adds
-    nothing here (a history challenger asks fb_challengers.need_history first)."""
+    nothing here (a history challenger asks fb_challengers.need_history first).
+    `[review 2, 2026-11-17]` `bad`: a list that receives (path, state) for every stored file left
+    out because it cannot be read, so a caller can refuse a subset (fb_challengers.history_games,
+    the ONE way a challenger reads this: T75's QB / QP read 6 seasons of 7 in silence while H, on
+    the same unreadable file, was refused)."""
     out = []
-    for p in sorted(glob.glob(os.path.join(hdir(lg, root), "schedule-*.json.gz"))):
-        doc = _stored(p)[0] or {}
+    for p in stored(lg, "schedule", root):
+        doc = _read(p, bad) or {}
         for g in doc.get("games") or []:
             if isinstance(g, dict) and g.get("start") and g.get("home") and g.get("away"):
                 out.append(dict(g, season=doc.get("season")))
     return out
 
 
-def lines(root=None):
-    """College history lines, every season, in t60r's shape. ⛔ Never raises."""
+def lines(root=None, bad=None):
+    """College history lines, every season, in t60r's shape. ⛔ Never raises. `bad`: as games()'s."""
     out = {}
-    for p in sorted(glob.glob(os.path.join(hdir("ncaaf", root), "lines-*.json.gz"))):
-        got = (_stored(p)[0] or {}).get("games")
+    for p in stored("ncaaf", "lines", root):
+        got = (_read(p, bad) or {}).get("games")
         if isinstance(got, dict):
             out.update(got)
     return out

@@ -44,15 +44,22 @@ itself, and section 2 drives that exact clock.
 #   find:                          and F._load(os.path.join(ROOT, str(r["path"]))) is not None
 #   with:                          and True
 #
+# `[review 2, 2026-11-17]` ~~find: if not stale:  # every stale row was an unstamped file, named above~~:
+#   round 1's owes split made that exit dead code (this declaration went VACUOUS); the one exit now.
 # @vacuity 🔴 ...and with nothing else stale, no staleness finding at all
 #   file: watchdog.py
-#   find: if not stale:  # every stale row was an unstamped file, named above
+#   find: if not stale:  # nothing the contract owes: no "the converge loop repairs" line
 #   with: if False:
 #
 # @vacuity 🔴 ...and the staleness finding leaves it out (converge cannot repair it)
 #   file: watchdog.py
 #   find:             stale = [r for r in stale if str(r.get("path")) not in nostamp]
 #   with:             pass
+#
+# @vacuity 🔴 [review 2, 2026-11-17] ...but never a history season, which its writer stamps in place (no code change)
+#   file: watchdog.py
+#   find:                          and not F.stamped_by_writer(str(r["path"]))
+#   with:                          and True
 #
 # `[2026-11-17]` ONLY A ROW THE CONTRACT OWES IS ONE "THE CONVERGE LOOP REPAIRS".
 # @vacuity 🔴 fresh: counts only the rows freshness.owes (the stored-only split dropped)
@@ -1247,11 +1254,22 @@ def _gz(t, rel, doc=None, raw=None):
             json.dump(doc, fh)
 
 
+# `[review 2, 2026-11-17]` ~~the history schedule as the unstamped file (the live shape)~~: a history
+#    season's writer stamps a readable unstamped one in place (fb_history._stamp_once, both leagues, no
+#    call) and rebuilds one with no games, so "only a code change clears it" was false for it, and the
+#    contract owes HC's. The no-stamp finding is asked of a file whose writer stamps nothing (planted:
+#    def-epa-2026), and the history season below it.
 with Tree() as t:
     _now = datetime.datetime(2026, 10, 27, 15, 0, tzinfo=UTC)
-    _gz(t, "data/nfl/history/schedule-2018.json.gz", {"season": 2018, "games": []})   # the live shape
+    _gz(t, "data/nfl/latest/def-epa-2026.json.gz", {"season": 2026, "by_team": {}})   # readable, no stamp
+    _gz(t, "data/nfl/latest/def-epa-2025.json.gz", raw=gzip.compress(b'{"season": 2025, "by')[:30])
+    _gz(t, "data/nfl/history/schedule-2018.json.gz", {"season": 2018, "games": [{"id": "x"}]})   # 10-16's shape
     _gz(t, "data/nfl/history/schedule-2020.json.gz", raw=gzip.compress(b'{"season": 2020, "ga')[:30])
     t.write("data/nfl/latest/freshness.json", {"artifacts": [
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/latest/def-epa-2026.json.gz",
+         "missing": True, "stale": True},
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/latest/def-epa-2025.json.gz",
+         "missing": True, "stale": True},
         {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2020.json.gz",
          "missing": True, "stale": True},
         {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2018.json.gz",
@@ -1272,37 +1290,62 @@ with Tree() as t:
     _ns = [i for i in _rep.items if i["key"] == "nostamp:nfl"]
     ck("🔴 a contract file that exists but reads MISSING is named on its own, DEGRADED, no repair",
        len(_ns) == 1 and _ns[0]["severity"] == "DEGRADED" and _ns[0]["repair"] is None
-       and "schedule-2018" in _ns[0]["why"],
+       and "def-epa-2026" in _ns[0]["why"],
        "got %r" % [(i["key"], i["why"][:120]) for i in _rep.items])
     ck("   ...and only that one: not a file that is absent, a directory, a file merely late, "
        "one a repair has just written with its stamp (asked of the file now, not of freshness.json), "
        "or a truncated one (~~a rebuild repairs that~~ `[2026-11-17]` a staleness like a missing one)",
        _ns and "1 nfl file" in _ns[0]["what"] and "2019" not in _ns[0]["why"]
-       and "2020" not in _ns[0]["why"]
+       and "2020" not in _ns[0]["why"] and "def-epa-2025" not in _ns[0]["why"]
        and "players-2026" not in _ns[0]["why"] and "record.json" not in _ns[0]["why"],
        "got %r" % (_ns and (_ns[0]["what"], _ns[0]["why"][:160]),))
+    ck("🔴 [review 2, 2026-11-17] ...and never a history season: a readable one with no stamp is stamped in "
+       "place by its writer's next run (no call, no code change), so it is never told \"only a code change "
+       "clears it\"",
+       _ns and "schedule-2018" not in _ns[0]["why"]
+       and not any("schedule-2018" in i["why"] and "code change" in i["why"] for i in _rep.items),
+       [(i["key"], i["why"][:160]) for i in _rep.items])
     _fr = [i for i in _rep.items if i["key"] == "fresh:nfl"]
     _st = [i for i in _rep.items if i["key"] == "stored:nfl"]
     # `[2026-11-17]` ~~"the truncated file in it" (fresh:, "the converge loop repairs this")~~: an NFL
     #    history season is a STORED-ONLY row while H is not champion, which converge never plans, so it
     #    is named under stored:nfl with its writer, and fresh:nfl counts only the 3 rows converge owes.
+    # `[review 2, 2026-11-17]` ~~fresh: 3 rows; stored: the truncated and the absent season~~: the truncated
+    #    def-epa-2025 is owed too (fresh: 4), and the unstamped history season is stored: (its writer stamps it).
     ck("   ...and the staleness itself is still reported without the unstamped one (the converge loop "
-       "cannot repair that one): fresh: the 3 rows converge owes; stored: the truncated and the absent "
-       "history season, which only nfl-logs rewrites",
-       len(_fr) == 1 and "3 artifact(s)" in _fr[0]["why"] and len(_st) == 1
+       "cannot repair that one): fresh: the 4 rows converge owes, the truncated file in it; stored: the "
+       "truncated, the absent and the unstamped history season, which only nfl-logs rewrites",
+       len(_fr) == 1 and "4 artifact(s)" in _fr[0]["why"] and len(_st) == 1
        and "schedule-2020" in _st[0]["why"] and "schedule-2019" in _st[0]["why"]
-       and "schedule-2018" not in _st[0]["why"] and "nfl-logs" in _st[0]["why"],
+       and "schedule-2018" in _st[0]["why"] and "def-epa" not in _st[0]["why"] and "nfl-logs" in _st[0]["why"],
        [(i["key"], i["why"][:160]) for i in _rep.items])
 with Tree() as t:
-    _gz(t, "data/nfl/history/schedule-2018.json.gz", {"season": 2018, "games": []})
+    _gz(t, "data/nfl/latest/def-epa-2026.json.gz", {"season": 2026, "by_team": {}})
     t.write("data/nfl/latest/freshness.json", {"artifacts": [
-        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/history/schedule-2018.json.gz",
+        {"mode": "nfl-logs", "kind": "file", "path": "data/nfl/latest/def-epa-2026.json.gz",
          "missing": True, "stale": True}]})
     _rep = W.Report()
     W.check_freshness(_rep, _now)
     eq(sorted(i["key"] for i in _rep.items), ["nostamp:nfl"],
        "🔴 the live shape (every stale row an unstamped file) is the no-stamp finding alone: no "
        "'0 artifact(s) are stale' line saying the converge loop will repair it")
+
+with Tree() as t:
+    # `[review 2, 2026-11-17]` THE CHAMPION'S OWN (HC's, the live college champion): readable, games intact,
+    #    every stamp field gone. The contract owes it (CHAMPION_INPUT, missing), cfb-probe is planned, and
+    #    store_cfb stamps it at no call (_stamp_once). The finding is fresh:, whose sentence is then true.
+    _gz(t, "data/ncaaf/history/schedule-2023.json.gz", {"season": 2023, "games": [{"id": 1, "home": "A"}]})
+    _hc = {"mode": "cfb-probe", "kind": "file", "path": "data/ncaaf/history/schedule-2023.json.gz",
+           "why": F.CHAMPION_INPUT, "missing": True, "stale": True, "paid": False}
+    t.write("data/ncaaf/latest/freshness.json", {"artifacts": [_hc]})
+    _rep = W.Report()
+    W.check_freshness(_rep, _now)
+    _all = " ".join(i["what"] + " " + i["why"] for i in _rep.items)
+    ck("🔴 [review 2, 2026-11-17] the college champion's unstamped history season (owed: F.owes) is fresh:ncaaf, "
+       "the row converge plans and its writer's run stamps; never nostamp's \"only a code change clears it\"",
+       F.owes(_hc) and [i["key"] for i in _rep.items] == ["fresh:ncaaf"] and "code change" not in _all
+       and "cfb-probe" in _rep.items[0]["what"],
+       [(i["key"], i["what"], i["why"][:160]) for i in _rep.items])
 
 print("\n═══ 🔴 ONLY A ROW THE CONTRACT OWES IS ONE \"THE CONVERGE LOOP REPAIRS\" ═══")
 # `[2026-11-17]` Every stale row landed in fresh:<lg> and its sentence. 9 of 9 sampled

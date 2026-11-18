@@ -2114,7 +2114,13 @@ def _writer_due(rows):
 # says. A reason makes the row stale (`survey`), with `late_min` left alone
 # (it was built on time; nothing was late), so converge plans its writer
 # again, the gate warns, freshness.json carries the reason and the watchdog's
-# `fresh:` finding (DEGRADED) reaches health.json and the weekly status.
+# ~~`fresh:` finding (DEGRADED) reaches health.json and the weekly status.~~
+# `[review 2, 2026-11-17]` finding is the one
+# for what the contract does with the row: `fresh:` when it owes it (`owes`:
+# converge plans the writer), `held:` when it will not plan it now (a
+# REPORT_ONLY_HEALTH row: the game-day injury check; a `held` rebuild), and
+# `stored:` for a stored-only row (a history season no champion reads). All
+# three are DEGRADED and reach health.json and the weekly status.
 # ⛔ Only for the files named in HEALTH, and each judges a fact its writer
 #    controls, never the age of a file written only on a change.
 # ⛔ What it judges, it judges only while the season makes it matter, so the
@@ -2307,6 +2313,16 @@ HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_pro
 #    `[2026-11-17]`, never "the converge loop repairs this") but
 # never planned again (`plan`). See INJURY_FAILED_SLOTS.
 REPORT_ONLY_HEALTH = {"injury-check"}
+
+
+def stamped_by_writer(path):
+    """`[review 2, 2026-11-17]` Is `path` a file its writer stamps in place, at no call, on its next
+    run whenever it is readable and carries no stamp this contract reads? The football history
+    seasons (HEALTH's `_history_health` files): fb_history._stamp_once, in store_nfl and store_cfb.
+    So an unstamped one is a staleness its writer's next run clears, never the watchdog's
+    `nostamp:` ("only a code change clears it"). ⛔ Read off HEALTH's own entry (one copy)."""
+    p = str(path).replace(os.sep, "/")
+    return any(fn is _history_health and rx.search(p) for rx, fn in HEALTH)
 
 
 def health(path, now=None):

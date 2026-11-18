@@ -680,6 +680,17 @@ note boxes, tags and the stale bar now require their absence.
   until the writer's own next deadline (~~20 hours~~, which released it at 03:10Z, four hours
   before cfb-probe's 07:00Z: two sweeps a day). `test_fb_history.py` §6 (every state, both
   leagues), §7 (48 hourly passes: the writer runs at its own deadlines, never once more).
+  `[review 2, 2026-11-17]` ⛔ EVERY CHALLENGER INPUT THAT READS A HISTORY SEASON READS ALL THE STORED
+  ONES OR REFUSES, not only H / HC's training rows: T75's QB, QP, QBC and QPC read every stored
+  schedule (`attach_qb`), and a truncated NFL 2020 moved 514 of 557 real rows' QB inputs with no error
+  while H, on the same file, was refused. `fb_challengers.history_games` / `history_lines` are the one
+  way in (a stored file that cannot be read raises HistoryIncomplete); h_own asks `need_history`
+  itself; `fb_refit.league` makes that challenger NOT APPLICABLE, never the league's job. T75 declares
+  the history schedules it reads (`files` / `seasons`), so named champion they are its contract
+  inputs. An unstamped readable history season is never the watchdog's `nostamp:` ("only a code
+  change clears it"): its writer stamps it in place (`freshness.stamped_by_writer`).
+  `test_fb_history_inputs.py` (every challenger, both leagues), `test_fb_refit.py` §18,
+  `test_watchdog.py`.
 - 🔴 **THE GAME-DAY INJURY CHECK: 9AM, 12PM AND 7PM ET, BOTH FOOTBALL LEAGUES.** `[Sam,
   2026-10-26]` *"make sure we're looking at injury status at 12pm of games starting and 7pm so we
   can make sure the models adjusted for injuries when deciding outcome for a vame"*; asked "Should
@@ -703,7 +714,7 @@ note boxes, tags and the stale bar now require their absence.
   (`INJURY_RETRIES`; `[2026-10-27, review 2]` PLANNED on the next pass, `freshness.injury_retry`,
   never a deadline: ~~a retry moment a second after the failure~~ made the row stale at the end of
   the failed pass, a `fresh:` finding over one failed attempt); an NFL source down at 2 slots in a
-  row is a `health` warning (a `fresh:` finding) that is ⛔ never replanned (`REPORT_ONLY_HEALTH`:
+  row is a `health` warning (a ~~`fresh:`~~ `held:` finding `[2026-11-17]`) that is ⛔ never replanned (`REPORT_ONLY_HEALTH`:
   each run would rebuild the card); `[2026-10-27, review 2]` so is the check ITSELF reading nothing
   at its last 2 slots, either league, whatever the cause (our own code raising included: the
   probe's slot log), until an attempt reads again; a run that serves no slot (the first pass after
@@ -1599,6 +1610,10 @@ fb_challengers.py T65's frozen challengers to the football game model
                   HistoryIncomplete) when any season H / HC declares is missing or
                   unreadable: one bad college schedule had trained HC on 798 rows of
                   1,590 in silence. `history_files`: the declaration, as paths.
+                  `[review 2, 2026-11-17]` `history_games` / `history_lines`: the
+                  ONE way a challenger reads a stored history file (every stored
+                  season, or HistoryIncomplete); T75's QB/QP/QBC/QPC declare the
+                  schedules they read. `test_fb_history_inputs.py`.
 fb_qb.py          T75's BACKUP-QB BACKGROUND CHECK (Sam, 2026-11-10): one
                   league's stored QB starts, each start's mark against the own
                   ratings, a QB's grade shrunk toward replacement level, the

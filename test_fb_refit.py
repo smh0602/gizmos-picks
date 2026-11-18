@@ -130,6 +130,11 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find: % x["history_incomplete"]) if x.get("history_incomplete") else
 #   with: % x["history_incomplete"]) if False else
 #
+# @vacuity 🔴 [review 2, 2026-11-17] an INPUT that refuses a history subset (T75's QB, QP) makes its own challenger NOT APPLICABLE, never the league's job
+#   file: fb_refit.py
+#   find:             unread[n] = e
+#   with:             raise
+#
 # @vacuity 🔴 the Monday email shows the section
 #   file: status.py
 #   find:     L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now, W.last_due_for(
@@ -688,8 +693,13 @@ for _n, _c in FC.CHALLENGERS.items():
     _bad = sorted(os.path.basename(p) for p in _want if _by.get(p) != [F.CHAMPION_INPUT])
     if _bad:
         _miss[_n] = _bad
-eq(_miss, {}, "🔴 every challenger that declares files (E, P, T, TS, WX, WXC, IN, H, HC), named champion, has "
-   "exactly one champion's-input row per declared file (never a stored-only one beside it)")
+# `[review 2, 2026-11-17]` ~~(E, P, T, TS, WX, WXC, IN, H, HC)~~: T75's QB, QP, QBC and QPC declare the history
+#    schedules attach_qb reads (test_fb_history_inputs.py holds every challenger to what it reads).
+eq(_miss, {}, "🔴 every challenger that declares files (E, P, T, TS, WX, WXC, IN, H, HC, QB, QP, QBC, QPC), named "
+   "champion, has exactly one champion's-input row per declared file (never a stored-only one beside it)")
+eq(sorted(n for n, c in FC.CHALLENGERS.items() if c.get("files")),
+   sorted(["E", "P", "T", "TS", "WX", "WXC", "IN", "H", "HC", "QB", "QP", "QBC", "QPC"]),
+   "   (and those are the challengers that declare files)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("7. 🔴 THE MONDAY EMAIL: THE SECTION, A WINS UNDER \"NEEDS YOU\", AND AN OLD REPORT")
@@ -1338,15 +1348,32 @@ _n18, _c18 = _d18["nfl"], _d18["ncaaf"]
 _by18 = {x["name"]: x for x in _n18.get("challengers", [])}
 _h18 = _by18.get("H", {})
 _k18 = sum(1 for x in _by18.values() if x["registered"] and not x.get("withdrawn"))
+# `[review 2, 2026-11-17]` ~~"the other 14 NFL challengers are all built and judged"~~: that asserted the
+#    defect. T75's QB and QP read every stored history schedule too (attach_qb), and were scored here on
+#    the 5 seasons that could be read while H was refused. Every challenger that DECLARES the unreadable
+#    season (read off the registry, which test_fb_history_inputs.py holds to what each one reads) is NOT
+#    APPLICABLE now.
+_rd18 = sorted(n for n in _by18 if FC.CHALLENGERS[n].get("seasons") and any(
+    p.replace(os.sep, "/").endswith("nfl/history/schedule-2021.json.gz") for p in FC.history_files(n, T18)))
 ck(_w18 is None and _n18.get("built_at") == "2026-11-02T11:17:00Z" and _h18.get("verdict") == "NOT APPLICABLE"
    and "nfl/history/schedule-2019.json.gz (missing)" in _h18.get("history_incomplete", "")
    and "nfl/history/schedule-2021.json.gz (corrupt: JSONDecodeError)" in _h18.get("history_incomplete", "")
    and _h18.get("registered") and _h18.get("alpha") == 0.01 / _k18 and _k18 == len(_by18) == 15
-   and all("counted" in x and x["verdict"] != "NOT APPLICABLE" for n, x in _by18.items() if n != "H"),
-   "🔴 weekly(), one NFL history season missing and one corrupt: the NFL report still lands; the other 14 NFL "
-   "challengers are all built and judged, and H is NOT APPLICABLE, both files named, still in the divisor "
-   "(0.01 / 15: no bar loosens), never scored on 5 seasons of 7 and never a crash",
-   repr(_w18) if _w18 else {n: x.get("verdict") for n, x in _by18.items()})
+   and "H" in _rd18 and len(_rd18) > 1
+   and all("counted" in x and x["verdict"] != "NOT APPLICABLE" for n, x in _by18.items() if n not in _rd18),
+   "🔴 weekly(), one NFL history season missing and one corrupt: the NFL report still lands; the %d NFL "
+   "challengers that do not read that season are all built and judged, and H is NOT APPLICABLE, both files "
+   "named, still in the divisor (0.01 / 15: no bar loosens), never scored on 5 seasons of 7 and never a crash"
+   % (len(_by18) - len(_rd18)), repr(_w18) if _w18 else {n: x.get("verdict") for n, x in _by18.items()})
+ck(all(_by18[n].get("verdict") == "NOT APPLICABLE" and _by18[n].get("registered")
+       and _by18[n].get("alpha") == 0.01 / _k18 and "counted" not in _by18[n]
+       and "nfl/history/schedule-2021.json.gz (corrupt: JSONDecodeError)" in _by18[n].get("history_incomplete", "")
+       for n in _rd18 if n != "H")
+   and all("schedule-2019" not in _by18[n].get("history_incomplete", "") for n in _rd18 if n != "H"),
+   "🔴 ...and so is every other challenger that reads it (%s: T75's QB check, every stored schedule): never "
+   "scored on the seasons that could be read, still in the divisor, the unreadable file named (2019 was never "
+   "stored, so it is not one of theirs)" % ", ".join(n for n in _rd18 if n != "H"),
+   {n: (_by18[n].get("verdict"), _by18[n].get("history_incomplete")) for n in _rd18})
 ck("HistoryIncomplete" in _c18.get("error", "") and "ncaaf/history/lines-2023.json.gz (corrupt" in _c18["error"]
    and _c18.get("error_at") == "2026-11-02T11:17:00Z" and _c18.get("built_at") == _prev18["built_at"]
    and _c18.get("challengers") == _prev18["challengers"] and _c18.get("injury_backtest") == {"state": "waiting"}
@@ -1365,6 +1392,11 @@ ck("Challenger H (more seasons): not built this week, and never scored on part o
    "history season or none" in _sn18,
    "🔴 ...and that NFL's H was not built this week (never \"not applicable against the current champion\")",
    _sn18[_sn18.find("Challenger H"):][:300])
+ck(all("Challenger %s (%s): not built this week, and never scored on part of its seasons (every stored nfl "
+       "history season is read or none, and 1 stored file(s) cannot be read: nfl/history/schedule-2021.json.gz "
+       "(corrupt: JSONDecodeError))" % (n, FC.CHALLENGERS[n]["what"]) in _sn18 for n in _rd18 if n != "H"),
+   "🔴 ...and so does every other challenger that reads that season (T75's QB and QP), naming the file",
+   _sn18[_sn18.find("Challenger QB"):][:300])
 # ⛔ only that known state: our own exception still stops the job red (fail loud)
 T18b = tree()
 os.makedirs(os.path.join(T18b, "data", "nfl", "latest"))

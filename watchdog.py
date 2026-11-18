@@ -706,8 +706,14 @@ def check_freshness(rep, now):
         #    below by what the contract does about it (owed, stored only, or held). That comment
         #    was wrong: no rebuild ever repaired an unreadable history file (fb_history read
         #    it as a file and moved on); it does now.
+        #    `[review 2, 2026-11-17]` ⛔ NOT a file its writer stamps in place on its next run
+        #    (`F.stamped_by_writer`: the history seasons, fb_history._stamp_once, both leagues, at
+        #    no call). For one, "only a code change clears it" was false: an unstamped HC season
+        #    is owed and planned (cfb-probe), and that run stamps it. It falls through to the
+        #    split below like any stale row, by what the contract does about it.
         nostamp = sorted(str(r["path"]) for r in stale
                          if r.get("missing") and r.get("kind") == "file" and r.get("path")
+                         and not F.stamped_by_writer(str(r["path"]))
                          and os.path.isfile(os.path.join(ROOT, str(r["path"])))
                          and F._load(os.path.join(ROOT, str(r["path"]))) is not None
                          and F.stamp_of(os.path.join(ROOT, str(r["path"]))) is None)
@@ -720,8 +726,6 @@ def check_freshness(rep, now):
                      "writes none, every rebuild is the same, and only a code change "
                      "clears it." % ", ".join(nostamp[:6] + (["..."] if len(nostamp) > 6 else [])))
             stale = [r for r in stale if str(r.get("path")) not in nostamp]
-            if not stale:  # every stale row was an unstamped file, named above
-                continue
         # 🔴 `[2026-11-17]` ONLY A ROW THE CONTRACT OWES IS ONE "THE CONVERGE LOOP REPAIRS".
         #    Every stale row used to land in `fresh:<lg>` and its sentence, and 9 of 9 sampled
         #    `fresh:ncaaf` findings 10-14 -> 11-01 were STORED-ONLY rows, which converge never
@@ -731,7 +735,9 @@ def check_freshness(rep, now):
         _held_finding(rep, lg, [r for r in stale if not F.stored_only(r) and not F.owes(r)])
         _stored_finding(rep, lg, [r for r in stale if F.stored_only(r)])
         stale = [r for r in stale if F.owes(r)]
-        if not stale:
+        # `[review 2, 2026-11-17]` the ONE "nothing owed" exit (~~a second one after nostamp~~, which this
+        #    one made dead code, so its mutation could not bite): every stale row unstamped, stored or held
+        if not stale:  # nothing the contract owes: no "the converge loop repairs" line
             continue
         names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
         # ⛔ NO REPAIR NAMED, ON PURPOSE. The converge loop in this same

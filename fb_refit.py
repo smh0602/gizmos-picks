@@ -422,8 +422,17 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     rows = FM.build_rows(lg, root) if rows is None else rows
     champion = FM.CHAMPION.get(lg)
     names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == lg and n != champion]
+    unread = {}                         # challenger -> the HistoryIncomplete building its inputs raised
     for n in names:                     # §3j: one with only its own inputs never reads history rows
-        FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
+        try:
+            FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
+        except FC.HistoryIncomplete as e:
+            # `[review 2, 2026-11-17]` ITS INPUTS TOO, NOT ONLY H's TRAINING ROWS: T75's QB / QP read
+            #    every stored history schedule (attach_qb), and with one unreadable they were scored on
+            #    the rest in silence while H, on the same file, was NOT APPLICABLE. Every input that
+            #    reads a history season now refuses a subset (fb_challengers.history_games), and the
+            #    refusal is contained to its challenger here, as challenger_fits' is below.
+            unread[n] = e
     since = (prev or {}).get("champion_since")
     if prev is not None and prev.get("champion") != champion:
         since = monday_on_or_after(today)          # §2: scored weeks restart at the next Monday
@@ -445,6 +454,8 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
                         "why": "its frozen inputs cannot be built against champion %s" % champion})
         else:
             try:
+                if reg and n in unread:              # its inputs could not be built (above)
+                    raise unread[n]
                 fits = challenger_fits(rows, n, lg, root) if reg else None
             except FC.HistoryIncomplete as e:        # one challenger's seasons: §4's NOT APPLICABLE
                 # `[review, 2026-11-17]` H / HC train on every history season or none (need_history),

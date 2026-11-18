@@ -96,7 +96,7 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #
 # @vacuity 🔴 lines() never raises on an unreadable file (it reads through the one reader)
 #   file: fb_history.py
-#   find: got = (_stored(p)[0] or {}).get("games")
+#   find: got = (_read(p, bad) or {}).get("games")
 #   with: got = json.load(gzip.open(p, "rt", encoding="utf-8")).get("games")
 #
 # @vacuity 🔴 store_nfl rebuilds an unreadable season (it saw a file and moved on)
@@ -136,8 +136,8 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #
 # @vacuity 🔴 H / HC never train on part of their seasons
 #   file: fb_challengers.py
-#   find: need_history(lg, root)
-#   with: None
+#   find:         _refuse(root, bad, "%s trains on every history season or none, and %%d of its files" % name)
+#   with:         pass
 #
 # @vacuity 🔴 ...an unreadable season counts, not only a missing one
 #   file: fb_challengers.py
@@ -399,6 +399,9 @@ put(H, "data/nfl/history/schedule-2024.json.gz", {"season": 2024, "games": [
       30 if i % 2 else 17, 13 if i % 2 else 24) for i in range(8)]})
 row = {"id": "n1", "lg": "nfl", "season": 2025, "day": "2025-09-07", "home": "SEA", "away": "DEN", "M": 3.0, "T": 44.5,
        "final": False, "sig": {"neutral": 0.0, "dome": 0.0}}
+# `[review 2, 2026-11-17]` ~~planted after the input is built~~: H's input (h_own) asks need_history itself
+#    now, so every declared season is planted first (adding no rating game: one game not yet final each).
+fill(H, "H")       # `[2026-11-17]` H trains on every declared season or none (need_history)
 champ_own = FM.own_numbers(FM.own_ratings(FM.rating_games("nfl", H), {"2025-09-01"}).get("2025-09-01"), "SEA", "DEN", 0.0)
 FC.attach("H", "nfl", [row], H)
 ck(champ_own == (None, None) and row["sig"]["h_own"][0] is not None and row["sig"]["h_own"][0] > 0,
@@ -407,7 +410,6 @@ ck(champ_own == (None, None) and row["sig"]["h_own"][0] is not None and row["sig
 eq([round(v, 6) for v in FC.extend("H", row, "spread", ["ignored"])],
    [round((row["sig"]["h_own"][0] - 3.0) / 10, 6), 0.0, 0.0],
    "🔴 H's inputs are the own term, neutral and dome only (the champion's others don't exist for history)")
-fill(H, "H")       # `[2026-11-17]` H trains on every declared season or none (need_history)
 hr = FC.history_rows("nfl", H)
 eq((len(hr), hr[0]["M"], hr[0]["T"], hr[0]["final"]), (8, 3.0, 44.5, True),
    "🔴 one training row per final history game, labelled at its closing line by fb_model.training_line")
