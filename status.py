@@ -409,6 +409,27 @@ def injury_checks(root, now, days=7):
     return out
 
 
+def clock_lines(runs, stale, now):
+    """`[2026-11-13]` How close the jobs came to their own clocks this week, from runs.json
+    (`runs_report.clock_report`, the watchdog's judge): the slowest, then every one at 75%+
+    with what to do. ⛔ Never "raise the clock"."""
+    if stale or not runs:
+        return ["- Can't say: %s." % (stale or "there is no run list")]
+    r = R.clock_report(runs, now)
+    if not r["looked"]:
+        return ["- Can't say: %s." % r["why"]]
+    out = ["- The slowest: %s." % R.clock_words(r["slowest"]) if r["slowest"]
+           else "- No job was measured."]
+    out += ["- At %d%% or more: %s. %s." % (int(R.CLOCK_WARN * 100), R.clock_words(x),
+                                         R.sentence(R.clock_advice(x["file"] or "", x["job"], x["clock"])))
+            for x in r["over"][:8]]
+    if not r["over"]:
+        out.append("- None at %d%% or more of its clock." % int(R.CLOCK_WARN * 100))
+    if r["unread"]:
+        out.append("- Could not read %d: %s." % (len(r["unread"]), "; ".join(r["unread"][:3])))
+    return out
+
+
 def build(root=ROOT, now=None):
     """-> (body, needs): the weekly issue's text and what needs Sam (empty: nothing)."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
@@ -462,7 +483,9 @@ def build(root=ROOT, now=None):
     L += ["", "## Failed runs", "- Can't say: %s." % stale if stale else
           "- %d in the last %s hours: %s." % (sum(x for x, _n in bad), runs.get("window_hours"), ", ".join(
               "%s %d" % (n, x) for x, n in sorted(bad, reverse=True))) if bad else
-          "- None in the last %s hours." % runs.get("window_hours"), "", "## Right now"]
+          "- None in the last %s hours." % runs.get("window_hours")]
+    L += ["", "## Job clocks (last %d days)" % R.CLOCK_DAYS] + clock_lines(runs, stale, now)
+    L += ["", "## Right now"]
     L += (["- Can't say: %s." % old] if old else
           ["- %s: %s" % (f.get("severity"), f.get("what")) for f in findings]
           or ["- Nothing is broken or degraded."])

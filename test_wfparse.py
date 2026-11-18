@@ -21,7 +21,7 @@ runner, so on the machine that matters they assert nothing about the parse.
 
 # @vacuity 🔴 a block scalar read as structure is caught
 #   file: wfparse.py
-#   find:         if not _BLOCK.match(val):
+#   find:         if not _BLOCK.match(_uncomment(val)):
 #   with:         if True:
 #
 # @vacuity ⚠️ a hardcoded step column is caught
@@ -33,13 +33,68 @@ runner, so on the machine that matters they assert nothing about the parse.
 #   file: wfparse.py
 #   find:             if not jb.start <= lineno < jb.end:
 #   with:             if not jb.start <= lineno:
+#
+# §3 `[2026-11-13]` A TRAILING COMMENT IS NOT PART OF A VALUE, AND A CLOCK NOBODY
+# CAN READ IS NOT "NO CLOCK" (every reader, every workflow, deployed and staged):
+# @vacuity 🔴🔴 `timeout-minutes: 45   # the clock` is a 45-minute clock
+#   file: wfparse.py
+#   find:                     out[jb.name] = int(_value(val))
+#   with:                     out[jb.name] = int(val.strip().strip('"').strip("'"))
+#
+# @vacuity 🔴 a clock set to something that is not a number is UNREADABLE, never None
+#   file: wfparse.py
+#   find:                     out[jb.name] = UNREADABLE
+#   with:                     pass
+#
+# @vacuity ⚠️ a permission's level loses its comment
+#   file: wfparse.py
+#   find:         out[key] = _value(val)   # a scope's level
+#   with:         out[key] = val.strip().strip('"').strip("'")
+#
+# @vacuity ⚠️ a step's name loses its comment
+#   file: wfparse.py
+#   find:                     name = _value(val)
+#   with:                     name = val.strip().strip('"').strip("'")
+#
+# @vacuity ⚠️ a step's id loses its comment
+#   file: wfparse.py
+#   find:                     sid = _value(val)
+#   with:                     sid = val.strip().strip('"').strip("'")
+#
+# @vacuity ⚠️ a step's `if:` loses its comment and keeps its own quotes
+#   file: wfparse.py
+#   find:                     cond = body.strip() if body is not None else _uncomment(val)
+#   with:                     cond = body.strip() if body is not None else val.strip()
+#
+# @vacuity ⚠️ a step's env value loses its comment
+#   file: wfparse.py
+#   find:                 out[key] = _value(val)   # a step's own env value
+#   with:                 out[key] = val.strip().strip('"').strip("'")
+#
+# @vacuity 🔴 the timed-out alarm holds an unreadable clock to 0, never GitHub's 360
+#   file: runs_report.py
+#   find:             mins = UNREADABLE_CLOCK if mins is wfparse.UNREADABLE else mins
+#   with:             mins = DEFAULT_CLOCK if mins is wfparse.UNREADABLE else mins
+#
+# @vacuity ⚠️ the landing check reads an unreadable clock as GitHub's ceiling, and does not crash
+#   file: watchdog.py
+#   find:         lim = [LANDING_TIMEOUT_DEFAULT if m is wfparse.UNREADABLE else (m or LANDING_TIMEOUT_DEFAULT)
+#   with:         lim = [m if m is wfparse.UNREADABLE else (m or LANDING_TIMEOUT_DEFAULT)
+#
+# @vacuity 🔴 `run: |   # a comment` is still a block scalar: its body is the script, never keys
+#   file: wfparse.py
+#   find:         if not _BLOCK.match(_uncomment(val)):
+#   with:         if not _BLOCK.match(val):
 """
 import glob
 import io
 import os
+import re
+import shutil
+import tempfile
 
 import wfparse as W
-from tcheck import ck, note, section
+from tcheck import ck, eq, note, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FILES = sorted(glob.glob(os.path.join(ROOT, ".github", "workflows", "*.yml")))
@@ -215,3 +270,173 @@ if _yaml is not None:
        % (njobs, nsteps, nperms))
     note("cross-checked %d job(s), %d step(s), %d permission block(s) across "
          "%d workflow file(s)" % (njobs, nsteps, nperms, len(FILES)))
+
+# ════════════════════════════════════════════════════════════════════════
+section("3. 🔴🔴 A TRAILING COMMENT IS NOT PART OF A VALUE, AND AN UNREADABLE CLOCK IS NOT \"NO CLOCK\"")
+# ════════════════════════════════════════════════════════════════════════
+# `[2026-11-13]` job_timeouts read `timeout-minutes: 45   # the clock` as None:
+# int() failed and was swallowed. runs_report.job_clocks then gave the job GitHub's
+# 360, a run its 45-minute clock stopped stayed `cancelled`, and the timed-out-run
+# alarm never fired. The step name / id / if, a step's env and a permissions block
+# kept a trailing comment too. 0 of 40 real clock lines carried one that day: this
+# section guards the class, every reader on every workflow, not the one instance.
+import runs_report as RR  # noqa: E402
+import watchdog as WD  # noqa: E402
+
+_COMMENTED = """\
+name: demo
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+jobs:
+  learn:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45   # the clock
+    permissions:
+      contents: write   # it commits
+    steps:
+      - name: Tell Sam   # the report
+        id: tell # its id
+        if: steps.a.outputs.n != '0'   # only when staged
+        env:
+          STATE: ok   # the state
+          HASH: a#b
+          QUOTED: "a # b"
+        run: |   # the script
+          git add data/demo
+  quoted:
+    runs-on: ubuntu-24.04
+    timeout-minutes: "45" # quoted with comment
+    steps:
+      - run: echo q
+  plain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - run: echo p
+  expr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.minutes }}
+    steps:
+      - run: echo e
+  none:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo n
+"""
+_jt = W.job_timeouts(_COMMENTED)
+eq({k: v for k, v in _jt.items() if k != "expr"}, {"learn": 45, "quoted": 45, "plain": 45, "none": None},
+   "🔴🔴 a commented, a quoted-and-commented and a plain clock all read 45; only the job with none reads None")
+ck("🔴 a clock set to an expression is UNREADABLE, never None (\"no clock\")",
+   _jt.get("expr") is W.UNREADABLE, "got %r" % (_jt.get("expr"),))
+_st = W.steps(_COMMENTED, "learn")[0]
+eq((_st.name, _st.id, _st.cond), ("Tell Sam", "tell", "steps.a.outputs.n != '0'"),
+   "⚠️ a step's name, id and `if:` lose their comment, and the `if:` keeps its own quotes")
+eq(W.step_env(_COMMENTED, step_name="Tell Sam"), {"STATE": "ok", "HASH": "a#b", "QUOTED": "a # b"},
+   "⚠️ a step's env loses its comment; `a#b` and a quoted `a # b` are values, as in YAML")
+eq(W.jobs(_COMMENTED)[0].permissions, {"contents": "write"},
+   "⚠️ a permission's level loses its comment")
+# `[2026-11-17, the review]` the block indicator was matched with its comment still on, so
+#    `run: |   # the script` read as the one-line value "|   # the script" and its body as keys
+eq((_st.run, W.git_adds(_COMMENTED)), ("git add data/demo\n", ["data/demo"]),
+   "🔴 `run: |   # the script` is a block scalar: the step's run is its body, never the indicator")
+
+# ── end to end: the two callers that read a clock ──
+_R = tempfile.mkdtemp(prefix="wfparse-clock-")
+try:
+    os.makedirs(os.path.join(_R, ".github", "workflows"))
+    with io.open(os.path.join(_R, ".github", "workflows", "demo.yml"), "w", encoding="utf-8") as _fh:
+        _fh.write(_COMMENTED)
+    _jc = RR.job_clocks(_R).get(".github/workflows/demo.yml") or {}
+    eq((_jc.get("learn"), _jc.get("none"), _jc.get("expr")), (45, RR.DEFAULT_CLOCK, RR.UNREADABLE_CLOCK),
+       "🔴🔴 the timed-out alarm reads the commented clock as 45 (not GitHub's 360) and an "
+       "unreadable one as 0, erring toward a report")
+    try:
+        _lr = [x for x in WD.learners(_R) if x["file"] == "demo.yml"]
+        _lim = _lr[0]["timeout_min"] if _lr else "demo.yml is not a learner here"
+    except Exception as _e:  # noqa: BLE001 - the failure under test
+        _lim = "raised %s: %s" % (type(_e).__name__, _e)
+    eq(_lim, WD.LANDING_TIMEOUT_DEFAULT,
+       "⚠️ the landing check takes GitHub's ceiling for the unreadable clock, the longest a job can run")
+finally:
+    shutil.rmtree(_R, ignore_errors=True)
+
+
+def quoted_whole(lines):
+    """Every scalar the file QUOTES WHOLE (`"a # b"`, `'a # b'`), as a reader returns it.
+    `[2026-11-17, the review]` YAML keeps a ` #` inside quotes, so a reader that returns
+    one kept no comment: ~~any returned value holding ` #`~~ failed a correct workflow."""
+    out = set()
+    for _n, _ind, _key, raw, body in W._scan(lines):
+        u = W._uncomment(raw)
+        if body is None and len(u) >= 2 and u[0] in "\"'" and u[-1] == u[0]:
+            out.add(W._value(raw))
+    return out
+
+
+def value_problems(path):
+    """[why] for one workflow: a job whose `timeout-minutes` line the parser does not
+    read as a number (or reads one with no such line), or any value a reader returns
+    that still holds a ` #` comment, judged against the source line: a value the file
+    quotes whole may hold one, as YAML reads it."""
+    txt = W.read(path)
+    lines, out = txt.splitlines(), []
+    quoted = quoted_whole(lines)
+    kept = lambda v: v and " #" in str(v) and str(v) not in quoted  # noqa: E731
+    jt = W.job_timeouts(txt)
+    for jb in W.jobs(txt):
+        n = sum(1 for ln in lines[jb.start:jb.end] if re.match(r"^    timeout-minutes:", ln))
+        got = jt.get(jb.name)
+        if n and (not isinstance(got, int) or got is W.UNREADABLE):
+            out.append("%s: its timeout-minutes line reads %r" % (jb.name, got))
+        if not n and got is not None:
+            out.append("%s: no timeout-minutes line, but %r" % (jb.name, got))
+        out += ["%s permission %s = %r" % (jb.name, k, v)
+                for k, v in (jb.permissions or {}).items() if kept(v)]
+    vals = [("workflow permission " + k, v) for k, v in W.permissions(txt).items()]
+    for st in W.steps(txt):
+        vals += [("step name", st.name), ("step id", st.id), ("step if", st.cond)]
+        # a plain scalar never starts with `|` or `>`: a one-line run that does is an
+        #    indicator read as a value, and its body was scanned as keys
+        if st.run is not None and "\n" not in st.run and st.run.strip()[:1] in ("|", ">"):
+            out.append("step %r: its run is the block indicator %r, not its body" % (st.name, st.run))
+        if st.name:
+            vals += [("step env " + k, v) for k, v in (W.step_env(txt, step_name=st.name) or {}).items()]
+    for j, env in W.job_env(txt).items():
+        vals += [("%s env %s" % (j, k), v) for k, v in env.items()]
+    vals += [("%s name" % j, v) for j, v in W.job_names(txt).items()]
+    out += ["%s = %r" % (w, v) for w, v in vals if kept(v)]
+    return out
+
+
+_ALL = sorted(glob.glob(os.path.join(ROOT, ".github", "workflows", "*.yml"))
+              + glob.glob(os.path.join(ROOT, "docs", "upload", "*.yml")))
+_bad = {os.path.relpath(f, ROOT): value_problems(f) for f in _ALL}
+_bad = {f: v for f, v in _bad.items() if v}
+_lines = sum(1 for f in _ALL for ln in W.read(f).splitlines() if re.match(r"^    timeout-minutes:", ln))
+ck("🔴🔴 every clock line of every workflow, deployed and staged, reads as a number, and no "
+   "value any reader returns keeps a comment (%d files, %d clock lines)" % (len(_ALL), _lines),
+   not _bad and len(_ALL) >= 20 and _lines >= 30,
+   "⛔ a clock read as None is GitHub's 360 to the timed-out alarm; a kept comment is a "
+   "value no workflow has (rule 67: files=%d lines=%d). %s" % (len(_ALL), _lines, _bad))
+# ⚠️ AND THE SAME SWEEP ON A REAL WORKFLOW WITH COMMENTS WRITTEN IN, so it is never only
+#    a sweep of a tree that happens to hold none (0 of 40 real lines did on 2026-11-13).
+_t60 = W.read(os.path.join(ROOT, ".github", "workflows", "t60r.yml"))
+_pl = re.sub(r"(?m)^(    timeout-minutes: \d+)$", r"\1   # the grade's clock", _t60, count=1)
+_pl = re.sub(r"(?m)^(      - name: [^\n#]+)$", r"\1   # a step", _pl, count=1)
+_pl = re.sub(r"(?m)^( +contents: \w+)$", r"\1   # its scope", _pl, count=1)
+_pl = re.sub(r"(?m)^(        run: \|)$", r"\1   # the script", _pl, count=1)
+# `[2026-11-17, the review]` and a `#` YAML KEEPS: a step name quoted whole, which every
+#    reader returns with its ` #` (a sweep that fired on it is the other failure)
+_pl = re.sub(r"(?m)^(      - name: )(Grade every played game)$", r'\1"\2 # 2 of 2"', _pl, count=1)
+ck("⚠️ the planted copy of t60r.yml really carries the comments, and a quoted ` #` read as YAML reads it",
+   _pl.count("   # the grade's clock") == 1 and _pl.count("   # a step") == 1
+   and _pl.count("   # its scope") == 1 and _pl.count("run: |   # the script") == 1
+   and _pl.count('- name: "Grade every played game # 2 of 2"') == 1
+   and "Grade every played game # 2 of 2" in [s.name for s in W.steps(_pl)],
+   "⛔ a planted case with nothing planted proves nothing (rule 67): %r" % [s.name for s in W.steps(_pl)])
+eq(value_problems(_pl), [], "🔴🔴 ...and the sweep finds no clock lost and no comment kept in it, and does "
+   "not take the quoted ` #` for one")
+eq(W.job_timeouts(_pl), W.job_timeouts(_t60), "   ...and its clocks are the uncommented file's")
+eq([s.run for s in W.steps(_pl)], [s.run for s in W.steps(_t60)],
+   "   ...and its step scripts are the uncommented file's, the commented `run: |` one included")
