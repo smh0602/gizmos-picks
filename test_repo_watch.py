@@ -72,7 +72,22 @@ import repo_watch as R
 # @vacuity [2026-11-17] the series walks main's own commits: a branch authored before the base is not a day
 #   file: repo_watch.py
 #   find:         log = _git("log", "--first-parent", "--format=%H %cd", "--date=short",
-#   with:         log = _git("log", "--format=%H %ad", "--date=short",
+#   with:         log = _git("log", "--format=%H %cd", "--date=short",
+#
+# @vacuity [2026-11-18] the series buckets main's commits by COMMIT day: a rebased commit authored before the base is not a day
+#   file: repo_watch.py
+#   find:         log = _git("log", "--first-parent", "--format=%H %cd", "--date=short",
+#   with:         log = _git("log", "--first-parent", "--format=%H %ad", "--date=short",
+#
+# @vacuity [2026-11-18] base_date is the base's COMMIT day, the clock --before chose it by
+#   file: repo_watch.py
+#   find:         rep["base_date"] = _git("log", "-1", "--format=%cd", "--date=short",
+#   with:         rep["base_date"] = _git("log", "-1", "--format=%ad", "--date=short",
+#
+# @vacuity [2026-11-18] a commit day out of order joins its day's line, so each day is listed once
+#   file: repo_watch.py
+#   find:         if day in seen:
+#   with:         if False:
 #
 # @vacuity [2026-11-17] each day counts only what it introduced, so the days sum to the window
 #   file: repo_watch.py
@@ -136,19 +151,25 @@ def _g(*a, **kw):
                           capture_output=True, text=True, check=True).stdout
 
 
-def _commit(d, files, days_ago):
+def _when(days_ago):
+    return (datetime.datetime.now(datetime.timezone.utc)
+            - datetime.timedelta(days=days_ago)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+
+def _commit(d, files, days_ago, authored_days_ago=None):
+    """`authored_days_ago`: an author date apart from the commit date, as a rebase or a
+    cherry-pick leaves it (`[2026-11-18]`; None = the same moment)."""
     for path, body in files.items():
         p = os.path.join(d, path)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         io.open(p, "wb").write(body)
     _g("-C", d, "add", "-A")
-    when = (datetime.datetime.now(datetime.timezone.utc)
-            - datetime.timedelta(days=days_ago)).strftime(
-                "%Y-%m-%dT%H:%M:%S+00:00")
+    when = _when(days_ago)
     subprocess.run(["git", "-C", d, "commit", "-q", "-m", "c"], check=True,
                    capture_output=True,
-                   env=dict(os.environ, GIT_AUTHOR_DATE=when,
-                            GIT_COMMITTER_DATE=when))
+                   env=dict(os.environ, GIT_COMMITTER_DATE=when,
+                            GIT_AUTHOR_DATE=when if authored_days_ago is None
+                            else _when(authored_days_ago)))
 
 
 def _bench():
@@ -497,7 +518,15 @@ def _bench_merge():
         _commit(d, {"data/latest/board.json.gz": gzip.compress(os.urandom(40000)),
                     "data/2026-01-0%d/k/0100.json.gz" % (n + 1): gzip.compress(os.urandom(20000))},
                 5 - n)
+    # `[2026-11-18]` a REBASED commit on main's own line: AUTHORED before the base, COMMITTED
+    #    inside the window, on the last commit's day (3 days ago). By its author day it would
+    #    be a day older than the base; by its commit day it is that day's.
+    _commit(d, {"data/2026-01-04/k/0100.json.gz": gzip.compress(os.urandom(15000))}, 3,
+            authored_days_ago=W + 4)
     _merge(d, "side", 2)
+    # `[2026-11-18]` and a clock BEHIND: committed before its parent (the merge), on a day
+    #    main already had (4 days ago), so its day comes round a second time.
+    _commit(d, {"data/2026-01-05/k/0100.json.gz": gzip.compress(os.urandom(15000))}, 4)
     _commit(d, {"data/latest/board.json.gz": gzip.compress(os.urandom(40000))}, 1)
     _g("-C", d, "gc", "-q", "--prune=now")
     return d
@@ -513,6 +542,23 @@ ck("⚠️ the merge bench produced a readable report, its window based on main'
    and abs(_M.get("disk_mb", -1) - _MDISK / 1e6) < 1e-6,
    "⛔ rule 67: every check below is asked of this report. state=%s why=%s"
    % (_M["state"], _M.get("why", "")[:120]))
+# ⚠️ `[2026-11-18]` AND ITS TWO DATED SHAPES ARE REALLY IN IT, asked of git: without them
+#    an author-day series (%ad) and a series listing a day twice both passed every check
+#    here (42 of 42), because the bench's author and commit dates were the same moment.
+_mbase = R.window_base(root=_MB)
+_mbase_cd = _g("-C", _MB, "log", "-1", "--format=%cd", "--date=short", _mbase).strip()
+_mlog = list(reversed([l.split() for l in _g(
+    "-C", _MB, "log", "--first-parent", "--format=%H %ad %cd %ct", "--date=short",
+    "%s..HEAD" % _mbase).splitlines()]))   # oldest first: sha, author day, commit day, ct
+_mrebased = [c[0][:9] for c in _mlog if c[1] < _mbase_cd <= c[2]]
+_mbehind = [c[0][:9] for i, c in enumerate(_mlog)
+            if i and int(c[3]) < int(_mlog[i - 1][3]) and c[2] != _mlog[i - 1][2]
+            and c[2] in {x[2] for x in _mlog[:i - 1]}]
+ck("⚠️ ...and it holds a rebased commit and a clock behind, on main's own line",
+   len(_mrebased) == 1 and len(_mbehind) == 1,
+   "⛔ rule 67: a commit authored before the base and committed inside the window, and one "
+   "committed before its parent on a day main already had. rebased %s behind %s, base day %s"
+   % (_mrebased, _mbehind, _mbase_cd))
 ck("🔴🔴 the per-day series SUMS TO THE WINDOW TOTAL with a merged branch in it",
    abs(sum(d["disk_mb"] for d in _mser) - _MDISK / 1e6) < 1e-6,
    "⛔ #330: 122.24 MB of days against an 84.7 MB window. series=%.6f window=%.6f MB, days %s"
@@ -520,9 +566,20 @@ ck("🔴🔴 the per-day series SUMS TO THE WINDOW TOTAL with a merged branch in
       [(d["day"], round(d["disk_mb"], 4)) for d in _mser]))
 ck("🔴 ...and no day in it is older than the window's base",
    bool(_mser) and min(d["day"] for d in _mser) >= _M.get("base_date", "9999"),
-   "⛔ a day before the base is the branch's author date, and the day after it counts "
-   "what the base already stored. base %s, days %s"
-   % (_M.get("base_date"), [d["day"] for d in _mser]))
+   "⛔ a day before the base is an author date (the branch's, or the rebased commit's on "
+   "main's own line), and the day after it counts what the base already stored. base %s, "
+   "days %s" % (_M.get("base_date"), [d["day"] for d in _mser]))
+_mdays = [d["day"] for d in _mser]
+ck("🔴 ...its days are the COMMIT days of main's own commits in the window, and base_date "
+   "is the base's commit day",
+   set(_mdays) == {c[2] for c in _mlog} and _M.get("base_date") == _mbase_cd,
+   "⛔ `--before` chose the base by commit date, so the window's days are commit days (the "
+   "rebased commit's author day is %s). base_date %s (commit day %s), days %s, main's "
+   "commit days %s" % ([c[1] for c in _mlog if c[0][:9] in _mrebased], _M.get("base_date"),
+                       _mbase_cd, _mdays, sorted({c[2] for c in _mlog})))
+ck("🔴 ...and each day is listed ONCE, though the clock-behind commit brings a day round again",
+   bool(_mdays) and len(_mdays) == len(set(_mdays)),
+   "⛔ a day listed twice is two 'Per day' lines for one date. days %s" % _mdays)
 _count = int(_g("-C", _MB, "rev-list", "--count",
                 "%s..HEAD" % R.window_base(root=_MB)).strip())
 eq(sum(d["commits"] for d in _mser), _count,
@@ -547,8 +604,11 @@ def _bench_side_base():
     _commit(d, {"README": b"fork point"}, W + 6)
     main = _g("-C", d, "rev-parse", "--abbrev-ref", "HEAD").strip()
     _g("-C", d, "branch", "side")
-    # main's last commit before the cutoff: 300 kB stored already, so never the window's
-    _commit(d, {"data/latest/old.json.gz": gzip.compress(os.urandom(300000))}, W + 3)
+    # main's last commit before the cutoff: 300 kB stored already, so never the window's.
+    #    `[2026-11-18]` AUTHORED a day before it was committed, so base_date has to be the
+    #    commit day to equal the clock `--before` chose it by.
+    _commit(d, {"data/latest/old.json.gz": gzip.compress(os.urandom(300000))}, W + 3,
+            authored_days_ago=W + 4)
     m2 = _g("-C", d, "rev-parse", "HEAD").strip()
     # a PR branch's commit, also before the cutoff but NEWER than main's last one there
     _g("-C", d, "checkout", "-q", "side")
@@ -572,11 +632,15 @@ _sbase = R.window_base(root=_SB)
 _SRAW, _SDISK = _independent(_SB, base=_SB_M2)
 _sser = _S.get("series", [])
 _stop = [t["path"] for t in _S.get("top", [])]
-ck("⚠️ the side-base bench has its shape: a readable report, and the newest commit of ANY "
-   "parent before the cutoff is the branch's",
-   _S["state"] in ("OK", "BAD") and _sany and _sany not in _sfp,
+_sb_ad, _sb_cd = _g("-C", _SB, "log", "-1", "--format=%ad %cd", "--date=short",
+                    _SB_M2).split()
+ck("⚠️ the side-base bench has its shape: a readable report, the newest commit of ANY "
+   "parent before the cutoff is the branch's, and main's base was authored on another day",
+   _S["state"] in ("OK", "BAD") and _sany and _sany not in _sfp and _sb_ad != _sb_cd,
    "⛔ rule 67: if main's commit were the newest, every check below would pass on the old "
-   "code too. state=%s why=%s any-parent=%s" % (_S["state"], _S.get("why", "")[:120], _sany[:9]))
+   "code too; with one author and commit day, an author-day base_date passes. state=%s "
+   "why=%s any-parent=%s base authored %s committed %s"
+   % (_S["state"], _S.get("why", "")[:120], _sany[:9], _sb_ad, _sb_cd))
 ck("🔴🔴 the window's base is MAIN's own commit at the cutoff, never the branch's",
    _sbase == _SB_M2 and _sbase in _sfp
    and _S.get("base_date") == _g("-C", _SB, "log", "-1", "--format=%cd", "--date=short",
