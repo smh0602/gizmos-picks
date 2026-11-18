@@ -213,12 +213,17 @@ failed recurring runs, i would like to avoid that"*. So:
    the vacuity sweep in four parts (`SUITE_SHARD`, `VACUITY_PART`).
    `test_pr_shards.py` fails if a file or a declared mutation falls
    between them. `[2026-11-13]` Each test's green-on-revert run is run ONCE
-   per sweep on a tree git shows is exactly HEAD, and reused for its other
-   declarations (`vacuity._Greens`, `_pristine`; `test_vacuity_greens.py`):
-   parts were at 79% of their 5,400s clock, and part 1/4 measured 174 green
-   runs instead of 546, 47% of the test-seconds (542 bite; the other 4 read
-   the same without the reuse, Windows-only). Still
-   four parts, still every declaration red, on both images.
+   per sweep, ~~and reused for its other declarations~~ `[2026-11-17, the
+   review]` AFTER the sweep's last red run, on a tree that is exactly HEAD
+   then, for every declaration whose tree was exactly HEAD after its revert
+   (`vacuity._owed_greens`, `_pristine`: git status AND `git clean -ndx`, which
+   lists the empty directory git status never shows; `test_vacuity_greens.py`).
+   A green reused from before a later red run was no control for it: a test
+   that went red mid-sweep for an outside reason read BITES. Until its green
+   has run, such a row is RED_BOTH_WAYS. Parts were at 79% of their 5,400s
+   clock, and part 1/4 measured 174 green runs instead of 546, 47% of the
+   test-seconds (542 bite; the other 4 read the same without it,
+   Windows-only). Still four parts, still every declaration red, on both images.
    ⛔ More parts when it fills again, never a higher clock.
    ~~`collect.yml` leaves both unset and runs everything.~~
    `[Sam, 2026-10-02]` `collect.yml` runs the `rest` share
@@ -1186,9 +1191,9 @@ note boxes, tags and the stale bar now require their absence.
   cron landed at 15:52Z. ✅ collect.yml's last step runs `relay.py`; a
   scheduled MLB run, a push and a relay link each dispatch ONE successor
   (`workflow_dispatch`, `relay=true`) that holds 320 minutes and only ever
-  `converge`s (`[2026-11-17]` counted from the job's start, staged, not after its
-  Tests step: a held run reached 348.9 of its 350-minute clock on 11-11; see A JOB OR
-  TEST FILE NEAR ITS OWN CLOCK). ⛔ None when another MLB run is queued or running, past
+  `converge`s (`[2026-11-17]` counted from the END of its Tests step, so a held run
+  reached 348.9 of its 350-minute clock on 11-11; see A JOB OR TEST FILE NEAR ITS OWN
+  CLOCK). ⛔ None when another MLB run is queued or running, past
   `RELAY_DAY_CAP` (5) links a UTC day, on a re-run, or when every stored
   schedule says neither the last card deadline's day nor the next one's has
   MLB games (the off-season; fail closed, so one off-day between game days
@@ -1242,7 +1247,10 @@ note boxes, tags and the stale bar now require their absence.
   test_vacuity.py's 5,400s clock (11-12) and only the PR page said so. The runs watcher
   reads every finished run's jobs once (`runs_report.read_clocks`: at most 40 jobs calls
   per write of runs.json, which runs.yml's hourly publish and collect's `runs` row both
-  write, so at most about 80 in an hour; about 2 an hour at steady state) into runs.json
+  write, so at most about 80 in an hour; about 2 an hour at steady state; `[2026-11-17,
+  the review]` the first failed call ends a write's reading and no reading runs past
+  `CLOCK_READ_BUDGET_S` (120), since a failing API asked 40 times at 60s a call outlasts
+  runs.yml's 10-minute publish job) into runs.json
   `clock_runs` (7 days): each job beside its own `timeout-minutes`, a sweep part's Tests
   step beside test_vacuity.py's own clock (read from the step, `sweep_clock`; a part that
   never reached the step had no file clock running). `watchdog.check_job_clocks` is
@@ -1254,11 +1262,13 @@ note boxes, tags and the stale bar now require their absence.
   (`runs_report.job_holds`, the hold READ from its `LOOP_MINUTES` step): collect's 320-minute
   hold is 91% of its 350-minute clock by design, and the first version read it DEGRADED for
   good. Measured that way it is still DEGRADED, and rightly: the hold was counted from the
-  END of the Tests step (10-30 minutes, 29.9 on 11-11), so a held run took 348.9 of 350
-  minutes on 11-11, 11 seconds from a kill that cancels the run and skips the relay. Fixed
-  in the staged `docs/upload/collect.yml` (`UPLOAD-collect-hold.md`): the job's first step
-  stamps `JOB_STARTED_AT` and the hold counts from it (test_job_clocks.py §8 drives the
-  loop). A `timeout-minutes` with a trailing comment is read (it read as "no clock"), one
+  END of the Tests step (10-30 minutes; up to 29.9 on 11-11, 28.2 in the held run), so a
+  held run took 348.9 of 350 minutes on 11-11, ~~11 seconds~~ 66 seconds from a kill that
+  cancels the run and skips the relay (`[measured, jobs API]` run 42980218347, 20,934 of
+  21,000 s; the first figure written here was wrong). Counting the hold from the job's
+  start is its own change and its own hand upload of collect.yml; until it lands, this
+  check reading collect DEGRADED is the finding. ~~Fixed in the staged
+  `docs/upload/collect.yml`~~ (not in this change). A `timeout-minutes` with a trailing comment is read (it read as "no clock"), one
   that is set but not a number is `wfparse.UNREADABLE`, never None, and `run: |   # note` is
   a block scalar (`test_wfparse.py` §3). Not seen: a `rest` file against its own 600s (no
   per-file time outside the job log); a one-pass run of a holding job before the last
@@ -1981,9 +1991,12 @@ vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   reported is never exit 0, and a crash is exit 2, never
                   1 (1 is a finding, and writes the issue).
                   `test_vacuity_merge.py`. `[2026-11-13]` A test's green run
-                  is run once per sweep and reused, only on a tree git
-                  shows is exactly HEAD (`_pristine`: no change, no
-                  untracked, no ignored file). `test_vacuity_greens.py`.
+                  is run once per sweep, ~~and reused~~ `[2026-11-17]` after
+                  the sweep's last red run, for every declaration whose tree
+                  was exactly HEAD after its revert (`_pristine`: no change,
+                  no untracked or ignored file or directory, git status and
+                  `git clean -ndx`), on a tree that is exactly HEAD then
+                  (`_owed_greens`). `test_vacuity_greens.py`.
 ```
 
 ⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`

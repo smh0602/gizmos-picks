@@ -446,20 +446,6 @@ jobs:
       issues: write
 
     steps:
-      # 🔴 `[2026-11-17]` THE HOLD COUNTS FROM THE JOB'S START, NOT FROM AFTER THE TESTS.
-      # `[measured]` The hold's DEADLINE was counted from the start of "Converge and
-      # hold", which runs after the Tests step, and Tests takes 10-30 minutes here
-      # (29.9 on 11-11, growing with the suite). A held run lasted Tests + 320 + its
-      # last pass: 348.9 of the 350 minutes below on 11-11, 11 seconds from the kill;
-      # 340-344 most days. A kill at 350 is a CANCELLED run: its last pass may not
-      # commit, and the relay (the last step) never starts the next link.
-      # ✅ The hold now ends LOOP_MINUTES after THIS step, whatever the tests take,
-      # so the 30 minutes the clock leaves are for the last pass alone.
-      # runs_report's job-clock check judges a held run on its time past the hold
-      # (test_job_clocks.py); test_relay.py drives the loop from this stamp.
-      - name: Start the hold's clock
-        run: echo "JOB_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
-
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
@@ -908,11 +894,7 @@ jobs:
           git config user.name  "gizmos-collector"
           git config user.email "collector@users.noreply.github.com"
 
-          # 🔴 `[2026-11-17]` FROM THE JOB'S START ("Start the hold's clock"), never
-          # from here: the Tests step before this one took up to 30 of the 30
-          # minutes the clock leaves past the hold. A run without the stamp (a
-          # test driving this step) counts from now, as before.
-          DEADLINE=$(( ${JOB_STARTED_AT:-$(date +%s)} + LOOP_MINUTES * 60 ))
+          DEADLINE=$(( $(date +%s) + LOOP_MINUTES * 60 ))
           PASS=0
           rc=0
 

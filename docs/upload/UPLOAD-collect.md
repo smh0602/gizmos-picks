@@ -1,24 +1,8 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: the 320-minute hold counts from the start of the run `[2026-11-17]`
+## Current: the two alerts leave their issue alone when they could not look `[2026-11-04]`
 
 Every click and the commit message are in
-**`docs/upload/UPLOAD-collect-hold.md`**. One file, no cron change. A held MLB
-run took 348.9 of its 350 minutes on 11-11: please upload this one soon.
-
----
-
-## ~~Current:~~ Done: a hand-run named with converge-off runs that one mode alone `[2026-11-11]`
-
-✅ Uploaded (`docs/upload/UPLOAD-collect-converge-off.md`). Before the hold
-change above was staged, the live `collect.yml` matched the staged copy byte
-for byte.
-
----
-
-## ~~Current:~~ Done: the two alerts leave their issue alone when they could not look `[2026-11-04]`
-
-✅ Uploaded. Every click and the commit message were in
 **`docs/upload/UPLOAD-collect-alerts.md`**. One file, no cron change.
 
 ---
@@ -381,9 +365,6 @@ workflows: pin ubuntu-24.04, Node 24 actions, pinned Python (no cron change)
 
 ## Changelog
 
-- **2026-11-17:** new section on top pointing to `UPLOAD-collect-hold.md`;
-  the 2026-11-04 alerts section is marked done, not deleted, and the
-  2026-11-11 converge-off upload, which had no line here, is listed as done.
 - **2026-11-04:** new section on top pointing to `UPLOAD-collect-alerts.md`;
   the 2026-10-06 relay section is marked done (uploaded in c2191c73), not
   deleted.

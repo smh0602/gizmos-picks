@@ -77,7 +77,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -414,7 +413,8 @@ def rotted(root=ROOT):
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 🔴🔴 THE GREEN-ON-REVERT RUN, ONCE PER TEST ON A PRISTINE TREE. `[2026-11-13]`
+# 🔴🔴 THE GREEN-ON-REVERT RUN, ONCE PER TEST, AFTER ITS LAST RED RUN.
+#      `[2026-11-13]`, ~~reused from its first~~ `[2026-11-17, the review]`
 # ══════════════════════════════════════════════════════════════════════
 # `[measured, pr-tests run 43131342239, 2026-11-12]` Sweep parts used 4,158s
 # and 4,097s of test_vacuity.py's 5,400s clock (4,249s on 11-12's slowest), and
@@ -425,73 +425,72 @@ def rotted(root=ROOT):
 # test_heartbeat.py 12 / 47 (5). A red run stops at its first failed check; the
 # green run is the whole file, on the SAME unmutated tree, once per declaration:
 # test_fb_refit.py's 14 green runs in one part were one experiment run 14 times.
-# ✅ SO A TEST'S GREEN RUN IS RUN ONCE PER SWEEP AND REUSED, but ONLY when the
-#    tree is provably the tree that run saw: after the revert, git lists no
-#    change, no untracked file and no ignored file in it (`_pristine`; bytecode
-#    aside, which `run_test` purges before every run). Every worker tree is a
-#    detached worktree of the clean root's HEAD (`_pool`), so a pristine tree is
-#    byte for byte HEAD, in whichever tree the first green ran.
+# ✅ SO A TEST'S GREEN RUN IS RUN ONCE PER SWEEP, AFTER THE SWEEP'S LAST RED
+#    RUN, and answers for every declaration of that test whose tree was provably
+#    HEAD again after its revert (`_pristine`: git shows no change, no untracked
+#    or ignored file and no untracked or ignored directory, bytecode aside, which
+#    `run_test` purges before every run). Every worker tree is a detached
+#    worktree of the clean root's HEAD (`_pool`), so a pristine tree is HEAD. The
+#    green runs on a tree that is pristine THEN (`_pool`'s `then`, or one fresh
+#    worktree of HEAD when none is), so it is the control for every red run it
+#    answers for: a test that went red unmutated at any point in the sweep, for
+#    whatever reason, is red there too, and every declaration it answers for is
+#    RED_BOTH_WAYS. Until it has run, such a row IS RED_BOTH_WAYS
+#    (`green_owed`): a row nobody resolved is a finding, never a pass.
+# ~~✅ RUN ONCE PER SWEEP AND REUSED~~ `[2026-11-17, the review]` The first
+#    version ran a test's green after its FIRST red run and reused that answer
+#    for the rest. ⛔ That green could be hours older than a later red run, in
+#    another tree, and it had also been the CONTROL each red run was checked
+#    against: a test red for a reason that came with time (a disk that filled, as
+#    on 2026-09-26, a stale git lock, a real-clock window) read BITES on the old
+#    green, where every red run used to be followed by its own green and read
+#    RED_BOTH_WAYS. And git status lists no EMPTY directory, so a red run that
+#    left one was "pristine"; `git clean -ndx` lists it.
 # ⛔ NOTHING ELSE CHANGES. Every declaration is still applied, still run RED in
-#    a tree of its own, still reverted; a test red unmutated is still
-#    RED_BOTH_WAYS for every declaration it carries; a leak is still a leak.
-#    A tree that is NOT pristine after the revert (a red run that left a file,
-#    a dirty root swept in place) runs its own green, exactly as before.
+#    a tree of its own, still reverted; a leak is still a leak. A tree that is
+#    NOT pristine after the revert (a red run that left something, a dirty root
+#    swept in place) runs its own green there and then, exactly as before.
 #    `test_vacuity_greens.py` drives all of it.
+# ⚠️ WHAT IT DOES NOT SEE: a test red for an outside reason that came AND WENT
+#    between a red run and the end of the sweep reads BITES. Before, the green
+#    right after that red run caught it only if it was still there.
 # `[measured 2026-11-13, locally, part 1/4 of the real tree, 4 trees]` 546
 #    declarations: 174 green runs instead of 546, 5,327 test-seconds against
 #    11,442 had every green run (47%); 542 bite, and the other 4 read the same
-#    without the reuse (Windows-only reds and one Windows-only VACUOUS). A new declaration on a
-#    test that already has one now costs its red run only (6.3s average, of 21s).
+#    without it (Windows-only reds and one Windows-only VACUOUS). One green per
+#    test is still one green per test at the end of the sweep. A new declaration
+#    on a test that already has one costs its red run only (6.3s average, of 21s).
 def _pristine(root):
-    """Is `root` exactly its HEAD? No change, no untracked and no ignored file,
-    bytecode aside. ⛔ Fails closed: a git that cannot answer is not pristine."""
-    try:
-        p = subprocess.run(["git", "status", "--porcelain", "--ignored",
-                            "--untracked-files=all"], cwd=root,
-                           capture_output=True, text=True, timeout=120)
-    except (OSError, subprocess.SubprocessError):
-        return False
-    if p.returncode != 0:
-        return False
-    return not [ln for ln in p.stdout.splitlines() if ln.strip()
+    """Is `root` exactly its HEAD? No change, no untracked or ignored file and no
+    untracked or ignored directory (an EMPTY one too, which git status never
+    lists), bytecode aside. ⛔ Fails closed: a git that cannot answer is not
+    pristine."""
+    seen = []
+    for ask in (["git", "status", "--porcelain", "--ignored", "--untracked-files=all"],
+                ["git", "clean", "-ndx"]):
+        try:
+            p = subprocess.run(ask, cwd=root, capture_output=True, text=True, timeout=120)
+        except (OSError, subprocess.SubprocessError):
+            return False
+        if p.returncode != 0:
+            return False
+        seen += p.stdout.splitlines()
+    return not [ln for ln in seen if ln.strip()
                 and "__pycache__/" not in ln and not ln.rstrip().endswith(".pyc")]
 
 
-class _Greens(object):
-    """One sweep's green runs: test -> its exit code on a pristine tree.
-
-    ⚠️ A test two trees ask for at once is run ONCE: the second waits for the
-    first. If the run that owns it raises, a waiter runs its own."""
-
-    def __init__(self):
-        self._lock = threading.Lock()
-        self._got = {}
-
-    def get(self, t, run):
-        """-> (exit code, reused?)."""
-        with self._lock:
-            slot = self._got.get(t)
-            mine = slot is None
-            if mine:
-                slot = self._got[t] = (threading.Event(), [])
-        done, box = slot
-        if mine:
-            try:
-                box.append(run())
-            finally:
-                done.set()
-            return box[0], False
-        done.wait()
-        if not box:
-            return run(), False
-        return box[0], True
+def _green(t, root):
+    """The green-on-revert run: the WHOLE file, never fail-fast. -> its exit code."""
+    green = run_test(t, root)
+    return green
 
 
-def _tier2_one(d, root, greens=None):
+def _tier2_one(d, root, defer=False):
     """Apply one declared mutation in `root`: RED, revert, GREEN.
 
-    `greens` (one `_Greens` per sweep) reuses the test's green run when `root`
-    is pristine after the revert; None runs it every time, as before."""
+    `defer=True` (the sweep's) owes the green to `_owed_greens` when `root` is
+    pristine after the revert: the row is RED_BOTH_WAYS with `green_owed` until
+    that green has run. False runs it here, as before."""
     t = d["test"]
     miss = [k for k in ("file", "find", "with") if not d.get(k)]
     if miss:
@@ -529,22 +528,63 @@ def _tier2_one(d, root, greens=None):
                        % (t, d["file"], d["find"], d["with"])}
     # ✅ AND GREEN ON THE REVERT. Red under mutation is only half the
     #    claim: a test that is red either way proves nothing either.
-    # `[2026-11-13]` Once per test on a pristine tree (see `_pristine`).
-    def _green_run():
-        green = run_test(t, root)
-        return green
-    if greens is not None and _pristine(root):
-        green, reused = greens.get(t, _green_run)
-    else:
-        green, reused = _green_run(), False
-    secs = round(time.time() - t0, 1)
+    # `[2026-11-17]` Owed to the end of the sweep on a pristine tree (see `_pristine`).
+    if defer and _pristine(root):
+        # ⛔ a finding until its green has run: a row nobody resolves never passes
+        return {**d, "state": "RED_BOTH_WAYS", "secs": round(time.time() - t0, 1),
+                "green_owed": True,
+                "why": "%s's green-on-revert run never ran" % t}
+    green = _green(t, root)
+    return _graded(d, green, round(time.time() - t0, 1))
+
+
+def _graded(d, green, secs, **extra):
+    """A declaration that went red under its mutation, and its green run's code."""
     if green != 0:
-        return {**d, "state": "RED_BOTH_WAYS", "secs": secs, "green_reused": reused,
+        return {**d, "state": "RED_BOTH_WAYS", "secs": secs, **extra,
                 "why": "%s is RED even unmutated — its mutation result "
-                       "says nothing" % t}
-    return {**d, "state": "BITES", "secs": secs, "green_reused": reused,
+                       "says nothing" % d["test"]}
+    return {**d, "state": "BITES", "secs": secs, **extra,
             "why": "red under `%s` -> `%s`, green on revert"
                    % (d["find"], d["with"])}
+
+
+def _timed_green(t, tree):
+    t0 = time.time()
+    return (_green(t, tree), round(time.time() - t0, 1))
+
+
+def _owed_greens(results, again):
+    """The greens `_tier2_one` owed: ONE per test, run after the sweep's last red
+    run (`again`, on a tree pristine then), answering for every row that owed it.
+    Its seconds are charged to that test's first such row. The costliest tests,
+    by their red runs, go first, so the last tree to finish is not the slowest."""
+    cost = {}
+    for r in results:
+        if r.get("green_owed"):
+            cost[r["test"]] = cost.get(r["test"], 0) + (r.get("secs") or 0)
+    owed = sorted(cost, key=lambda t: (-cost[t], t))
+    if not owed:
+        return results
+    got = dict(zip(owed, again(_timed_green, owed)))
+    shared = {t: sum(1 for r in results if r.get("green_owed") and r["test"] == t) for t in owed}
+    out, charged = [], set()
+    for r in results:
+        if not r.get("green_owed"):
+            out.append(r)
+            continue
+        base = {k: v for k, v in r.items() if k not in ("green_owed", "state", "why", "secs")}
+        t, ran = r["test"], got.get(r["test"])
+        if ran is None:
+            # ⛔ no tree that is exactly HEAD to run it on: fail closed
+            out.append({**base, "state": "RED_BOTH_WAYS", "secs": r.get("secs"),
+                        "why": "%s's green-on-revert run had no tree that is exactly "
+                               "HEAD to run on" % t})
+            continue
+        secs = (r.get("secs") or 0) + (ran[1] if t not in charged else 0)
+        charged.add(t)
+        out.append(_graded(base, ran[0], round(secs, 1), green_shared=shared[t]))
+    return out
 
 
 def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
@@ -555,11 +595,12 @@ def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
     uses~~ `[2026-11-01]` `main()` passes `VACUITY_PART`, so the nightly sweeps
     in parts too (see `merge`). ~~and `collect.yml`~~: collect runs no sweep
     since 2026-10-02.
+    `[2026-11-17]` Each test's green on a pristine tree is owed to the end of the
+    sweep and run once (`_owed_greens`).
     """
     ds = [d for d in declarations(root) if not (only and d["test"] not in only)]
-    greens = _Greens()
     return _pool(root, JOBS if jobs is None else jobs, part_of(ds, part),
-                 lambda d, tree: _tier2_one(d, tree, greens), leaks)
+                 lambda d, tree: _tier2_one(d, tree, defer=True), leaks, then=_owed_greens)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -646,8 +687,14 @@ def _drop_tree(root, d):
     shutil.rmtree(d, ignore_errors=True)
 
 
-def _pool(root, jobs, tasks, work, leaks=None):
+def _pool(root, jobs, tasks, work, leaks=None, then=None):
     """`work(task, tree)` for every task, in task order, over `jobs` trees.
+
+    `then(results, again)`, when given, runs after the LAST task, on the same
+    trees, and its return is the pool's: `again(fn, items)` -> [fn(item, tree)]
+    in item order, each on a tree `_pristine` at that moment, or on one fresh
+    worktree of HEAD when none is; None for every item when no such tree can be
+    had (fail closed). `[2026-11-17]` The sweep's owed greens (`_owed_greens`).
 
     🔴 A WORKER TREE LEFT MODIFIED IS A LEAK, and it FAILS CLOSED: it is
     appended to `leaks` for the caller to fold into its own leak verdict,
@@ -657,31 +704,47 @@ def _pool(root, jobs, tasks, work, leaks=None):
     extra = []
     if jobs > 1 and len(tasks) > 1 and _porcelain(root) == set():
         extra = _extra_trees(root, min(jobs, len(tasks)) - 1)
-    if not extra:
-        return [work(t, root) for t in tasks]
-    free = queue.Queue()
-    for tr in [root] + extra:
-        free.put(tr)
 
-    def one(task):
-        tr = free.get()
-        try:
-            return work(task, tr)
-        finally:
+    def on_trees(trees, fn, items):
+        if len(trees) == 1:
+            return [fn(x, trees[0]) for x in items]
+        free = queue.Queue()
+        for tr in trees:
             free.put(tr)
+
+        def one(task):
+            tr = free.get()
+            try:
+                return fn(task, tr)
+            finally:
+                free.put(tr)
+
+        with ThreadPoolExecutor(len(trees)) as ex:
+            return list(ex.map(one, items))
+
+    def again(fn, items):
+        clean = [tr for tr in [root] + extra if _pristine(tr)]
+        if not clean and items:
+            fresh = _extra_trees(root, 1)
+            extra.extend(fresh)     # ⚠️ leak-checked and released below, like the rest
+            clean = fresh
+        if not clean:
+            return [None] * len(items)
+        return on_trees(clean, fn, items)
 
     dirty = []
     try:
-        with ThreadPoolExecutor(len(extra) + 1) as ex:
-            return list(ex.map(one, tasks))
+        out = on_trees([root] + extra, work, tasks)
+        return then(out, again) if then else out
     finally:
         for d in extra:
             left = _porcelain(d)
             if left != set():
                 dirty.append("%s: %s" % (d, sorted(left or ["git unavailable"])))
             _drop_tree(root, d)
-        subprocess.run(["git", "worktree", "prune"], cwd=root, check=False,
-                       capture_output=True)
+        if extra:
+            subprocess.run(["git", "worktree", "prune"], cwd=root, check=False,
+                           capture_output=True)
         if dirty:
             if leaks is None:
                 raise RuntimeError("a sweep worker tree was left modified: %s"

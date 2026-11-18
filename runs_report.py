@@ -47,6 +47,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 import wfparse  # the one workflow reader: cron files, staged and deployed
 # 🔴 `[2026-09-28]` SELF-REPAIR NEVER TAKES THIS WATCHER'S ISSUE. Crons that
@@ -1247,9 +1248,16 @@ def status_doc(raw, now, names, prior=None, fetch_json=None,
 #    80 calls in an hour. Pages' runs declare no clock and cost nothing. Measured
 #    11-06 -> 11-13: 276 finished runs in 7 days, about 1.7 calls an hour at
 #    steady state.
+# 🔴 AND A FAILING API IS ASKED ONCE A WRITE, NEVER 40 TIMES. `[2026-11-17, the
+#    review]` A jobs endpoint that timed out was asked for every run left, each
+#    up to `_gh_json`'s 60s: 40 minutes inside runs.yml's 10-minute publish job, or
+#    in the last pass of a held collect run. ✅ The FIRST failed call ends the
+#    reading, and no reading runs past CLOCK_READ_BUDGET_S; the runs left are asked
+#    on the next write, never recorded as read.
 CLOCK_DAYS = 7
 CLOCK_WARN = 0.75
 CLOCK_READS_PER_WRITE = 40
+CLOCK_READ_BUDGET_S = 120
 SWEEP_JOB = re.compile(r"\bsweep \d+/\d+\b")
 SWEEP_FILE = "test_vacuity.py"
 # ══════════════════════════════════════════════════════════════════════
@@ -1270,9 +1278,11 @@ SWEEP_FILE = "test_vacuity.py"
 #    (`clock - hold`), at the same 75%. `[measured]` That still reads DEGRADED
 #    on 2026-11-17, and correctly: collect's hold was counted from the END of its
 #    Tests step, which takes 10-30 minutes, so the room had to hold the tests
-#    too. 11-11's run took 348.9 of 350 minutes (96% of the room, 11 s from the
-#    kill). The fix is staged (docs/upload/collect.yml, the hold counts from the
-#    job's start); the room is then the last pass alone.
+#    too. 11-11's run took 348.9 of 350 minutes (96% of the room, ~~11 s~~ 66 s
+#    from the kill: run 42980218347's job ran 07:32:23Z -> 13:21:17Z, 20,934 of
+#    21,000 s; the first figure was wrong). Counting the hold from the job's start
+#    is its own change and its own hand upload of collect.yml; until it lands this
+#    check reading collect DEGRADED is the finding, not noise.
 # ⚠️ WHAT IT DOES NOT SEE: a run of a holding job that did not hold (a push, a
 #    football pass) is judged as one that did, so it reads near its clock only
 #    in the last quarter of the room (342.5 of 350 minutes); its kill is still
@@ -1409,10 +1419,13 @@ def clock_record(r, jobs, mine, sweep, names=None, holds=None):
     return rec
 
 
-def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRITE):
+def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRITE,
+                budget=CLOCK_READ_BUDGET_S, clock=time.monotonic):
     """-> (clock_runs, errors): the records of `prior` still inside CLOCK_DAYS, and
     one new record per finished run of `raw` not read yet, newest first, at most
-    `cap`. A call that fails is an error, retried next hour, never a record."""
+    `cap` and for at most `budget` seconds (`clock`). A call that fails is an error,
+    retried next write, never a record, and it ENDS the reading: the runs after it
+    are left for the next write."""
     floor = now - datetime.timedelta(days=CLOCK_DAYS)
     kept = {(p.get("run_id"), p.get("attempt")): p for p in prior or []
             if (_dt(p.get("at")) or floor) > floor}
@@ -1420,8 +1433,10 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
     todo = [r for r in raw or [] if r.get("status") == "completed"
             and (r.get("path") or "") in clocks and (r.get("id"), r.get("run_attempt")) not in kept]
     todo.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
-    errors = []
+    errors, began = [], clock()
     for r in todo[:cap]:
+        if clock() - began >= budget:
+            break                   # ⚠️ out of time: the rest are the next write's
         try:
             got = fetch("actions/runs/%s/jobs?per_page=100" % r.get("id")) or {}
             jobs = got.get("jobs") if isinstance(got, dict) else None
@@ -1430,7 +1445,7 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
         except Exception as e:      # noqa: BLE001 - recorded, not hidden
             errors.append({"run_id": r.get("id"), "file": r.get("path"),
                            "why": ("%s: %s" % (type(e).__name__, e))[:200]})
-            continue
+            break                   # 🔴 a failing API is asked once a write, never 40 times
         rec = clock_record(r, jobs, clocks[r["path"]], sweep, names, holds.get(r["path"]))
         kept[(rec["run_id"], rec["attempt"])] = rec
     out = sorted(kept.values(), key=lambda p: (p.get("at") or "", str(p.get("run_id"))), reverse=True)

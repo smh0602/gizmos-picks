@@ -362,12 +362,27 @@ finally:
     shutil.rmtree(_R, ignore_errors=True)
 
 
+def quoted_whole(lines):
+    """Every scalar the file QUOTES WHOLE (`"a # b"`, `'a # b'`), as a reader returns it.
+    `[2026-11-17, the review]` YAML keeps a ` #` inside quotes, so a reader that returns
+    one kept no comment: ~~any returned value holding ` #`~~ failed a correct workflow."""
+    out = set()
+    for _n, _ind, _key, raw, body in W._scan(lines):
+        u = W._uncomment(raw)
+        if body is None and len(u) >= 2 and u[0] in "\"'" and u[-1] == u[0]:
+            out.add(W._value(raw))
+    return out
+
+
 def value_problems(path):
     """[why] for one workflow: a job whose `timeout-minutes` line the parser does not
     read as a number (or reads one with no such line), or any value a reader returns
-    that still holds a ` #` comment."""
+    that still holds a ` #` comment, judged against the source line: a value the file
+    quotes whole may hold one, as YAML reads it."""
     txt = W.read(path)
     lines, out = txt.splitlines(), []
+    quoted = quoted_whole(lines)
+    kept = lambda v: v and " #" in str(v) and str(v) not in quoted  # noqa: E731
     jt = W.job_timeouts(txt)
     for jb in W.jobs(txt):
         n = sum(1 for ln in lines[jb.start:jb.end] if re.match(r"^    timeout-minutes:", ln))
@@ -377,7 +392,7 @@ def value_problems(path):
         if not n and got is not None:
             out.append("%s: no timeout-minutes line, but %r" % (jb.name, got))
         out += ["%s permission %s = %r" % (jb.name, k, v)
-                for k, v in (jb.permissions or {}).items() if " #" in str(v)]
+                for k, v in (jb.permissions or {}).items() if kept(v)]
     vals = [("workflow permission " + k, v) for k, v in W.permissions(txt).items()]
     for st in W.steps(txt):
         vals += [("step name", st.name), ("step id", st.id), ("step if", st.cond)]
@@ -390,7 +405,7 @@ def value_problems(path):
     for j, env in W.job_env(txt).items():
         vals += [("%s env %s" % (j, k), v) for k, v in env.items()]
     vals += [("%s name" % j, v) for j, v in W.job_names(txt).items()]
-    out += ["%s = %r" % (w, v) for w, v in vals if v and " #" in str(v)]
+    out += ["%s = %r" % (w, v) for w, v in vals if kept(v)]
     return out
 
 
@@ -411,11 +426,17 @@ _pl = re.sub(r"(?m)^(    timeout-minutes: \d+)$", r"\1   # the grade's clock", _
 _pl = re.sub(r"(?m)^(      - name: [^\n#]+)$", r"\1   # a step", _pl, count=1)
 _pl = re.sub(r"(?m)^( +contents: \w+)$", r"\1   # its scope", _pl, count=1)
 _pl = re.sub(r"(?m)^(        run: \|)$", r"\1   # the script", _pl, count=1)
-ck("⚠️ the planted copy of t60r.yml really carries the comments",
+# `[2026-11-17, the review]` and a `#` YAML KEEPS: a step name quoted whole, which every
+#    reader returns with its ` #` (a sweep that fired on it is the other failure)
+_pl = re.sub(r"(?m)^(      - name: )(Grade every played game)$", r'\1"\2 # 2 of 2"', _pl, count=1)
+ck("⚠️ the planted copy of t60r.yml really carries the comments, and a quoted ` #` read as YAML reads it",
    _pl.count("   # the grade's clock") == 1 and _pl.count("   # a step") == 1
-   and _pl.count("   # its scope") == 1 and _pl.count("run: |   # the script") == 1,
-   "⛔ a planted case with nothing planted proves nothing (rule 67)")
-eq(value_problems(_pl), [], "🔴🔴 ...and the sweep finds no clock lost and no comment kept in it")
+   and _pl.count("   # its scope") == 1 and _pl.count("run: |   # the script") == 1
+   and _pl.count('- name: "Grade every played game # 2 of 2"') == 1
+   and "Grade every played game # 2 of 2" in [s.name for s in W.steps(_pl)],
+   "⛔ a planted case with nothing planted proves nothing (rule 67): %r" % [s.name for s in W.steps(_pl)])
+eq(value_problems(_pl), [], "🔴🔴 ...and the sweep finds no clock lost and no comment kept in it, and does "
+   "not take the quoted ` #` for one")
 eq(W.job_timeouts(_pl), W.job_timeouts(_t60), "   ...and its clocks are the uncommented file's")
 eq([s.run for s in W.steps(_pl)], [s.run for s in W.steps(_t60)],
    "   ...and its step scripts are the uncommented file's, the commented `run: |` one included")
