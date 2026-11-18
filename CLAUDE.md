@@ -1813,7 +1813,10 @@ repo_watch.py     is the REPOSITORY growing in a way that will become
                   repository (GitHub recommends 10 GB for any repository).
                   Judges the pack only, as before. The per-day series walks
                   main's first-parent commits: a merged branch authored
-                  before the window had counted ~41 MB twice (#330).
+                  before the window had counted ~41 MB twice (#330). The
+                  window starts at MAIN's commit at the cutoff, never a
+                  branch's (`window_base`, `--first-parent`: 18 of 912
+                  hourly runs had counted main's pre-window data).
 credits.py        THE CREDIT BALANCE CHAIN: the one reader of stored
                   `credits_remaining` readings and the one rule for the
                   newest (by minute, then the LOWER balance). Read by

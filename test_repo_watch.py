@@ -108,6 +108,26 @@ import repo_watch as R
 #   file: repo_watch.py
 #   find:         o.append("| working tree | ⚠️ could not be read: %s |" % rep["tree_error"])
 #   with:         pass
+#
+# @vacuity [2026-11-17] measure() keeps a tree it could not read on the report
+#   file: repo_watch.py
+#   find:         rep["tree_error"] = "%s: %s" % (type(e).__name__, e)
+#   with:         pass
+#
+# @vacuity [2026-11-17] the window's base is main's own commit, never a PR branch's
+#   file: repo_watch.py
+#   find:     out = _git("rev-list", "-1", "--first-parent", "--before=%d days ago" % days, "HEAD",
+#   with:     out = _git("rev-list", "-1", "--before=%d days ago" % days, "HEAD",
+#
+# @vacuity [2026-11-17] the days to GitHub's 10 GB repository recommendation are that projection
+#   file: repo_watch.py
+#   find:         rep["days_to_repo_rec"] = ((REPO_REC_GB * 1e9 - rep["pack_mib"] * 1048576.0)
+#   with:         rep["days_to_repo_rec"] = ((REPO_REC_GB * 1e6 - rep["pack_mib"] * 1048576.0)
+#
+# @vacuity [2026-11-17] the report names the size that reaches its line first
+#   file: repo_watch.py
+#   find:                    % ("working tree" if rep["tree_days_to_limit"] <= rep["days_to_limit"]
+#   with:                    % ("working tree" if rep["tree_days_to_limit"] > rep["days_to_limit"]
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -174,9 +194,12 @@ _BENCH, _BDAY = _bench()
 _B = R.judge(R.measure(root=_BENCH))
 
 
-def _independent(root, days=R.WINDOW_DAYS):
-    """Recompute raw and on-disk sums here, without asking the module."""
-    base = R.window_base(days, root)
+def _independent(root, days=R.WINDOW_DAYS, base=None):
+    """Recompute raw and on-disk sums here, without asking the module.
+
+    `base`: the commit the window starts at, when the bench knows it by construction
+    (§6b), so the window itself is not the module's answer either."""
+    base = base or R.window_base(days, root)
     names = [l.split(" ", 1)[0] for l in
              _g("rev-list", "--objects", "%s..HEAD" % base,
                 cwd=root).splitlines()]
@@ -506,6 +529,77 @@ eq(sum(d["commits"] for d in _mser), _count,
    "   ...and its commits are every commit the window introduced, the branch's on its merge day")
 
 
+# ── 6b. the window's base is MAIN's commit at the cutoff, never a branch's ──────────
+# 🔴 `[2026-11-17]` `window_base` walked every parent. When a PR branch's commit was the
+#    newest before the cutoff it became the base, and `base..HEAD` still held main's own
+#    commits from between the fork point and the cutoff, stored BEFORE the window: the
+#    window total, a series day older than the base, and the tree growth (against the
+#    branch's tree) all counted them. The bench above has main's commit (W+2) newer than
+#    the branch's (W+8), so it never had this shape; this one is built to.
+def _bench_side_base():
+    d = tempfile.mkdtemp(prefix="repowatch-sidebase-")
+    _g("init", "-q", d, cwd="/")
+    _g("-C", d, "config", "user.email", "t@t")
+    _g("-C", d, "config", "user.name", "t")
+    _g("-C", d, "config", "core.autocrlf", "false")
+    W = R.WINDOW_DAYS
+    _commit(d, {"README": b"anchor"}, W + 13)
+    _commit(d, {"README": b"fork point"}, W + 6)
+    main = _g("-C", d, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    _g("-C", d, "branch", "side")
+    # main's last commit before the cutoff: 300 kB stored already, so never the window's
+    _commit(d, {"data/latest/old.json.gz": gzip.compress(os.urandom(300000))}, W + 3)
+    m2 = _g("-C", d, "rev-parse", "HEAD").strip()
+    # a PR branch's commit, also before the cutoff but NEWER than main's last one there
+    _g("-C", d, "checkout", "-q", "side")
+    feature = b"x = 1"
+    _commit(d, {"src/feature.py": feature}, W + 0.5)
+    _g("-C", d, "checkout", "-q", main)
+    _commit(d, {"data/latest/board.json.gz": gzip.compress(os.urandom(40000))}, 5)
+    _merge(d, "side", 2)
+    board = gzip.compress(os.urandom(40000))
+    _commit(d, {"data/latest/board.json.gz": board}, 1)
+    _g("-C", d, "gc", "-q", "--prune=now")
+    # the tree main gained since m2, by construction: the branch's file and the board
+    return d, m2, len(feature) + len(board)
+
+
+_SB, _SB_M2, _SB_GROW = _bench_side_base()
+_S = R.judge(R.measure(root=_SB))
+_sfp = _g("-C", _SB, "rev-list", "--first-parent", "HEAD").split()
+_sany = _g("-C", _SB, "rev-list", "-1", "--before=%d days ago" % R.WINDOW_DAYS, "HEAD").strip()
+_sbase = R.window_base(root=_SB)
+_SRAW, _SDISK = _independent(_SB, base=_SB_M2)
+_sser = _S.get("series", [])
+_stop = [t["path"] for t in _S.get("top", [])]
+ck("⚠️ the side-base bench has its shape: a readable report, and the newest commit of ANY "
+   "parent before the cutoff is the branch's",
+   _S["state"] in ("OK", "BAD") and _sany and _sany not in _sfp,
+   "⛔ rule 67: if main's commit were the newest, every check below would pass on the old "
+   "code too. state=%s why=%s any-parent=%s" % (_S["state"], _S.get("why", "")[:120], _sany[:9]))
+ck("🔴🔴 the window's base is MAIN's own commit at the cutoff, never the branch's",
+   _sbase == _SB_M2 and _sbase in _sfp
+   and _S.get("base_date") == _g("-C", _SB, "log", "-1", "--format=%cd", "--date=short",
+                                 _SB_M2).strip(),
+   "base %s (main's commit at the cutoff %s), base_date %s"
+   % ((_sbase or "")[:9], _SB_M2[:9], _S.get("base_date")))
+ck("🔴🔴 ...so the window total is only what main took in INSIDE the window",
+   abs(_S.get("disk_mb", -1) - _SDISK / 1e6) < 1e-6
+   and "data/latest/old.json.gz" not in _stop,
+   "⛔ old.json.gz was stored before the cutoff. reported %.6f MB, main's window %.6f MB, top %s"
+   % (_S.get("disk_mb", -1), _SDISK / 1e6, _stop))
+ck("🔴 ...the days sum to it, and none is older than the base",
+   bool(_sser) and abs(sum(d["disk_mb"] for d in _sser) - _SDISK / 1e6) < 1e-6
+   and min(d["day"] for d in _sser) >= _S.get("base_date", "9999"),
+   "base %s, days %s" % (_S.get("base_date"),
+                         [(d["day"], round(d["disk_mb"], 4)) for d in _sser]))
+ck("🔴 ...and the tree's growth is HEAD's tree against MAIN's at the cutoff",
+   abs(_S.get("tree_mb_day", -1) - _SB_GROW / 1e6 / R.WINDOW_DAYS) < 1e-9,
+   "⛔ against the branch's tree it counts main's pre-window files as growth. report %.6f "
+   "MB/day, by construction %.6f" % (_S.get("tree_mb_day", -1), _SB_GROW / 1e6 / R.WINDOW_DAYS))
+shutil.rmtree(_SB, ignore_errors=True)
+
+
 # ══════════════════════════════════════════════════════════════════════
 section("7. 🔴 `[2026-11-17]` THE WORKING TREE BESIDE THE PACK, EACH WITH ITS OWN LIMIT")
 # ══════════════════════════════════════════════════════════════════════
@@ -558,5 +652,63 @@ _ue = R.render(dict(_M, tree_error="CalledProcessError: planted"))
 ck("⛔ a tree that cannot be read is SAID, never left out",
    "could not be read: CalledProcessError: planted" in _ue and "| working tree to" not in _ue,
    _ue[:300])
+
+# ⛔ AND measure() SAYS IT, DRIVEN: the check above plants `tree_error` in the report, so
+#    measure() could swallow the error and every line above would still pass. Here git's
+#    tree read fails for real inside measure(): every tree, then only the base's.
+# (getattr: a module with no tree reader at all fails the checks below, rather than
+#  stopping this file before them)
+_real_tree_bytes = getattr(R, "tree_bytes", None)
+
+
+def _all_trees_fail(rev="HEAD", root=R.ROOT):
+    raise subprocess.CalledProcessError(128, ["git", "ls-tree", rev], "", "planted")
+
+
+def _base_tree_fails(rev="HEAD", root=R.ROOT):
+    if rev != "HEAD":
+        raise subprocess.CalledProcessError(128, ["git", "ls-tree", rev], "", "planted")
+    return _real_tree_bytes(rev, root)
+
+
+def _render_or_why(rep):
+    try:
+        return R.render(rep)
+    except Exception as e:  # a report that cannot be rendered is a failure, said as one
+        return "render raised %s: %s" % (type(e).__name__, e)
+
+
+try:
+    R.tree_bytes = _all_trees_fail
+    _TE = R.judge(R.measure(root=_MB))
+    R.tree_bytes = _base_tree_fails
+    _TB = R.judge(R.measure(root=_MB))
+finally:
+    R.tree_bytes = _real_tree_bytes
+for _lbl, _rep in (("no tree can be read", _TE), ("the base's tree cannot be read", _TB)):
+    _t = _render_or_why(_rep)
+    ck("⛔ when %s, measure() keeps the error on the report and the report says it" % _lbl,
+       _rep["state"] in ("OK", "BAD")
+       and _rep.get("tree_error", "").startswith("CalledProcessError: ")
+       and "| working tree | ⚠️ could not be read: CalledProcessError" in _t
+       and "| working tree to" not in _t and "| pack to" in _t,
+       "⛔ an unread tree left out is the pack-only report #330 printed. state=%s "
+       "tree_error=%r %s" % (_rep["state"], _rep.get("tree_error"), _t[:300]))
+
+# GitHub: a repository's on-disk size "10 GB", recommended (10^9 bytes). Written here, not
+#    read from the module, as the site's 1 GB is above.
+_rec = (10e9 - _M["pack_mib"] * 1048576.0) / 1e6 / _M["disk_mb_day"]
+ck("🔴 the days to GitHub's 10 GB repository recommendation are that projection, printed",
+   abs(_M.get("days_to_repo_rec", -1) - _rec) <= 1e-9 * max(1.0, _rec)
+   and len(_pk) == 1 and ("~%.0f days at this rate" % _rec) in _pk[0],
+   "report %s, by hand %.3f days. %s" % (_M.get("days_to_repo_rec"), _rec, _pk))
+_tree_first = R.render(dict(_M, tree_days_to_limit=10.0, days_to_limit=500.0))
+_pack_first = R.render(dict(_M, tree_days_to_limit=500.0, days_to_limit=10.0))
+ck("🔴 ...and the report names the size that reaches its line FIRST, either way round",
+   "the **working tree** reaches its line first" in _tree_first
+   and "the **pack** reaches its line first" in _pack_first,
+   "⛔ an inverted comparison sends Sam to the wrong size. tree nearer -> %r; pack nearer -> %r"
+   % ([l for l in _tree_first.splitlines() if "reaches its line" in l][:1],
+      [l for l in _pack_first.splitlines() if "reaches its line" in l][:1]))
 
 shutil.rmtree(_MB, ignore_errors=True)

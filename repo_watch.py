@@ -188,8 +188,19 @@ def tree_bytes(rev="HEAD", root=ROOT):
 
 
 def window_base(days=WINDOW_DAYS, root=ROOT):
-    """The newest commit at least `days` old, or None if history is short."""
-    out = _git("rev-list", "-1", "--before=%d days ago" % days, "HEAD",
+    """MAIN'S newest commit at least `days` old, or None if history is short.
+
+    🔴 `[2026-11-17]` ~~the newest commit of ANY parent~~ could be a PR branch's: when a
+    branch commit was the newest before the cutoff, `base..HEAD` still held main's own
+    commits between the fork point and the cutoff, stored before the window, so the
+    window total, the per-day series (a day older than the base) and the tree growth
+    (measured against the branch's tree) all counted them. Measured on 860085a45, HEAD as
+    main stood at each run: 18 of 912 hourly runs on the hour (20 at :16) over 38 days,
+    up to 2.95 MB of tree growth too much (the 11-10T00:00Z cutoff); 0 of 59 at the daily
+    13:56Z cron, so a late or hand-started run. ✅ `--first-parent`: the base is the
+    commit main itself stood on at the cutoff, the same line `_series` walks.
+    """
+    out = _git("rev-list", "-1", "--first-parent", "--before=%d days ago" % days, "HEAD",
                cwd=root).strip()
     return out or None
 
@@ -234,7 +245,9 @@ def measure(days=WINDOW_DAYS, root=ROOT, top_n=TOP_N):
     except Exception as e:
         rep["tree_error"] = "%s: %s" % (type(e).__name__, e)
     try:
-        rep["base_date"] = _git("log", "-1", "--format=%ad", "--date=short",
+        # ⚠️ the COMMIT day (%cd): the clock `--before` chose the base by, and the one
+        #    `_series` buckets days by (~~%ad, the author's~~).
+        rep["base_date"] = _git("log", "-1", "--format=%cd", "--date=short",
                                 base, cwd=root).strip()
         # objects reachable from HEAD but not from the base == introduced
         # in the window, with the path each was seen at.
