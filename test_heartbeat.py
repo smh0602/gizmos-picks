@@ -1097,6 +1097,8 @@ PAGE_STAMP_READS = {
     ("fbRecord", "R"): "data/<lg>/latest/record.json (fbRecordLoad)",
     ("fbNews", "N"): "data/<lg>/latest/news.json (fbNewsLoad)",
     ("renderFootball", "doc"): "the football Trends file (fbLoad, fbPath)",
+    # `[2026-11-18]` the football refresh's stamp (test_fb_refresh.py)
+    ("fbRefreshTick", ")"): "data/<lg>/latest/freshness.json (fbRefreshTick's built_at)",
 }
 _PAGE_DIR = tempfile.mkdtemp(dir=TMP)
 

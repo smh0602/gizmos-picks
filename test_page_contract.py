@@ -70,6 +70,13 @@ EXEMPT = {
     "data/latest/freshness.json":
         "the contract's OWN OUTPUT — a row on it would ask the report "
         "whether the report is fresh",
+    # `[2026-11-18]` read by the football refresh (index.html `fbRefreshTick`) as its stamp.
+    "data/nfl/latest/freshness.json":
+        "the NFL contract's OWN OUTPUT, read as the football refresh's stamp — a row on "
+        "it would ask the report whether the report is fresh",
+    "data/ncaaf/latest/freshness.json":
+        "the college contract's OWN OUTPUT, read as the football refresh's stamp — a row "
+        "on it would ask the report whether the report is fresh",
     "picks/{day}.json":
         "MLB. ⛔ FROZEN, and already covered by the `card` row for the "
         "current slate; older days are the permanent record, which is "
