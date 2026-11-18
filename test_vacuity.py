@@ -568,27 +568,6 @@ note("tier 2 currently covers %d declared mutation(s); tier 1 covers %d "
      "name-mapped pair(s); %d test file(s) are unmapped and reported every "
      "run." % (len(_real2), len(V.name_map(ROOT)), len(_um)))
 
-section("4b. 🔴🔴 EVERY DECLARATION IN THIS SHARE BITES, OR KNOWN_VACUOUS SAYS WHY NOT")
-# `[2026-11-18, #249]` Until today this section asked only about the two CFBD mutations
-#    above, so a share holding a VACUOUS guard went green: four went vacuous on
-#    2026-10-16/17 and every pr-tests part passed the PRs that did it. The nightly
-#    named them every night from 11-02, in an issue already open. ⛔ Now any finding
-#    (`V.verdict`'s states) fails the share it falls in, unless `V.KNOWN_VACUOUS`
-#    names it, with its reason and its issue; a row still owing its green fails
-#    whatever the list says. The list only shrinks (`test_vacuity_gate.py`, which
-#    drives `V.gate` and carries this file's declarations, since this file can carry
-#    none). ⚠️ This makes the sweep STRICTER: nothing that failed before passes now.
-_odd2 = sorted((r["state"], r["test"], r["line"]) for r in _real2 if r["state"] != "BITES")
-note("this share: %d of %d declaration(s) did not BITE%s"
-     % (len(_odd2), len(_real2),
-        "".join("\n       %-14s %s:%s" % x for x in _odd2)))
-_GATE = V.gate(_real2)
-ck("🔴🔴 NO DECLARATION IN THIS SHARE PROVES NOTHING UNLESS KNOWN_VACUOUS SAYS WHY",
-   not _GATE,
-   "⛔ do not delete or weaken the declaration, and do not add it to the list to go "
-   "green: make the test bite (CLAUDE.md: a guard that cannot fail is not a guard). "
-   "%d row(s):\n%s" % (len(_GATE), "\n".join("       " + g for g in _GATE)))
-
 # ⚠️ WHERE THE SWEEP'S TIME WENT, printed every run. `[2026-09-23]` The
 #    serial sweep reached 2401s against a 2400s clock and nothing had
 #    ever said which test files it was spending on.
@@ -609,6 +588,27 @@ if _clock and _elapsed > _clock / 2:
     #    slow runner is seen coming instead of met as a TIMEOUT.
     annotate("warning", "test_vacuity.py's sweep used %ds of its %ds clock"
              % (_elapsed, _clock))
+
+section("4b. 🔴🔴 EVERY DECLARATION IN THIS SHARE BITES, OR KNOWN_VACUOUS SAYS WHY NOT")
+# `[2026-11-18, #249]` Until today this file asked only about the two CFBD mutations
+#    (section 4), so a share holding a VACUOUS guard went green: four went vacuous on
+#    2026-10-16/17 and every pr-tests part passed the PRs that did it. The nightly
+#    named them every night from 11-02, in an issue already open. ⛔ Now any finding
+#    (`V.verdict`'s states) fails the share it falls in, unless `V.KNOWN_VACUOUS`
+#    names it, with its reason and its issue; a row still owing its green fails
+#    whatever the list says. The list only shrinks (`test_vacuity_gate.py`, which
+#    drives `V.gate` and carries this file's declarations, since this file can carry
+#    none). ⚠️ This makes the sweep STRICTER: nothing that failed before passes now.
+_odd2 = sorted((r["state"], r["test"], r["line"]) for r in _real2 if r["state"] != "BITES")
+note("this share: %d of %d declaration(s) did not BITE%s"
+     % (len(_odd2), len(_real2),
+        "".join("\n       %-14s %s:%s" % x for x in _odd2)))
+_GATE = V.gate(_real2)
+ck("🔴🔴 NO DECLARATION IN THIS SHARE PROVES NOTHING UNLESS KNOWN_VACUOUS SAYS WHY",
+   not _GATE,
+   "⛔ do not delete or weaken the declaration, and do not add it to the list to go "
+   "green: make the test bite (CLAUDE.md: a guard that cannot fail is not a guard). "
+   "%d row(s):\n%s" % (len(_GATE), "\n".join("       " + g for g in _GATE)))
 
 section("5. 🔴🔴 THE EXIT CODE IS THE WHOLE INTERFACE, SO IT IS DRIVEN")
 # ⛔ `main()` USED TO CLASSIFY INLINE AND NOTHING COULD REACH IT.
