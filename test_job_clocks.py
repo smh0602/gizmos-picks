@@ -94,10 +94,15 @@ and the clock is pinned. Nothing here reads data/latest/runs.json or the API.
 #   find:     for r in todo[:cap]:
 #   with:     for r in todo:
 #
-# @vacuity 🔴 a failing jobs API is asked once a write, never once per run left
+# @vacuity 🔴 a failing jobs API is asked twice a write, never once per run left
 #   file: runs_report.py
-#   find:             break                   # 🔴 a failing API is asked once a write, never 40 times
-#   with:             continue
+#   find:                 break               # 🔴 a failing API is asked twice a write, never 40 times
+#   with:                 pass
+#
+# @vacuity ⚠️ ...two failures IN A ROW: one bad run never holds back the runs after it
+#   file: runs_report.py
+#   find:         failed = 0                  # ⚠️ one bad run never holds back the runs after it
+#   with:         pass
 #
 # @vacuity ⚠️ ...and no reading runs past its time budget
 #   file: runs_report.py
@@ -497,9 +502,17 @@ eq([r["run_id"] for r in _recs4], [8], "⚠️ a record older than 7 days is dro
 #    `_gh_json`) was asked for every run left: up to 40 minutes inside runs.yml's 10-minute job
 _down = Api({}, broken={1000 + k for k in range(R.CLOCK_READS_PER_WRITE + 5)})
 _recs5, _errs5 = R.read_clocks(_many, NOW, NAMES, [], _down, ROOT)
-eq((len(_down.calls), len(_recs5), [e["run_id"] for e in _errs5]), (1, 0, [1000]),
-   "🔴 a failing jobs API is asked ONCE a write: the first failure ends the reading, the runs "
-   "after it are left for the next write, never recorded")
+eq((R.CLOCK_FAILS_IN_A_ROW, len(_down.calls), len(_recs5), [e["run_id"] for e in _errs5]),
+   (2, 2, 0, [1000, 1001]),
+   "🔴 a failing jobs API is asked TWICE a write: two failures in a row end the reading, the "
+   "runs after them are left for the next write, never recorded")
+# ...but a run whose own call keeps failing (any reason) must not hold back the older runs
+#    behind it, write after write, until it leaves the run list
+_bad2 = Api({}, broken={1000, 1005})
+_recs5b, _errs5b = R.read_clocks(_many, NOW, NAMES, [], _bad2, ROOT)
+eq((len(_bad2.calls), len(_recs5b), [e["run_id"] for e in _errs5b]),
+   (R.CLOCK_READS_PER_WRITE, R.CLOCK_READS_PER_WRITE - 2, [1000, 1005]),
+   "⚠️ ...while two runs whose calls fail APART are two errors, and every other run is still read")
 _t = [0.0]
 
 

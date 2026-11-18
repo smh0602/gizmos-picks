@@ -1248,16 +1248,19 @@ def status_doc(raw, now, names, prior=None, fetch_json=None,
 #    80 calls in an hour. Pages' runs declare no clock and cost nothing. Measured
 #    11-06 -> 11-13: 276 finished runs in 7 days, about 1.7 calls an hour at
 #    steady state.
-# 🔴 AND A FAILING API IS ASKED ONCE A WRITE, NEVER 40 TIMES. `[2026-11-17, the
+# 🔴 AND A FAILING API IS ASKED TWICE A WRITE, NEVER 40 TIMES. `[2026-11-17, the
 #    review]` A jobs endpoint that timed out was asked for every run left, each
 #    up to `_gh_json`'s 60s: 40 minutes inside runs.yml's 10-minute publish job, or
-#    in the last pass of a held collect run. ✅ The FIRST failed call ends the
-#    reading, and no reading runs past CLOCK_READ_BUDGET_S; the runs left are asked
-#    on the next write, never recorded as read.
+#    in the last pass of a held collect run. ✅ CLOCK_FAILS_IN_A_ROW (2) failed
+#    calls in a row end the reading, and no reading runs past CLOCK_READ_BUDGET_S;
+#    the runs left are asked on the next write, never recorded as read. ⚠️ In a
+#    ROW, not the first: one run whose call keeps failing would otherwise hold back
+#    every older run behind it, each write, until it left the run list.
 CLOCK_DAYS = 7
 CLOCK_WARN = 0.75
 CLOCK_READS_PER_WRITE = 40
 CLOCK_READ_BUDGET_S = 120
+CLOCK_FAILS_IN_A_ROW = 2
 SWEEP_JOB = re.compile(r"\bsweep \d+/\d+\b")
 SWEEP_FILE = "test_vacuity.py"
 # ══════════════════════════════════════════════════════════════════════
@@ -1424,8 +1427,8 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
     """-> (clock_runs, errors): the records of `prior` still inside CLOCK_DAYS, and
     one new record per finished run of `raw` not read yet, newest first, at most
     `cap` and for at most `budget` seconds (`clock`). A call that fails is an error,
-    retried next write, never a record, and it ENDS the reading: the runs after it
-    are left for the next write."""
+    retried next write, never a record; CLOCK_FAILS_IN_A_ROW of them in a row END
+    the reading (the API is down): the runs after them are left for the next write."""
     floor = now - datetime.timedelta(days=CLOCK_DAYS)
     kept = {(p.get("run_id"), p.get("attempt")): p for p in prior or []
             if (_dt(p.get("at")) or floor) > floor}
@@ -1433,7 +1436,7 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
     todo = [r for r in raw or [] if r.get("status") == "completed"
             and (r.get("path") or "") in clocks and (r.get("id"), r.get("run_attempt")) not in kept]
     todo.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
-    errors, began = [], clock()
+    errors, began, failed = [], clock(), 0
     for r in todo[:cap]:
         if clock() - began >= budget:
             break                   # ⚠️ out of time: the rest are the next write's
@@ -1445,7 +1448,11 @@ def read_clocks(raw, now, names, prior, fetch, root=".", cap=CLOCK_READS_PER_WRI
         except Exception as e:      # noqa: BLE001 - recorded, not hidden
             errors.append({"run_id": r.get("id"), "file": r.get("path"),
                            "why": ("%s: %s" % (type(e).__name__, e))[:200]})
-            break                   # 🔴 a failing API is asked once a write, never 40 times
+            failed += 1
+            if failed >= CLOCK_FAILS_IN_A_ROW:
+                break               # 🔴 a failing API is asked twice a write, never 40 times
+            continue
+        failed = 0                  # ⚠️ one bad run never holds back the runs after it
         rec = clock_record(r, jobs, clocks[r["path"]], sweep, names, holds.get(r["path"]))
         kept[(rec["run_id"], rec["attempt"])] = rec
     out = sorted(kept.values(), key=lambda p: (p.get("at") or "", str(p.get("run_id"))), reverse=True)

@@ -1249,7 +1249,7 @@ note boxes, tags and the stale bar now require their absence.
   reads every finished run's jobs once (`runs_report.read_clocks`: at most 40 jobs calls
   per write of runs.json, which runs.yml's hourly publish and collect's `runs` row both
   write, so at most about 80 in an hour; about 2 an hour at steady state; `[2026-11-17,
-  the review]` the first failed call ends a write's reading and no reading runs past
+  the review]` two failed calls in a row end a write's reading and no reading runs past
   `CLOCK_READ_BUDGET_S` (120), since a failing API asked 40 times at 60s a call outlasts
   runs.yml's 10-minute publish job) into runs.json
   `clock_runs` (7 days): each job beside its own `timeout-minutes`, a sweep part's Tests
