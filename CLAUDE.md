@@ -463,11 +463,16 @@ note boxes, tags and the stale bar now require their absence.
   files for for its freshness.json `built_at` (it moved in 137 of the 140 NFL commits that
   changed a file the page reads, 2026-11-10 to 11-18; the card's `generated_at` in 84).
   Moved: a league not on screen lets its files go; the league on screen reads them again
-  (no-cache) and is drawn again only when one changed. Every minute `fbKickTick` draws
+  (no-cache), each copy kept until its new one is in (`fbKeep`), and is drawn again only when
+  one changed. Every minute `fbKickTick` draws
   Gizmo's Picks, Odds and Player Props again once a game in their file has started. ⛔ Never
-  while a box score or an opened row is open, the scroll kept, nothing new drawn. ⛔ A new
-  football memo goes in `fbMemos()` or in `test_fb_refresh.py`'s ALLOW with its reason; that
-  file fails on one in neither.
+  while a box score or an opened row is open, never on MLB, the scroll and the SET STATE
+  picker kept (`fbRedraw`), a redraw the reader's own draw already made not made again
+  (`fbDrawStarts`), nothing new drawn. A football loader writes its answer, a failure too,
+  under the league it was asked for (`const lg = LEAGUE`). ⛔ A new football memo is a plain
+  object keyed `lg` or `lg|...`, in `fbMemos()` (read again, or only dropped) or in
+  `test_fb_refresh.py`'s ALLOW with its reason; that file fails on one in neither, on a Map,
+  and on a reader turned to null.
 - 🔴 **ONE LOOK FOR ALL THREE LEAGUES: DESIGN I.** `[Sam, 2026-10-17]` *"i like the
   light blue on i think that oone is good"*, choosing design I of the layouts he was
   shown: a white page; the ONE `<header>` is a navy side panel (logo, league switch,

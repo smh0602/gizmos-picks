@@ -151,11 +151,12 @@ def resolve(p):
             outs.append(re.sub(r"\$\{LG_DATA\[\w+\]\}", d, p))
     else:
         outs.append(p)
-    # `picks/fb-${LEAGUE}-latest.json` names one file per league.
+    # `picks/fb-${LEAGUE}-latest.json` names one file per league. `[2026-11-18]` So does
+    # `picks/fb-${lg}-latest.json`: fbCardLoad takes the league once (`const lg = LEAGUE`).
     expanded = []
     for o in outs:
-        if "${LEAGUE}" in o:
-            expanded += [o.replace("${LEAGUE}", lg) for lg in ("ncaaf", "nfl")]
+        if "${LEAGUE}" in o or "${lg}" in o:
+            expanded += [o.replace("${LEAGUE}", lg).replace("${lg}", lg) for lg in ("ncaaf", "nfl")]
         else:
             expanded.append(o)
     outs = expanded
