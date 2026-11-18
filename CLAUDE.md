@@ -1797,7 +1797,7 @@ cfbd_watch.py     ...and the watcher that asks whether it will run out
 budget_watch.py   the same question for the Odds API spend
 repo_watch.py     is the REPOSITORY growing in a way that will become
                   a problem, and WHAT is doing it? ⛔ Reads
-                  `objectsize:disk`, never the working tree and never
+                  `objectsize:disk`, ~~never the working tree~~ and never
                   a raw blob sum — measured 2026-09-19 they differ by
                   2.84x, because git deltas text and CANNOT delta a
                   gzip. ⚠️ Flags gzips REWRITTEN IN PLACE, measured
@@ -1806,6 +1806,17 @@ repo_watch.py     is the REPOSITORY growing in a way that will become
                   correct design (rule 285). ⛔ Refuses a shallow
                   clone rather than reporting its size. Rides
                   budget.yml as a second JOB; no new cron.
+                  `[2026-11-17]` Prints the WORKING TREE beside the pack
+                  (`git ls-tree -r -l`, no checkout): the Pages site is
+                  built from it and its 1 GB is the HARD limit. The pack's
+                  ~~1 GiB limit~~ is Pages' RECOMMENDATION for a source
+                  repository (GitHub recommends 10 GB for any repository).
+                  Judges the pack only, as before. The per-day series walks
+                  main's first-parent commits: a merged branch authored
+                  before the window had counted ~41 MB twice (#330). The
+                  window starts at MAIN's commit at the cutoff, never a
+                  branch's (`window_base`, `--first-parent`: 18 of 912
+                  hourly runs had counted main's pre-window data).
 credits.py        THE CREDIT BALANCE CHAIN: the one reader of stored
                   `credits_remaining` readings and the one rule for the
                   newest (by minute, then the LOWER balance). Read by
@@ -1937,6 +1948,14 @@ daystore.py       the one dated, write-once archive writer. ⛔ Never
                   difference still dumps. ⚠️ winners.graded reaches
                   same_bytes, so an edit to it (or to same_but_stamps) moves
                   the winners grader's stamp: one free rebuild.
+                  `[2026-11-17]` A same_as copy whose bytes the day's
+                  previous archive of its kind already holds is NOT written
+                  again (63 dossier copies, 16.5 MB of the working tree and
+                  the Pages site, 11-11 -> 11-17). Only within one UTC day
+                  (shadow_fb reads the newest archive OF A DAY), only against
+                  the reading just before, never a dump (the news archive's
+                  freshness row wants one file per pass).
+                  test_archive_same_bytes §3.
 push_retry.sh     the ONE way a workflow lands its commits: rebase
                   favouring this run's files, abort + replay on a
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a
