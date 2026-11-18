@@ -20,13 +20,17 @@ caught only OSError / ValueError: a truncated gzip raised EOFError out of every 
 and a bad-JSON file read as None while its writer saw a file and moved on, so neither
 was ever rebuilt (and with HC the college champion, either one crashed its build or
 trained it on one season of two). ✅ `_stored` is the one reader: present (a dict with
-games), missing or corrupt. A corrupt file is rebuilt by the same path as a missing
+games of its kind's shape, `freshness.history_problem`, the same test the contract's
+HEALTH asks), missing or corrupt. A corrupt file is rebuilt by the same path as a missing
 one, and only once the new one is in hand is the old one moved to
 `history/corrupt/<name>.<UTC time>`: never deleted, never read (no reader looks in that
-folder, and the name no longer ends in .json.gz). A missing or corrupt file a run could
-not land is named in `history/rebuild-attempts.json` (`ATTEMPTS`), which
-`freshness.rebuild_held` reads: a CHAMPION's file is replanned once a day, never every
-pass (each `cfb-probe` is a CFBD sweep).
+folder, and the name no longer ends in .json.gz). A readable file with no stamp the
+contract reads is stamped in place, in BOTH leagues, at no call. ~~A missing or corrupt
+file a run could not land~~ `[review, 2026-11-17]` Every file the contract still reads
+stale when a run ends, whatever the run did or skipped (`_landed`, asked of the contract
+itself), is named in `history/rebuild-attempts.json` (`ATTEMPTS`), which
+`freshness.rebuild_held` reads: a CHAMPION's file is retried by its writer's own next
+deadline run, never by an extra one (each `cfb-probe` is a CFBD sweep).
 """
 import datetime
 import glob
@@ -55,9 +59,13 @@ def hdir(lg, root=None):
 
 def _stored(p):
     """-> (doc, state, why): THE ONE READER of a stored history file. `state` is "present" (a
-    dict with non-empty `games`), "missing" or "corrupt" (`why`: the error's name, or "no
-    games"). ⛔ Never raises: a truncated gzip (EOFError), a damaged stream (zlib.error), a
-    bad header (OSError) or bad JSON or text (ValueError) is corrupt, never a crash."""
+    dict whose `games` freshness.history_problem accepts: a schedule's a non-empty list, lines' a
+    non-empty dict), "missing" or "corrupt" (`why`: the error's name, or history_problem's
+    reason). ⛔ Never raises: a truncated gzip (EOFError), a damaged stream (zlib.error), a
+    bad header (OSError) or bad JSON or text (ValueError) is corrupt, never a crash.
+    ⛔ Its content test is the contract's own (one copy, `[review, 2026-11-17]`): with two, a
+    stamped file with no games was corrupt here and fresh to the contract, so HC failed on it
+    and nothing planned its repair."""
     if not os.path.exists(p):
         return None, "missing", None
     try:
@@ -65,9 +73,30 @@ def _stored(p):
             doc = json.load(fh)
     except (EOFError, zlib.error, OSError, ValueError) as e:
         return None, "corrupt", type(e).__name__
-    if not isinstance(doc, dict) or not doc.get("games"):
-        return None, "corrupt", "no games"
+    bad = _F.history_problem(p, doc)
+    if bad:
+        return None, "corrupt", bad
     return doc, "present", None
+
+
+def _landed(p):
+    """Does the CONTRACT read the file at `p` as current now: a stamp it reads (`stamp_of`) and
+    no health finding (`health`, history_problem for these files)? A history row has no deadline,
+    so that is the whole of its row's verdict. The writers' post-condition (`_record_attempts`)."""
+    return _F.stamp_of(p) is not None and _F.health(p) is None
+
+
+def _stamp_once(p, doc):
+    """A readable stored file the contract reads no stamp in (its own reader, so one list of stamp
+    fields) is stamped once, its games untouched, at no call. -> the outcome, or None when it has
+    one. `[2026-10-27]` NFL's (unstamped, its seven schedules read MISSING 10-16 -> 10-27);
+    `[review, 2026-11-17]` college's too (rule 6): an unstamped HC file read MISSING, so it was
+    owed on every pass, while store_cfb saw a file and spent nothing on it, and planned a CFBD
+    sweep an hour for ever."""
+    if _F.stamp_of(p) is not None:
+        return None
+    _write(p, doc)
+    return "stamped (%d games)" % len(doc["games"])
 
 
 def state_of(p):
@@ -91,13 +120,15 @@ def _aside(p):
     return dst
 
 
-def _record_attempts(lg, root, tried):
-    """`tried`: {file name: outcome} for every missing or corrupt file this run tried. One that
-    landed ("written", "rebuilt") leaves ATTEMPTS; one that did not is kept with this run's time,
-    so `freshness.rebuild_held` replans its row once a day, never every pass. Written only when
-    it changes. ⛔ Never raises."""
-    if not tried:
-        return
+def _record_attempts(lg, root, ends):
+    """`ends`: {file name: (path, this run's outcome, or None for none)} for EVERY file the writer
+    owns. THE WRITER'S POST-CONDITION, asked of the contract itself (`_landed`): a file the contract
+    reads as current leaves ATTEMPTS; one it still reads stale, whatever this run did or skipped
+    (refused, failed, no games, or a "present" file the contract cannot stamp), is kept with this
+    run's time, so `freshness.rebuild_held` holds its row until its writer's own next deadline,
+    never every pass. `[review, 2026-11-17]` ~~only the missing or corrupt files it tried, by their
+    outcome's words~~: an unstamped college file was "present", never tried, never held, and owed
+    on every pass. Written only when it changes. ⛔ Never raises."""
     p = os.path.join(hdir(lg, root), ATTEMPTS)
     try:
         with open(p, encoding="utf-8") as fh:
@@ -105,11 +136,12 @@ def _record_attempts(lg, root, tried):
     except (OSError, ValueError, AttributeError):
         have = {}
     files = dict(have)
-    for name, outcome in tried.items():
-        if str(outcome).startswith(("written", "rebuilt")):
+    for name, (path, outcome) in ends.items():
+        if _landed(path):
             files.pop(name, None)
         else:
-            files[name] = {"tried_at": _stamp(), "outcome": str(outcome)[:300]}
+            files[name] = {"tried_at": _stamp(), "outcome": str(
+                outcome or "unchanged: the contract still reads it stale (%s)" % state_of(path))[:300]}
     if files == have:
         return
     try:
@@ -119,7 +151,10 @@ def _record_attempts(lg, root, tried):
                       fh, indent=1, sort_keys=True)
         os.replace(p + ".tmp", p)
     except OSError:
-        pass
+        try:
+            os.remove(p + ".tmp")
+        except OSError:
+            pass
 
 
 def _stamp():
@@ -155,25 +190,25 @@ def alias(doc):
 def store_nfl(log=log, root=None, build=None):
     """Each missing or unreadable NFL history season, from nflverse (free). `build(season) -> doc`
     (tests plant one). -> {season: outcome}. ⛔ Never raises."""
-    out, rows, tried = {}, None, {}
+    out, rows, ends = {}, None, {}
     for s in NFL_SEASONS:
         p = os.path.join(hdir("nfl", root), "schedule-%d.json.gz" % s)
         doc, state, why = _stored(p)
         try:
             if state == "present":               # NFL: a readable file is never rebuilt
-                # `[2026-10-27]` a stored file the contract reads no stamp in (its own reader,
-                # so one list of stamp fields) is stamped once: its games untouched
-                if doc and doc.get("games") and _F.stamp_of(p) is None:
-                    _write(p, doc)
-                    out[s] = "stamped (%d games)" % len(doc["games"])
+                got = _stamp_once(p, doc)        # `[2026-10-27]` ...only stamped, when it has none
+                if got:
+                    out[s] = got
                     log("  history nfl %d: %s" % (s, out[s]))
                 continue
             if build is None:
                 import nfl as _nfl
                 if rows is None:
-                    seen = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
-                                            for a in (r.get("assets") or [])] for r in _nfl._releases(log)}
-                    rows = _nfl._rows(seen, "schedules", _nfl.SCHEDULE_FILE, log)
+                    # ⛔ its own name: `[review, 2026-11-17]` reusing the end-of-run record's name
+                    #    made this table the record, and the real nflverse path raised out of store_nfl
+                    rel = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
+                                           for a in (r.get("assets") or [])] for r in _nfl._releases(log)}
+                    rows = _nfl._rows(rel, "schedules", _nfl.SCHEDULE_FILE, log)
                 doc, _rep = _nfl.build_schedule(s, None, log, rows=rows)
             else:
                 doc = build(s)
@@ -189,10 +224,9 @@ def store_nfl(log=log, root=None, build=None):
         except Exception as e:
             out[s] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
         finally:
-            if state != "present":
-                tried["schedule-%d.json.gz" % s] = out.get(s)
+            ends["schedule-%d.json.gz" % s] = (p, out.get(s))
         log("  history nfl %d: %s" % (s, out[s]))
-    _record_attempts("nfl", root, tried)
+    _record_attempts("nfl", root, ends)
     return out
 
 
@@ -220,9 +254,10 @@ def pick_lines(data):
 def store_cfb(log=log, root=None):
     """Each missing or unreadable college history season's schedule (2 calls) and lines (1 call),
     every call priced first. -> {file: outcome}. ⛔ Never raises.
-    `[2026-11-17]` A present file costs no call; a corrupt one is priced and rebuilt like a
-    missing one, and moved aside only once the new one is in hand."""
-    out, tried = {}, {}
+    `[2026-11-17]` A present file costs no call (an unstamped one is stamped in place, as
+    NFL's); a corrupt one is priced and rebuilt like a missing one, and moved aside only once
+    the new one is in hand."""
+    out, ends = {}, {}
     try:
         import cfb as _cfb
     except Exception as e:
@@ -231,10 +266,18 @@ def store_cfb(log=log, root=None):
     for s in CFB_SEASONS:
         for kind, calls in (("schedule", 2), ("lines", 1)):
             p = os.path.join(hdir("ncaaf", root), "%s-%d.json.gz" % (kind, s))
-            _doc, state, why = _stored(p)
-            if state == "present":               # college: a readable file costs no call
-                continue
+            doc0, state, why = _stored(p)
             key = "%s-%d" % (kind, s)
+            if state == "present":               # college: a readable file costs no call
+                try:
+                    got = _stamp_once(p, doc0)   # `[review, 2026-11-17]` ...only stamped, when it has none
+                except Exception as e:
+                    got = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
+                if got:
+                    out[key] = got
+                    log("  history ncaaf %s: %s" % (key, got))
+                ends["%s.json.gz" % key] = (p, out.get(key))
+                continue
             try:
                 if not _cfb._priced(calls, "history %s %d" % (kind, s), log):
                     out[key] = "refused"
@@ -260,9 +303,9 @@ def store_cfb(log=log, root=None):
             except Exception as e:
                 out[key] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
             finally:
-                tried["%s.json.gz" % key] = out.get(key)
+                ends["%s.json.gz" % key] = (p, out.get(key))
             log("  history ncaaf %s: %s" % (key, out[key]))
-    _record_attempts("ncaaf", root, tried)
+    _record_attempts("ncaaf", root, ends)
     return out
 
 

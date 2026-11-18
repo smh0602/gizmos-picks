@@ -15,8 +15,8 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #
 # @vacuity 🔴 an unstamped stored file is stamped in place
 #   file: fb_history.py
-#   find: if doc and doc.get("games") and _F.stamp_of(p) is None:
-#   with: if False:
+#   find: if _F.stamp_of(p) is not None:
+#   with: if True:
 #
 # @vacuity 🔴 a stamp write cut short leaves the stored file whole (the write is atomic)
 #   file: fb_history.py
@@ -25,13 +25,18 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #
 # @vacuity 🔴 a stored file whose stamp the contract cannot read is stamped (one reader)
 #   file: fb_history.py
-#   find: if doc and doc.get("games") and _F.stamp_of(p) is None:
-#   with: if doc and doc.get("games") and not any(doc.get(k) for k in ("pulled_at", "built_at", "generated_at", "written_at")):
+#   find: if _F.stamp_of(p) is not None:
+#   with: if any(doc.get(k) for k in ("pulled_at", "built_at", "generated_at", "written_at")):
 #
 # @vacuity 🔴 one failing NFL season never stops the others
 #   file: fb_history.py
 #   find:             out[s] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
 #   with:             raise
+#
+# @vacuity 🔴 [review, 2026-11-17] the real nflverse path never clobbers the end-of-run record (it raised)
+#   file: fb_history.py
+#   find:                     rel = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
+#   with:                     ends = rel = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
 #
 # @vacuity 🔴 a refused CFBD history call fetches nothing
 #   file: fb_history.py
@@ -79,10 +84,20 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #   find: except (EOFError, zlib.error, OSError, ValueError) as e:
 #   with: except (OSError, ValueError) as e:
 #
-# @vacuity 🔴 a readable file with no games is corrupt too
-#   file: fb_history.py
+# @vacuity 🔴 a readable file with no games is corrupt too (the reader's and the contract's one test)
+#   file: freshness.py
 #   find: if not isinstance(doc, dict) or not doc.get("games"):
 #   with: if not isinstance(doc, dict):
+#
+# @vacuity 🔴 ...and so is one whose games are not its kind's shape (lines: a dict)
+#   file: freshness.py
+#   find: if not isinstance(doc["games"], want):
+#   with: if False:
+#
+# @vacuity 🔴 lines() never raises on an unreadable file (it reads through the one reader)
+#   file: fb_history.py
+#   find: got = (_stored(p)[0] or {}).get("games")
+#   with: got = json.load(gzip.open(p, "rt", encoding="utf-8")).get("games")
 #
 # @vacuity 🔴 store_nfl rebuilds an unreadable season (it saw a file and moved on)
 #   file: fb_history.py
@@ -104,10 +119,20 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #   find: moved = _aside(p) if state == "corrupt" else None     # college: once the new one is in hand
 #   with: moved = None     # college: once the new one is in hand
 #
-# @vacuity 🔴 a rebuild that did not land is named for the contract's hold
+# @vacuity 🔴 a file the contract still reads stale after its writer ran is named for the contract's hold
 #   file: fb_history.py
-#   find: files[name] = {"tried_at": _stamp(), "outcome": str(outcome)[:300]}
-#   with: pass
+#   find: if _landed(path):
+#   with: if True:
+#
+# @vacuity 🔴 college: an unstamped readable file is stamped in place too, at no CFBD call (rule 6)
+#   file: fb_history.py
+#   find: got = _stamp_once(p, doc0)   # `[review, 2026-11-17]` ...only stamped, when it has none
+#   with: got = None   # `[review, 2026-11-17]` ...only stamped, when it has none
+#
+# @vacuity 🔴 the contract plans a stamped history file with no games (its HEALTH asks the reader's test)
+#   file: freshness.py
+#   find: (re.compile(r"/(?:nfl|ncaaf)/history/(?:schedule|lines)-\d{4}\.json\.gz$"), _history_health),
+#   with: (re.compile(r"/nowhere/x$"), _history_health),
 #
 # @vacuity 🔴 H / HC never train on part of their seasons
 #   file: fb_challengers.py
@@ -129,20 +154,30 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #   find: continue                 # `[2026-11-17]` the champion's input (H, HC): its row is above
 #   with: pass                 # `[2026-11-17]` the champion's input (H, HC): its row is above
 #
-# @vacuity 🔴 a rebuild that failed within a day is held (never a CFBD sweep every pass)
+# @vacuity 🔴 a rebuild that did not land is held (never a CFBD sweep every pass)
 #   file: freshness.py
-#   find: held = rebuild_held(path, now) if stale and kind == "file" else None
+#   find: held = rebuild_held(r["path"], now, due.get(r["mode"])) if r["stale"] and r["kind"] == "file" else None
 #   with: held = None
 #
 # @vacuity 🔴 ...a held row is not owed
 #   file: freshness.py
-#   find: and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: once a day
-#   with: and True              # `[2026-11-17]` REBUILD_ATTEMPTS: once a day
+#   find: and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: its writer's next deadline
+#   with: and True              # `[2026-11-17]` REBUILD_ATTEMPTS: its writer's next deadline
 #
-# @vacuity 🔴 ...for REBUILD_RETRY_MIN only, then owed again
+# @vacuity 🔴 ...until its writer's own next deadline, then owed (that deadline's one run retries it)
 #   file: freshness.py
-#   find: return dict(got) if 0 <= age < REBUILD_RETRY_MIN else None
-#   with: return dict(got)
+#   find: if due is not None and due > when:
+#   with: if False:
+#
+# @vacuity 🔴 ...and never released before it: a fixed 20 h released it at 03:10Z, two CFBD sweeps a day
+#   file: freshness.py
+#   find: if due is not None and due > when:
+#   with: if age >= 20 * 60:
+#
+# @vacuity 🔴 ...and a writer no deadline releases is retried every 2 days at most
+#   file: freshness.py
+#   find: if not 0 <= age < REBUILD_RETRY_MAX_MIN:
+#   with: if not 0 <= age:
 #
 # @vacuity 🔴 ...and a late cron stands down past a held row
 #   file: freshness.py
@@ -239,6 +274,44 @@ eq(sorted(HX.store_nfl(quiet, T, build=build)), [2019], "   ...and the next run 
 #    so all seven read MISSING from 10-16 on and health.json held a standing `fresh:nfl` DEGRADED.
 ck(F.stamp_of(T + "/data/nfl/history/schedule-2018.json.gz") is not None,
    "🔴 a written history file carries a stamp the contract reads (freshness.stamp_of)")
+# `[review, 2026-11-17]` THE REAL nflverse PATH (build=None), not only a planted `build`: a rename gave
+#    the release table the end-of-run record's name, and store_nfl raised ValueError out of
+#    _record_attempts on every run that had a season to fetch (nfl-logs red). The nfl module is
+#    faked (no network): its release table, its rows, and its build_schedule, 2019 failing.
+_nfl_real, _nfl_seen = sys.modules.get("nfl"), {"releases": 0, "rows": []}
+_fake_nfl = type(sys)("nfl")
+_fake_nfl.SCHEDULE_FILE = "games.csv.gz"
+_fake_nfl._releases = lambda log=print, max_pages=10: _nfl_seen.__setitem__("releases", _nfl_seen["releases"] + 1) or [
+    {"tag_name": "schedules", "assets": [{"name": "games.csv.gz", "size": 9, "browser_download_url": "x"}]}]
+_fake_nfl._rows = lambda seen, tag, fname, log: _nfl_seen["rows"].append((seen, tag, fname)) or [{"r": 1}]
+
+
+def _fake_schedule(s, seen=None, log=print, lines=None, rows=None, root=None):
+    if s == 2019:
+        raise RuntimeError("nflverse hiccup")
+    return {"season": s, "games": [g("%d_n" % s, "%d-10-06" % s, "OAK", "SEA", 20, 17)]}, {}
+
+
+_fake_nfl.build_schedule = _fake_schedule
+_tn = tree()
+sys.modules["nfl"] = _fake_nfl
+try:
+    try:
+        _resn, _errn = HX.store_nfl(quiet, _tn), None
+    except Exception as e:        # noqa: BLE001
+        _resn, _errn = None, e
+finally:
+    if _nfl_real is None:
+        sys.modules.pop("nfl", None)
+    else:
+        sys.modules["nfl"] = _nfl_real
+ck(_errn is None and sorted(s for s, v in (_resn or {}).items() if str(v).startswith("written")) ==
+   [2018, 2020, 2021, 2022, 2023, 2024] and str(_resn[2019]).startswith("failed: RuntimeError")
+   and list(attempts(_tn, "nfl")) == ["schedule-2019.json.gz"] and _nfl_seen["releases"] == 1
+   and [(sorted(x[0]), x[1], x[2]) for x in _nfl_seen["rows"]] == [(["schedules"], "schedules", "games.csv.gz")],
+   "🔴 the real nflverse path (no planted build): never raises, the release table read once, 6 seasons "
+   "written, the failing one named in rebuild-attempts.json and nothing else in it",
+   repr(_errn) if _errn else (_resn, attempts(_tn, "nfl"), _nfl_seen["releases"]))
 _u = tree()
 put(_u, "data/nfl/history/schedule-2020.json.gz",
     {"season": 2020, "kind": "DESCRIPTIVE", "history": True, "games": [g("2020_1", "2020-10-04", "LV", "KC", 1, 2)]})
@@ -412,17 +485,28 @@ _np = {s: os.path.join(B, "data", "nfl", "history", "schedule-%d.json.gz" % s) f
 raw(B, "data/nfl/history/schedule-2020.json.gz", cut({"season": 2020, "games": [g("a", "2020-10-04", "LV", "KC", 1, 2)]}))
 raw(B, "data/nfl/history/schedule-2021.json.gz", gzip.compress(b'{"season": 2021, "games": ['))
 put(B, "data/nfl/history/schedule-2022.json.gz", {"season": 2022, "games": []})
+# `[review, 2026-11-17]` ...and college lines in the same tree, so lines() is asked too (it had been
+#    reached only through history_rows, which refuses first): one readable, one truncated, and one
+#    whose games are a list where lines keep a dict (lines() would skip it: HC on a subset).
+put(B, "data/ncaaf/history/lines-2021.json.gz", {"season": 2021, "games": {"g21": {"spread": 1.0, "total": 40.0}}})
+raw(B, "data/ncaaf/history/lines-2023.json.gz", cut({"season": 2023, "games": {"g23": {"spread": 2.0}}}))
+put(B, "data/ncaaf/history/lines-2024.json.gz", {"season": 2024, "written_at": "2026-10-15T00:00:00Z",
+                                                  "games": [{"g24": {"spread": 3.0}}]})
 _was = {s: open(_np[s], "rb").read() for s in (2020, 2021, 2022)}
-eq({s: HX.state_of(_np[s]) for s in (2019, 2020, 2021, 2022)},
-   {2019: "present", 2020: "corrupt: EOFError", 2021: "corrupt: JSONDecodeError", 2022: "corrupt: no games"},
+eq(dict({s: HX.state_of(_np[s]) for s in (2019, 2020, 2021, 2022)},
+        **{"lines-%d" % s: HX.state_of(os.path.join(B, "data", "ncaaf", "history", "lines-%d.json.gz" % s))
+           for s in (2021, 2023, 2024)}),
+   {2019: "present", 2020: "corrupt: EOFError", 2021: "corrupt: JSONDecodeError", 2022: "corrupt: no games",
+    "lines-2021": "present", "lines-2023": "corrupt: EOFError", "lines-2024": "corrupt: games is a list, not a dict"},
    "🔴 one reader names each stored file: present, or corrupt with why (a truncated gzip is EOFError, "
-   "never a crash)")
+   "never a crash; games of the wrong shape are corrupt too)")
 try:
     _g, _l, _err = HX.games("nfl", B), HX.lines(B), None
 except Exception as e:        # noqa: BLE001
     _g, _l, _err = None, None, e
-ck(_err is None and len(_g) == 4,
-   "🔴 games() and lines() never raise on a truncated or bad file: they read the 4 readable seasons", _err)
+ck(_err is None and _g is not None and len(_g) == 4 and _l == {"g21": {"spread": 1.0, "total": 40.0}},
+   "🔴 games() and lines() never raise on a truncated or bad file: they read the 4 readable schedules and "
+   "the one readable lines file only", (_err, _l))
 try:
     FC.history_rows("nfl", B)
     _hx = None
@@ -564,10 +648,26 @@ try:
     ck(_h["stale"] and _h.get("held") and not F.owes(_h),
        "🔴 its writer tried an hour ago and could not land it: still stale, HELD, not owed (no CFBD sweep "
        "every pass for a file the price check refuses)", _h.get("held"))
-    _late = [r for r in F.survey(S0 + "/data/ncaaf", S0 + "/picks", NOW + datetime.timedelta(hours=20, minutes=1))
-             if r["path"].endswith("/history/schedule-2023.json.gz")][0]
-    ck(_late["stale"] and not _late.get("held") and F.owes(_late),
-       "   ...and once REBUILD_RETRY_MIN (%d h) has passed, it is owed again" % (F.REBUILD_RETRY_MIN // 60))
+    # `[review, 2026-11-17]` ~~"once REBUILD_RETRY_MIN (20 h) has passed, it is owed again"~~: 20 h ended
+    #    before cfb-probe's own next deadline, so the released row alone planned a second sweep a day.
+    #    Held until the writer's next own deadline (3:00 ET, 07:00Z), owed from it.
+    def _at(root, when, end="/history/schedule-2023.json.gz"):
+        return [r for r in F.survey(root + "/data/ncaaf", root + "/picks", when) if r["path"].endswith(end)][0]
+
+    _a = _at(S0, datetime.datetime(2026, 11, 18, 6, 59, tzinfo=datetime.timezone.utc))
+    _b = _at(S0, datetime.datetime(2026, 11, 18, 7, 1, tzinfo=datetime.timezone.utc))
+    ck(_a.get("held") and not F.owes(_a) and _b["stale"] and not _b.get("held") and F.owes(_b),
+       "🔴 ...held until its writer's own next deadline (cfb-probe's 3:00 ET, 07:00Z the next day; a fixed 20 h "
+       "held it to 11:00Z), and owed from that deadline, when cfb-probe's own rows plan the ONE run that retries it",
+       ((_a.get("held"), F.owes(_a)), (_b.get("held"), F.owes(_b))))
+    _p23 = S0 + "/data/ncaaf/history/schedule-2023.json.gz"
+    _t = datetime.datetime(2026, 11, 17, 15, 0, tzinfo=datetime.timezone.utc)
+    eq([bool(F.rebuild_held(_p23, _t + datetime.timedelta(hours=h), None)) for h in (1, 47, 49)]
+       + [bool(F.rebuild_held(_p23, _t + datetime.timedelta(hours=1), d))
+          for d in ("2026-11-17T07:00Z", "2026-11-17T15:00Z", "2026-11-17T15:01Z")],
+       [True, True, False, True, True, False],
+       "🔴 a writer no deadline releases (no dated row) is retried every %d h at most; a deadline at or "
+       "before the try holds it, one after it releases it" % (F.REBUILD_RETRY_MAX_MIN // 60))
     _ev = os.path.join(tree(), "event.json")
     with open(_ev, "w", encoding="utf-8") as fh:
         json.dump({"schedule": "4 7 * * *"}, fh)
@@ -582,3 +682,200 @@ try:
        "write); an owed one still runs it")
 finally:
     F.champion_inputs = _ci
+
+# ══════════════════════════════════════════════════════════════════════
+section("6. 🔴 THE CLASS: EVERY STATE A CHAMPION'S HISTORY FILE CAN BE IN, BOTH LEAGUES: THE CONTRACT OWES "
+        "WHAT THE READER REFUSES, AND ONE WRITER RUN LEAVES IT CURRENT OR HELD, NEVER OWED AGAIN")
+# ══════════════════════════════════════════════════════════════════════
+# `[review, 2026-11-17]` The reader (`_stored`, need_history), the contract (`stamp_of` + HEALTH) and the
+#    writers each judged the file their own way, and they disagreed both ways: a readable college file with
+#    no stamp read MISSING (owed every pass, a CFBD sweep an hour) while store_cfb saw a file and did
+#    nothing, recorded nothing, held nothing; a stamped file with no games failed HC closed while the
+#    contract called it fresh, so nothing planned its repair. Every state, both leagues, both kinds of file.
+UTC = datetime.timezone.utc
+N6 = datetime.datetime(2026, 11, 17, 14, 0, tzinfo=UTC)       # a Tuesday: both writers' newest deadline 07:00Z
+T6S = "2026-11-17T13:30:00Z"                                   # this test's writer runs (HX._stamp, never the clock)
+# each writer's next own deadline after T6S: NFL's Tuesday noon ET (16:00Z), college's 3:00 ET (07:00Z)
+NEXT6 = {"nfl": datetime.datetime(2026, 11, 17, 16, 0, tzinfo=UTC), "ncaaf": datetime.datetime(2026, 11, 18, 7, 0, tzinfo=UTC)}
+
+
+def _gz(doc):
+    return gzip.compress(json.dumps(doc).encode("utf-8"))
+
+
+def states(path):
+    """(what, the bytes to plant, or None to remove it): every state the reader or the contract refuses."""
+    good = json.load(gzip.open(path, "rt", encoding="utf-8"))
+    s, is_lines = good["season"], os.path.basename(path).startswith("lines-")
+    bare = {k: v for k, v in good.items() if k not in F.STAMP_FIELDS}
+    st = {"written_at": "2026-10-15T00:00:00Z"}
+    return [("missing", None),
+            ("a truncated gzip", _gz(good)[:40]),
+            ("not a gzip at all", b"this is not a gzip file"),
+            ("bad JSON", gzip.compress(b'{"season": %d, "games": [' % s)),
+            ("bad UTF-8", gzip.compress(b'{"season": 2023, "note": "\xff\xfe"}')),
+            ("a JSON list, not a document", _gz([1, 2, 3])),
+            ("stamped, no games", _gz(dict(st, season=s, games={} if is_lines else []))),
+            ("stamped, no games key", _gz(dict(st, season=s))),
+            ("stamped, games of the wrong shape",
+             _gz(dict(st, season=s, games=[{"x": 1}] if is_lines else {"x": {"start": "x"}}))),
+            ("readable, no stamp", _gz(bare)),
+            ("readable, a stamp the contract cannot read", _gz(dict(bare, built_at="n/a")))]
+
+
+UNSTAMPED = ("readable, no stamp", "readable, a stamp the contract cannot read")
+
+
+def _row6(root, lg, path, when):
+    want = os.path.normpath(path)
+    return [r for r in F.survey(root + "/data/" + lg, root + "/picks", when) if os.path.normpath(r["path"]) == want][0]
+
+
+def _nflverse_down(s):
+    raise RuntimeError("nflverse is down")
+
+
+def _refused(root, lg):
+    """One writer run whose source will not answer (college: the CFBD price check refuses; NFL: the build fails)."""
+    return HX.store_nfl(quiet, root, build=_nflverse_down) if lg == "nfl" else HX.store_cfb(quiet, root)
+
+
+def _answered(root, lg):
+    if lg == "nfl":
+        return HX.store_nfl(quiet, root, build=lambda s: {"season": s, "games": [
+            g("r%d" % s, "%d-10-06" % s, "SEA", "DEN", 20, 17)]})
+    return HX.store_cfb(quiet, root)
+
+
+_ci6, _st6, _cfb6 = F.champion_inputs, HX._stamp, (cfb._priced, cfb.build_schedule, cfb.get)
+_allow6, _calls6 = {"v": False}, []
+F.champion_inputs = lambda league, champion=None: _ci6(league, {"nfl": "H", "ncaaf": "HC"})
+HX._stamp = lambda: T6S
+_bad6, _n6 = {}, 0
+try:
+    cfb._priced = lambda calls, purpose, log=None: _calls6.append(("priced", calls, purpose)) or _allow6["v"]
+    cfb.build_schedule = lambda s, log=None: (_calls6.append(("/games", s)) or (
+        {"season": s, "games": [g("c%d" % s, "%d-09-06" % s, "A", "B", 1, 0)]}, {}))
+    cfb.get = lambda path, params, timeout=90, tries=4: _calls6.append((path, params["year"])) or [
+        {"id": 9, "lines": [{"provider": "consensus", "spread": -3.0, "overUnder": 51.5,
+                             "homeMoneyline": -160, "awayMoneyline": 135}]}]
+    for _lg, _name, _target in (("nfl", "H", "schedule-2021.json.gz"), ("ncaaf", "HC", "schedule-2024.json.gz"),
+                                ("ncaaf", "HC", "lines-2023.json.gz")):
+        _probe = tree()
+        fill(_probe, _name)
+        for _what, _bytes in states(os.path.join(_probe, "data", _lg, "history", _target)):
+            _n6 += 1
+            X = tree()
+            fill(X, _name)
+            _p = os.path.join(X, "data", _lg, "history", _target)
+            if _bytes is None:
+                os.remove(_p)
+            else:
+                raw(X, os.path.relpath(_p, X), _bytes)
+            _key, _why = "%s %s: %s" % (_lg, _target, _what), []
+            try:
+                FC.need_history(_lg, X)
+                _refuses = False
+            except FC.HistoryIncomplete:
+                _refuses = True
+            _r0 = _row6(X, _lg, _p, N6)
+            if not (_r0["stale"] and F.owes(_r0) and not _r0.get("held")):
+                _why.append("not owed before its writer ran (stale %s, owes %s)" % (_r0["stale"], F.owes(_r0)))
+            if _refuses != (_what not in UNSTAMPED):
+                _why.append("need_history %s it" % ("refused" if _refuses else "accepted"))
+            _allow6["v"], _calls6[:] = False, []
+            _refused(X, _lg)
+            for _at in (N6, N6 + datetime.timedelta(hours=1), NEXT6[_lg] - datetime.timedelta(minutes=1)):
+                _r1 = _row6(X, _lg, _p, _at)       # this pass, the next, and the minute before the next deadline
+                if F.owes(_r1) or (_r1["stale"] and not _r1.get("held")):
+                    _why.append("owed at %s after a refused run (stale %s, held %s)" % (
+                        _at.strftime("%d %H:%MZ"), _r1["stale"], bool(_r1.get("held"))))
+                    break
+            if _what in UNSTAMPED and (_r1["stale"] or _calls6):
+                _why.append("an unstamped readable file was not stamped in place for free (%s)" % _calls6)
+            _allow6["v"], _calls6[:] = True, []
+            _answered(X, _lg)
+            _r3 = _row6(X, _lg, _p, N6)
+            if _r3["stale"] or HX.state_of(_p) != "present":
+                _why.append("not current after a run whose source answered (%s, %s)" % (
+                    _r3["stale"], HX.state_of(_p)))
+            try:
+                FC.need_history(_lg, X)
+            except FC.HistoryIncomplete as e:
+                _why.append("need_history still refuses: %s" % e)
+            if _why:
+                _bad6[_key] = _why
+finally:
+    F.champion_inputs, HX._stamp = _ci6, _st6
+    cfb._priced, cfb.build_schedule, cfb.get = _cfb6
+eq((_n6, _bad6), (33, {}),
+   "🔴 all 33 (11 states x NFL's schedule, college's schedule and lines): the contract owes each one the reader "
+   "refuses (and the unstamped ones), a refused writer run leaves it HELD (never owed again before the next "
+   "deadline), an unstamped one is stamped in place at no call, and a run whose source answers leaves it current")
+
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴 THE CADENCE: A REBUILD THAT KEEPS FAILING NEVER ADDS A RUN OF ITS WRITER, BOTH LEAGUES")
+# ══════════════════════════════════════════════════════════════════════
+# `[review, 2026-11-17]` 48 hourly passes through freshness.plan, each planned run of the writer played
+#    by the REAL writer with a source that refuses (fb_history records the try), against the same 48
+#    passes with every history file readable. A fixed 20 h hold released the row at 03:10Z, four hours
+#    before cfb-probe's own 07:00Z deadline: two CFBD sweeps a day while the file could not land.
+
+
+def cadence(lg, champ, writer, bad):
+    """-> ([the passes plan() runs `writer` at], [(stale, held) of the champion's `bad` file each pass],
+    the writer's other files) over 48 hourly passes (:10 past) from 07:10Z on 11-17, when it last ran."""
+    X = tree()
+    fill(X, champ)
+    bp = os.path.join(X, "data", lg, "history", bad) if bad else None
+    if bp:
+        raw(X, os.path.relpath(bp, X), _gz(json.load(gzip.open(bp, "rt", encoding="utf-8")))[:40])
+    t0 = datetime.datetime(2026, 11, 17, 7, 10, tzinfo=UTC)
+    mine = sorted({r["path"] for r in F.survey(X + "/data/" + lg, X + "/picks", t0)
+                   if r["mode"] == writer and r["kind"] == "file" and not F.stored_only(r)
+                   and r["why"] != F.CHAMPION_INPUT})
+
+    def run(at):
+        st = at.strftime("%Y-%m-%dT%H:%M:%SZ")
+        for p in mine:                 # the writer's other files, rebuilt by this run
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with (gzip.open(p, "wt", encoding="utf-8") if p.endswith(".gz")
+                  else open(p, "w", encoding="utf-8")) as fh:
+                json.dump({"built_at": st, "season": 2026}, fh)
+        HX._stamp = lambda: st
+        _refused(X, lg)
+
+    runs, seen = [], []
+    run(t0)
+    for h in range(1, 49):
+        at = t0 + datetime.timedelta(hours=h)
+        modes, rows = F.plan(X + "/data/" + lg, X + "/picks", at)
+        if bp:
+            seen.extend((r["stale"], bool(r.get("held"))) for r in rows
+                        if os.path.normpath(r["path"]) == os.path.normpath(bp))
+        if writer in modes:
+            runs.append(at.strftime("%m-%d %H:%MZ"))
+            run(at)
+    return runs, seen, [os.path.basename(p) for p in mine]
+
+
+_ci7, _st7, _cfb7 = F.champion_inputs, HX._stamp, cfb._priced
+F.champion_inputs = lambda league, champion=None: _ci7(league, {"nfl": "H", "ncaaf": "HC"})
+cfb._priced = lambda calls, purpose, log=None: False
+try:
+    _cad = {(lg, b): cadence(lg, c, w, b) for lg, c, w, bad in (("ncaaf", "HC", "cfb-probe", "lines-2024.json.gz"),
+                                                                 ("nfl", "H", "nfl-logs", "schedule-2020.json.gz"))
+            for b in (None, bad)}
+finally:
+    F.champion_inputs, HX._stamp, cfb._priced = _ci7, _st7, _cfb7
+_base = {lg: _cad[(lg, None)][0] for lg in ("ncaaf", "nfl")}
+ck(_base == {"ncaaf": ["11-18 07:10Z", "11-19 07:10Z"], "nfl": ["11-17 16:10Z", "11-18 07:10Z", "11-19 07:10Z"]},
+   "every history file readable: each writer runs for its own deadlines only (college 3:00 ET daily; NFL 3:00 ET "
+   "daily and Tuesday noon)", (_base, {lg: _cad[(lg, None)][2] for lg in _base}))
+for lg, bad in (("ncaaf", "lines-2024.json.gz"), ("nfl", "schedule-2020.json.gz")):
+    _runs, _seen, _m = _cad[(lg, bad)]
+    ck(_runs == _base[lg] and len(_seen) == 48 and all(s for s, _h in _seen) and sum(1 for _s, h in _seen if h) >= 40,
+       "🔴 %s: %s unreadable and every rebuild refused for 48 hourly passes: %s runs at exactly its own deadlines "
+       "(%s), never once more (the row stale all 48 passes, held between them)"
+       % (lg, bad, {"ncaaf": "cfb-probe", "nfl": "nfl-logs"}[lg], ", ".join(_base[lg])),
+       (_runs, sum(1 for _s, h in _seen if h)))

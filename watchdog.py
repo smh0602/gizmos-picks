@@ -770,8 +770,9 @@ def _stored_finding(rep, lg, rows):
 
 def _held_finding(rep, lg, rows):
     """`[2026-11-17]` Stale rows the contract owes but will not plan now: a rebuild its writer
-    could not land (`held`, freshness.REBUILD_ATTEMPTS: retried once a day) or a REPORT_ONLY_HEALTH
-    row (never planned again). DEGRADED, no repair named; each row says why."""
+    could not land (`held`, freshness.REBUILD_ATTEMPTS: retried by its writer's own next deadline
+    run) or a REPORT_ONLY_HEALTH row (never planned again). DEGRADED, no repair named; each row
+    says why."""
     if not rows:
         return
 
@@ -779,7 +780,7 @@ def _held_finding(rep, lg, rows):
         h = r.get("held") or {}
         if h:
             return "%s: its writer (%s) tried at %s and could not rebuild it (%s); it is tried " \
-                   "again on that writer's next run, at most once a day" % (
+                   "again by that writer's own next deadline run, never by an extra one" % (
                        r.get("path"), r.get("mode"), h.get("tried_at"), h.get("outcome"))
         return "%s: %s; reported, never planned again" % (r.get("path"), r.get("unhealthy") or "stale")
     rep.warn("held:%s" % lg,

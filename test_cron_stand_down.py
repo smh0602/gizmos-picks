@@ -124,6 +124,10 @@ def plant(now, built, mode="cfb-probe", stale_one=False, others=None):
             full = os.path.join(full, at.strftime("%H%M") + ".json")
         os.makedirs(os.path.dirname(full), exist_ok=True)
         doc = {"built_at": stamp, "written_at": stamp}
+        # `[2026-11-17]` a history season is judged by its content too (freshness.history_problem,
+        #    the contract's HEALTH): planted as one, games in its kind's shape
+        if re.search(r"/history/(schedule|lines)-\d{4}\.json\.gz$", path):
+            doc["games"] = {"1": {"spread": -3.0}} if "/lines-" in path else [{"id": 1}]
         if full.endswith(".gz"):
             import gzip
             with gzip.open(full, "wt", encoding="utf-8") as fh:

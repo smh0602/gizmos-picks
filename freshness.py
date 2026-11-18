@@ -2047,24 +2047,36 @@ def stored_only(r):
 
 CHAMPION_INPUT = "Game model champion's input"
 
-# 🔴 `[2026-11-17]` A REBUILD ITS WRITER COULD NOT LAND IS RETRIED ONCE A DAY, NOT EVERY PASS.
+# 🔴 `[2026-11-17]` A REBUILD ITS WRITER COULD NOT LAND IS RETRIED BY THAT WRITER'S OWN NEXT
+#    DEADLINE RUN, NEVER BY AN EXTRA ONE.
 #    A champion's history file (H, HC) is a CHAMPION_INPUT row, so a missing or unreadable one
 #    plans its writer (`cfb-probe`, `nfl-logs`). If that run cannot land it (CFBD's price check
 #    refuses, the source fails or has nothing), the row stays stale, and without a hold every
 #    hourly pass would plan `cfb-probe` again: a whole CFBD sweep (cfbd_budget prices 16 calls a
 #    build; November's measured 38-41) each time, for a file it cannot write. The writer names
-#    each file it tried and could not land in its folder's REBUILD_ATTEMPTS (fb_history); for
-#    REBUILD_RETRY_MIN after that try the row is `held`: still stale, still reported (the
-#    watchdog's `held:<lg>`), never planned (`owes`) and never a reason a cron's run cannot stand
-#    down (`stand_down`). The writer's own daily run still retries it, and refreshes the time.
+#    each file it left stale in its folder's REBUILD_ATTEMPTS (fb_history); while held the row is
+#    still stale, still reported (the watchdog's `held:<lg>`), never planned (`owes`) and never a
+#    reason a cron's run cannot stand down (`stand_down`).
+#    ~~for REBUILD_RETRY_MIN (20 h) after that try~~ `[review, 2026-11-17]` 20 hours is shorter
+#    than the writers' day: cfb-probe's and nfl-logs' 3:00 ET rows fall due at 07:00Z, so a try at
+#    the 07:10Z build was released at 03:10Z the next day, with every other cfb-probe row still
+#    fresh, and the history row alone planned a full CFBD sweep four hours before the deadline's
+#    own: two sweeps a day, about 40 calls more a day, while the file could not land.
+#    ✅ So a row is held until a deadline of its WRITER'S OWN planning rows passes after the try
+#    (`survey` hands each mode's newest `due_at` in): that deadline makes the writer owed anyway,
+#    and the one run it plans retries the file and records the new time, so the hold never adds a
+#    run while the writer keeps its deadlines. REBUILD_RETRY_MAX_MIN bounds a writer no deadline
+#    would ever release (no dated row): retried every 2 days at most.
 REBUILD_ATTEMPTS = "rebuild-attempts.json"
-REBUILD_RETRY_MIN = 20 * 60
+REBUILD_RETRY_MAX_MIN = 2 * 24 * 60
 
 
-def rebuild_held(path, now=None):
-    """-> {"tried_at", "outcome"} when the writer recorded a try at the file at `path` that did not
-    land (its folder's REBUILD_ATTEMPTS) less than REBUILD_RETRY_MIN ago, else None. ⛔ An
-    unreadable record or a time it cannot read holds nothing (an unknown never stops a repair)."""
+def rebuild_held(path, now=None, writer_due=None):
+    """-> {"tried_at", "outcome"} while the writer's try at the file at `path` that did not land (its
+    folder's REBUILD_ATTEMPTS) is at or after its writer's newest deadline in force (`writer_due`, a
+    datetime or survey's "%Y-%m-%dT%H:%MZ"; None: no dated row) and under REBUILD_RETRY_MAX_MIN old,
+    else None. ⛔ An unreadable record or a time it cannot read holds nothing (an unknown never stops
+    a repair)."""
     try:
         with open(os.path.join(os.path.dirname(path), REBUILD_ATTEMPTS), encoding="utf-8") as fh:
             got = (json.load(fh).get("files") or {}).get(os.path.basename(path))
@@ -2074,7 +2086,22 @@ def rebuild_held(path, now=None):
     if when is None:
         return None
     age = ((now or datetime.datetime.now(UTC)) - when).total_seconds() / 60.0
-    return dict(got) if 0 <= age < REBUILD_RETRY_MIN else None
+    if not 0 <= age < REBUILD_RETRY_MAX_MIN:
+        return None
+    due = _parse(writer_due) if isinstance(writer_due, str) else writer_due
+    if due is not None and due > when:
+        return None                      # its writer's deadline came since: that run retries it
+    return dict(got)
+
+
+def _writer_due(rows):
+    """{mode: the newest `due_at` among its rows that can plan it (not stored only)}: the deadline
+    `rebuild_held` releases a hold at."""
+    out = {}
+    for r in rows:
+        if r.get("due_at") and not stored_only(r) and r["due_at"] > out.get(r["mode"], ""):
+            out[r["mode"]] = r["due_at"]
+    return out
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A FILE WRITTEN ON TIME CAN STILL BE A FILE THAT SAYS NOTHING NEW.
@@ -2247,8 +2274,34 @@ def _injury_check_health(path, now):
     return ("game-day injury check: " + "; ".join(bad)) if bad else None
 
 
+def history_problem(path, doc):
+    """`[2026-11-17]` THE ONE TEST OF A STORED FOOTBALL HISTORY SEASON'S CONTENT: None when `doc`
+    holds games in its kind's shape (schedule-<s>: a non-empty list; lines-<s>: a non-empty dict),
+    else why. fb_history's reader (`_stored`) and this contract's HEALTH both ask it, so the file
+    fb_challengers.need_history refuses is the file the contract plans a rebuild of `[review]`: a
+    stamped schedule with no games read fresh here while HC failed on it, and nothing named it."""
+    if not isinstance(doc, dict) or not doc.get("games"):
+        return "no games"
+    want = dict if os.path.basename(str(path)).startswith("lines-") else list
+    if not isinstance(doc["games"], want):
+        return "games is a %s, not a %s" % (type(doc["games"]).__name__, want.__name__)
+    return None
+
+
+def _history_health(path, now):
+    """A stamped history season whose games `history_problem` refuses is stale, so its writer is
+    planned (a champion's) or it is reported stored-only (anyone else's); fb_history rebuilds it."""
+    doc = _load(path)
+    if doc is None:
+        return None                       # unreadable: it already reads MISSING (no stamp)
+    why = history_problem(path, doc)
+    return "history season: %s" % why if why else None
+
+
 HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_probe_health),
           (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health),
+          # `[2026-11-17]` H / HC's seasons: the reader's own test (history_problem)
+          (re.compile(r"/(?:nfl|ncaaf)/history/(?:schedule|lines)-\d{4}\.json\.gz$"), _history_health),
           (re.compile(r"/(?:nfl|ncaaf)/latest/injury-check\.json$"), _injury_check_health))
 # Modes whose `health` finding is reported (stale: a soft warning, a ~~`fresh:`~~ `held:` finding
 #    `[2026-11-17]`, never "the converge loop repairs this") but
@@ -2771,10 +2824,13 @@ def survey(data="data", picks="picks", now=None, entries=None):
             # ⛔ a row no tab reads stays off the reader's stale banner
             "page": mode not in OFF_PAGE,
         })
-        # `[2026-11-17]` a rebuild its writer could not land: not replanned for a day (REBUILD_ATTEMPTS)
-        held = rebuild_held(path, now) if stale and kind == "file" else None
+    # `[2026-11-17]` a rebuild its writer could not land: held until that writer's next own deadline
+    #    (REBUILD_ATTEMPTS), so its deadline run retries it and nothing else does
+    due = _writer_due(rows)
+    for r in rows:
+        held = rebuild_held(r["path"], now, due.get(r["mode"])) if r["stale"] and r["kind"] == "file" else None
         if held:
-            rows[-1]["held"] = held
+            r["held"] = held
     return rows
 
 
@@ -2987,7 +3043,7 @@ def owes(r, allow_paid=True):
     `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
     of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH."""
     return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
-                and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: once a day
+                and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: its writer's next deadline
                 and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
 
 
