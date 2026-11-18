@@ -14,6 +14,10 @@ pitcher-props snapshot with three games between six starters from the
 stored pull, ONE on the card's day and two on later days, the clock pinned
 just after the pull, then the REAL board builder (`collect_props_board`) and
 the REAL card (`card.main(dry=True)`) in an isolated tree.
+`[2026-11-18, #249]` Every planted game also carries a Hard Rock strikeout ladder, and
+the one-side rule's own input is recorded: two of the mutations below had stayed green
+since 2026-10-16, when `card.one_side_pools` began masking them (the ladder check
+before section 1, and the last check of section 3).
 ⚠️ The day is judged by the WATCHDOG's ET date (`watchdog._etd`), never by
 card.py's own, and every dated list is DISCOVERED (`watchdog._dated_lists`),
 so a list added later is covered the day it ships.
@@ -86,6 +90,18 @@ class _DT(_d.datetime):
     def now(cls, tz=None):
         return FIX if tz else FIX.replace(tzinfo=None)
 card.datetime = _DT
+# `[2026-11-18, #249]` what the one-side rule was handed, and what it dropped, by first pitch.
+#    The REAL rule runs; this only records. (Its pools decide every list after it, so an
+#    off-day row reaching it is the defect even when it happens to leave no list.)
+_osp, ONE_SIDE = card.one_side_pools, []
+def _one_side_seen(plays, plays_all, hitters):
+    out = _osp(plays, plays_all, hitters)
+    ONE_SIDE.append({"plays": [x.get("commence") for x in plays],
+                     "plays_all": [x.get("commence") for x in plays_all],
+                     "hitters": [x.get("commence") for x in hitters],
+                     "dropped": [x.get("commence") for x in out[3]]})
+    return out
+card.one_side_pools = _one_side_seen
 with contextlib.redirect_stdout(io.StringIO()):
     collect.collect_props_board()
     doc = card.main(dry=True)
@@ -93,7 +109,7 @@ board = json.load(gzip.open("data/latest/props.json.gz", "rt"))
 priced = [{k: r.get(k) for k in ("pid", "market", "side", "line", "projection")}
           for r in card.LAST_PRICED_ROWS]
 json.dump({"board": board, "card": doc, "priced": priced,
-           "game_model": card.LAST_GAME_MODEL}, open(sys.argv[1], "w"),
+           "game_model": card.LAST_GAME_MODEL, "one_side": ONE_SIDE}, open(sys.argv[1], "w"),
           sort_keys=True)
 """
 
@@ -156,7 +172,18 @@ for gi in range(3):
                            m for q in (aw, hm) for m in (
                                _mkt("pitcher_strikeouts", q["name"], 5.5, -115 + dx, -105 - dx),
                                _mkt("pitcher_outs", q["name"], 16.5, -110 + dx, -110 - dx))]}
-                       for bk, dx in (("draftkings", 0), ("fanduel", 5))]})
+                       for bk, dx in (("draftkings", 0), ("fanduel", 5))]
+                      # 🔴 `[2026-11-18, #249]` A HARD ROCK STRIKEOUT LADDER ON EVERY GAME, the
+                      #    card's day and the later ones. Without one the board held no alt rung,
+                      #    and `card.one_side_pools` keeps a `plays_all` row only when it is an
+                      #    alt rung or already in `plays` (filtered to the day), so an unfiltered
+                      #    `plays_all` changed nothing here and the second mutation above stayed
+                      #    green (nightly 11-02 -> 11-18). A real board carries Hard Rock's
+                      #    ladder (collect.py: `ALT_MARKETS`, hardrockbet / hardrockbet_oh only).
+                      + [{"key": "hardrockbet", "markets": [
+                          {"key": "pitcher_strikeouts_alternate", "outcomes": [
+                              {"name": "Over", "description": q["name"], "point": pt, "price": px}
+                              for q in (aw, hm) for pt, px in ((3.5, -250), (4.5, -150))]}]}]})
 snap = os.path.join(tree, "data", FIX[:10], "props-pitcher")
 os.makedirs(snap)
 with gzip.open(os.path.join(snap, FIX[11:13] + FIX[14:16] + ".json.gz"), "wt") as fh:
@@ -177,6 +204,11 @@ note("planted: %d game(s) on %s %s, later days %s; card dated %s, %d picks, %d t
         len(C.get("picks") or []), len(C.get("top10") or [])))
 note("the board holds %d game(s); the case needs one on the card's day and "
      "rows on later days, or the checks below pass blind" % len(B.get("games") or []))
+# ⚠️ rule 67: an off-day ALT RUNG is the only row an unfiltered `plays_all` can carry
+#    onto the card, so a board with no ladder would pass the top-10 check blind.
+ck("⚠️ the planted board carries a Hard Rock ladder on every game, the card's day and the later ones",
+   len(B.get("games") or []) == 3 and all(g.get("ladders") for g in B.get("games") or []),
+   str([sorted(g.get("ladders") or {}) for g in B.get("games") or []]))
 
 
 def on_card_day(rows):
@@ -216,6 +248,20 @@ leak = {k: v for k, v in leak.items() if v}
 ck("🔴 no list on the card carries a row from another day",
    C.get("date") == DAY and "picks" in lists and not leak,
    "lists %s; off-day rows in %s" % (sorted(lists), leak))
+
+# 🔴 `[2026-11-18, #249]` AND THE FILTER RUNS BEFORE THE ONE-SIDE RULE, ON EVERY POOL.
+#    `card.one_side_pools` (2026-10-16) keeps a board row only when the day-filtered
+#    `plays_all` holds it, so an unfiltered `plays` reaches no list: the third mutation
+#    above left every published field the same and stayed green (nightly 11-02 -> 11-18).
+#    What it did change was the rule's own work: it judged the later days' rows too and
+#    reported them dropped. So the rule's input and output are asked, not only the card.
+_os = res.get("one_side") or []
+_os_days = {k: sorted({W._etd(c) for c in v}) for k, v in (_os[0] if _os else {}).items()}
+ck("🔴 the one-side rule is handed only the card's day, every pool, and drops only the day's rows",
+   len(_os) == 1 and _os[0].get("plays") and _os[0].get("plays_all")
+   and all(set(v) <= {DAY} for v in _os_days.values()),
+   "%d call(s); days per pool %s; %d dropped" % (
+       len(_os), _os_days, len((_os[0] if _os else {}).get("dropped") or [])))
 
 section("4. ✅ A THIN DAY SAYS SO")
 n_off = C.get("n_off_slate_day")

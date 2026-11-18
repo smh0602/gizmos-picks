@@ -439,5 +439,13 @@ ck("⛔ ...and a total on a card never enters it (Sam, 2026-10-03)",
    CO.GAME_LINE_MARKETS == ("moneyline", "run_line") and "total" not in (G.get("by_market") or {}))
 ck("✅ verify_record re-grades the line a second way and agrees", rc == 0, out[-500:])
 _rec2, rc2, out2 = grade(lambda R: R["game_lines"].update(w=2))
+# `[2026-11-18, #249]` ~~"the game lines reproduce in their own line" in out2~~: the PASS line
+#    printed that too, and since 2026-10-17 the board check also fails this record, so the
+#    line's own check could be switched off and this stayed green (nightly 11-02 -> 11-18).
+#    The FAIL must be the line's own, and its VOID count is planted wrong as well: nothing
+#    else in verify_record reads the game lines' voids.
 ck("🔴 ...and fails a record whose game-line line is wrong", rc2 == 1
-   and "the game lines reproduce in their own line" in out2, out2[-300:])
+   and "FAIL the game lines reproduce in their own line" in out2, out2[-300:])
+_rec3, rc3, out3 = grade(lambda R: R["game_lines"].update(voids=0))
+ck("🔴 ...and a record whose game-line VOID count is wrong (1 postponed, it says 0)",
+   rc3 == 1 and "FAIL the game lines reproduce in their own line" in out3, out3[-300:])

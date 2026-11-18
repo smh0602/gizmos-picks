@@ -245,6 +245,16 @@ ck("⛔ a declaration whose `find` matches nothing is MALFORMED, not a skip",
    "that matches 0 times changes nothing, so the test 'passes' having "
    "been asked nothing. Got %s"
    % _t2.get("test_declared_bad.py", {}).get("state"))
+# `[2026-11-18, #249]` the gate a PR's share is judged by (section 4b), on these rows
+_g_off = V.gate(list(_t2.values()), known={})
+_g_on = V.gate(list(_t2.values()), known={
+    V.known_key(_t2[t]): {"state": _t2[t]["state"], "why": "planted", "issue": "#249"}
+    for t in ("test_declared_vacuous.py", "test_declared_bad.py") if t in _t2})
+ck("🔴🔴 THE GATE FAILS ON THE PLANTED VACUOUS GUARD AND THE MALFORMED ONE, and passes "
+   "them once KNOWN_VACUOUS names them",
+   len(_g_off) == 2 and any("test_declared_vacuous.py" in g for g in _g_off)
+   and any("test_declared_bad.py" in g for g in _g_off) and _g_on == [],
+   "off the list %s; on it %s" % (_g_off, _g_on))
 
 section("2. ⛔ IT REPORTS. IT NEVER EDITS.")
 # ══════════════════════════════════════════════════════════════════════
@@ -557,6 +567,27 @@ else:
 note("tier 2 currently covers %d declared mutation(s); tier 1 covers %d "
      "name-mapped pair(s); %d test file(s) are unmapped and reported every "
      "run." % (len(_real2), len(V.name_map(ROOT)), len(_um)))
+
+section("4b. 🔴🔴 EVERY DECLARATION IN THIS SHARE BITES, OR KNOWN_VACUOUS SAYS WHY NOT")
+# `[2026-11-18, #249]` Until today this section asked only about the two CFBD mutations
+#    above, so a share holding a VACUOUS guard went green: four went vacuous on
+#    2026-10-16/17 and every pr-tests part passed the PRs that did it. The nightly
+#    named them every night from 11-02, in an issue already open. ⛔ Now any finding
+#    (`V.verdict`'s states) fails the share it falls in, unless `V.KNOWN_VACUOUS`
+#    names it, with its reason and its issue; a row still owing its green fails
+#    whatever the list says. The list only shrinks (`test_vacuity_gate.py`, which
+#    drives `V.gate` and carries this file's declarations, since this file can carry
+#    none). ⚠️ This makes the sweep STRICTER: nothing that failed before passes now.
+_odd2 = sorted((r["state"], r["test"], r["line"]) for r in _real2 if r["state"] != "BITES")
+note("this share: %d of %d declaration(s) did not BITE%s"
+     % (len(_odd2), len(_real2),
+        "".join("\n       %-14s %s:%s" % x for x in _odd2)))
+_GATE = V.gate(_real2)
+ck("🔴🔴 NO DECLARATION IN THIS SHARE PROVES NOTHING UNLESS KNOWN_VACUOUS SAYS WHY",
+   not _GATE,
+   "⛔ do not delete or weaken the declaration, and do not add it to the list to go "
+   "green: make the test bite (CLAUDE.md: a guard that cannot fail is not a guard). "
+   "%d row(s):\n%s" % (len(_GATE), "\n".join("       " + g for g in _GATE)))
 
 # ⚠️ WHERE THE SWEEP'S TIME WENT, printed every run. `[2026-09-23]` The
 #    serial sweep reached 2401s against a 2400s clock and nothing had
