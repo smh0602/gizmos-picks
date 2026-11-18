@@ -6002,6 +6002,161 @@ async function fbNews(){
   fbWire();
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   🔴 AN OPEN FOOTBALL TAB FOLLOWS THE DATA. `[2026-11-18]`
+   ⛔ Every football file the page reads was memoised once and never let
+   go (FBCARD, FBBOARD, FBPROPS, WINNERS, FBREC, ...), and the page's timed
+   refreshes (the 180 s check and the 60 s kickoff redraw at the foot of the
+   page) are MLB's. So a Gizmo's Picks, Odds, Player Props, Parlays, Game
+   Lines or Track Record tab left open kept its first card and prices until
+   a reload, a league switch drew that league's first files again, and a
+   play whose game had kicked off stayed on Gizmo's Picks until a click.
+   ✅ EVERY 3 MINUTES, MLB's own cadence (`fbRefreshTick`), each football
+   league the page holds files for is asked for its freshness.json
+   `built_at`. `[measured on main, 2026-11-10 to 11-18]` it moved in 137 of
+   the 140 NFL and 137 of the 139 college commits that changed a file the
+   page reads; the card's own `generated_at` moved in only 84 / 85 (53 / 49
+   commits changed the board, props, winners or record and not the card).
+   The other 3 / 2 were landed by a watchdog commit, and the next pass moved
+   `built_at` 12 to 23 minutes later.
+     - unchanged: nothing else is fetched and nothing is redrawn;
+     - moved, a league not on screen: its files are dropped, so its next
+       draw (a league switch) reads the new ones, never the old;
+     - moved, the league on screen: every file it holds is read again
+       (no-cache, so an unchanged one is a 304) and the tab is drawn again
+       only when one of them changed: a pass can move `built_at` and
+       nothing the page holds. A file that does not arrive keeps the copy
+       on screen, and the stamp is asked again next time.
+   ✅ EVERY MINUTE, MLB's own cadence (`fbKickTick`), a tab that hides
+   started games when it draws (`splitStarted`: Gizmo's Picks and its top
+   plays, Odds, Player Props) is drawn again once a game in its file has
+   started since it was drawn (`fbKickSig`, taken by fbWire at every draw).
+   ⛔ THE READER IS NOT MOVED: one draw at a time (fbTick's flag); never
+   while a box score or a row the reader opened is open (`fbHold`: the
+   redraw waits until it is closed); the scroll kept by fbKeepScroll; and
+   the tab, Player props / Game lines, the conference, the filters and the
+   state are read from where the page keeps them. The new files are in
+   hand before the draw starts, so it draws in one go. Nothing new is
+   drawn: no note, no "updated" line.
+   ⛔ A NEW FOOTBALL MEMO goes in `fbMemos()` or in test_fb_refresh.py's
+   allow-list with its reason: that file fails on one in neither.
+   ══════════════════════════════════════════════════════════════════ */
+const FB_REFRESH_MS = 180000;
+const FB_KICK_MS = 60000;
+const fbStampSeen = {};   // league -> the built_at its files were last checked against
+let fbOwed = null;        // a league whose tab on screen has new files it has not drawn
+let fbKickDrawn = null;   // fbKickSig() at the last football draw (fbWire)
+
+/* Every football memo a pass can rewrite: [the memo, how to read one of its
+   keys again, or null to only drop it (it is read when the reader next opens
+   what needs it)]. A reader resolves once the key is back in the memo and
+   rejects when it could not be read. ⚠️ Each reader is started while LEAGUE
+   is the league it reads, and every loader here takes its key and URL from
+   LEAGUE before its first await. */
+function fbMemos(){
+  return {
+    FBCARD: [FBCARD, () => fbCardLoad()],
+    FBBOARD: [FBBOARD, () => fbBoardLoad()],
+    FBPROPS: [FBPROPS, () => fbPropsLoad()],
+    WINNERS: [WINNERS, k => winnersLoad(k)],
+    FBREC: [FBREC, () => fbRecordLoad()],
+    FBFLAGS: [FBFLAGS, () => fbFlagsLoad()],
+    FBNEWS: [FBNEWS, () => fbNewsLoad()],
+    FBSCHED: [FBSCHED, k => fbSchedLoad(+k.split('|')[1])],
+    FBDATA: [FBDATA, fbDataAgain],
+    FBDETAIL: [FBDETAIL, null],   // a Track Record day's rows, read when one is opened
+    FBDOS: [FBDOS, null],         // a game's signals, read when they are opened
+    FBLOG: [FBLOG, null],         // a box score's player lines, read when one is opened
+  };
+}
+
+/* The Trends tables of the side on screen, read again (the other side's are
+   dropped and read when it is chosen). A table that was there and does not
+   come back is a file that did not arrive. */
+function fbDataAgain(k, old){
+  const ss = Object.keys(old || {});
+  if (k !== LEAGUE + '|' + fbSide || !ss.length) return null;
+  return Promise.all(ss.map(s => fbLoad(+s))).then(ts => {
+    if (ss.some((s, i) => old[s] != null && ts[i] == null)) throw new Error('a table did not arrive');
+  });
+}
+
+/* A redraw now would move the reader: a box score is open, or something they opened. */
+function fbHold(){
+  return !!document.querySelector('.ovl, #fbview tr.open, #fbview details[open]');
+}
+
+async function fbRefreshTick(){
+  if (fbTicking || fbHold()) return;
+  fbTicking = true;
+  try {
+    const memos = fbMemos();
+    for (const lg of Object.keys(LG_DATA).filter(x => x !== 'mlb')){
+      const mine = k => k === lg || k.startsWith(lg + '|');
+      const held = [];
+      for (const n in memos)
+        for (const k of Object.keys(memos[n][0]).filter(mine)) held.push([n, k, memos[n][0][k]]);
+      if (!held.length) continue;                    // a league never opened is never asked
+      let built;
+      try { built = String((await jget(`${LG_DATA[lg]}/latest/freshness.json`)).built_at || ''); }
+      catch(e){ continue; }                          // no answer: asked again next time
+      if (built === fbStampSeen[lg]) continue;       // ⛔ nothing moved: nothing fetched, nothing drawn
+      held.forEach(([n, k]) => { delete memos[n][0][k]; });
+      if (lg !== LEAGUE){ fbStampSeen[lg] = built; continue; }   // read when it is drawn
+      const got = await Promise.all(held.map(([n, k, v]) => {
+        const read = memos[n][1] ? memos[n][1](k, v) : null;
+        return read ? Promise.resolve(read).then(() => 'read', () => 'lost') : 'dropped';
+      }));
+      let lost = false;
+      held.forEach(([n, k, v], i) => {
+        const M = memos[n][0];
+        if (got[i] === 'dropped') return;
+        if (got[i] === 'lost' || (M[k] == null && v != null)){ M[k] = v; lost = true; return; }
+        if (JSON.stringify(M[k]) !== JSON.stringify(v)) fbOwed = lg;
+      });
+      if (!lost) fbStampSeen[lg] = built;
+    }
+  } finally { fbTicking = false; }
+  await fbDrawOwed();
+}
+
+/* The tab on screen, drawn again with the new files, once nothing holds it. */
+async function fbDrawOwed(){
+  if (fbOwed === null || fbOwed !== LEAGUE || fbTicking || fbHold()) return;
+  fbTicking = true;
+  fbOwed = null;
+  try { await fbKeepScroll(renderFootball); }   // new files
+  finally { fbTicking = false; }
+}
+
+/* How many objects in a file carry a `commence` that has passed, by the page's
+   own rule (`hasStarted`, which splitStarted applies when a tab draws). */
+function fbStartedIn(x){
+  if (!x || typeof x !== 'object') return 0;
+  let n = typeof x.commence === 'string' && hasStarted(x) ? 1 : 0;
+  for (const k in x) if (x[k] && typeof x[k] === 'object') n += fbStartedIn(x[k]);
+  return n;
+}
+
+/* The football tab on screen and how many games have started in the file it
+   hides started games from. */
+function fbKickSig(){
+  const M = {picks: FBCARD, odds: FBBOARD, props: FBPROPS}[FBTAB];
+  return [LEAGUE, FBTAB, M ? fbStartedIn(M[LEAGUE]) : 0].join('|');
+}
+
+async function fbKickTick(){
+  if (LEAGUE === 'mlb') return;
+  if (fbOwed === LEAGUE) return fbDrawOwed();      // new files a held redraw still owes
+  if (showStarted || fbTicking || fbHold() || fbKickSig() === fbKickDrawn) return;
+  fbTicking = true;
+  try { await fbKeepScroll(renderFootball); }   // a kickoff
+  finally { fbTicking = false; }
+}
+
+setInterval(fbRefreshTick, FB_REFRESH_MS);
+setInterval(fbKickTick, FB_KICK_MS);
+
 
 async function renderFootball(){
   const v = $('#fbview');
@@ -6198,6 +6353,7 @@ function fbWire(){
      ends in fbWire(), so this catches every path to the tab: a tab click, a
      conference chip, a league switch. ⚠️ The tab's own shells carry
      `data-gl`, so its own fbWire() calls do not re-enter it. */
+  fbKickDrawn = fbKickSig();   // `[2026-11-18]` what this draw shows, for fbKickTick
   if (FBTAB === 'gamelines' && !document.querySelector('#fbview [data-gl]')) { fbGameLinesTab(); return; }
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
   sel('fb-side',   e => { fbSide = e.target.value; renderFootball(); });

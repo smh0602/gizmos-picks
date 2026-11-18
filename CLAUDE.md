@@ -456,6 +456,18 @@ note boxes, tags and the stale bar now require their absence.
   a league switch keeps the tab (`nextTab`). ⛔ Never draw a league's own bar
   again. `test_tab_bar.py`; the computed style is measured in a browser by
   `test_league_switch.py`.
+- 🔴 **AN OPEN FOOTBALL TAB FOLLOWS THE DATA.** `[2026-11-18]` Every football file the
+  page reads was memoised once and never let go, and the 180 s and 60 s refreshes are
+  MLB's, so an open football tab drew its first card and prices until a reload.
+  ✅ Every 3 minutes `fbRefreshTick` (index.html) asks each football league the page holds
+  files for for its freshness.json `built_at` (it moved in 137 of the 140 NFL commits that
+  changed a file the page reads, 2026-11-10 to 11-18; the card's `generated_at` in 84).
+  Moved: a league not on screen lets its files go; the league on screen reads them again
+  (no-cache) and is drawn again only when one changed. Every minute `fbKickTick` draws
+  Gizmo's Picks, Odds and Player Props again once a game in their file has started. ⛔ Never
+  while a box score or an opened row is open, the scroll kept, nothing new drawn. ⛔ A new
+  football memo goes in `fbMemos()` or in `test_fb_refresh.py`'s ALLOW with its reason; that
+  file fails on one in neither.
 - 🔴 **ONE LOOK FOR ALL THREE LEAGUES: DESIGN I.** `[Sam, 2026-10-17]` *"i like the
   light blue on i think that oone is good"*, choosing design I of the layouts he was
   shown: a white page; the ONE `<header>` is a navy side panel (logo, league switch,
