@@ -2819,11 +2819,15 @@ async function fbSeasonsAvailable(side){
 
 async function fbLoad(season){
   const k = LEAGUE + '|' + fbSide;
-  FBDATA[k] = FBDATA[k] || {};
-  if (FBDATA[k][season] !== undefined) return FBDATA[k][season];
-  try { FBDATA[k][season] = await jgetGz(fbPath(season)); }
-  catch(e){ FBDATA[k][season] = null; }
-  return FBDATA[k][season];
+  /* `[2026-11-18]` Written and read through the side's own table, taken once before the
+     await: the football refresh lets go of FBDATA[k] when its league or its side is not
+     on screen, and a read still out then wrote into a table no longer in FBDATA and
+     read FBDATA[k][season] back off nothing (a TypeError: Trends stayed on Loading). */
+  const T = FBDATA[k] = FBDATA[k] || {};
+  if (T[season] !== undefined) return T[season];
+  try { T[season] = await jgetGz(fbPath(season)); }
+  catch(e){ T[season] = null; }
+  return T[season];   // the table it took, whatever FBDATA holds now
 }
 
 /* 🔴 FILTER ONLY. ⛔ ~~`.sort((a,b) => a.pos.indexOf(pos) - b.pos.indexOf(pos))`~~
@@ -3565,7 +3569,7 @@ const FB_LIVE_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
 /* ⚠️ 45s IS MLB'S OWN INTERVAL, not a new number. One value, one meaning. */
 const FB_LIVE_MS = 45000;
 
-let FB_LIVE = null;        /* {byId, events, at} for the current league   */
+let FB_LIVE = null;        /* {byId, events, at, lg}: the league it is of  */
 let FB_LIVE_OFF = false;   /* ⛔ set after ONE failure — see below        */
 
 /* 🔴 ONE FAILURE TURNS IT OFF FOR THE SESSION, AND THAT IS DELIBERATE.
@@ -3669,13 +3673,14 @@ async function fbDayLoad(days, key){
 
 async function fbLiveLoad(){
   if (FB_LIVE_OFF) return null;
-  const path = FB_LIVE_PATH[LEAGUE];
+  const lg = LEAGUE;   // `[2026-11-18]` the league it is of, kept with it (fbLiveFresh)
+  const path = FB_LIVE_PATH[lg];
   if (!path) return null;
   try {
     /* ⚠️ ONE REQUEST PER DIVISION, IN PARALLEL, MERGED BY EVENT ID. The
        ids are ESPN's own and cannot collide, so a merge is a union and
        not a reconciliation. */
-    const qs = (FB_LIVE_GROUPS[LEAGUE] || [null]).map(g =>
+    const qs = (FB_LIVE_GROUPS[lg] || [null]).map(g =>
       `${FB_LIVE_BASE}/${path}/scoreboard?limit=400${g ? '&groups=' + g : ''}`);
     const rs = await Promise.all(qs.map(u => fetch(u, { cache: 'no-store' })));
     /* ⛔ IF ANY ONE OF THEM IS REFUSED THE BROWSER REFUSED ALL OF THEM —
@@ -3686,7 +3691,7 @@ async function fbLiveLoad(){
     const ds = await Promise.all(oks.map(r => r.json()));
     const d = { events: ds.reduce((a, x) => a.concat(x.events || []), []) };
     const byId = fbLiveParse(d.events);
-    FB_LIVE = { byId, events: (d.events || []).length, at: new Date() };
+    FB_LIVE = { byId, events: (d.events || []).length, at: new Date(), lg };
     return FB_LIVE;
   } catch (e) {
     /* `[Sam, 2026-10-01]` Off for the session; the page prints no note. */
@@ -3694,6 +3699,24 @@ async function fbLiveLoad(){
     FB_LIVE = null;
     return null;
   }
+}
+
+/* 🔴 A TIMED REDRAW OF SCORES DOES NOT WAIT ON ESPN UNDER ITS LOADING SHELL.
+   `[2026-11-18]` fbScores drew "Loading..." and then asked ESPN, so every timed
+   redraw of an open Scores tab (the 45 s poll's, which had just asked ESPN itself,
+   and the football refresh's on every odds pull) emptied the tab and put the reader
+   at the top of the page for the round trip. ✅ A feed of this league under 45 s
+   old (the poll's own cadence, FB_LIVE_MS) is drawn as it is; an older one is
+   read by the timed redraw BEFORE it draws (fbRedraw), with the tab still on
+   screen. A reader's own first visit still reads it under the Loading shell. */
+function fbLiveFresh(){
+  return !!FB_LIVE && FB_LIVE.lg === LEAGUE && Date.now() - FB_LIVE.at < FB_LIVE_MS;
+}
+
+/* The newest season Scores holds a schedule for: the only one it asks the live feed
+   about (fbScores, and fbRedraw before a timed redraw). */
+function fbLiveSeason(avail){
+  return avail.length ? Math.max.apply(null, avail) : fbScSeason;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -3822,8 +3845,8 @@ async function fbScores(){
      in the workflow's bash, pinned to each other by a test. ⛔ A THIRD
      copy here would be a third thing to drift; the newest season we have
      a schedule for answers the same question with no new rule. */
-  const liveSeason = avail.length ? Math.max.apply(null, avail) : fbScSeason;
-  if (fbScSeason === liveSeason) await fbLiveLoad();
+  const liveSeason = fbLiveSeason(avail);
+  if (fbScSeason === liveSeason && !fbLiveFresh()) await fbLiveLoad();   // fbLiveFresh: no wait on a timed redraw
 
   let games = doc.games.slice();
   const hasClass = games.some(g => g.home_class);
@@ -3972,16 +3995,17 @@ async function fbScores(){
    exactly what September looks like. */
 const FBSCHEDHAVE = {};
 async function fbSeasonsAvailableSched(){
-  if (FBSCHEDHAVE[LEAGUE]) return FBSCHEDHAVE[LEAGUE];
+  const lg = LEAGUE;   // `[2026-11-18]` once, before the first await (fbBoardLoad)
+  if (FBSCHEDHAVE[lg]) return FBSCHEDHAVE[lg];
   const got = await Promise.all(FB_SEASONS.map(async y => {
     try {
-      const r = await fetch(`${LG_DATA[LEAGUE]}/latest/schedule-${y}.json.gz`,
+      const r = await fetch(`${LG_DATA[lg]}/latest/schedule-${y}.json.gz`,
                             {method: 'HEAD', cache: 'no-cache'});
       return r.ok ? y : null;
     } catch(e){ return null; }
   }));
-  FBSCHEDHAVE[LEAGUE] = got.filter(y => y !== null);
-  return FBSCHEDHAVE[LEAGUE];
+  FBSCHEDHAVE[lg] = got.filter(y => y !== null);
+  return FBSCHEDHAVE[lg];
 }
 
 /* 🔴 LAND ON THE WEEK A READER WANTS, not week 1 in December. The first
@@ -4974,13 +4998,16 @@ function nflDirectory(){
 }
 
 async function fbTeamsLoad(){
-  if (FBTEAMS[LEAGUE] !== undefined) return FBTEAMS[LEAGUE];
-  if (LEAGUE === 'nfl'){ FBTEAMS[LEAGUE] = nflDirectory(); return FBTEAMS[LEAGUE]; }
+  /* `[2026-11-18]` The league once, before the first await (fbBoardLoad): college's
+     teams.json landing after a switch to the NFL replaced the NFL's directory. */
+  const lg = LEAGUE;
+  if (FBTEAMS[lg] !== undefined) return FBTEAMS[lg];
+  if (lg === 'nfl'){ FBTEAMS[lg] = nflDirectory(); return FBTEAMS[lg]; }
   try {
-    const d = await jget(`${LG_DATA[LEAGUE]}/latest/teams.json`);
-    FBTEAMS[LEAGUE] = d.teams || {};
-  } catch(e){ FBTEAMS[LEAGUE] = {}; }
-  return FBTEAMS[LEAGUE];
+    const d = await jget(`${LG_DATA[lg]}/latest/teams.json`);
+    FBTEAMS[lg] = d.teams || {};
+  } catch(e){ FBTEAMS[lg] = {}; }
+  return FBTEAMS[lg];
 }
 
 
@@ -6043,14 +6070,20 @@ async function fbNews(){
    ✅ EVERY MINUTE, MLB's own cadence (`fbKickTick`), a tab that hides
    started games when it draws (`splitStarted`: Gizmo's Picks and its top
    plays, Odds, Player Props) is drawn again once a game in its file has
-   started since it was drawn (`fbKickSig`, taken by fbWire at every draw).
+   started since it was drawn (`fbKickSig`, taken by fbWire at every draw),
+   on the tab and league that draw showed (a different one is the reader's
+   own draw, still loading). The refresh's reads never hold it off (they
+   have their own flag, `fbChecking`), so a started play leaves within a
+   minute.
    ⛔ THE READER IS NOT MOVED: one draw at a time (fbTick's flag); never
    while a box score or a row the reader opened is open (`fbHold`: the
    redraw waits until it is closed); the scroll kept by fbKeepScroll, and
    the state picker left as the reader left it (`fbRedraw`); and the tab,
    Player props / Game lines, the conference, the filters and the state
    are read from where the page keeps them. The new files are in hand
-   before the draw starts, so it draws in one go. A redraw the reader's own
+   before the draw starts, and Scores' live feed too (`fbLiveFresh`, read
+   by fbRedraw first when it is old), so it draws in one go: the Loading
+   shell never stays up. A redraw the reader's own
    draw has already made (a tab tapped, a league switched back) is not
    made again (`fbDrawStarts`). Nothing new is drawn: no note, no
    "updated" line. MLB is never drawn by either (both look at LEAGUE).
@@ -6113,10 +6146,13 @@ function fbKeep(M, k, load){
 
 /* The Trends tables of the side on screen, read again inside that side's own
    object (fbLoad writes into it), each one kept until its new one is in; the
-   other side's are dropped and read when it is chosen. */
+   other side's are dropped and read when it is chosen. `[2026-11-18]` The side
+   on screen with no table yet is the reader's own read, still out: kept (so it
+   lands in FBDATA), with nothing to read again; the reader's draw shows it. */
 function fbDataAgain(M, k){
   const T = M[k], ss = Object.keys(T || {});
-  if (k !== LEAGUE + '|' + fbSide || !ss.length) return null;
+  if (k !== LEAGUE + '|' + fbSide) return null;
+  if (!ss.length) return Promise.resolve();   // a read still out: kept
   return Promise.all(ss.map(s => fbKeep(T, s, () => fbLoad(+s))));
 }
 
@@ -6125,9 +6161,19 @@ function fbHold(){
   return !!document.querySelector('.ovl, #fbview tr.open, #fbview details[open]');
 }
 
+/* 🔴 THE REFRESH'S READS DO NOT HOLD THE DRAW. `[2026-11-18]` They held fbTicking,
+   the one-draw-at-a-time flag, while the stamp (and a moved league's files) were
+   out; the 60 s kickoff check and the Scores poll both return while it is set, and
+   every third kickoff check and every fourth poll fall on the same instant as this
+   3-minute one, just after it. So a play that started in that minute stayed up to
+   two minutes, and the live scores skipped a poll. Its reads have their own flag;
+   only its draw (fbDrawOwed) takes fbTicking. The copy on screen is never missing
+   meanwhile (fbKeep), so a draw in that time draws whole. */
+let fbChecking = false;
+
 async function fbRefreshTick(){
-  if (fbTicking || fbHold()) return;
-  fbTicking = true;
+  if (fbChecking || fbHold()) return;
+  fbChecking = true;
   try {
     const memos = fbMemos();
     for (const lg of Object.keys(LG_DATA).filter(x => x !== 'mlb')){
@@ -6157,16 +6203,18 @@ async function fbRefreshTick(){
       if (got.includes('new')) fbOwed = lg;
       if (!got.includes('lost')) fbStampSeen[lg] = built;
     }
-  } finally { fbTicking = false; }
+  } finally { fbChecking = false; }
   await fbDrawOwed();
 }
 
-/* The tab on screen, drawn again with the new files, once nothing holds it. */
+/* The tab on screen, drawn again with the new files, once nothing holds it (a draw
+   under way: the next minute's check draws it). */
 async function fbDrawOwed(){
   if (fbOwed === null || fbOwed !== LEAGUE || fbTicking || fbHold()) return;
   fbTicking = true;
+  const lg = fbOwed;
   fbOwed = null;
-  try { await fbRedraw(); }   // new files
+  try { if (!(await fbRedraw())) fbOwed = lg; }   // new files (a box opened meanwhile: once it is closed)
   finally { fbTicking = false; }
 }
 
@@ -6189,12 +6237,23 @@ function fbDrawStarts(){
    SET STATE button (focusState) or a choice (stateChosen: "until the tab
    changes") had shown it, and a timed redraw is not a tab change. setTools
    runs before renderFootball's first await, so the picker is put back before
-   the browser paints and never leaves the screen. */
+   the browser paints and never leaves the screen.
+   `[2026-11-18]` Scores reads an old live feed HERE, before the draw, with the tab
+   still on screen (fbLiveFresh); after it, a reader who moved on is left to their
+   own draw, and one who opened a box is drawn for once it is closed. -> false when
+   it did not draw for a box (fbHold). */
 async function fbRedraw(){
+  if (FBTAB === 'scores' && fbScSeason === fbLiveSeason(FBSCHEDHAVE[LEAGUE] || []) && !fbLiveFresh()){
+    const at = LEAGUE + '|' + FBTAB;
+    await fbLiveLoad();
+    if (at !== LEAGUE + '|' + FBTAB) return true;
+    if (fbHold()) return false;
+  }
   const st = $('#st'), shown = !!st && st.style.display === '';
   const drawn = fbKeepScroll(renderFootball);
   if (shown) st.style.display = '';
   await drawn;
+  return true;
 }
 
 /* How many objects in a file carry a `commence` that has passed, by the page's
@@ -6214,9 +6273,15 @@ function fbKickSig(){
 }
 
 async function fbKickTick(){
-  if (LEAGUE === 'mlb') return;
+  if (LEAGUE === 'mlb') return;                    // (the league|tab check below stops it too)
   if (fbOwed === LEAGUE) return fbDrawOwed();      // new files a held redraw still owes
-  if (showStarted || fbTicking || fbHold() || fbKickSig() === fbKickDrawn) return;
+  const sig = fbKickSig(), last = String(fbKickDrawn);
+  if (showStarted || fbTicking || fbHold() || sig === last) return;
+  /* `[2026-11-18]` Only a kickoff on the tab the last draw showed. Another league or
+     tab is the reader's own draw still loading (a league's board, read again after
+     its stamp moved): it hides what has started when it lands, and drawing it here
+     too read the board twice and put the reader back where they were a second ago. */
+  if (sig.slice(0, sig.lastIndexOf('|')) !== last.slice(0, last.lastIndexOf('|'))) return;
   fbTicking = true;
   try { await fbRedraw(); }   // a kickoff
   finally { fbTicking = false; }

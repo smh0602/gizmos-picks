@@ -465,14 +465,19 @@ note boxes, tags and the stale bar now require their absence.
   Moved: a league not on screen lets its files go; the league on screen reads them again
   (no-cache), each copy kept until its new one is in (`fbKeep`), and is drawn again only when
   one changed. Every minute `fbKickTick` draws
-  Gizmo's Picks, Odds and Player Props again once a game in their file has started. ⛔ Never
+  Gizmo's Picks, Odds and Player Props again once a game in their file has started, on the
+  tab and league the last draw showed; the refresh's reads have their own flag
+  (`fbChecking`), so they never hold that check or the Scores poll off. ⛔ Never
   while a box score or an opened row is open, never on MLB, the scroll and the SET STATE
   picker kept (`fbRedraw`), a redraw the reader's own draw already made not made again
-  (`fbDrawStarts`), nothing new drawn. A football loader writes its answer, a failure too,
-  under the league it was asked for (`const lg = LEAGUE`). ⛔ A new football memo is a plain
-  object keyed `lg` or `lg|...`, in `fbMemos()` (read again, or only dropped) or in
+  (`fbDrawStarts`), nothing new drawn, and a timed redraw of Scores never waits on ESPN
+  under its Loading shell (`fbLiveFresh`). Every async function on the page writes a
+  football memo under the league it took before its first await (`const lg = LEAGUE`),
+  never `LEAGUE` after it: `test_fb_refresh.py` scans every one. ⛔ A new football memo is a
+  plain object keyed `lg` or `lg|...`, in `fbMemos()` (read again, or only dropped) or in
   `test_fb_refresh.py`'s ALLOW with its reason; that file fails on one in neither, on a Map,
-  and on a reader turned to null.
+  on one that starts null, undefined, `[]` or a Set outside ALLOW, and on a reader turned to
+  null.
 - 🔴 **ONE LOOK FOR ALL THREE LEAGUES: DESIGN I.** `[Sam, 2026-10-17]` *"i like the
   light blue on i think that oone is good"*, choosing design I of the layouts he was
   shown: a white page; the ONE `<header>` is a navy side panel (logo, league switch,

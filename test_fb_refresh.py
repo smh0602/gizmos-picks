@@ -62,7 +62,25 @@ WHAT THIS FILE ASKS, OF THE PAGE'S OWN CODE (node, no browser):
  12. A redraw the reader's own draw already made (a tab tapped after a box
      closed, a league switched back) is not made again a minute later.
  13. MLB on screen: neither football timer draws #fbview or reads a football
-     file for MLB.
+     file for MLB, with MLB's own Game Lines key held in WINNERS and MLB's
+     stamp and winners.json moving.
+ `[2026-11-18]` round 2:
+ 14. A timed redraw of Scores (the refresh's, and the 45 s poll's own) never
+     leaves the Loading shell up while ESPN answers (800 ms here): a feed under
+     45 s old is drawn as it is, an older one is read before the draw; a box
+     opened meanwhile holds it, a tab tapped meanwhile is left to the reader;
+     the poll is never held off by the refresh's reads; a switch reads the
+     other league's feed.
+ 15. A Trends table still being read when a stamp moves is drawn and kept in
+     FBDATA, drawn once, and one whose league was let go throws nothing.
+ 16. A kickoff whose minute is a 3-minute check (its stamp read 150 ms out)
+     leaves within 60 s; a kickoff on Odds and on Player Props leaves within a
+     minute, drawn once, the scroll kept.
+ 17. THE LOADER CLASS, read from the page: no async function writes a football
+     memo under LEAGUE after its first await; driven: college's teams.json
+     landing after a switch to the NFL leaves the NFL's directory alone.
+ 18. The 60 s check never draws a tab the reader's own draw is still loading
+     (one draw, one board read, the scroll kept).
 ⚠️ The same thing on the real current data, in Chromium, is measured by hand
 for the pull request (a note, never asserted here: it would be a fact about
 the day's files).
@@ -191,7 +209,7 @@ the day's files).
 #
 # @vacuity ...on the new-files path
 #   file: index.html
-#   find:   try { await fbRedraw(); }   // new files
+#   find:   try { if (!(await fbRedraw())) fbOwed = lg; }   // new files (a box opened meanwhile: once it is closed)
 #   with:   try { await renderFootball(); }   // new files
 #
 # @vacuity ...and on the kickoff path
@@ -206,13 +224,16 @@ the day's files).
 #
 # @vacuity a kickoff redraw waits while a row the reader opened is open
 #   file: index.html
-#   find:   if (showStarted || fbTicking || fbHold() || fbKickSig() === fbKickDrawn) return;
-#   with:   if (showStarted || fbTicking || fbKickSig() === fbKickDrawn) return;
+#   find:   if (showStarted || fbTicking || fbHold() || sig === last) return;
+#   with:   if (showStarted || fbTicking || sig === last) return;
 #
+# `[2026-11-18]` ~~`if (LEAGUE === 'mlb') return;` -> `void 0;`~~: vacuous since the league|tab
+# check below it stops MLB too (MLB is never the league a football draw showed); this makes the
+# timer draw on MLB outright, and the MLB scenario must see it.
 # @vacuity 🔴 MLB on screen: the football kickoff timer draws nothing
 #   file: index.html
-#   find:   if (LEAGUE === 'mlb') return;
-#   with:   void 0;
+#   find:   if (LEAGUE === 'mlb') return;                    // (the league|tab check below stops it too)
+#   with:   if (LEAGUE === 'mlb') return fbRedraw();
 #
 # @vacuity a kickoff is judged by the page's own started rule
 #   file: index.html
@@ -222,6 +243,93 @@ the day's files).
 # @vacuity a kickoff is drawn once, not every minute (each draw records what it showed)
 #   file: index.html
 #   find:   fbKickDrawn = fbKickSig();   // `[2026-11-18]` what this draw shows, for fbKickTick
+#   with:   void 0;
+
+# ── `[2026-11-18]` round 2 ──────────────────────────────────────────────
+# @vacuity 🔴 a timed redraw of Scores draws the live feed it holds, not under the Loading shell while ESPN answers
+#   file: index.html
+#   find: if (fbScSeason === liveSeason && !fbLiveFresh()) await fbLiveLoad();
+#   with: if (fbScSeason === liveSeason) await fbLiveLoad();
+#
+# @vacuity 🔴 an old live feed is read BEFORE the timed redraw, with the tab still on screen
+#   file: index.html
+#   find:   if (FBTAB === 'scores' && fbScSeason === fbLiveSeason(FBSCHEDHAVE[LEAGUE] || []) && !fbLiveFresh()){
+#   with:   if (false){
+#
+# @vacuity a fresh live feed is one of the league on screen (a switch reads the other league's)
+#   file: index.html
+#   find:   return !!FB_LIVE && FB_LIVE.lg === LEAGUE && Date.now() - FB_LIVE.at < FB_LIVE_MS;
+#   with:   return !!FB_LIVE && Date.now() - FB_LIVE.at < FB_LIVE_MS;
+#
+# @vacuity a box opened while that ESPN read is out holds the redraw
+#   file: index.html
+#   find:     if (fbHold()) return false;
+#   with:     void 0;
+#
+# @vacuity ...and the redraw it held is still owed, drawn once the box is closed
+#   file: index.html
+#   find:   try { if (!(await fbRedraw())) fbOwed = lg; }   // new files (a box opened meanwhile: once it is closed)
+#   with:   try { await fbRedraw(); }   // new files
+#
+# @vacuity a reader who tapped another tab while that ESPN read was out is left to their own draw
+#   file: index.html
+#   find:     if (at !== LEAGUE + '|' + FBTAB) return true;
+#   with:     void at;
+#
+# @vacuity 🔴 the 45 s Scores poll is not held off by the refresh's reads
+#   file: index.html
+#   find:   if (fbTicking) return;                              // one at a time
+#   with:   if (fbTicking || fbChecking) return;                              // one at a time
+#
+# @vacuity 🔴 the kickoff check is not held off by the refresh's reads (a play up to two minutes)
+#   file: index.html
+#   find:   if (showStarted || fbTicking || fbHold() || sig === last) return;
+#   with:   if (showStarted || fbTicking || fbChecking || fbHold() || sig === last) return;
+#
+# @vacuity 🔴 a Trends read in flight leaves fbLoad with the table it captured (no TypeError on a dropped side)
+#   file: index.html
+#   find:   return T[season];   // the table it took, whatever FBDATA holds now
+#   with:   return FBDATA[k][season];
+#
+# @vacuity 🔴 the side on screen with its table read out is kept (the read lands in FBDATA)
+#   file: index.html
+#   find:   if (!ss.length) return Promise.resolve();   // a read still out: kept
+#   with:   if (!ss.length) return null;
+
+#
+# @vacuity 🔴 MLB is never a league the football refresh checks (its only exclusion)
+#   file: index.html
+#   find:     for (const lg of Object.keys(LG_DATA).filter(x => x !== 'mlb')){
+#   with:     for (const lg of Object.keys(LG_DATA)){
+#
+# @vacuity 🔴 a kickoff on the Odds tab is watched (board.json)
+#   file: index.html
+#   find:   const M = {picks: FBCARD, odds: FBBOARD, props: FBPROPS}[FBTAB];
+#   with:   const M = {picks: FBCARD, props: FBPROPS}[FBTAB];
+#
+# @vacuity 🔴 a kickoff on the Player Props tab is watched (props.json.gz)
+#   file: index.html
+#   find:   const M = {picks: FBCARD, odds: FBBOARD, props: FBPROPS}[FBTAB];
+#   with:   const M = {picks: FBCARD, odds: FBBOARD}[FBTAB];
+#
+# @vacuity 🔴 THE CLASS: a new football cache declared with no value is caught (not only `= null`)
+#   file: index.html
+#   find: const FBNEWS = {};
+#   with: const FBNEWS = {}; let FBFUTURE;
+#
+# @vacuity 🔴 THE LOADER CLASS: fbTeamsLoad writing under LEAGUE after its await is caught (scan and driven)
+#   file: index.html
+#   find:     FBTEAMS[lg] = d.teams || {};
+#   with:     FBTEAMS[LEAGUE] = d.teams || {};
+#
+# @vacuity 🔴 THE LOADER CLASS: ...and fbSeasonsAvailableSched
+#   file: index.html
+#   find:   FBSCHEDHAVE[lg] = got.filter(y => y !== null);
+#   with:   FBSCHEDHAVE[LEAGUE] = got.filter(y => y !== null);
+#
+# @vacuity 🔴 the 60 s check never draws a tab the reader's own draw is still loading
+#   file: index.html
+#   find:   if (sig.slice(0, sig.lastIndexOf('|')) !== last.slice(0, last.lastIndexOf('|'))) return;
 #   with:   void 0;
 """
 import json
@@ -295,30 +403,130 @@ DROP_ONLY = {
 # ══════════════════════════════════════════════════════════════════════
 # THE CLASS, READ FROM THE PAGE: every declaration in its code (comments
 # removed), wherever it stands on its line, of a binding named FB* or WINNERS
-# that starts as an empty table ({}, a Map) or as null (a cache), and of any
+# that starts as an empty table ({}, a Map) or as a cache the refresh cannot
+# walk by league (null, undefined, no value at all, `[]`, a Set), and of any
 # fb* binding that starts as an empty table (a table is a memo whatever its
-# case). A Set is a choice the reader made, not a memo. ⚠️ Which of them are
-# TOP-LEVEL is asked of the running page (section 1: `typeof` in its global
-# scope), never guessed from indentation: a column-0 scan missed a second
-# declaration on one line, and its own mutation found that.
+# case). `[2026-11-18]` ~~null only~~: `let FBX;` and `let FBX = undefined;`
+# are the same cache as `= null`, and `[]` or a Set holds no league key either,
+# so each of them is named in ALLOW or refused. A lower-case fb* Set or `[]` is
+# a choice the reader made (`fbConf`, the conference chips), not a memo.
+# ⚠️ Which of them are TOP-LEVEL is asked of the running page (section 1: does
+# the name resolve in its global scope), never guessed from indentation: a
+# column-0 scan missed a second declaration on one line, and its own mutation
+# found that.
 # ══════════════════════════════════════════════════════════════════════
 CODE = jsblock.script_code(PAGE)
 _DECL = re.compile(r"(?<![\w$.])(?:const|let|var)\s+([^;\n]*)")
-_ONE = re.compile(r"([A-Za-z_$][\w$]*)\s*=\s*(\{\s*\}|new (?:Weak)?Map\(\s*\)|Object\.create\(null\)|null)\s*(?=,|$)")
-CAND = {}
-for m in _DECL.finditer(CODE):
-    for name, init in _ONE.findall(m.group(1).strip()):
-        football = name.startswith("FB") or name == "WINNERS"
-        if init == "null" and football:
-            CAND[name] = "null"
-        elif init != "null" and (football or name.startswith("fb")):
-            CAND[name] = "map" if init.startswith("new ") else "table"
+_NAME = re.compile(r"^\s*([A-Za-z_$][\w$]*)\s*(?:=\s*([\s\S]*?))?\s*$")
+_TABLE = re.compile(r"^(?:\{\s*\}|Object\.create\(null\))$")
+_MAP = re.compile(r"^new (?:Weak)?Map\(\s*\)$")
+_CACHE = re.compile(r"^(?:null|undefined|\[\s*\]|new (?:Weak)?Set\(\s*\))$")
+
+
+def declarators(text):
+    """The declarators of one `const|let|var` list, split at its top-level commas
+    (a comma inside brackets, braces, parentheses or a string is not one)."""
+    out, depth, cur, q = [], 0, [], None
+    for c in text:
+        if q:
+            cur.append(c)
+            q = None if c == q else q
+            continue
+        if c in "\"'`":
+            q = c
+        elif c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == "," and depth == 0:
+            out.append("".join(cur))
+            cur = []
+            continue
+        cur.append(c)
+    return out + ["".join(cur)]
+
+
+def scan(code):
+    """{name: kind} of every football memo candidate declared in `code`."""
+    cand = {}
+    for m in _DECL.finditer(code):
+        for d in declarators(m.group(1)):
+            one = _NAME.match(d)
+            if not one:
+                continue                       # destructuring, `k of ...`, a truncated line
+            name, init = one.group(1), (one.group(2) or "undefined").strip()
+            football = name.startswith("FB") or name == "WINNERS"
+            if _TABLE.match(init) and (football or name.startswith("fb")):
+                cand[name] = "table"
+            elif _MAP.match(init) and (football or name.startswith("fb")):
+                cand[name] = "map"
+            elif _CACHE.match(init) and football:
+                cand[name] = "cache"
+    return cand
+
+
+CAND = scan(CODE)
+
+# ══════════════════════════════════════════════════════════════════════
+# THE LOADER CLASS, READ FROM THE PAGE `[2026-11-18]`: in every async function
+# on it (a declaration or an arrow, nested ones too), every write to a football
+# memo (FB*, WINNERS: `=`, `||=`, `??=`, `delete`) AFTER the function's first
+# await, whose key is LEAGUE, or a name given LEAGUE after that await. The
+# reader can switch league while the await is out, so such a write lands in the
+# other league's memo. Round 1 fixed six loaders and guarded only the ones the
+# refresh reads again; fbTeamsLoad and fbSeasonsAvailableSched still did it.
+# ══════════════════════════════════════════════════════════════════════
+_ASYNC = re.compile(r"\basync\s+(?:function\s*([A-Za-z_$][\w$]*)?\s*\([^)]*\)|\([^)]*\)\s*=>"
+                    r"|[A-Za-z_$][\w$]*\s*=>)\s*\{")
+_WRITE = re.compile(r"\b(FB[A-Z0-9_]*|WINNERS)\s*\[([^\]]*)\]\s*(?:=(?!=)|\|\|=|\?\?=|&&=)"
+                    r"|\bdelete\s+(FB[A-Z0-9_]*|WINNERS)\s*\[([^\]]*)\]")
+_GIVEN = re.compile(r"(?:\b(?:const|let|var)\s+|[;{}\n]\s*)([A-Za-z_$][\w$]*)\s*=(?!=)\s*([^;\n]*)")
+
+
+def body_at(code, i):
+    """The text from the `{` at `i` through its matching close brace."""
+    depth = 0
+    for j in range(i, len(code)):
+        if code[j] == "{":
+            depth += 1
+        elif code[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return code[i:j + 1]
+    return code[i:]
+
+
+def late_writes(code):
+    """-> (async functions scanned, [(function, memo, key)] written under LEAGUE after
+    its first await, every memo write after a first await as (function, memo, key))."""
+    seen, bad, after = [], [], []
+    for m in _ASYNC.finditer(code):
+        name = m.group(1) or "async arrow at char %d" % m.start()
+        body = body_at(code, m.end() - 1)
+        seen.append(name)
+        a = re.search(r"\bawait\b", body)
+        if not a:
+            continue
+        tail = body[a.start():]
+        given = {g.group(1) for g in _GIVEN.finditer(tail) if re.search(r"\bLEAGUE\b", g.group(2))}
+        for w in _WRITE.finditer(tail):
+            memo, key = w.group(1) or w.group(3), w.group(2) if w.group(1) else w.group(4)
+            after.append((name, memo, key.strip()))
+            if re.search(r"\bLEAGUE\b", key) or any(re.search(r"\b%s\b" % re.escape(n), key) for n in given):
+                bad.append((name, memo, key.strip()))
+    return seen, bad, after
+
+
+ASYNC_SEEN, LATE_BAD, LATE_ALL = late_writes(CODE)
 
 # ══════════════════════════════════════════════════════════════════════
 # THE PLANTED FILES. ⛔ The clock is pinned (T0); nothing is read from data/.
 # ══════════════════════════════════════════════════════════════════════
 T0 = "2026-11-19T15:00:00Z"
 SOON = "2026-11-19T15:20:00Z"          # 20 minutes after T0
+# `[2026-11-18]` 1 s after T0+20 min: the next minute's kickoff check (T0+21 min = 1260 s) is
+# also the 7th 3-minute refresh check, which fires first on the same instant
+ALIGNED = "2026-11-19T15:20:01Z"
 LATER = "2026-11-21T18:00:00Z"
 TAG = {"nfl": "NFL", "ncaaf": "CFB"}
 
@@ -388,6 +596,32 @@ def full(lg, tag="Alpha"):
     return out
 
 
+def scores(lg):
+    """A schedule with one week-12 game (ESPN id 401) for Scores, beside full()."""
+    return {"data/%s/latest/schedule-2026.json.gz" % lg: {
+        "pulled_at": "2026-11-19T12:00:00Z", "_v": "Alpha", "games": [
+            {"id": "401", "espn": "401", "week": 12, "start": LATER, "home": "Home Team",
+             "away": "Away Team", "final": False, "home_score": None, "away_score": None}]}}
+
+
+def kick_files(lg):
+    """full(), plus a game that kicks off at SOON on the Odds board and in Player Props, beside
+    one at LATER: the kickoff on the two other tabs fbKickTick watches."""
+    out = full(lg)
+    d, T = "data/%s/latest/" % lg, TAG[lg]
+    out[d + "board.json"]["games"].insert(0, {
+        "id": "b-0", "away": T + " Soon Away", "home": "Home Team", "commence": SOON, "n_books": 3,
+        "win_pct": {}, "team_total": {}, "total": 41.5})
+
+    def pgame(gid, who, at):
+        return {"id": gid, "away": T + " " + who + " Away", "home": "Home Team", "commence": at,
+                "props": [{"player": T + " " + who + " Player", "market": "player_receptions",
+                           "label": "Receptions", "line": 4.5,
+                           "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 2}}}]}
+    out[d + "props.json.gz"]["games"] = [pgame("p-0", "Soon", SOON), pgame("p-1", "Later", LATER)]
+    return out
+
+
 # ══════════════════════════════════════════════════════════════════════
 # THE DRIVER: the page's whole script in a vm context. ⚠️ The DOM is only
 # what the football tabs touch; an element's innerHTML is a string, its
@@ -412,7 +646,10 @@ function boot(planted){
   const timers = []; let tid = 0;
   const CALLS = [], PRESENT = new Set(), HOOKS = {}, DELAY = {}, FAIL = new Set();
   const flight = {n: 0};
-  const view = {writes: 0, draws: 0};
+  // `loading`: turns that ended with the Loading shell on #fbview (a browser could paint it)
+  const view = {writes: 0, draws: 0, loading: 0};
+  // ESPN, answered on the page's own clock when a scenario turns it on (off: refused, as before)
+  const ESPN = {on: false, ms: 0, score: 0};
   const sb = {};
   function el(tag, id){
     return {
@@ -482,6 +719,16 @@ function boot(planted){
     u = String(u);
     CALLS.push({u, cache: init && init.cache ? init.cache : null, at: NOW});
     if (HOOKS[u]) HOOKS[u]();
+    if (ESPN.on && u.startsWith('https://site.api.espn.com/')){   // planted here: nothing leaves this machine
+      flight.n++;
+      await new Promise(r => add(r, ESPN.ms, false));
+      flight.n--;
+      const ev = {id: '401', competitions: [{status: {type: {state: 'in', shortDetail: 'Q2'},
+                  displayClock: '7:00', period: 2}, competitors: [
+                  {homeAway: 'home', score: String(ESPN.score)}, {homeAway: 'away', score: '3'}]}]};
+      const body = JSON.stringify({events: /dates=/.test(u) ? [] : [ev]});
+      return {ok: true, status: 200, json: async () => ctxParse(body)};
+    }
     if (/^[a-z][a-z0-9+.-]*:/i.test(u)) throw new TypeError('Failed to fetch');  // nothing leaves this machine
     const p = u.split('?')[0];
     if (DELAY[p]){                        // held back on the page's own clock
@@ -512,7 +759,7 @@ function boot(planted){
     setInterval: (fn, ms, ...a) => add(fn, ms, true, a),
     setTimeout: (fn, ms, ...a) => add(fn, ms, false, a),
     clearInterval: clear, clearTimeout: clear,
-    TextDecoder, TextEncoder, __now: () => NOW,
+    TextDecoder, TextEncoder, __now: () => NOW, CSS: {escape: x => String(x)},
   });
   sb.window = sb;
   const ctx = vm.createContext(sb);
@@ -522,7 +769,8 @@ function boot(planted){
     globalThis.Date = PinnedDate; })();`, ctx);
   ctxParse = vm.runInContext('JSON.parse', ctx);
   vm.runInContext(S.script, ctx, {filename: 'index.html'});
-  async function settle(){ for (let i = 0; i < 40; i++) await turn(); }
+  const isLoading = () => !!ids.fbview && /class="msg"[^>]*>Loading/.test(ids.fbview._h);
+  async function settle(){ for (let i = 0; i < 40; i++){ await turn(); if (isLoading()) view.loading++; } }
   async function advance(ms){
     const end = NOW + ms;
     for (;;){
@@ -546,7 +794,7 @@ function boot(planted){
   const click = lg => LGNAV.find(a => a.dataset.lg === lg).on.click[0]();
   return {
     run: code => vm.runInContext(code, ctx), advance, pastTick, settle, html, view, CALLS, PRESENT,
-    HOOKS, DELAY, FAIL, sb, flight, click,
+    HOOKS, DELAY, FAIL, sb, flight, click, ESPN, isLoading,
     put: (p, v) => { FILES[p] = v; },
     file: p => JSON.parse(JSON.stringify(FILES[p])),
     later: (ms, fn) => add(fn, ms, false, []),
@@ -561,7 +809,9 @@ function boot(planted){
   };
 }
 
-const card = (lg, tag, soon) => JSON.parse(JSON.stringify(S.cards[lg + '|' + tag + '|' + (soon ? 'soon' : 'later')]));
+// `w`: true (the first play kicks off at SOON), 'aligned' (at ALIGNED), or nothing (LATER)
+const card = (lg, tag, w) => JSON.parse(JSON.stringify(
+  S.cards[lg + '|' + tag + '|' + (w === true ? 'soon' : w || 'later')]));
 const fresh = s => ({built_at: s});
 const OWN = lg => `(k => k === ${JSON.stringify(lg)} || k.startsWith(${JSON.stringify(lg + '|')}))`;
 // every key a league holds in every memo the refresh rewrites (readers only, or all of them), as one string
@@ -721,7 +971,9 @@ async function classSweep(){
   const P = await openPicks('nfl', Object.assign({}, S.files.nfl, S.files.ncaaf));
   // which candidates are bindings of the page's global scope (top-level), asked of the page
   const top = {};
-  for (const n of Object.keys(S.cand)) top[n] = P.run(`typeof ${n}`);
+  // `absent`: not a binding of the global scope (a local); a top-level `let X;` is 'undefined'
+  for (const n of Object.keys(S.cand))
+    top[n] = P.run(`(() => { try { void ${n}; return typeof ${n}; } catch (e) { return 'absent'; } })()`);
   const tables = Object.keys(S.cand).filter(n => S.cand[n] === 'table' && top[n] === 'object');
   await P.advance(181000);
   const SENT = '{sentinel: "planted"}';
@@ -893,19 +1145,238 @@ async function picker(lg){
   return out;
 }
 
-// MLB on screen while both football timers fire and a football stamp moves
+// MLB on screen while both football timers fire and a football stamp moves. `[2026-11-18]`
+// WINNERS holds MLB's own Game Lines key (renderGameLines -> winnersLoad('mlb')), and MLB's
+// freshness.json and winners.json move too: the refresh's only MLB exclusion is its league
+// loop's filter, and with nothing of MLB's held it was never asked (~~`n !== 'WINNERS'`~~).
 async function mlbQuiet(){
-  const P = await openPicks('nfl', S.files.nfl);
+  const P = await openPicks('nfl', Object.assign({}, S.files.nfl, {
+    'data/latest/freshness.json': {built_at: 'A'},
+    'data/latest/winners.json': {league: 'mlb', rows: [], _v: 'A'}}));
   await P.advance(181000);
   await P.league('mlb');
+  P.run("WINNERS.mlb = {league: 'mlb', rows: [], _v: 'A'}");   // as MLB's Game Lines tab leaves it
   const w0 = P.view.writes, c0 = P.CALLS.length;
   P.put('picks/fb-nfl-latest.json', card('nfl', 'Bravo'));
   P.put('data/nfl/latest/freshness.json', fresh('2026-11-19T15:01:00Z'));
+  P.put('data/latest/freshness.json', {built_at: 'B'});
+  P.put('data/latest/winners.json', {league: 'mlb', rows: [], _v: 'B'});
   await P.advance(2 * 180000);
+  const urls = P.CALLS.slice(c0).map(c => c.u);
   return {league: P.run('LEAGUE'), writes: P.view.writes - w0,
-          fbMlb: P.CALLS.slice(c0).map(c => c.u).filter(u => /^picks\/fb-mlb/.test(u)),
-          // WINNERS.mlb is MLB's own Game Lines tab's
+          fbMlb: urls.filter(u => /^picks\/fb-mlb/.test(u)),
+          // what only a football draw or read of MLB fetches (MLB's own loop reads board and freshness)
+          mlbFootball: urls.filter(u => /^data\/latest\/(winners|teams)\.json/.test(u)),
+          winners: P.run('WINNERS.mlb && WINNERS.mlb._v'), owed: P.run('fbOwed'),
           memos: P.run("Object.entries(fbMemos()).filter(([n, [M]]) => n !== 'WINNERS' && 'mlb' in M).map(([n]) => n)")};
+}
+
+// ── `[2026-11-18]` round 2 ─────────────────────────────────────────────
+// the live feed's own scoreboard requests (the week ESPN is on), not the per-day ones
+const liveCalls = (P, lg, since) => {
+  const path = P.run(`FB_LIVE_PATH[${JSON.stringify(lg)}]`);
+  return P.CALLS.slice(since || 0).filter(c => c.u.includes('/' + path + '/scoreboard?') && !/dates=/.test(c.u)).length;
+};
+// ms from now to the page's next 3-minute check
+const nextCheck = P => { const t0 = Date.parse(S.t0), now = P.run('Date.now()');
+                         return t0 + REFRESH * (Math.floor((now - t0) / REFRESH) + 1) - now; };
+// the refresh's own ESPN request for the league (each division's), opened as `hook`
+const onLive = (P, lg, hook) => {
+  const base = `${P.run('FB_LIVE_BASE')}/${P.run(`FB_LIVE_PATH[${JSON.stringify(lg)}]`)}/scoreboard?limit=400`;
+  for (const g of P.run(`FB_LIVE_GROUPS[${JSON.stringify(lg)}]`)) P.HOOKS[base + (g ? '&groups=' + g : '')] = hook;
+};
+const unhook = P => { for (const k of Object.keys(P.HOOKS)) delete P.HOOKS[k]; };
+
+// SCORES: a timed redraw never waits on ESPN under its Loading shell (ESPN answers in 800 ms)
+async function scoresTimed(lg){
+  const other = lg === 'nfl' ? 'ncaaf' : 'nfl';
+  const P = boot(Object.assign({}, S.full.nfl, S.full.ncaaf, S.scores.nfl, S.scores.ncaaf));
+  P.ESPN.on = true; P.ESPN.ms = 800;
+  await P.settle();
+  await P.league(lg);                       // every league opens on Scores
+  await P.advance(3000);                    // ESPN's live week and the week's days land
+  const groups = liveCalls(P, lg);
+  const out = {tab: P.run('FBTAB'), first: P.html().includes('Scores &amp; Matchups'), groups};
+  await P.pastTick();                       // the stamp seen once
+  const bump = (v, stamp) => {
+    const b = `data/${lg}/latest/board.json`;
+    P.put(b, Object.assign(P.file(b), {_v: v, pulled_at: stamp}));
+    P.put(`data/${lg}/latest/freshness.json`, fresh(stamp));
+  };
+  // the feed made two minutes old a millisecond before the next check (and `hook` armed on the
+  // refresh's own ESPN read then, not on an earlier poll's)
+  const stale = hook => P.later(nextCheck(P) - 1, () => {
+    P.run('FB_LIVE.at = new Date(Date.now() - 120000)');
+    if (hook) onLive(P, lg, hook);
+  });
+  // `polls`: the 45 s polls due since `t` (each asks ESPN once a division)
+  const polls = t => Math.floor((P.run('Date.now()') - Date.parse(S.t0)) / 45000)
+                   - Math.floor((t - Date.parse(S.t0)) / 45000);
+  const take = (d0, c0, t) => ({draws: P.view.draws - d0, loading: P.view.loading, scrollY: P.sb.scrollY,
+                                scores: P.html().includes('Scores &amp; Matchups') && !P.isLoading(),
+                                live: liveCalls(P, lg, c0), polls: polls(t) * groups, owed: P.run('fbOwed'),
+                                board: P.run(`FBBOARD[${JSON.stringify(lg)}]._v`)});
+  const now = () => P.run('Date.now()');
+  // A. the refresh: board.json moved with the stamp (every odds pull)
+  P.sb.scrollY = 640; P.view.loading = 0;
+  let d0 = P.view.draws, c0 = P.CALLS.length, t = now();
+  bump('Bump1', '2026-11-19T15:04:00Z');
+  await P.pastTick(5000);
+  out.refresh = take(d0, c0, t);
+  // B. the feed is two minutes old when the redraw comes (a background tab's timers are
+  //    throttled, or a box score held the poll): it is read before the draw, the tab still up
+  P.view.loading = 0; d0 = P.view.draws; c0 = P.CALLS.length; t = now();
+  bump('Bump2', '2026-11-19T15:07:00Z');
+  stale();
+  await P.pastTick(5000);
+  out.stale = take(d0, c0, t);
+  // C. the poll's own redraw: the live score moved
+  P.view.loading = 0; d0 = P.view.draws; c0 = P.CALLS.length; t = now();
+  P.ESPN.score = 7;
+  await P.advance(46000);
+  out.poll = take(d0, c0, t);
+  // D. a box opened while that ESPN read is out: nothing drawn under it, drawn once it is closed
+  let once = false;
+  bump('Bump3', '2026-11-19T15:16:00Z');
+  stale(() => { if (!once){ once = true; P.PRESENT.add('.ovl'); } });
+  let w0 = P.view.writes;
+  await P.pastTick(5000);
+  out.box = {opened: once, writes: P.view.writes - w0, owed: P.run('fbOwed'),
+             board: P.run(`FBBOARD[${JSON.stringify(lg)}]._v`)};
+  unhook(P);
+  P.PRESENT.delete('.ovl');
+  d0 = P.view.draws; P.view.loading = 0; c0 = P.CALLS.length; t = now();
+  await P.advance(61000);
+  out.boxClosed = take(d0, c0, t);
+  // E. the reader taps Odds while that ESPN read is out: Odds drawn once, by the reader's own tap
+  once = false;
+  bump('Bump4', '2026-11-19T15:22:00Z');
+  stale(() => { if (!once){ once = true; P.later(10, () => P.tab('odds')); } });
+  d0 = P.view.draws;
+  await P.pastTick(5000);
+  out.moved = {tapped: once, tab: P.run('FBTAB'), draws: P.view.draws - d0,
+               odds: P.html().includes(S.tag[lg] + ' Alpha Away'), owed: P.run('fbOwed')};
+  unhook(P);
+  await P.tab('scores'); await P.advance(3000);
+  // F. the poll is not held off by the refresh's reads: the stamp takes 150 ms, and every fourth
+  //    poll falls on a 3-minute check, just after it
+  P.DELAY[`data/${lg}/latest/freshness.json`] = 150;
+  c0 = P.CALLS.length;
+  const t1 = P.run('Date.now()'), t0 = Date.parse(S.t0);
+  await P.advance(nextCheck(P) + 2 * REFRESH + 1000);
+  const due = Math.floor((P.run('Date.now()') - t0) / 45000) - Math.floor((t1 - t0) / 45000);
+  out.polls = {asked: liveCalls(P, lg, c0) / groups, due};
+  delete P.DELAY[`data/${lg}/latest/freshness.json`];
+  // G. a switch to the other league's Scores, within 45 s of a poll, reads THAT league's feed
+  c0 = P.CALLS.length;
+  await P.league(other); await P.advance(3000);
+  out.switched = {league: P.run('LEAGUE'), tab: P.run('FBTAB'), live: liveCalls(P, other, c0),
+                  lg: P.run('FB_LIVE && FB_LIVE.lg')};
+  return out;
+}
+
+// TRENDS: the table read still out when the stamp moves (5 s on the page's clock, its HEAD probe too)
+async function trendsHeld(lg){
+  const P = await openPicks(lg, S.full[lg]);
+  await P.pastTick();
+  const k = JSON.stringify(lg + '|off'), n0 = UNHANDLED.length;
+  P.DELAY[`data/${lg}/latest/offense-by-position-2026.json.gz`] = 5000;
+  P.DELAY[`picks/fb-${lg}-latest.json`] = 4000;   // the refresh's other reads still out when the table lands
+  P.put(`data/${lg}/latest/freshness.json`, fresh('2026-11-19T15:30:00Z'));
+  P.later(nextCheck(P) - 7000, () => P.tab('trends'));   // the probe lands 2 s before the check, the table 3 s after
+  await P.pastTick(1000);
+  const out = {atCheck: {loading: P.isLoading(), side: P.run(`JSON.stringify(FBDATA[${k}])`), flight: P.flight.n}};
+  await P.advance(5000);
+  const d0 = P.view.draws;
+  await P.advance(65000);
+  out.after = {tab: P.run('FBTAB'), table: P.html().includes('table built') && !P.isLoading(),
+               held: P.run(`((FBDATA[${k}] || {})[2026] || {})._v || null`),
+               draws: P.view.draws - d0, owed: P.run('fbOwed'),
+               unhandled: UNHANDLED.slice(n0).filter(e => /fbLoad|reading '2026'/.test(e))};
+  return out;
+}
+
+// TRENDS: the table read still out when the reader switches league and that league's stamp moves
+async function trendsAway(lg){
+  const other = lg === 'nfl' ? 'ncaaf' : 'nfl';
+  const P = await openPicks(lg, Object.assign({}, S.full.nfl, S.full.ncaaf));
+  await P.pastTick();
+  const k = JSON.stringify(lg + '|off'), n0 = UNHANDLED.length;
+  P.DELAY[`data/${lg}/latest/offense-by-position-2026.json.gz`] = 5000;
+  P.put(`data/${lg}/latest/freshness.json`, fresh('2026-11-19T15:30:00Z'));
+  const at = nextCheck(P);
+  P.later(at - 7000, () => P.tab('trends'));
+  P.later(at - 1000, () => P.click(other));
+  await P.pastTick(1000);
+  const out = {league: P.run('LEAGUE'), dropped: !P.run(`${k} in FBDATA`), flight: P.flight.n};
+  await P.advance(10000);
+  out.landed = P.flight.n === 0;
+  out.unhandled = UNHANDLED.slice(n0).filter(e => /fbLoad|reading '2026'/.test(e));
+  return out;
+}
+
+// a kickoff a second before a 3-minute check's minute, its stamp read 150 ms out
+async function kickAligned(lg){
+  const P = await openPicks(lg, Object.assign({}, S.files[lg],
+                                              {[`picks/fb-${lg}-latest.json`]: card(lg, 'Alpha', 'aligned')}));
+  P.DELAY[`data/${lg}/latest/freshness.json`] = 150;
+  await P.advance(1200000);                 // T0 + 20 min: not started yet
+  const out = {before: P.rows()};
+  P.sb.scrollY = 640;
+  const d0 = P.view.draws;
+  await P.advance(61000);                   // it kicks off at +20:01; the next check is +21:00
+  Object.assign(out, {after: P.rows(), afterTop: P.tops(), draws: P.view.draws - d0, scrollY: P.sb.scrollY});
+  return out;
+}
+
+// a kickoff on Odds (board.json) and on Player Props (props.json.gz)
+async function kickTab(lg, tab){
+  const P = boot(S.kick[lg]);
+  await P.settle(); await P.league(lg); await P.tab(tab);
+  const soon = S.tag[lg] + (tab === 'odds' ? ' Soon Away' : ' Soon Player');
+  const later = S.tag[lg] + (tab === 'odds' ? ' Alpha Away' : ' Later Player');
+  const out = {before: P.html().includes(soon) && P.html().includes(later)};
+  const d0 = P.view.draws;
+  await P.advance(19 * 60000);
+  out.early = {soon: P.html().includes(soon), draws: P.view.draws - d0};
+  P.sb.scrollY = 640;
+  await P.advance(2 * 60000 + 1000);        // it kicks off at +20 minutes
+  const d1 = P.view.draws;
+  Object.assign(out, {soonGone: !P.html().includes(soon), laterKept: P.html().includes(later),
+                      draws: d1 - d0, scrollY: P.sb.scrollY, tab: P.run('FBTAB')});
+  await P.advance(10 * 60000);
+  out.later = P.view.draws - d1;
+  return out;
+}
+
+// the 60 s check lands while the reader's own league switch is still reading its board (3 s)
+async function switchKick(){
+  const P = boot(Object.assign({}, S.files.nfl, S.files.ncaaf));
+  await P.settle(); await P.league('nfl'); await P.tab('picks');
+  await P.advance(59000);                   // a second before the page's first 60 s check
+  P.DELAY['data/ncaaf/latest/board.json'] = 3000;
+  const d0 = P.view.draws, c0 = P.CALLS.length;
+  await P.league('ncaaf');
+  P.later(3500, () => { P.sb.scrollY = 640; });   // 0.5 s after the list is drawn, the reader scrolls
+  await P.advance(20000);
+  return {draws: P.view.draws - d0, rows: P.rows(), league: P.run('LEAGUE'), scrollY: P.sb.scrollY,
+          boardReads: P.CALLS.slice(c0).filter(c => c.u === 'data/ncaaf/latest/board.json').length};
+}
+
+// college's teams.json lands after the reader switched to the NFL (a loader the refresh never reads)
+async function switchTeams(){
+  const P = boot(Object.assign({}, S.files.nfl, S.files.ncaaf,
+                               {'data/ncaaf/latest/teams.json': {teams: {'College U': {abbr: 'CU'}}}}));
+  await P.settle(); await P.league('nfl');
+  const nfl0 = P.run('JSON.stringify(Object.keys(FBTEAMS.nfl || {}).sort())');
+  let once = false;
+  P.DELAY['data/ncaaf/latest/teams.json'] = 1000;
+  P.HOOKS['data/ncaaf/latest/teams.json'] = () => { if (!once){ once = true; P.later(10, () => P.click('nfl')); } };
+  await P.league('ncaaf');
+  await P.advance(3000);
+  return {switched: once, league: P.run('LEAGUE'), nflKeys: JSON.parse(nfl0).length,
+          nflSame: P.run('JSON.stringify(Object.keys(FBTEAMS.nfl || {}).sort())') === nfl0,
+          cfb: P.run('Object.keys(FBTEAMS.ncaaf || {})')};
 }
 
 (async () => {
@@ -923,7 +1394,15 @@ async function mlbQuiet(){
     R['staleBox_' + lg] = await staleBox(lg);
     R['staleSwitch_' + lg] = await staleSwitch(lg);
     R['picker_' + lg] = await picker(lg);
+    R['scores_' + lg] = await scoresTimed(lg);
+    R['trendsHeld_' + lg] = await trendsHeld(lg);
+    R['trendsAway_' + lg] = await trendsAway(lg);
+    R['kickAligned_' + lg] = await kickAligned(lg);
+    R['kickOdds_' + lg] = await kickTab(lg, 'odds');
+    R['kickProps_' + lg] = await kickTab(lg, 'props');
   }
+  R.switchKick = await switchKick();
+  R.switchTeams = await switchTeams();
   R.offScreen = await offScreen();
   R.classSweep = await classSweep();
   R.switchFail = await switchFail();
@@ -936,11 +1415,12 @@ async function mlbQuiet(){
 HOLDS = [".ovl", "#fbview tr.open", "#fbview details[open]"]
 _s = SRC.index("<script>") + len("<script>")
 SCRIPT = SRC[_s:SRC.index("</script>", _s)]       # the page's one script, as a browser runs it
-CARDS = {"%s|%s|%s" % (lg, tag, w): card(lg, tag, SOON if w == "soon" else None)
-         for lg in TAG for tag in ("Alpha", "Bravo", "Charlie", "Delta") for w in ("soon", "later")}
+CARDS = {"%s|%s|%s" % (lg, tag, w): card(lg, tag, {"soon": SOON, "aligned": ALIGNED}.get(w))
+         for lg in TAG for tag in ("Alpha", "Bravo", "Charlie", "Delta") for w in ("soon", "later", "aligned")}
 PAYLOAD = {"t0": T0, "script": SCRIPT, "cards": CARDS, "tag": TAG, "holds": HOLDS,
            "files": {lg: files(lg) for lg in TAG}, "cand": CAND, "readAgain": READ_AGAIN,
-           "full": {lg: full(lg) for lg in TAG}, "fullB": {lg: full(lg, "Bravo") for lg in TAG}}
+           "full": {lg: full(lg) for lg in TAG}, "fullB": {lg: full(lg, "Bravo") for lg in TAG},
+           "scores": {lg: scores(lg) for lg in TAG}, "kick": {lg: kick_files(lg) for lg in TAG}}
 
 tmp = tempfile.mkdtemp(prefix="fbrefresh-")
 try:
@@ -972,28 +1452,35 @@ section("1. 🔴 THE CLASS: EVERY TOP-LEVEL FOOTBALL MEMO IS REFRESHED OR ALLOW-
 _top = got("classSweep", "top") or {}
 TABLES = {n for n, k in CAND.items() if k == "table" and _top.get(n) == "object"}
 MAPS = {n for n, k in CAND.items() if k == "map" and _top.get(n) == "object"}
-NULLS = {n for n, k in CAND.items() if k == "null" and _top.get(n) not in (None, "undefined")}
+CACHES = {n for n, k in CAND.items() if k == "cache" and _top.get(n) not in (None, "absent")}
 ck(len(TABLES) >= 12 and {"FBCARD", "FBBOARD", "FBPROPS", "WINNERS", "FBREC"} <= TABLES,
    "the page's top-level football memo tables are found (%d: %s)" % (len(TABLES), ", ".join(sorted(TABLES))),
    "⛔ a scan that finds nothing passes every check below (rule 67)")
-note("   null-initialised football caches: %s; declared, not top-level: %s"
-     % (", ".join(sorted(NULLS)), sorted(n for n in CAND if n not in TABLES | MAPS | NULLS) or "none"))
+note("   football caches (null, undefined, [], a Set): %s; declared, not top-level: %s"
+     % (", ".join(sorted(CACHES)), sorted(n for n in CAND if n not in TABLES | MAPS | CACHES) or "none"))
 _maps = sorted(MAPS - set(ALLOW))
 ck(not _maps,
    "🔴 no football memo is a Map: the refresh finds a league's keys with Object.keys and drops them "
    "with delete, which see a plain object's keys and none of a Map's entries",
    "⛔ use a plain object keyed by league (`const X = {}`, keys `lg` or `lg|...`): %s" % _maps)
-_stale = sorted(k for k in ALLOW if k not in TABLES | MAPS | NULLS)
+_stale = sorted(k for k in ALLOW if k not in TABLES | MAPS | CACHES)
 ck(not _stale, "ALLOW names only memos that are on the page",
    "⛔ a stale allow-list entry hides nothing today and excuses something tomorrow: %s" % _stale)
 ck(all(isinstance(v, str) and len(v) > 20 for v in ALLOW.values()),
    "   ...and gives each one its reason")
-_null_bare = sorted(NULLS - set(ALLOW))
+_null_bare = sorted(CACHES - set(ALLOW))
 ck(not _null_bare,
-   "🔴 every null-initialised football cache is allow-listed with its reason "
-   "(the refresh lets go of a league's keys in a TABLE; a bare cache it cannot see)",
+   "🔴 every top-level football cache that starts null, undefined, with no value, `[]` or a Set is "
+   "allow-listed with its reason (the refresh lets go of a league's keys in a TABLE; a bare cache "
+   "it cannot see) (~~`= null` only: `let FBX;` passed~~)",
    "⛔ put the file in a table keyed by league and in fbMemos(), or say here why it never "
    "needs refreshing: %s" % _null_bare)
+_planted = scan("let FBA; let FBB = undefined; let FBC = []; const FBD = new Set(); let FBE = null; "
+                "const FBF = {}; let fbG = new Set(); let fbH = []; const X = [FBCARD, FBBOARD];")
+ck(_planted == {"FBA": "cache", "FBB": "cache", "FBC": "cache", "FBD": "cache", "FBE": "cache",
+                "FBF": "table"},
+   "   (planted) the scan reads every spelling of a cache, keeps a lower-case Set or `[]` (reader "
+   "state) out, and takes no name from inside an initialiser", str(_planted))
 _keys = got("switchFail", "keys") or {}
 _lgs = set(TAG) | {"mlb"}
 _odd = sorted("%s[%r]" % (n, k) for n, ks in _keys.items() for k in ks
@@ -1260,6 +1747,149 @@ ck(M.get("league") == "mlb" and M.get("writes") == 0 and not M.get("fbMlb") and 
    "#fbview never written, no picks/fb-mlb read, no football memo holds MLB",
    "league %s, #fbview written %s time(s), fetched %s, memos %s"
    % (M.get("league"), M.get("writes"), M.get("fbMlb"), M.get("memos")))
+ck(M.get("winners") == "A" and not M.get("mlbFootball") and M.get("owed") is None,
+   "🔴 ...and with MLB's own Game Lines key in WINNERS and MLB's freshness.json and winners.json "
+   "moved, the football refresh never reads them: WINNERS.mlb is as MLB's tab left it, no "
+   "data/latest/winners.json or teams.json read, nothing owed (~~asked with nothing of MLB's held~~)",
+   "WINNERS.mlb %s, read %s, owed %s" % (M.get("winners"), M.get("mlbFootball"), M.get("owed")))
+
+# ══════════════════════════════════════════════════════════════════════
+section("14. 🔴 A TIMED REDRAW OF SCORES NEVER WAITS ON ESPN UNDER ITS LOADING SHELL")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-11-18]` fbScores drew "Loading..." and then asked ESPN, so a timed redraw of an open
+# Scores tab (the refresh's on every odds pull, and the 45 s poll's own) emptied the tab and put
+# the reader at the top for the round trip. ESPN answers 800 ms later on the page's clock here;
+# `loading` counts the turns that ended with the Loading shell on #fbview (a browser could paint
+# them).
+for lg in TAG:
+    X = got("scores_" + lg) or {}
+    ck(X.get("tab") == "scores" and X.get("first") and (X.get("groups") or 0) >= 1,
+       "%s: the league opens on Scores, drawn with ESPN's live week (%s request(s) a poll)"
+       % (TAG[lg], X.get("groups")), str({k: X.get(k) for k in ("tab", "first", "groups")}))
+    A = X.get("refresh") or {}
+    ck(A.get("draws", 0) >= 1 and A.get("board") == "Bump1" and A.get("loading") == 0
+       and A.get("scrollY") == 640 and A.get("scores") and A.get("live") == A.get("polls"),
+       "🔴 %s: board.json moved with the stamp: Scores drawn again with the new board, the Loading "
+       "shell never left up, the scroll kept, ESPN asked only by the poll (~~\"Loading...\" and the "
+       "top of the page while ESPN answered~~)" % TAG[lg], str(A))
+    B = X.get("stale") or {}
+    ck(B.get("draws", 0) >= 1 and B.get("board") == "Bump2" and B.get("loading") == 0
+       and B.get("scrollY") == 640 and B.get("scores") and (B.get("live") or 0) >= X.get("groups", 1),
+       "🔴 %s: the feed two minutes old when the redraw comes: ESPN read before the draw, with the "
+       "tab still on screen, never under the Loading shell" % TAG[lg], str(B))
+    C = X.get("poll") or {}
+    ck(C.get("draws", 0) >= 1 and C.get("loading") == 0 and C.get("scrollY") == 640
+       and C.get("live") == C.get("polls") == X.get("groups"),
+       "🔴 %s: the poll's own redraw (the score moved) draws the feed it just read: no Loading "
+       "shell, the scroll kept, one ESPN request a division, not two" % TAG[lg], str(C))
+    D = X.get("box") or {}
+    ck(D.get("opened") and D.get("writes") == 0 and D.get("owed") == lg,
+       "🔴 %s: a box score opened while that read was out: nothing drawn under it, the redraw "
+       "still owed" % TAG[lg], str(D))
+    DC = X.get("boxClosed") or {}
+    ck(DC.get("draws", 0) >= 1 and DC.get("owed") is None and DC.get("board") == "Bump3"
+       and DC.get("loading") == 0 and DC.get("scores"),
+       "   %s: ...and drawn within a minute of it closing" % TAG[lg], str(DC))
+    E = X.get("moved") or {}
+    ck(E.get("tapped") and E.get("tab") == "odds" and E.get("draws") == 1 and E.get("odds")
+       and E.get("owed") is None,
+       "   %s: the reader tapped Odds while that read was out: Odds drawn once, by the tap, and "
+       "Scores not drawn over it" % TAG[lg], str(E))
+    F = X.get("polls") or {}
+    ck(F.get("due", 0) >= 8 and F.get("asked") == F.get("due"),
+       "🔴 %s: with the stamp 150 ms out, every 45 s poll asks ESPN, the ones on a 3-minute check "
+       "too (~~every fourth skipped: the refresh's reads held the draw flag~~)" % TAG[lg], str(F))
+    G = X.get("switched") or {}
+    ck(G.get("tab") == "scores" and G.get("league") != lg and (G.get("live") or 0) >= 1
+       and G.get("lg") == G.get("league"),
+       "   %s: a switch to the other league's Scores within 45 s of a poll reads that league's own "
+       "feed (a fresh feed is one of the league on screen)" % TAG[lg], str(G))
+
+# ══════════════════════════════════════════════════════════════════════
+section("15. 🔴 A TRENDS TABLE STILL BEING READ WHEN A STAMP MOVES IS DRAWN, AND KEPT")
+# ══════════════════════════════════════════════════════════════════════
+for lg in TAG:
+    X = got("trendsHeld_" + lg) or {}
+    AC, AF = X.get("atCheck") or {}, X.get("after") or {}
+    ck(AC.get("loading") and AC.get("side") == "{}" and (AC.get("flight") or 0) >= 1,
+       "%s: at the check, Trends is on Loading with its table read out (the side's table empty)"
+       % TAG[lg], str(AC))
+    ck(AF.get("tab") == "trends" and AF.get("table") and not AF.get("unhandled"),
+       "🔴 %s: the table is drawn when it lands, no error (~~the check dropped the side, fbLoad read "
+       "FBDATA[k][season] off nothing: a TypeError, Trends on Loading for good~~)" % TAG[lg],
+       str({k: AF.get(k) for k in ("tab", "table", "unhandled")}))
+    ck(AF.get("held") == "Alpha",
+       "🔴 %s: ...and FBDATA keeps it: the side on screen with a read out is not dropped" % TAG[lg],
+       "FBDATA[%s|off][2026] %s" % (lg, AF.get("held")))
+    ck(AF.get("draws") == 0 and AF.get("owed") is None,
+       "   %s: ...and drawn once: the reader's own read, landing while the check's other reads were "
+       "out, is not judged new" % TAG[lg], "draws after %s, owed %s" % (AF.get("draws"), AF.get("owed")))
+    Y = got("trendsAway_" + lg) or {}
+    ck(Y.get("league") != lg and Y.get("dropped") and Y.get("landed") and not Y.get("unhandled"),
+       "🔴 %s: the reader left for the other league with the table read out and its stamp moved: "
+       "its tables are let go, and the read that lands after throws nothing" % TAG[lg], str(Y))
+
+# ══════════════════════════════════════════════════════════════════════
+section("16. 🔴 KICKOFFS: ON A 3-MINUTE CHECK'S MINUTE, AND ON ODDS AND PLAYER PROPS")
+# ══════════════════════════════════════════════════════════════════════
+for lg in TAG:
+    K = got("kickAligned_" + lg) or {}
+    one, two = names(lg, "Alpha")
+    ck(K.get("before") == [one, two] and K.get("after") == [two] and K.get("afterTop") == [two]
+       and K.get("draws") == 1 and K.get("scrollY") == 640,
+       "🔴 %s: a play that starts a second after a minute, whose next minute is a 3-minute check "
+       "with its stamp read 150 ms out, has left the plays and top plays 60 s after kickoff, drawn "
+       "once, the scroll kept (~~skipped while the refresh held the flag: up to two minutes~~)" % TAG[lg],
+       str(K))
+    for tab, label in (("odds", "Odds (board.json)"), ("props", "Player Props (props.json.gz)")):
+        T = got("kick%s_%s" % (tab.capitalize(), lg)) or {}
+        ck(T.get("before") and (T.get("early") or {}).get("soon") and (T.get("early") or {}).get("draws") == 0,
+           "%s %s: both games shown, nothing drawn in the 19 minutes before the kickoff" % (TAG[lg], label),
+           str(T))
+        ck(T.get("soonGone") and T.get("laterKept") and T.get("draws") == 1 and T.get("scrollY") == 640
+           and T.get("tab") == tab and T.get("later") == 0,
+           "🔴 %s %s: the game leaves within a minute of kickoff, drawn once, the scroll kept, not "
+           "drawn again (fbKickSig watches this tab's own file)" % (TAG[lg], label), str(T))
+
+# ══════════════════════════════════════════════════════════════════════
+section("17. 🔴 THE LOADER CLASS: NO ASYNC FUNCTION WRITES A FOOTBALL MEMO UNDER LEAGUE AFTER AN AWAIT")
+# ══════════════════════════════════════════════════════════════════════
+_names = set(ASYNC_SEEN)
+_loaders = {"fbCardLoad", "fbBoardLoad", "fbPropsLoad", "fbFlagsLoad", "fbRecordLoad", "fbNewsLoad",
+            "fbTeamsLoad", "fbSeasonsAvailableSched", "fbSchedLoad", "winnersLoad", "fbLoad"}
+_after = {(n, m) for n, m, k in LATE_ALL}
+ck(len(ASYNC_SEEN) >= 40 and _loaders <= _names
+   and {("fbCardLoad", "FBCARD"), ("fbTeamsLoad", "FBTEAMS"), ("fbSeasonsAvailableSched", "FBSCHEDHAVE")} <= _after,
+   "the scan read %d async functions on the page (the football loaders among them) and %d memo "
+   "write(s) after a first await" % (len(ASYNC_SEEN), len(LATE_ALL)),
+   "⛔ a scan that finds nothing passes the check below (rule 67): missing %s"
+   % sorted(_loaders - _names))
+ck(not LATE_BAD,
+   "🔴 every one of them is keyed by a league taken before the await (`const lg = LEAGUE`), never "
+   "LEAGUE after it (~~fbTeamsLoad, fbSeasonsAvailableSched~~)",
+   "⛔ take the league once before the first await: %s" % LATE_BAD)
+_plant = late_writes("async function zzA(){ const d = await jget('x'); FBZ[LEAGUE] = d; }\n"
+                     "async function zzB(){ const lg = LEAGUE; const d = await jget('x'); FBZ[lg] = d; }\n"
+                     "async function zzC(){ await f(); const k = LEAGUE + '|x'; delete FBZ[k]; }\n"
+                     "const zzD = async () => { await f(); WINNERS[LEAGUE] ??= 1; };\n")[1]
+ck(sorted("arrow" if n.startswith("async arrow") else n for n, m, k in _plant) == ["arrow", "zzA", "zzC"],
+   "   (planted) a LEAGUE key, a key given LEAGUE after the await, a delete and an arrow's `??=` "
+   "are each flagged; a league taken before the await is not", str(_plant))
+SW = got("switchTeams") or {}
+ck(SW.get("switched") and SW.get("league") == "nfl" and SW.get("nflSame") and (SW.get("nflKeys") or 0) > 30
+   and SW.get("cfb") == ["College U"],
+   "🔴 college's teams.json landing after the reader switched to the NFL goes under college, and "
+   "the NFL keeps its own directory (~~replaced by college's for the session~~)", str(SW))
+
+# ══════════════════════════════════════════════════════════════════════
+section("18. 🔴 THE 60 S CHECK NEVER DRAWS A TAB THE READER'S OWN DRAW IS STILL LOADING")
+# ══════════════════════════════════════════════════════════════════════
+SK = got("switchKick") or {}
+ck(SK.get("league") == "ncaaf" and SK.get("rows") == names("ncaaf", "Alpha") and SK.get("draws") == 1
+   and SK.get("boardReads") == 1 and SK.get("scrollY") == 640,
+   "🔴 the reader switched to college a second before the 60 s check, its board 3 s out: drawn "
+   "once, the board read once, the scroll they took after it kept (~~a second draw and read from "
+   "the check, putting the reader back~~)", str(SK))
 
 _un = R.get("unhandled") or []
 _ours = [u for u in _un if re.search(r"fbRefreshTick|fbKickTick|fbDrawOwed|fbDataAgain|fbMemos|fbKeep\b|fbRedraw|fbDrawStarts", u)]
