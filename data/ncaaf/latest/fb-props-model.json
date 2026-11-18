@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "MODEL",
- "built_at": "2026-11-18T14:43:38Z",
+ "built_at": "2026-11-18T17:34:39Z",
  "design": "research/fb_props_design.md",
  "train_seasons": [
   2021,
@@ -71,7 +71,7 @@
   },
   "player_rush_yds": {
    "picks": {
-    "value": 473,
+    "value": 476,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
@@ -79,7 +79,7 @@
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 55.6,
+    "value": 55.3,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -92,13 +92,13 @@
    },
    "interval_95": {
     "value": [
-     51.1,
-     60.1
+     50.7,
+     59.8
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 462.0,
+    "value": 464.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -107,28 +107,28 @@
    },
    "market_label": "Rushing yards",
    "first_graded": "2026-09-03",
-   "last_graded": "2026-11-15",
+   "last_graded": "2026-11-18",
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT PROVEN",
-    "picks": 473,
+    "picks": 476,
     "min_picks": 300,
-    "p": 0.1381,
-    "games": 258,
-    "edge_points": 2.4
+    "p": 0.1773,
+    "games": 260,
+    "edge_points": 2.0
    }
   },
   "player_reception_yds": {
    "picks": {
-    "value": 474,
+    "value": 475,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 220,
+    "value": 221,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 46.4,
+    "value": 46.5,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -141,13 +141,13 @@
    },
    "interval_95": {
     "value": [
-     41.9,
-     51.0
+     42.0,
+     51.1
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 460.0,
+    "value": 461.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -156,15 +156,15 @@
    },
    "market_label": "Receiving yards",
    "first_graded": "2026-09-03",
-   "last_graded": "2026-11-15",
+   "last_graded": "2026-11-18",
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "LOSING",
-    "picks": 474,
+    "picks": 475,
     "min_picks": 300,
-    "p": 0.998,
-    "games": 219,
-    "edge_points": -6.7
+    "p": 0.9977,
+    "games": 220,
+    "edge_points": -6.6
    }
   },
   "player_receptions": {
@@ -218,11 +218,11 @@
   },
   "player_anytime_td": {
    "picks": {
-    "value": 1268,
+    "value": 1277,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 280,
+    "value": 282,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
@@ -245,7 +245,7 @@
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 1229.2,
+    "value": 1245.1,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -254,14 +254,14 @@
    },
    "market_label": "Anytime TD",
    "first_graded": "2026-09-03",
-   "last_graded": "2026-11-15",
+   "last_graded": "2026-11-18",
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "LOSING",
-    "picks": 1268,
+    "picks": 1277,
     "min_picks": 300,
-    "p": 0.9878,
-    "games": 362,
+    "p": 0.9881,
+    "games": 365,
     "edge_points": -2.7
    }
   }
@@ -294,7 +294,7 @@
   "2026-11-09": true,
   "2026-11-16": true
  },
- "graded_rungs": 10202,
+ "graded_rungs": 10257,
  "calibration": {
   "model": [
    {
@@ -330,7 +330,7 @@
    {
     "bucket": "20-30%",
     "n": {
-     "value": 2972,
+     "value": 2993,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -345,7 +345,7 @@
    {
     "bucket": "30-40%",
     "n": {
-     "value": 2298,
+     "value": 2311,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -360,7 +360,7 @@
    {
     "bucket": "40-50%",
     "n": {
-     "value": 2668,
+     "value": 2682,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -368,14 +368,14 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 48.7,
+     "value": 48.8,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "50-60%",
     "n": {
-     "value": 2048,
+     "value": 2055,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -383,7 +383,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 49.8,
+     "value": 49.7,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -452,7 +452,7 @@
    {
     "bucket": "0-10%",
     "n": {
-     "value": 213,
+     "value": 214,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -460,14 +460,14 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 35.2,
+     "value": 35.5,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "10-20%",
     "n": {
-     "value": 502,
+     "value": 505,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -482,7 +482,7 @@
    {
     "bucket": "20-30%",
     "n": {
-     "value": 727,
+     "value": 732,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -490,14 +490,14 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 34.5,
+     "value": 34.4,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "30-40%",
     "n": {
-     "value": 865,
+     "value": 869,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -505,7 +505,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 39.7,
+     "value": 39.8,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -527,7 +527,7 @@
    {
     "bucket": "50-60%",
     "n": {
-     "value": 810,
+     "value": 811,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -542,7 +542,7 @@
    {
     "bucket": "60-70%",
     "n": {
-     "value": 513,
+     "value": 515,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -603,19 +603,19 @@
  },
  "log_loss": {
   "player_pass_yds": {
-   "n": 459,
-   "card": 0.8258222457370052,
-   "model": 0.7238273130826938
+   "n": 460,
+   "card": 0.8245394198408836,
+   "model": 0.7239021192280509
   },
   "player_rush_yds": {
-   "n": 938,
-   "card": 0.785856857163495,
-   "model": 0.692440791869417
+   "n": 942,
+   "card": 0.7878061857131081,
+   "model": 0.6927878847284705
   },
   "player_reception_yds": {
-   "n": 907,
-   "card": 0.7753815923618204,
-   "model": 0.7156359045693304
+   "n": 909,
+   "card": 0.7749711328582835,
+   "model": 0.7156572917850512
   },
   "player_receptions": {
    "n": 259,
@@ -623,9 +623,9 @@
    "model": 0.7388238960278564
   },
   "player_anytime_td": {
-   "n": 2172,
-   "card": 0.658412137424525,
-   "model": 0.6344651856682101
+   "n": 2181,
+   "card": 0.6590672831151949,
+   "model": 0.635090678223817
   }
  },
  "card_logs_season": 2025,
@@ -681,11 +681,11 @@
   "2026-10-10": 2025
  },
  "league_only": {
-  "n": 4735,
-  "mean_d": 0.054504072772466786,
-  "t": 6.092736418105111,
-  "p": 1.3214596726995462e-09,
-  "clusters": 395
+  "n": 4751,
+  "mean_d": 0.054608372514006936,
+  "t": 6.124110735723883,
+  "p": 1.0973754789135166e-09,
+  "clusters": 398
  },
  "paired_rows": [
   [
@@ -33832,15 +33832,127 @@
    1,
    0.35,
    0.531867
+  ],
+  [
+   "ncaaf:0d8cfafd3da8fead51df5ec2e33e9382",
+   "player_anytime_td",
+   1,
+   0.27,
+   0.267335
+  ],
+  [
+   "ncaaf:0d8cfafd3da8fead51df5ec2e33e9382",
+   "player_anytime_td",
+   1,
+   0.61,
+   0.386674
+  ],
+  [
+   "ncaaf:0d8cfafd3da8fead51df5ec2e33e9382",
+   "player_anytime_td",
+   0,
+   0.63,
+   0.32247
+  ],
+  [
+   "ncaaf:0d8cfafd3da8fead51df5ec2e33e9382",
+   "player_reception_yds",
+   1,
+   0.35,
+   0.496407
+  ],
+  [
+   "ncaaf:0d8cfafd3da8fead51df5ec2e33e9382",
+   "player_rush_yds",
+   1,
+   0.32,
+   0.455177
+  ],
+  [
+   "ncaaf:5840d479fc52ad2b83d7feb802d4dd23",
+   "player_anytime_td",
+   0,
+   0.25,
+   0.312581
+  ],
+  [
+   "ncaaf:5840d479fc52ad2b83d7feb802d4dd23",
+   "player_anytime_td",
+   1,
+   0.14,
+   0.322552
+  ],
+  [
+   "ncaaf:5840d479fc52ad2b83d7feb802d4dd23",
+   "player_anytime_td",
+   1,
+   0.32,
+   0.348066
+  ],
+  [
+   "ncaaf:5840d479fc52ad2b83d7feb802d4dd23",
+   "player_rush_yds",
+   0,
+   0.32,
+   0.470107
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_anytime_td",
+   1,
+   0.5,
+   0.339446
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_anytime_td",
+   0,
+   0.29,
+   0.32498
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_anytime_td",
+   0,
+   0.12,
+   0.316508
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_pass_yds",
+   0,
+   0.21,
+   0.531509
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_reception_yds",
+   0,
+   0.12,
+   0.527801
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_rush_yds",
+   0,
+   0.21,
+   0.578211
+  ],
+  [
+   "ncaaf:792875fa96ecdf75559454c19c011768",
+   "player_rush_yds",
+   1,
+   0.04,
+   0.44427
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 9851,
-  "mean_d": 0.04447111329246783,
-  "t": 7.343720434776424,
-  "p": 3.8159078262072813e-13,
-  "clusters": 545,
+  "n": 9867,
+  "mean_d": 0.04453699814433646,
+  "t": 7.365842144816261,
+  "p": 3.260165039764255e-13,
+  "clusters": 548,
   "verdict": "QUALIFIES",
   "leagues": [
    "ncaaf",
@@ -33874,7 +33986,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 17.9,
+    "value": 17.8,
     "basis": "MODEL"
    },
    "priced_at": "2026-11-18T14:35:20Z"
@@ -33905,7 +34017,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 12.4,
+    "value": 12.3,
     "basis": "MODEL"
    },
    "priced_at": "2026-11-18T14:35:20Z"
@@ -34151,7 +34263,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 24.2
+   "p": 24.3
   },
   {
    "game_id": "ef5f5ac74b2228e8521c289fdbc6af93",
@@ -34263,7 +34375,7 @@
    "market": "player_reception_yds",
    "line": 32.5,
    "side": "over",
-   "p": 50.7
+   "p": 50.6
   },
   {
    "game_id": "ef5f5ac74b2228e8521c289fdbc6af93",
@@ -34271,7 +34383,7 @@
    "market": "player_reception_yds",
    "line": 32.5,
    "side": "under",
-   "p": 49.3
+   "p": 49.4
   },
   {
    "game_id": "ef5f5ac74b2228e8521c289fdbc6af93",
@@ -34439,7 +34551,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 24.3
+   "p": 24.4
   },
   {
    "game_id": "10cec4ab386b12694dd3cee93d870b47",
@@ -34495,7 +34607,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 23.7
+   "p": 23.8
   },
   {
    "game_id": "10cec4ab386b12694dd3cee93d870b47",
@@ -34879,7 +34991,7 @@
    "market": "player_rush_yds",
    "line": 42.5,
    "side": "over",
-   "p": 51.7
+   "p": 51.6
   },
   {
    "game_id": "10cec4ab386b12694dd3cee93d870b47",
@@ -34887,7 +34999,7 @@
    "market": "player_rush_yds",
    "line": 42.5,
    "side": "under",
-   "p": 48.3
+   "p": 48.4
   },
   {
    "game_id": "10cec4ab386b12694dd3cee93d870b47",
