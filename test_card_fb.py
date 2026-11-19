@@ -34,6 +34,7 @@ import sys
 import re as _re2
 import tempfile
 from tcheck import ck, eq, note   # the shared gate — see tcheck.py
+import plain_why  # the one caveat list, both leagues (rule 117)
 
 fails = []
 
@@ -780,8 +781,13 @@ if _p:
     eq(_p[0]["projection_unit"], "rush yds",
        "  it carries the market's own unit")
     # `[Sam, 2026-10-09]` ~~"and the note says plainly it is not a forecast"~~
-    ck("forecast" not in (_p[0].get("projection_note") or ""),
-       "  and its note carries no caveat sentence")
+    # `[Sam, 2026-11-18]` ~~"forecast" not in the first row's note~~: every projected
+    #    row's note is asked the ONE caveat list both leagues read (plain_why.PHRASES,
+    #    rule 117); "forecast" stays as football's own extra.
+    _cav = [(r["player"], plain_why.found(r.get("projection_note")))
+            for r in _p if plain_why.found(r.get("projection_note"))
+            or "forecast" in (r.get("projection_note") or "")]
+    ck(not _cav, "  and its note carries no caveat sentence", str(_cav[:3]))
 ck(not any(r.get("projection_basis") == "MODEL" for r in _rows),
    "⛔ NOTHING on the board claims MODEL")
 
@@ -1063,6 +1069,11 @@ ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
 #   file: index.html
 #   find: head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2>`;
 #   with: head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2><div class="note"><b>Read the confidence number honestly.</b> ${P.calibration_warning}</div>`;
+#
+# @vacuity [Sam, 2026-11-18] §15: a projection note carrying a listed caveat (plain_why) goes red, not only "forecast"
+#   file: card_fb.py
+#   find: f"game.")
+#   with: f"game. Too small a sample to read much into.")
 # ══════════════════════════════════════════════════════════════════════
 print("\n17. 🔴🔴 A BOARD THAT STATES A CONFIDENCE MUST STATE HOW THAT")
 print("    CONFIDENCE HAS PERFORMED.")

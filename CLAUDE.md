@@ -1994,7 +1994,8 @@ one_side.py       ONE TEAM PER GAME (Sam, 2026-10-16): the expected winner
 plain_why.py      THE CAVEAT PHRASES NO WHY CARRIES, ALL LEAGUES (Sam, 2026-11-18,
                   "Drop them like football"): `PHRASES` and `found()`, read by
                   verify_card.py (through `card.why_caveats`, on cards stamped
-                  `why_rule`) and test_fb_props_confidence.py. Stdlib only.
+                  `why_rule`), test_fb_props_confidence.py and test_card_fb.py
+                  §15 (the projection note). Stdlib only.
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
                   ⛔ Never `import yaml`: PyYAML is NOT on the CI

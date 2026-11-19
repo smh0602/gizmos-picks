@@ -11,8 +11,9 @@ break-even, edge) sit beside it, and every label, basis and count stays in the D
 (`confidence_basis`, `confidence_note`, `basis`, `opp_recent.note`, the record fields).
 
 ⛔ ONE LIST, READ BY BOTH LEAGUES' CHECKS (rule 117): `verify_card.py`, through
-`card.why_caveats`, on every MLB card this code builds, and `test_fb_props_confidence.py`
-on the football card's rows. A phrase is the distinctive part of a caveat sentence one
+`card.why_caveats`, on every MLB card this code builds, `test_fb_props_confidence.py`
+on the football card's rows and their notes, and `test_card_fb.py` §15 on the football
+projection note. A phrase is the distinctive part of a caveat sentence one
 of the two removed, never a word a stat sentence needs ("model", "averaged", "never
 faced" are football's own extras, for its one-sentence row only).
 ⚠️ Matched case-insensitively, HTML tags stripped and curly apostrophes made straight,
