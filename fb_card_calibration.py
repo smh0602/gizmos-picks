@@ -9,6 +9,13 @@ Walk-forward: each week's mapping from printed to calibrated confidence is
 fitted only on the card's picks graded BEFORE that week, both leagues
 pooled. Raw and calibrated are scored on the same picks, clustered by game.
 
+`[Sam, 2026-11-18]` spec §3a: the same test RE-REGISTERED on the props
+method the cards print now (`REREG_METHOD`, a "+game-<name>" suffix
+included), games from `REREG_FROM` only, stored as `test_reregistered`.
+The two earlier arms are still scored, labelled superseded. A QUALIFIES
+reaches Sam through the Monday email (status.py); an arm whose league
+stopped feeding it is the watchdog's (check_calibration_arm).
+
 ⛔ IT CHANGES NOTHING THE CARD PRINTS. If the rule is met, applying it is
 a separate PR and Sam's decision (spec §3). It never edits a published
 pick, and it never reads MLB.
@@ -22,6 +29,7 @@ import os
 import sys
 
 import calibration as C             # band_flags: the ONE per-band rule
+import card_fb                      # game_method, et_date: the card's own method part and ET day
 import fb_model as F                # fit, predict, monday, L: the one logistic fit
 import mlb_refit                    # paired_test_clustered: the ONE cluster-robust paired test
 import record_fb                    # calibration_by_method: the ONE per-method bucketer
@@ -38,6 +46,20 @@ CLIP = 1e-12
 # registered test reads the method it was registered on; the fixed card's
 # picks are scored the same way, apart, and never pooled with it.
 REGISTERED_METHOD = "2025-only"
+# `[Sam, 2026-11-18]` spec §3a, "Re-register on today's method (Recommended)": "Same test and same
+#    500-pick bar, counting only picks from the new registration date on, plus a line in the Monday
+#    email if it ever qualifies." The cards stopped printing both methods above (2025-only on
+#    09-19/09-21, season-blend alone on 10-09), so neither arm could ever reach 500.
+# ⛔ Both values are the spec's own (test_fb_card_calibration.py reads them from §3a); the
+#    statistic, MIN_N and ALPHA are §3's, unchanged. The two arms above are still scored and
+#    stored, labelled SUPERSEDED.
+REREG_METHOD = "season-blend+props-own"   # the props method the cards print on registration
+REREG_FROM = "2026-11-23"                 # a game kicking off (ET date) on or after it counts
+REREG_KEY = "test_reregistered"
+SUPERSEDED = ("research/fb_card_calibration_spec.md §3a [Sam, 2026-11-18]: re-registered on %s, "
+              "games from %s" % (REREG_METHOD, REREG_FROM))
+# The game model's part of a card's method ("+game-"), read from card_fb.game_method, never typed.
+GAME_PART = card_fb.game_method({"champion": "\x00"}).split("\x00")[0]
 
 
 def log(m):
@@ -58,9 +80,30 @@ def logloss(p, y):
     return -(math.log(p) if y else math.log(1 - p))
 
 
-def load_picks(root=None, method=REGISTERED_METHOD):
+def props_method(method):
+    """spec §3a: the part of a card's method that names how its PROPS confidence was made: the
+    method less card_fb.game_method's "+game-<name>" (the game model's champion, which makes the
+    card's game lines only). A row with no method was printed the 2025-only way.
+    ⚠️ game_method is the LAST part card_fb appends (test_fb_card_calibration.py reads card_fb.py's
+    own expression and fails otherwise), so everything from it on is the game model's."""
+    m = method or REGISTERED_METHOD
+    i = m.find(GAME_PART)
+    return m if i < 0 else m[:i]
+
+
+def counts(r, method=REREG_METHOD, since=REREG_FROM):
+    """spec §3a: does this graded, rated row count in the re-registered test? Its card's props
+    method is the registered one, and its game kicks off on or after the registration date by the
+    US Eastern date (card_fb.et_date). ⛔ A row with no readable kickoff does not."""
+    day = card_fb.et_date(r.get("commence"))
+    return props_method(r.get("card_method")) == method and day is not None and day >= since
+
+
+def load_picks(root=None, method=REGISTERED_METHOD, keep=None):
     """spec §3: every graded, rated row of the card's own record, both
-    leagues. ⛔ A void or ungradable row (won is None) is left out."""
+    leagues. ⛔ A void or ungradable row (won is None) is left out.
+    `keep(row)` (spec §3a: `counts`) chooses the rows in place of the exact `method`."""
+    keep = keep or (lambda r: (r.get("card_method") or REGISTERED_METHOD) == method)
     out = []
     for lg in LEAGUES:
         try:
@@ -72,7 +115,7 @@ def load_picks(root=None, method=REGISTERED_METHOD):
             for r in rows or []:
                 if r.get("confidence") is None or r.get("won") not in (True, False):
                     continue
-                if (r.get("card_method") or REGISTERED_METHOD) != method:
+                if not keep(r):
                     continue
                 out.append({"league": lg, "day": day, "raw": float(r["confidence"]) / 100.0,
                             "y": 1 if r["won"] else 0,
@@ -156,14 +199,19 @@ def page_bands(lg, root=None):
     return _band_rows(flags)
 
 
-def _graded_rows(lg, root=None):
-    """The card's graded rows, oldest card first, from its own detail file."""
+def _days(lg, root=None):
+    """{card day: rows} of the card's own detail file, or {}."""
     try:
         det = json.load(gzip.open(os.path.join(root or ROOT, "data", lg, "latest",
                                                "record-detail.json.gz"), "rt", encoding="utf-8"))
     except (OSError, ValueError):
-        return []
-    return [r for _day, rows in sorted((det.get("days") or {}).items()) for r in rows or []
+        return {}
+    return det.get("days") or {}
+
+
+def _graded_rows(lg, root=None):
+    """The card's graded rows, oldest card first, from its own detail file."""
+    return [r for _day, rows in sorted(_days(lg, root).items()) for r in rows or []
             if r.get("won") in (True, False)]
 
 
@@ -193,6 +241,36 @@ def page_bands_before(lg, root=None):
     return out
 
 
+def newest_graded(root=None, method=REREG_METHOD):
+    """`[Sam, 2026-11-18]` {league: {"method": the newest card day holding a graded, rated row of
+    `method` (its props method, any kickoff), "any": the newest card day holding any graded row}}.
+    watchdog.check_calibration_arm reads it to tell a league that stopped feeding the test (its
+    props method changed) from a quiet week or the off-season."""
+    out = {}
+    for lg in LEAGUES:
+        mine = anyday = None
+        for day, rows in _days(lg, root).items():
+            graded = [r for r in rows or [] if r.get("won") in (True, False)]
+            if graded:
+                anyday = max(anyday or day, day)
+            if any(r.get("confidence") is not None and props_method(r.get("card_method")) == method
+                   for r in graded):
+                mine = max(mine or day, day)
+        out[lg] = {"method": mine, "any": anyday}
+    return out
+
+
+def _per_league(scored):
+    """Per-league mean log loss, raw and calibrated — DESCRIPTIVE, beside a verdict (spec §3)."""
+    per = {}
+    for x in LEAGUES:
+        ss = [s for s in scored if s["league"] == x]
+        per[x] = {"n": len(ss),
+                  "raw": (sum(logloss(s["raw"], s["y"]) for s in ss) / len(ss)) if ss else None,
+                  "calibrated": (sum(logloss(s["cal"], s["y"]) for s in ss) / len(ss)) if ss else None}
+    return per
+
+
 def build(lg=None, root=None, out=None):
     lg = (lg or LEAGUE).lower()
     picks = load_picks(root)
@@ -202,21 +280,31 @@ def build(lg=None, root=None, out=None):
     picks_fx = load_picks(root, method="season-blend")
     scored_fx, _maps_fx = walk_forward(picks_fx)
     dec_fx = decision(scored_fx)
-    per = {}
-    for x in LEAGUES:
-        ss = [s for s in scored if s["league"] == x]
-        per[x] = {"n": len(ss),
-                  "raw": (sum(logloss(s["raw"], s["y"]) for s in ss) / len(ss)) if ss else None,
-                  "calibrated": (sum(logloss(s["cal"], s["y"]) for s in ss) / len(ss)) if ss else None}
+    # `[Sam, 2026-11-18]` spec §3a: the same test, RE-REGISTERED on the props method the cards
+    #    print now, games from REREG_FROM. ⛔ Nothing earlier is read, not even to train.
+    picks_rr = load_picks(root, keep=counts)
+    scored_rr, maps_rr = walk_forward(picks_rr)
+    dec_rr = decision(scored_rr)
+    per = _per_league(scored)
     doc = {"league": lg, "kind": "DESCRIPTIVE",
            "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "spec": "research/fb_card_calibration_spec.md",
            "bands": page_bands(lg, root),
            "bands_before": page_bands_before(lg, root),
            "method_now": _method_now(lg, root),
-           "test": dict(dec, graded_picks=len(picks), min_n=MIN_N, applied=False),
+           "test": dict(dec, graded_picks=len(picks), min_n=MIN_N, applied=False,
+                        superseded_by=SUPERSEDED),
            "test_after_fix": dict(dec_fx, graded_picks=len(picks_fx), min_n=MIN_N,
-                                  method="season-blend"),
+                                  method="season-blend", superseded_by=SUPERSEDED),
+           # ⛔ Its own verdict, bands, log loss and mappings, never pooled with the arms above.
+           REREG_KEY: dict(dec_rr, graded_picks=len(picks_rr), min_n=MIN_N, alpha=ALPHA, applied=False,
+                           method=REREG_METHOD, registered_from=REREG_FROM,
+                           spec="research/fb_card_calibration_spec.md §3a",
+                           log_loss=_per_league(scored_rr),
+                           scored_bands={"raw": bands(scored_rr, "raw"),
+                                         "calibrated": bands(scored_rr, "cal")},
+                           mappings={wk: (list(ab) if ab else None) for wk, ab in maps_rr.items()},
+                           newest_graded=newest_graded(root)),
            "log_loss": per,
            "scored_bands": {"raw": bands(scored, "raw"), "calibrated": bands(scored, "cal")},
            "mappings": {wk: (list(ab) if ab else None) for wk, ab in maps.items()},
@@ -226,8 +314,11 @@ def build(lg=None, root=None, out=None):
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "card-calibration.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)
-    log("%s card calibration: %s (n=%s of %s needed, p=%s), %d graded picks"
+    log("%s card calibration (superseded, §3): %s (n=%s of %s needed, p=%s), %d graded picks"
         % (lg, dec["verdict"], dec["n"], MIN_N, dec["p"], len(picks)))
+    log("%s card calibration (§3a, %s, games from %s): %s (n=%s of %s needed, p=%s), %d graded picks"
+        % (lg, REREG_METHOD, REREG_FROM, dec_rr["verdict"], dec_rr["n"], MIN_N, dec_rr["p"],
+           len(picks_rr)))
     return doc
 
 

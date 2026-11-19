@@ -86,6 +86,26 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #   file: docs/upload/status.yml
 #   find:           if [ ! -s "$BODY" ]; then
 #   with:           if false; then
+#
+# @vacuity 🔴 [Sam, 2026-11-18] a calibration arm whose verdict reads QUALIFIES is under "Needs you"
+#   file: status.py
+#   find:     won += calibration_qualifies(root)
+#   with:     won += []
+#
+# @vacuity 🔴 ...and only one that QUALIFIES (NOT YET MEASURABLE needs nothing)
+#   file: status.py
+#   find:             if isinstance(x, dict) and x.get("verdict") == "QUALIFIES":
+#   with:             if isinstance(x, dict) and x.get("verdict") in ("QUALIFIES", "NOT YET MEASURABLE"):
+#
+# @vacuity 🔴 ...once per arm: the test pools both leagues, so both files carry it
+#   file: status.py
+#   find:                 found.setdefault(arm, []).append((name, x))
+#   with:                 found.setdefault(arm + name, []).append((name, x))
+#
+# @vacuity 🔴 ...and a file that is not an object never stops the email
+#   file: status.py
+#   find:         for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
+#   with:         for arm, x in sorted(doc.items()):
 """
 import atexit
 import datetime
@@ -327,3 +347,45 @@ ck("🔴 ...with a 13-hour-old one it is: \"Needs you\" and the what-to-do block
    and "check `watchdog:health`" in _b8, _b8[:120])
 ck("🔴 on a Monday it always is: the week, with a fresh health report too",
    S.today(tree(), NOW).startswith("Nothing needs you this week."))
+
+section("8. 🔴 A CALIBRATION ARM THAT QUALIFIES REACHES SAM [Sam, 2026-11-18]")
+# Sam: "plus a line in the Monday email if it ever qualifies" (research/fb_card_calibration_spec.md
+# §3a). Planted card-calibration.json files, as fb_card_calibration.build writes them.
+_ARM = {"n": 612, "mean_d": 0.031, "t": 2.4, "p": 0.0091, "clusters": 140, "verdict": "QUALIFIES",
+        "graded_picks": 790, "min_n": 500, "alpha": 0.05, "applied": False,
+        "method": "season-blend+props-own", "registered_from": "2026-11-23"}
+_OLD = {"n": 70, "mean_d": None, "p": None, "clusters": 30, "verdict": "NOT YET MEASURABLE",
+        "graded_picks": 157, "min_n": 500, "applied": False, "superseded_by": "spec §3a [Sam, 2026-11-18]"}
+
+
+def cal_tree(arm, old=_OLD, leagues=("nfl", "ncaaf")):
+    t = tree()
+    for lg in leagues:
+        put(t, "data/%s/latest/card-calibration.json" % lg,
+            {"league": lg, "test": old, "test_after_fix": dict(old, method="season-blend"),
+             "test_reregistered": arm})
+    return t
+
+
+_want = ("the football props card's calibration test QUALIFIES in the NFL and College files (arm "
+         "test_reregistered: season-blend+props-own, games from 2026-11-23): the corrected confidence "
+         "predicted better than the printed one over 612 picks in 140 games, one-sided p = 0.0091 (it "
+         "needed 500 picks and p under 0.05)")
+_bq, _nq = S.build(cal_tree(_ARM), NOW)
+eq(_nq, [_want], "🔴🔴 an arm that QUALIFIES is under \"Needs you\": once (the test pools both leagues), with "
+   "its leagues, its arm, its method and date")
+ck("🔴 ...on the email's first line, then what to do: nothing changes until Sam decides",
+   _bq.splitlines()[0] == "Needs you: %s." % _want and ("**%s.**" % _want) in _bq
+   and "ask Claude for the pull request that applies it" in _bq, _bq[:200])
+_bn, _nn = S.build(cal_tree(dict(_ARM, verdict="NOT YET MEASURABLE", n=40, p=None)), NOW)
+eq((_bn.splitlines()[0], _nn), ("Nothing needs you this week.", []),
+   "🔴 NOT YET MEASURABLE (and a superseded arm that is not QUALIFIES) needs nothing")
+_bo, _no = S.build(cal_tree(dict(_ARM, verdict="DOES NOT QUALIFY"), old=dict(_OLD, verdict="QUALIFIES", n=520,
+                                                                             p=0.01), leagues=("nfl",)), NOW)
+eq(_no, ["the football props card's calibration test QUALIFIES in the NFL file (arm %s, superseded): the "
+         "corrected confidence predicted better than the printed one over 520 picks in 30 games, one-sided "
+         "p = 0.01 (it needed 500 picks)" % a for a in ("test", "test_after_fix")],
+   "🔴 any stored arm that reads QUALIFIES is named, a superseded one too, with the league whose file says so")
+_tj = tree()
+put(_tj, "data/nfl/latest/card-calibration.json", ["not", "an", "object"])
+eq(S.build(_tj, NOW)[1], [], "🔴 a card-calibration.json that is not an object never stops the email")

@@ -4,7 +4,8 @@ Status: APPROVED BY SAM 2026-09-24 — rule in section 2 set by Sam before any s
 
 ⚠️ **Written and committed before any code that scores a calibration
 exists.** Sections 2 and 3 are hashed by `test_prereg_gate.py`, so neither
-can be edited after a result is seen.
+can be edited after a result is seen. `[Sam, 2026-11-18]` So is section
+3a, which re-registers the test; the text before it is pinned on its own.
 
 ## In plain English (for Sam)
 
@@ -17,6 +18,12 @@ can be edited after a result is seen.
   better by a margin that is unlikely to be luck, over at least 500
   graded plays. Otherwise the printed number stays, and the card carries
   a visible warning.
+- `[Sam, 2026-11-18]` The test counted only cards made the old way, which
+  stopped in September, so it could never reach 500. Sam re-registered it
+  on the way the cards are made now: the same test and the same 500-play
+  bar, counting only games from Monday 2026-11-23 on (section 3a). If it
+  ever qualifies, the Monday email says so under "Needs you"; nothing
+  changes on the card until Sam decides.
 
 ## 1. Scope and background
 
@@ -115,9 +122,21 @@ written and committed (2026-11-18).
 
 - `fb_card_calibration.py` scores the rule above. It rides `card-fb` and
   writes `data/<league>/latest/card-calibration.json` (with a freshness
-  row), which the page reads.
+  row), ~~which the page reads~~ (the page has read none of it since
+  2026-10-01).
 - ⛔ It never edits the card, a published pick, or anything MLB. There is
   no cron change and no spend.
+- `[2026-11-18]` §3a as built: `counts` chooses the rows, `props_method`
+  removes `card_fb.game_method`'s part (`test_fb_card_calibration.py`
+  fails if card_fb ever appends anything after it), and the arm is
+  stored as `test_reregistered`, beside each league's newest graded day
+  of its method and of any method (`newest_graded`). The two earlier
+  arms carry `superseded_by`. `status.py` puts any arm whose verdict
+  reads QUALIFIES under "Needs you" in the Monday email;
+  `watchdog.check_calibration_arm` reports DEGRADED (no repair, no
+  issue) when a league graded card rows in the last 14 days but none of
+  a registered arm's method for longer. A league that graded nothing
+  (the off-season) is silent.
 
 ## Changelog
 

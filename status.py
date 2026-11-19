@@ -346,6 +346,38 @@ def refit_wins(doc, name):
     return out
 
 
+def calibration_qualifies(root):
+    """`[Sam, 2026-11-18]` "plus a line in the Monday email if it ever qualifies": [(the "Needs you"
+    item, what to do)] for every arm of the football props card's calibration test
+    (research/fb_card_calibration_spec.md) whose stored verdict reads QUALIFIES, named by arm and
+    league. One item per arm: the test pools both leagues, so both leagues' files carry it.
+    ⛔ Nothing is applied by itself (spec §3): what the card prints changes only by Sam's decision,
+    in a separate PR. Read from the files: status.py imports no model."""
+    found = {}
+    for name, d in FB:
+        doc = _read(os.path.join(root, d, "latest", "card-calibration.json"))
+        for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
+            if isinstance(x, dict) and x.get("verdict") == "QUALIFIES":
+                found.setdefault(arm, []).append((name, x))
+    out = []
+    for arm, got in sorted(found.items()):
+        x = got[0][1]
+        what = ("the football props card's calibration test QUALIFIES in the %s file%s (arm %s%s%s): the "
+                "corrected confidence predicted better than the printed one over %s picks in %s games, "
+                "one-sided p = %.4g (it needed %s picks%s)" % (
+                    " and ".join(n for n, _x in got), "s" if len(got) > 1 else "", arm,
+                    ": %s, games from %s" % (x["method"], x["registered_from"])
+                    if x.get("method") and x.get("registered_from") else "",
+                    ", superseded" if x.get("superseded_by") else "",
+                    x.get("n"), x.get("clusters"), x.get("p") or 0.0, x.get("min_n"),
+                    " and p under %g" % x["alpha"] if x.get("alpha") is not None else ""))
+        out.append((what, ["Nothing changes by itself: the card keeps printing its own number until you "
+                           "decide (rule 13).",
+                           "To print the corrected number instead, ask Claude for the pull request that "
+                           "applies it, then merge it as usual. To keep the card's own number, do nothing."]))
+    return out
+
+
 def injury_recorded(root, lg):
     """`[2026-10-26]` Does THIS tree's research/fb_sim_backtest.json hold `lg`'s injury entry?
     (It reaches main only by Sam's merge of the injury branch.)"""
@@ -455,6 +487,7 @@ def build(root=ROOT, now=None):
     won = [w for name, d, doc in refit for w in refit_wins(doc, name) + props_wins(
         doc, name, props_switched(root, d.split("/")[-1])) + injury_branch(
         doc, name, injury_recorded(root, d.split("/")[-1]))]
+    won += calibration_qualifies(root)        # `[Sam, 2026-11-18]` spec §3a
     needs = [f["what"] for f in broken] + [w[0] for w in won]
     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
     for what, clicks in won:

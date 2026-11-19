@@ -62,10 +62,10 @@ promises in `research/fb_card_fix_spec.md` (Sam, 2026-09-24).
 #   find:         return {"state": "NOT_MEASURABLE", "n": 0,
 #   with:         return {"state": "OK", "n": 0,
 #
-# @vacuity #155's registered test reads only the method it was registered on
+# @vacuity #155's registered test reads only the method it was registered on (`[2026-11-18]` now load_picks' default `keep`, ~~if (r.get("card_method") or REGISTERED_METHOD) != method:~~)
 #   file: fb_card_calibration.py
-#   find:                 if (r.get("card_method") or REGISTERED_METHOD) != method:
-#   with:                 if False:
+#   find:     keep = keep or (lambda r: (r.get("card_method") or REGISTERED_METHOD) == method)
+#   with:     keep = keep or (lambda r: True)
 """
 import glob
 import gzip
