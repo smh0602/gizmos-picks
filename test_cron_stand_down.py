@@ -13,7 +13,9 @@ November's 3,000-call key was on course to run out around the 29th.
 every row it builds is inside contract and each dated row was built at or
 after THIS cron's own minute. ⛔ Everything else runs exactly as before: a
 row the contract owes, a mode with no dated row, a run no cron started, an
-unreadable event file, every paid mode, and the Sunday `35 14 * * 0` rebuild.
+unreadable event file, and the Sunday `35 14 * * 0` rebuild. (`[2026-11-19]` A
+paid mode now stands down through its paid row by the same rule:
+test_paid_standdown.py.)
 
 ⛔ DRIVEN, NEVER THE LIVE TREE: the real `converge`, in a planted college
 tree pinned to the same NOW its clocks read, with `run_mode` recording what
@@ -378,7 +380,8 @@ ck("🔴 every one of them is in STAND_DOWN",
    _metered <= F.STAND_DOWN,
    "⛔ a metered mode left out re-buys its source on every late cron. missing: %s"
    % sorted(_metered - F.STAND_DOWN))
-ck("⛔ and STAND_DOWN holds no paid mode: the Odds pulls keep pull_owed alone",
+ck("⛔ and STAND_DOWN (the free metered list) holds no paid mode: a paid mode "
+   "stands down through its paid row instead (test_paid_standdown.py)",
    _free and F.STAND_DOWN <= _free,
    "not on run_mode's FREE list: %s" % sorted(F.STAND_DOWN - _free))
 ck("⚠️ SOURCE_BACKED is inside it (one list grows the other)",

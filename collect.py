@@ -6147,7 +6147,10 @@ def converge(explicit=(), allow_paid=True):
         #    (freshness.STAND_DOWN). ~~Every named mode was appended~~: the
         #    `4 7` college cron, started 5-10 hours late, re-swept CFBD every
         #    day after an hourly pass had built cfb-probe for its deadline,
-        #    ~37 calls a day. ⛔ Only a free metered mode, only when every row
+        #    ~37 calls a day. ⛔ Only a free metered mode (`[2026-11-19]` or a
+        #    mode with a PAID row: a late football gamelines cron re-bought a
+        #    deadline already on main 19 times, 194 credits, 11-12 -> 11-19),
+        #    only when every row
         #    it builds is inside contract and was built for this cron (after
         #    the deadline it fires for, else after its own minute); anything
         #    else runs exactly as before. ⚠️ At `looked`, the plan's own clock.
@@ -6155,7 +6158,8 @@ def converge(explicit=(), allow_paid=True):
         if _since is not None:
             log(f"STAND DOWN: {m} — every row it builds is inside contract and "
                 f"was built for this cron's {_since:%Y-%m-%d %H:%MZ} run, "
-                f"so its source is not asked again")
+                f"so its source is not asked again"
+                + (". NOTHING SPENT." if any(r["paid"] for r in rows if r["mode"] == m) else ""))
             continue
         modes.append(m)
     if not modes:

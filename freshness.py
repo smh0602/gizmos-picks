@@ -1042,6 +1042,26 @@ def pull_owed(league, data, mode, now=None):
     return survey(now=now, entries=rows)[0]
 
 
+def paid_times(league, now):
+    """{mode: its deadlines} for every PAID row of `league`'s contract.
+
+    `[2026-11-19]` The watchdog keys each stored buy by the deadline in force
+    when it was pulled (`watchdog.check_double_buys`); these are the deadlines
+    the contract itself judges those pulls by, never a second list of them.
+    ⚠️ Asked of a tree that holds nothing, so no paid row is left out for what
+    a tree holds: the live contract drops a props pull no game made worth
+    making, and an unreadable schedule is "cannot tell", which keeps it
+    (`_props_warranted`)."""
+    if league != "mlb" and league not in FB_TIMES:
+        raise ValueError(f"{league!r} has no contract")
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="paid-times-") as d:
+        base = d.replace(os.sep, "/")
+        rows = contract(f"{base}/data" + ("" if league == "mlb" else f"/{league}"),
+                        f"{base}/picks", now)
+    return {m: t for m, _p, t, paid, _w in rows if paid}
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 HOW LONG A REFUSED CARD MAY STAY QUIET.
 # `card_gate` lets an ACCEPTED failure keep the run green, and that is
@@ -2408,7 +2428,20 @@ SOURCE_BACKED = {"cfb-probe", "nfl-logs", "fb-scores"}
 # ✅ So the Sunday `35 14 * * 0` rebuild still runs (the day's build is the
 #    07:xx one, before 14:35), and so does every game-day fb-scores refresh
 #    (each one's minute is after the refresh before it).
-# ⛔ NEVER A PAID MODE: the Odds pulls keep `pull_owed` and nothing else.
+# ~~⛔ NEVER A PAID MODE: the Odds pulls keep `pull_owed` and nothing else.~~
+# 🔴 `[2026-11-19]` ONE DEADLINE, ONE BUY: A PAID MODE STANDS DOWN THE SAME WAY.
+#    Since 09-21 GitHub starts scheduled runs 6-10 hours late, and a late
+#    football `gamelines` cron (`2 11`, `4 19`, `7 12`, `6 18`) bought again a
+#    deadline another pass had already bought and landed on main: 19 such
+#    re-buys, 194 credits, 11-12 -> 11-19 (counted from the stored snapshots).
+#    ✅ `stand_down` asks STAND_DOWN (the free metered modes) OR any mode with a
+#    PAID contract row (`gamelines`, `props-player`, `alt-lines`), by the same
+#    `served()` / SERVES_MIN rule, unchanged. ⛔ A pull the contract owes is
+#    still bought: a stale or missing row never stands down, and `pull_owed`
+#    (the props backup) is untouched. A hand run, a push, a relay link and
+#    `converge-off` buy as before (no cron, or no converge), and so does
+#    `halftime-probe` (no row). MLB's scheduled runs name no mode (`converge`
+#    alone), so no MLB run is asked. STAND_DOWN itself stays the free list.
 STAND_DOWN = SOURCE_BACKED | {"cfb-teams"}
 # 🔴 THE DEADLINE A CRON FIRES FOR. `[2026-11-12]` Every cron here sits just
 #    AFTER the deadline it serves ("the deadline sits just before a cron"):
@@ -2485,14 +2518,15 @@ def fired_cron(env=None):
 
 def stand_down(rows, mode, now, env=None):
     """-> the minute of the cron that named `mode` when that cron's work is
-    already done (see STAND_DOWN), else None: run it.
+    already done (see STAND_DOWN), else None: run it. Asked of a free metered
+    mode (STAND_DOWN) and, `[2026-11-19]`, of a mode with a paid row.
     `[2026-11-17]` A `held` row (REBUILD_ATTEMPTS: its writer tried within a day and could not
     land it) is no reason to run: a late cron would sweep CFBD again for a file it cannot write."""
-    if mode not in STAND_DOWN:
+    mine = [r for r in rows if r["mode"] == mode and not r.get("held")]
+    if mode not in STAND_DOWN and not any(r.get("paid") for r in mine):
         return None
     cron = fired_cron(env)
     since = cron_last_fire(cron, now) if cron else None
-    mine = [r for r in rows if r["mode"] == mode and not r.get("held")]
     if since is None or not mine or any(r["stale"] or r["missing"] for r in mine):
         return None
     dated = [r for r in mine if r.get("due_at")]
