@@ -68,6 +68,49 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
 | After this PR | The test is re-scored every `card-fb` run and its status is shown. ⛔ **A later QUALIFIES is not applied automatically.** The page says it qualifies and is waiting for Sam, because changing what the card prints is Sam's decision; applying it is a separate PR. |
 | Reported beside the verdict, not part of it | Per-league mean log loss, raw and calibrated. Stated against actual, in 10-point bands, raw and calibrated, on the scored picks. The mapping (a, b) each week. |
 
+## 3a. Re-registered on the method the cards print now `[Sam, 2026-11-18]`
+
+**Sam's decision, 2026-11-18** (changing a pre-registered test is his, rule 13). He was
+asked: *"The football props-card calibration test you pre-registered counts only cards built
+with the '2025-only' method, which stopped being used on 9-21 (NFL) and 9-19 (college). It has
+157 graded picks (95 after the fix) and needs 500, so it can never finish. What should happen
+to it?"* He chose *"Re-register on today's method (Recommended)"*: *"Same test and same
+500-pick bar, counting only picks from the new registration date on, plus a line in the Monday
+email if it ever qualifies."*
+
+Written and committed before any code that scores it existed, and before any game it counts
+kicked off. Nothing above it is edited: §2 and §3 are pinned on their own by
+`test_prereg_gate.py`.
+
+| | |
+|---|---|
+| The method | `season-blend+props-own`: the props method every football card prints today, NFL and college alike. |
+| A card's props method | The card's `card_method` without the game model's part, `card_fb.game_method`'s `+game-<name>` (the last part `card_fb` appends). That part names the game model's champion, which makes the card's game lines; this test reads only the props rows (`days`), so `season-blend+props-own+game-HC` (college today) is the same method. Any other difference is a different method, and its rows are not counted: a props-model switch (`-last2`), signal 9 (`+signal9`) or a new props model prints a different number. |
+| The registration date | **2026-11-23**, a Monday. |
+| The picks | §3's picks (graded, rated rows of `days`, both leagues, a void left out) whose card's props method is the method above AND whose game kicks off on or after the registration date, by the kickoff's US Eastern date (`card_fb.et_date`). A row with no readable kickoff is left out. Nothing else is read: the weekly mapping is fitted only on these picks, so the first weeks after registration train it (no mapping before 150 picks, as §3) and are not scored. |
+| Everything else | Exactly §2 and §3: raw probability, weeks, the mapping, the scored predictions, log loss, the test (pooled over both leagues, clustered by game), the verdict (**QUALIFIES** needs n ≥ 500, mean d > 0 and one-sided p < 0.05; **NOT YET MEASURABLE** under 500; otherwise **DOES NOT QUALIFY**), and what is reported beside it (per-league log loss, the 10-point bands raw and calibrated, each week's mapping). Nothing is tuned. |
+| When it ends | Never by a date or a count. In a league whose props method changes, the later rows stop counting; registering again is Sam's. |
+| The earlier arms | §3's test (`2025-only`) and the fixed card's arm (`season-blend`, `[Sam, 2026-09-24]`) are still scored and stored as they are, labelled superseded by this section. |
+| If it qualifies | §3's "After this PR" holds: nothing is applied automatically; applying it is a separate PR and Sam's decision. The page has shown none of this since 2026-10-01, so the Monday email says it under "Needs you". |
+
+**Why 2026-11-23, and why written here.** This repo registers a section added by a merge in
+one of two ways: a date written into it (T65's `REGISTERED_FROM`, 2026-10-19, and T66 in
+`fb_refit_spec.md` §3a), or the first Monday AFTER the merge day, read from git (T71 to T75,
+§3e onward there). This test takes the first: the first Monday after the day this section was
+written and committed (2026-11-18).
+
+1. What it scores, the confidence each card prints, is published before kickoff whether or
+   not this section has merged, so the merge day decides nothing about which predictions
+   exist. Pre-registration needs every counted game to kick off after the rule was fixed; a
+   written date gives that and cannot move. A game between 2026-11-23 and a later merge still
+   counts, for the same reason.
+2. The test is scored in the collector's `card-fb` pass, whose checkout holds one commit
+   (collect.yml's `actions/checkout` sets no depth). Measured 2026-11-18 on a depth-1 clone:
+   git's answer for the day a line was added is the clone's own commit day (2026-11-18,
+   against 2026-11-10 in full history). A date read from git would move forward every run,
+   and the test would never start.
+3. A Monday, because §3's weeks run Monday to Sunday.
+
 ## 4. What runs
 
 - `fb_card_calibration.py` scores the rule above. It rides `card-fb` and
@@ -90,3 +133,11 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
     logit scale). Every printed confidence maps to roughly 50–53%, so on
     this evidence the printed number carries almost no information about
     which props hit.
+- **2026-11-18:** §3a added on Sam's decision: the same test re-registered
+  on `season-blend+props-own`, games from 2026-11-23, the same bar. Root
+  cause: §3 counted only `2025-only` rows, and the fixed card's arm only
+  rows whose whole method was `season-blend`; the cards stopped printing
+  both (the second when `+props-model` was appended, 2026-10-09), so both
+  sat below 500 for good, and nothing said so. Written before any code
+  that scores it; §2 and §3 are unchanged and pinned on their own by
+  `test_prereg_gate.py`.

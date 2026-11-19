@@ -78,6 +78,21 @@ claim that can be wrong (rule 166).
 #   find: - **History rows train; they are never scored.** The rows H and HC add (§3d's older seasons)
 #   with: - **History rows train; they are scored too.** The rows H and HC add (§3d's older seasons)
 #
+# @vacuity 🔴 card calibration §3a [Sam, 2026-11-18]: any edit to the registration date goes red
+#   file: research/fb_card_calibration_spec.md
+#   find: | The registration date | **2026-11-23**, a Monday. |
+#   with: | The registration date | **2026-11-30**, a Monday. |
+#
+# @vacuity 🔴 card calibration §3a: ...and to the method it is registered on
+#   file: research/fb_card_calibration_spec.md
+#   find: | The method | `season-blend+props-own`: the props method every football card prints today, NFL and college alike. |
+#   with: | The method | `season-blend+props-own-last2`: the props method every football card prints today, NFL and college alike. |
+#
+# @vacuity 🔴🔴 card calibration: a one-character edit to §3, written before §3a, still goes red
+#   file: research/fb_card_calibration_spec.md
+#   find: | Verdict | **QUALIFIES** if n ≥ 500, mean d > 0 and p < 0.05.
+#   with: | Verdict | **QUALIFIES** if n ≥ 400, mean d > 0 and p < 0.05.
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -171,7 +186,13 @@ FROZEN = {
     "fb_model_lambda_spec.md": "0d04a78d959d75097a24196e282d6aa48fed5455fdbfb00e9952fde67d54ca8b",
     # [Sam, 2026-09-24] rule in section 2 before any scoring; section 3
     # fixed by Claude before any scoring code existed.
-    "fb_card_calibration_spec.md": "73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda",
+    # ~~"73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda"~~
+    # [Sam, 2026-11-18] "Re-register on today's method (Recommended)": "Same test and same 500-pick
+    # bar, counting only picks from the new registration date on, plus a line in the Monday email
+    # if it ever qualifies." Section 3a (season-blend+props-own, games from 2026-11-23), written
+    # before any code that scores it; §2 and §3 are pinned on their own below. ⛔ It moved because
+    # SAM changed the test (rule 13), not because a result was seen.
+    "fb_card_calibration_spec.md": "b8c438a2f64a94e550d2eaa33a56238bb8738ed66112360d8e1c1a7ff15e95b1",
     # [Sam, 2026-09-24] ship rule in section 2 before any result; the
     # formula and scoring in section 3 fixed by Claude before any scoring.
     "fb_card_fix_spec.md": "8162387a90aaae4228a661e898cbe72c9e8cd3ee4d6ed2ebbbfcfed7f05715a1",
@@ -259,7 +280,8 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3i. ", "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd"),
                  ("fb_refit_spec.md", "\n## 3j. ", "ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10"),
                  ("fb_refit_spec.md", "\n## 3k. ", "280d3576ae1d6db18a5052e28a77408e0f1d83e7b83d73bc4548438ce95f20df"),
-                 ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
+                 ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398"),
+                 ("fb_card_calibration_spec.md", "\n## 3a. ", "73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda")]
 
 
 def frozen_region(text):
