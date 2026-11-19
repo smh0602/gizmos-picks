@@ -6052,12 +6052,14 @@ async function fbNews(){
    play whose game had kicked off stayed on Gizmo's Picks until a click.
    ✅ EVERY 3 MINUTES, MLB's own cadence (`fbRefreshTick`), each football
    league the page holds files for is asked for its freshness.json
-   `built_at`. `[measured on main, 2026-11-10 to 11-18]` it moved in 137 of
-   the 140 NFL and 137 of the 139 college commits that changed a file the
-   page reads; the card's own `generated_at` moved in only 84 / 85 (53 / 49
-   commits changed the board, props, winners or record and not the card).
-   The other 3 / 2 were landed by a watchdog commit, and the next pass moved
-   `built_at` 12 to 23 minutes later.
+   `built_at`. `[measured on main, 2026-11-10 00:00Z to 11-18 03:42Z]` it
+   moved in 160 of the 164 NFL and 157 of the 160 college commits that
+   changed a file the page reads; the card's own `generated_at` moved in
+   only 98 / 101 (66 / 59 commits changed another file the page reads, the
+   board, props, winners, record or news, and not the card). The other
+   4 / 3 were landed by a watchdog commit, and the next pass moved
+   `built_at` 4 minutes to 3 h 45 min later (the 3 h 45 min one, 11-11,
+   changed only winners.json).
      - unchanged: nothing else is fetched and nothing is redrawn;
      - moved, a league not on screen: its files are dropped, so its next
        draw (a league switch) reads the new ones, never the old;

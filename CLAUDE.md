@@ -459,9 +459,11 @@ note boxes, tags and the stale bar now require their absence.
 - 🔴 **AN OPEN FOOTBALL TAB FOLLOWS THE DATA.** `[2026-11-18]` Every football file the
   page reads was memoised once and never let go, and the 180 s and 60 s refreshes are
   MLB's, so an open football tab drew its first card and prices until a reload.
-  ✅ Every 3 minutes `fbRefreshTick` (index.html) asks each football league the page holds
-  files for for its freshness.json `built_at` (it moved in 137 of the 140 NFL commits that
-  changed a file the page reads, 2026-11-10 to 11-18; the card's `generated_at` in 84).
+  ✅ Every 3 minutes `fbRefreshTick` (index.html) asks every football league whose files the
+  page holds for its freshness.json `built_at` (it moved in 160 of the 164 NFL commits that
+  changed a file the page reads, 2026-11-10 00:00Z to 11-18 03:42Z, the card's
+  `generated_at` in 98; the other 4 were watchdog commits, and the next pass moved it 4 min
+  to 3 h 45 min later).
   Moved: a league not on screen lets its files go; the league on screen reads them again
   (no-cache), each copy kept until its new one is in (`fbKeep`), and is drawn again only when
   one changed. Every minute `fbKickTick` draws
