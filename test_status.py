@@ -99,19 +99,35 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #
 # @vacuity 🔴 ...once per arm: the test pools both leagues, so both files carry it
 #   file: status.py
-#   find:                 found.setdefault(arm, []).append((name, x))
-#   with:                 found.setdefault(arm + name, []).append((name, x))
+#   find:                 found.setdefault(arm, []).append((name, path, x))
+#   with:                 found.setdefault(arm + name, []).append((name, path, x))
 #
 # @vacuity 🔴 ...and a file that is not an object never stops the email
 #   file: status.py
 #   find:         for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
 #   with:         for arm, x in sorted(doc.items()):
+#
+# @vacuity 🔴 [2026-11-19, review] ...with the prompt ready to paste, never "ask Claude"
+#   file: status.py
+#   find:                            "1. Paste this into Claude Code:", "", "```text", prompt, "```", "",
+#   with:                            "1. Ask Claude for the pull request that applies it.",
+#
+# @vacuity 🔴 ...and the merge clicks, as every other Needs-you item gives them
+#   file: status.py
+#   find:                            "4. Click \"Merge pull request\", then \"Confirm merge\" (or \"Close pull "
+#   with:                            "4. Merge it as usual (or \"Close pull "
+#
+# @vacuity 🔴 ...and the prompt names the files that say QUALIFIES
+#   file: status.py
+#   find:                       arm, " and ".join(p for _n, p, _x in got),
+#   with:                       arm, "the card-calibration file",
 """
 import atexit
 import datetime
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -353,7 +369,8 @@ section("8. 🔴 A CALIBRATION ARM THAT QUALIFIES REACHES SAM [Sam, 2026-11-18]"
 # §3a). Planted card-calibration.json files, as fb_card_calibration.build writes them.
 _ARM = {"n": 612, "mean_d": 0.031, "t": 2.4, "p": 0.0091, "clusters": 140, "verdict": "QUALIFIES",
         "graded_picks": 790, "min_n": 500, "alpha": 0.05, "applied": False,
-        "method": "season-blend+props-own", "registered_from": "2026-11-23"}
+        "method": "season-blend+props-own", "registered_from": "2026-11-23",
+        "spec": "research/fb_card_calibration_spec.md §3a"}
 _OLD = {"n": 70, "mean_d": None, "p": None, "clusters": 30, "verdict": "NOT YET MEASURABLE",
         "graded_picks": 157, "min_n": 500, "applied": False, "superseded_by": "spec §3a [Sam, 2026-11-18]"}
 
@@ -376,7 +393,23 @@ eq(_nq, [_want], "🔴🔴 an arm that QUALIFIES is under \"Needs you\": once (t
    "its leagues, its arm, its method and date")
 ck("🔴 ...on the email's first line, then what to do: nothing changes until Sam decides",
    _bq.splitlines()[0] == "Needs you: %s." % _want and ("**%s.**" % _want) in _bq
-   and "ask Claude for the pull request that applies it" in _bq, _bq[:200])
+   and "Nothing changes by itself" in _bq, _bq[:200])
+# `[2026-11-19, review]` CLAUDE.md rule 4: click by click, and the prompt ready to paste (an alert's form,
+#    watchdog.what_to_do), never "ask Claude for the pull request ... then merge it as usual".
+_qi = _bq[_bq.find("**%s.**" % _want):]
+_q0 = _qi.find("```text\n")
+_qs = _qi[_q0 + 8:_qi.find("\n```\n", _q0)] if _q0 >= 0 else ""
+ck("🔴 ...a prompt ready to paste: the arm, both leagues' files and §3a, Sam's usage check, never merge, no spend",
+   _qs.startswith("Read CLAUDE.md first") and "arm `test_reregistered`" in _qs
+   and "data/nfl/latest/card-calibration.json and data/ncaaf/latest/card-calibration.json" in _qs
+   and "research/fb_card_calibration_spec.md §3a" in _qs and W.USAGE_CHECK in _qs
+   and "never merge" in _qs and "No API spend" in _qs and "Never commit to main" in _qs, _qi[:400])
+_steps = [ln for ln in _qi.splitlines() if re.match(r"\d\. ", ln)]
+ck("🔴 ...then the clicks, numbered: paste it, open the PR, wait for the checks, merge (or close)",
+   [ln[:2] for ln in _steps[:4]] == ["1.", "2.", "3.", "4."] and _steps[0] == "1. Paste this into Claude Code:"
+   and "\"All checks have passed\"" in _steps[2]
+   and "\"Merge pull request\", then \"Confirm merge\"" in _steps[3] and "Close pull request" in _steps[3],
+   "got %r" % _steps)
 _bn, _nn = S.build(cal_tree(dict(_ARM, verdict="NOT YET MEASURABLE", n=40, p=None)), NOW)
 eq((_bn.splitlines()[0], _nn), ("Nothing needs you this week.", []),
    "🔴 NOT YET MEASURABLE (and a superseded arm that is not QUALIFIES) needs nothing")

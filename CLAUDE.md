@@ -1575,16 +1575,19 @@ fb_card_calibration.py  the football props card's stated-vs-actual bands
                   confidence number honestly" note; still built and
                   scored. `[Sam, 2026-11-18]` The test counted only
                   `2025-only` cards, which stopped 09-19/09-21, so it
-                  could never reach 500: re-registered (spec §3a) on
-                  today's props method,
+                  could never reach 500; Sam chose to re-register it on
+                  today's method, the same bar, with a Monday-email line
+                  if it qualifies. `[2026-11-18, fixed by Claude, spec
+                  §3a; Sam can overrule]` today's props method is
                   `season-blend+props-own` (a `+game-<name>` champion
                   still counts; any other props change ends it), games
-                  from 2026-11-23, the same bar (`test_reregistered`).
-                  The 2025-only and season-blend arms are still scored,
-                  labelled superseded. A QUALIFIES is a "Needs you" line
-                  in the Monday email (status.py); an arm its league
-                  stopped feeding for over 14 days while grading others is
-                  DEGRADED (`watchdog.check_calibration_arm`).
+                  from 2026-11-23 ET (`test_reregistered`). The
+                  2025-only and season-blend arms are still scored,
+                  labelled superseded. A QUALIFIES is a "Needs you" item
+                  in the Monday email with a prompt to paste (status.py);
+                  an arm with no row it counts for over 14 days while its
+                  league grades others is DEGRADED
+                  (`watchdog.check_calibration_arm`).
                   `test_fb_card_calibration.py`.
 fb_card_fix.py    scores the football props card's season fix (reads 2026
                   first, 2025 as the start, shrunk toward the position

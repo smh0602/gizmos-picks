@@ -241,11 +241,13 @@ def page_bands_before(lg, root=None):
     return out
 
 
-def newest_graded(root=None, method=REREG_METHOD):
-    """`[Sam, 2026-11-18]` {league: {"method": the newest card day holding a graded, rated row of
-    `method` (its props method, any kickoff), "any": the newest card day holding any graded row}}.
+def newest_graded(root=None, method=REREG_METHOD, since=REREG_FROM):
+    """`[Sam, 2026-11-18]` {league: {"method": the newest card day holding a graded, rated row the
+    arm COUNTS (`counts`, the arm's own rule), "any": the newest card day holding any graded row}}.
     watchdog.check_calibration_arm reads it to tell a league that stopped feeding the test (its
-    props method changed) from a quiet week or the off-season."""
+    props method changed, or its rows stopped passing the arm's rule) from a quiet week or the
+    off-season. ⛔ Never a looser rule than the arm's: rows the arm refuses (no readable kickoff,
+    say) would read as feeding it, and an arm that counts nothing would never be reported."""
     out = {}
     for lg in LEAGUES:
         mine = anyday = None
@@ -253,8 +255,7 @@ def newest_graded(root=None, method=REREG_METHOD):
             graded = [r for r in rows or [] if r.get("won") in (True, False)]
             if graded:
                 anyday = max(anyday or day, day)
-            if any(r.get("confidence") is not None and props_method(r.get("card_method")) == method
-                   for r in graded):
+            if any(r.get("confidence") is not None and counts(r, method, since) for r in graded):
                 mine = max(mine or day, day)
         out[lg] = {"method": mine, "any": anyday}
     return out

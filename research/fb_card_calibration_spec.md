@@ -20,10 +20,11 @@ can be edited after a result is seen. `[Sam, 2026-11-18]` So is section
   a visible warning.
 - `[Sam, 2026-11-18]` The test counted only cards made the old way, which
   stopped in September, so it could never reach 500. Sam re-registered it
-  on the way the cards are made now: the same test and the same 500-play
-  bar, counting only games from Monday 2026-11-23 on (section 3a). If it
-  ever qualifies, the Monday email says so under "Needs you"; nothing
-  changes on the card until Sam decides.
+  on the way the cards are made now, with the same test and the same
+  500-play bar. The details (which cards count, and only games from
+  Monday 2026-11-23 on) were set by Claude in section 3a, where Sam can
+  overrule them. If it ever qualifies, the Monday email says so under
+  "Needs you"; nothing changes on the card until Sam decides.
 
 ## 1. Scope and background
 
@@ -75,7 +76,7 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
 | After this PR | The test is re-scored every `card-fb` run and its status is shown. ⛔ **A later QUALIFIES is not applied automatically.** The page says it qualifies and is waiting for Sam, because changing what the card prints is Sam's decision; applying it is a separate PR. |
 | Reported beside the verdict, not part of it | Per-league mean log loss, raw and calibrated. Stated against actual, in 10-point bands, raw and calibrated, on the scored picks. The mapping (a, b) each week. |
 
-## 3a. Re-registered on the method the cards print now `[Sam, 2026-11-18]`
+## 3a. Re-registered on the method the cards print now `[Sam's decision, 2026-11-18; definitions by Claude]`
 
 **Sam's decision, 2026-11-18** (changing a pre-registered test is his, rule 13). He was
 asked: *"The football props-card calibration test you pre-registered counts only cards built
@@ -88,6 +89,14 @@ email if it ever qualifies."*
 Written and committed before any code that scores it existed, and before any game it counts
 kicked off. Nothing above it is edited: §2 and §3 are pinned on their own by
 `test_prereg_gate.py`.
+
+⚠️ **Sam chose to re-register the test with the same bar (quoted above); he did not choose the
+details below.** The table's definitions beyond his choice (which card methods count as today's
+props method, the `+game-<name>` rule among them; the US Eastern kickoff-date filter; the
+2026-11-23 date and the reasoning after the table) were fixed by Claude before any code that
+scores them existed, so nothing can be tuned after seeing a result, and are disclosed here so
+Sam can overrule any of it. `[2026-11-19]` This paragraph was added after a review, before the
+section left its branch; no definition changed.
 
 | | |
 |---|---|
@@ -160,3 +169,10 @@ written and committed (2026-11-18).
   sat below 500 for good, and nothing said so. Written before any code
   that scores it; §2 and §3 are unchanged and pinned on their own by
   `test_prereg_gate.py`.
+- **2026-11-19:** §3a's heading and a new paragraph under Sam's quote say
+  which parts are his (the re-registration and its bar) and which Claude
+  fixed (the props-method rule, the Eastern kickoff-date filter, the
+  2026-11-23 date). Mistake: the section was written under a heading
+  tagged with Sam's name only, so a later reader would take the date and
+  the method rule for his decisions. Caught in review before the branch
+  was pushed; no definition changed.

@@ -355,26 +355,43 @@ def calibration_qualifies(root):
     in a separate PR. Read from the files: status.py imports no model."""
     found = {}
     for name, d in FB:
-        doc = _read(os.path.join(root, d, "latest", "card-calibration.json"))
+        path = "%s/latest/card-calibration.json" % d
+        doc = _read(os.path.join(root, path))
         for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
             if isinstance(x, dict) and x.get("verdict") == "QUALIFIES":
-                found.setdefault(arm, []).append((name, x))
+                found.setdefault(arm, []).append((name, path, x))
     out = []
     for arm, got in sorted(found.items()):
-        x = got[0][1]
+        x = got[0][2]
         what = ("the football props card's calibration test QUALIFIES in the %s file%s (arm %s%s%s): the "
                 "corrected confidence predicted better than the printed one over %s picks in %s games, "
                 "one-sided p = %.4g (it needed %s picks%s)" % (
-                    " and ".join(n for n, _x in got), "s" if len(got) > 1 else "", arm,
+                    " and ".join(n for n, _p, _x in got), "s" if len(got) > 1 else "", arm,
                     ": %s, games from %s" % (x["method"], x["registered_from"])
                     if x.get("method") and x.get("registered_from") else "",
                     ", superseded" if x.get("superseded_by") else "",
                     x.get("n"), x.get("clusters"), x.get("p") or 0.0, x.get("min_n"),
                     " and p under %g" % x["alpha"] if x.get("alpha") is not None else ""))
+        # `[2026-11-19, review]` CLAUDE.md rule 4: click by click, with the prompt ready to paste
+        #    (watchdog.what_to_do's form). There is no branch yet: Claude opens the PR, Sam merges it.
+        prompt = ("Read CLAUDE.md first and follow every rule in it. The football props card's "
+                  "calibration test, arm `%s`, reads QUALIFIES in %s (%s). Sam has decided to apply it: "
+                  "open ONE pull request that does what research/fb_card_calibration_spec.md section 2 "
+                  "says (the card prints the calibrated confidence in place of the raw one, and the pick "
+                  "rule uses it), with a guard test that is red under its own @vacuity mutation. Change "
+                  "no published pick, no model coefficient and no test's bar. Never commit to main and "
+                  "never merge it. No API spend.\n\n%s\n\n⛔ Do not tell Sam it is done until the "
+                  "pr-tests check shows GREEN on GitHub." % (
+                      arm, " and ".join(p for _n, p, _x in got),
+                      x.get("spec") or "research/fb_card_calibration_spec.md", W.USAGE_CHECK))
         out.append((what, ["Nothing changes by itself: the card keeps printing its own number until you "
-                           "decide (rule 13).",
-                           "To print the corrected number instead, ask Claude for the pull request that "
-                           "applies it, then merge it as usual. To keep the card's own number, do nothing."]))
+                           "decide (rule 13). To keep the card's own number, do nothing.",
+                           "To print the corrected number instead:",
+                           "1. Paste this into Claude Code:", "", "```text", prompt, "```", "",
+                           "2. Open the pull request link Claude gives you.",
+                           "3. Wait until the box at the bottom says \"All checks have passed\".",
+                           "4. Click \"Merge pull request\", then \"Confirm merge\" (or \"Close pull "
+                           "request\" to keep the card's own number)."]))
     return out
 
 

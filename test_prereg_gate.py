@@ -189,10 +189,14 @@ FROZEN = {
     # ~~"73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda"~~
     # [Sam, 2026-11-18] "Re-register on today's method (Recommended)": "Same test and same 500-pick
     # bar, counting only picks from the new registration date on, plus a line in the Monday email
-    # if it ever qualifies." Section 3a (season-blend+props-own, games from 2026-11-23), written
-    # before any code that scores it; §2 and §3 are pinned on their own below. ⛔ It moved because
-    # SAM changed the test (rule 13), not because a result was seen.
-    "fb_card_calibration_spec.md": "b8c438a2f64a94e550d2eaa33a56238bb8738ed66112360d8e1c1a7ff15e95b1",
+    # if it ever qualifies." Section 3a: its definitions (season-blend+props-own, games from
+    # 2026-11-23) fixed by Claude and disclosed there as Claude's, written before any code that
+    # scores it; §2 and §3 are pinned on their own below. ⛔ It moved because SAM changed the test
+    # (rule 13), not because a result was seen.
+    # ~~"b8c438a2f64a94e550d2eaa33a56238bb8738ed66112360d8e1c1a7ff15e95b1"~~ [2026-11-19, review,
+    # before the branch was pushed] 3a's heading and a paragraph saying which parts are Claude's;
+    # no definition changed.
+    "fb_card_calibration_spec.md": "0bb98339ac70d2b201720e582977d29b2f3039dd14264675ad59d76a02d49441",
     # [Sam, 2026-09-24] ship rule in section 2 before any result; the
     # formula and scoring in section 3 fixed by Claude before any scoring.
     "fb_card_fix_spec.md": "8162387a90aaae4228a661e898cbe72c9e8cd3ee4d6ed2ebbbfcfed7f05715a1",

@@ -80,8 +80,13 @@ scored exactly as `research/fb_card_calibration_spec.md` fixes it
 #
 # @vacuity 🔴 the newest day of the arm's method is that method's, not any row's
 #   file: fb_card_calibration.py
-#   find:             if any(r.get("confidence") is not None and props_method(r.get("card_method")) == method
-#   with:             if any(r.get("confidence") is not None and bool(props_method(r.get("card_method")) or method)
+#   find:             if any(r.get("confidence") is not None and counts(r, method, since) for r in graded):
+#   with:             if any(r.get("confidence") is not None for r in graded):
+#
+# @vacuity 🔴 [2026-11-19, review] ...and a row the arm COUNTS: its props method alone kept an arm that counts nothing silent
+#   file: fb_card_calibration.py
+#   find:             if any(r.get("confidence") is not None and counts(r, method, since) for r in graded):
+#   with:             if any(r.get("confidence") is not None and props_method(r.get("card_method")) == method for r in graded):
 #
 # @vacuity 🔴 the watchdog: an arm its league stopped feeding for over 14 days is DEGRADED
 #   file: watchdog.py
@@ -494,3 +499,42 @@ eq(_watch({lg: _docs[lg] for lg in _docs},
    "🔴🔴 on the build's own files: college changed its props method on 12-05 and still grades rows, so it "
    "is DEGRADED 16 days after its last counted card; NFL went quiet that day, so it is silent; the "
    "superseded arms are never reported")
+
+# `[2026-11-19, review]` THE ARM'S OWN RULE DECIDES WHETHER IT IS FED. Every row of today's method
+#    after registration, but none the arm can count: NFL's kickoffs lack their seconds (et_date reads
+#    none), college's have no kickoff at all. Both leagues keep grading them daily. A rule looser
+#    than the arm's (its props method, any kickoff) read that as fed, and an arm stuck at 0 was
+#    never reported.
+def _plant_unreadable(root):
+    days = {"nfl": {}, "ncaaf": {}}
+    for k in range(28):                                   # cards 2026-11-23 .. 2026-12-20
+        d = (datetime.date(2026, 11, 23) + datetime.timedelta(days=k)).isoformat()
+        for i in range(6):
+            days["nfl"].setdefault(d, []).append(_row("UNR", k * 6 + i, d, OWN, ko=d + "T18:00Z"))
+            days["ncaaf"].setdefault(d, []).append(
+                dict(_row("UNR", k * 6 + i, d, HC, lg="ncaaf"), commence=None))
+    for lg in ("nfl", "ncaaf"):
+        os.makedirs(os.path.join(root, "data", lg, "latest"), exist_ok=True)
+        with gzip.open(os.path.join(root, "data", lg, "latest", "record-detail.json.gz"), "wt",
+                       encoding="utf-8") as fh:
+            json.dump({"days": days[lg]}, fh)
+
+
+_tu = tempfile.mkdtemp(prefix="calunr-")
+try:
+    _plant_unreadable(_tu)
+    _du = {}
+    for _lg in ("nfl", "ncaaf"):
+        _p = os.path.join(_tu, "out-%s.json" % _lg)
+        K.build(_lg, _tu, _p)
+        _du[_lg] = json.load(open(_p, encoding="utf-8"))
+    _nu = K.newest_graded(_tu)
+finally:
+    shutil.rmtree(_tu, ignore_errors=True)
+eq(([_du[lg][K.REREG_KEY]["graded_picks"] for lg in ("nfl", "ncaaf")], _nu),
+   ([0, 0], {"nfl": {"method": None, "any": "2026-12-20"}, "ncaaf": {"method": None, "any": "2026-12-20"}}),
+   "🔴🔴 28 days of today's method the arm cannot count (no readable kickoff): it reads 0, and so does "
+   "its newest counted day, while both leagues graded rows yesterday")
+eq(_watch({lg: _du[lg] for lg in _du}, now=datetime.datetime(2026, 12, 21, 15, 0, tzinfo=datetime.timezone.utc)),
+   [(_KEY % "nfl", "DEGRADED", None), (_KEY % "ncaaf", "DEGRADED", None)],
+   "🔴🔴 ...so the watchdog says it, in both leagues: DEGRADED 28 days after registration with nothing counted")
