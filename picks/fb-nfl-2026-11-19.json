@@ -1,10 +1,10 @@
 {
  "date": "2026-11-19",
  "league": "nfl",
- "generated_at": "2026-11-19T13:49:54Z",
+ "generated_at": "2026-11-19T17:01:14Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-11-19T13:49:25Z",
+ "odds_pulled_at": "2026-11-19T16:59:46Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -42,6 +42,36 @@
    ],
    "priced_at": "2026-11-19T13:49:25Z",
    "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Indianapolis Colts",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "away",
+   "line": 9.5,
+   "game": "Indianapolis Colts @ Houston Texans",
+   "game_id": "66f9e83cf025d58acee12bce18661fb3",
+   "away": "Indianapolis Colts",
+   "home": "Houston Texans",
+   "commence": "2026-11-20T01:15:00Z",
+   "book": "draftkings",
+   "price": 122,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 45.0,
+   "edge": 8.0,
+   "why": [
+    "The game model gives Indianapolis Colts 53% to cover +9.5; the best price, +122 at DraftKings, needs 45.0%."
+   ],
+   "priced_at": "2026-11-19T13:49:25Z",
+   "main_line": 12.5,
+   "sched_id": "2026_11_IND_HOU",
+   "rank": 2
   }
  ],
  "game_lines_liked": [
@@ -89,9 +119,9 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-19T13:49:43Z",
-  "ladder_built_at": "2026-11-19T13:49:45Z",
-  "alt_spreads": 0
+  "model_built_at": "2026-11-19T17:01:02Z",
+  "ladder_built_at": "2026-11-19T17:01:02Z",
+  "alt_spreads": 1
  },
  "scores_shown": [
   {
@@ -231,7 +261,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 1 pick(s) for 2026-11-19 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 1 pick(s) for 2026-11-19 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -270,25 +300,25 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 2,
-  "same_game_already_listed": 58,
+  "same_player_already_listed": 3,
+  "same_game_already_listed": 62,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 61,
+  "pool_after_price_gate": 66,
   "cap": 10,
   "distinct_games": 1,
   "shared_with_board_head": 1,
   "board_head_size": 10
  },
- "top_plays_rule": "The 1 most likely to hit for 2026-11-19 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 58 row(s) were held back because their game was already represented and 2 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-11-19 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 62 row(s) were held back because their game was already represented and 3 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 22,
-  "rated_legs": 61,
+  "pool": 21,
+  "rated_legs": 66,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -297,18 +327,18 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 7,
-    "taken": 7
+    "available": 5,
+    "taken": 5
    },
    {
     "decimal": "1.6-2",
-    "available": 51,
+    "available": 57,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 3,
-    "taken": 3
+    "available": 4,
+    "taken": 4
    },
    {
     "decimal": "3-99",
@@ -317,27 +347,27 @@
    }
   ],
   "rejected": {
-   "same_game": 9086,
+   "same_game": 7525,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "61 rated legs, 22 in the stratified pool. Rejected: 9086 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "66 rated legs, 21 in the stratified pool. Rejected: 7525 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
    {
     "legs": [
-     "Anthony Gould u23.5 rec yds",
+     "David Montgomery u57.5 rush yds",
      "Foster Moreau o0.5 rec"
     ],
     "game": "Indianapolis Colts @ Houston Texans",
     "game_id": "66f9e83cf025d58acee12bce18661fb3",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -113,
-     -148
+     -115,
+     -145
     ],
     "line_best_book": null,
     "line_best_price": null,
@@ -353,40 +383,40 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     60,
+     61,
      60
     ],
     "band_floor": 1.8
    },
    {
     "legs": [
-     "Anthony Gould u2.5 rec",
-     "Foster Moreau o0.5 rec"
+     "David Montgomery u56.5 rush yds",
+     "Anthony Gould u22.5 rec yds"
     ],
     "game": "Indianapolis Colts @ Houston Texans",
     "game_id": "66f9e83cf025d58acee12bce18661fb3",
     "same_game": true,
-    "book": "fanduel",
+    "book": "draftkings",
     "prices": [
-     -130,
-     -148
+     -111,
+     -115
     ],
     "line_best_book": null,
     "line_best_price": null,
     "n_legs": 2,
     "n_line_legs": 0,
-    "multiplier": 2.965,
+    "multiplier": 3.554,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 60,
+    "weakest_leg": 59,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     64,
-     60
+     61,
+     59
     ],
     "band_floor": 1.8
    }
@@ -394,59 +424,59 @@
   "3": [
    {
     "legs": [
-     "Anthony Gould u23.5 rec yds",
+     "David Montgomery u57.5 rush yds",
      "Foster Moreau o0.5 rec",
-     "Deion Burks u15.5 rec yds"
+     "Anthony Gould u20.5 rec yds"
     ],
     "game": "Indianapolis Colts @ Houston Texans",
     "game_id": "66f9e83cf025d58acee12bce18661fb3",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -113,
-     -148,
-     -113
+     -115,
+     -145,
+     -115
     ],
     "line_best_book": null,
     "line_best_price": null,
     "n_legs": 3,
     "n_line_legs": 0,
-    "multiplier": 5.954,
+    "multiplier": 5.906,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 57,
+    "weakest_leg": 58,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
+     61,
      60,
-     60,
-     57
+     58
     ],
     "band_floor": 3.0
    },
    {
     "legs": [
-     "Anthony Gould u2.5 rec",
-     "Foster Moreau o0.5 rec",
-     "Deion Burks u15.5 rec yds"
+     "David Montgomery u56.5 rush yds",
+     "Anthony Gould u22.5 rec yds",
+     "Deion Burks u16.5 rec yds"
     ],
     "game": "Indianapolis Colts @ Houston Texans",
     "game_id": "66f9e83cf025d58acee12bce18661fb3",
     "same_game": true,
-    "book": "fanduel",
+    "book": "draftkings",
     "prices": [
-     -130,
-     -148,
-     -113
+     -111,
+     -115,
+     -110
     ],
     "line_best_book": null,
     "line_best_price": null,
     "n_legs": 3,
     "n_line_legs": 0,
-    "multiplier": 5.588,
+    "multiplier": 6.785,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -456,8 +486,8 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     64,
-     60,
+     61,
+     59,
      57
     ],
     "band_floor": 3.0
@@ -470,8 +500,8 @@
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 43,
-   "mixed_book": 93,
+   "same_player": 73,
+   "mixed_book": 72,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -586,18 +616,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 24 games this record is built from \u2014 245.2 pass yds a game."
   },
-  "C.J. Stroud|player_pass_yds|over|258.5": {
-   "v": 245.2,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 24 games this record is built from \u2014 245.2 pass yds a game."
-  },
-  "C.J. Stroud|player_pass_yds|under|258.5": {
-   "v": 245.2,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 24 games this record is built from \u2014 245.2 pass yds a game."
-  },
   "C.J. Stroud|player_pass_yds|over|259.5": {
    "v": 245.2,
    "u": "pass yds",
@@ -677,6 +695,18 @@
    "n": "His own average over the 27 games this record is built from \u2014 22.9 rec yds a game."
   },
   "Jonathan Taylor|player_reception_yds|under|20.5": {
+   "v": 22.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 22.9 rec yds a game."
+  },
+  "Jonathan Taylor|player_reception_yds|over|22.5": {
+   "v": 22.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 22.9 rec yds a game."
+  },
+  "Jonathan Taylor|player_reception_yds|under|22.5": {
    "v": 22.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -766,6 +796,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game."
   },
+  "Nico Collins|player_reception_yds|over|72.5": {
+   "v": 70.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game."
+  },
+  "Nico Collins|player_reception_yds|under|72.5": {
+   "v": 70.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game."
+  },
   "Tyler Warren|player_reception_yds|over|36.5": {
    "v": 43.7,
    "u": "rec yds",
@@ -821,6 +863,18 @@
    "n": "His own average over the 20 games this record is built from \u2014 34.3 rec yds a game."
   },
   "Xavier Hutchinson|player_reception_yds|under|36.5": {
+   "v": 34.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 34.3 rec yds a game."
+  },
+  "Xavier Hutchinson|player_reception_yds|over|37.5": {
+   "v": 34.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 34.3 rec yds a game."
+  },
+  "Xavier Hutchinson|player_reception_yds|under|37.5": {
    "v": 34.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -996,19 +1050,19 @@
   }
  },
  "name_match_rate": 0.92,
- "n_priced": 62,
+ "n_priced": 69,
  "single_day": true,
  "slate_date": "2026-11-19",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 62,
+ "n_on_slate_day": 69,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-19 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "62 priced football rows for 2026-11-19 across 1 board games; 25 shown.",
+ "coverage": "69 priced football rows for 2026-11-19 across 1 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 51% against a claimed 54.3% (-3.3 pts, n=157). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 and 80-plus have too few graded plays to read. 157 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -1061,18 +1115,18 @@
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6263719586737291665",
-   "n_books": 3,
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389628978%232367706732_13L88808Q11536843598Q20",
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 61,
    "model_p": 61.0,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 8.6,
+   "break_even": 52.6,
+   "edge": 8.4,
    "role": {
     "snap": 0.4433,
     "tgt_share": 0.0267,
@@ -1098,7 +1152,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.625847701&selectionId=48711976",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1129,9 +1183,9 @@
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "fanduel",
-   "price": -148,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.626873474&selectionId=40927927",
+   "book": "hardrockbet",
+   "price": -145,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7722997491668484498",
    "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -1139,8 +1193,8 @@
    "confidence": 60,
    "model_p": 59.6,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 59.7,
-   "edge": 0.3,
+   "break_even": 59.2,
+   "edge": 0.8,
    "role": {
     "snap": 0.4567,
     "tgt_share": 0.064,
@@ -1157,21 +1211,21 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
-   "line": 16.5,
+   "line": 15.5,
    "game": "Indianapolis Colts @ Houston Texans",
    "game_id": "66f9e83cf025d58acee12bce18661fb3",
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "draftkings",
+   "book": "hardrockbet",
    "price": -110,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389628818%232367327473_13L88808Q1861045653Q20",
-   "n_books": 1,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/672519128587829670",
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 57,
-   "model_p": 57.3,
+   "model_p": 56.7,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 52.4,
    "edge": 4.6,
@@ -1191,24 +1245,24 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "over",
-   "line": 3.5,
+   "line": 2.5,
    "game": "Indianapolis Colts @ Houston Texans",
    "game_id": "66f9e83cf025d58acee12bce18661fb3",
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "fanduel",
-   "price": 102,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.626873438&selectionId=40927927",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/5397405466913538460",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
-   "confidence": 56,
-   "model_p": 56.0,
+   "confidence": 57,
+   "model_p": 57.2,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 49.5,
-   "edge": 6.5,
+   "break_even": 53.5,
+   "edge": 3.5,
    "role": {
     "snap": 0.4567,
     "tgt_share": 0.064,
@@ -1216,6 +1270,60 @@
     "n": 3
    },
    "rank": 6
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nico Collins",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 72.5,
+   "game": "Indianapolis Colts @ Houston Texans",
+   "game_id": "66f9e83cf025d58acee12bce18661fb3",
+   "away": "Indianapolis Colts",
+   "home": "Houston Texans",
+   "commence": "2026-11-20T01:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7206120196415816105",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "11 of 23",
+   "record": "11 of 23",
+   "rate": 61,
+   "break_even": 53.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 8,
+    "n25": 16,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.777,
+    "weighted_n": 12.82,
+    "mean_all": 70.261
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 71.12,
+   "projection": 70.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game.",
+   "why": [
+    "<b>Nico Collins</b> went under 72.5 rec yds in <b>3 of 7 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 55.6,
+   "role": {
+    "snap": 0.75,
+    "tgt_share": 0.2437,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 7
   },
   {
    "kind": "fb",
@@ -1269,7 +1377,7 @@
     "car": 4.0,
     "n": 3
    },
-   "rank": 7,
+   "rank": 8,
    "below_price": true
   },
   {
@@ -1289,7 +1397,7 @@
    "book": "draftkings",
    "price": -151,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA389628570%232367323447_13L88808Q1491250762Q20",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 56,
@@ -1324,7 +1432,7 @@
     "car": 0.3,
     "n": 3
    },
-   "rank": 8,
+   "rank": 9,
    "below_price": true
   },
   {
@@ -1341,9 +1449,9 @@
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "draftkings",
-   "price": -200,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389628997%232367593809_13L88808Q1-847255388Q20",
+   "book": "hardrockbet",
+   "price": -165,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7961982826279207323",
    "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -1351,15 +1459,15 @@
    "confidence": 56,
    "model_p": 55.8,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 66.7,
-   "edge": -10.7,
+   "break_even": 62.3,
+   "edge": -6.3,
    "role": {
     "snap": 0.25,
     "tgt_share": 0.0526,
     "car": 0.7,
     "n": 3
    },
-   "rank": 9,
+   "rank": 10,
    "below_price": true
   },
   {
@@ -1391,60 +1499,6 @@
    "role": {
     "snap": 0.3867,
     "tgt_share": 0.0533,
-    "car": 0.0,
-    "n": 3
-   },
-   "rank": 10
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Nico Collins",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 71.5,
-   "game": "Indianapolis Colts @ Houston Texans",
-   "game_id": "66f9e83cf025d58acee12bce18661fb3",
-   "away": "Indianapolis Colts",
-   "home": "Houston Texans",
-   "commence": "2026-11-20T01:15:00Z",
-   "book": "draftkings",
-   "price": -111,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389629209%232369674227_13L88808Q11125900131Q20",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "11 of 23",
-   "record": "11 of 23",
-   "rate": 61,
-   "break_even": 52.6,
-   "edge": 2.4,
-   "season_detail": {
-    "h25": 8,
-    "n25": 16,
-    "h26": 3,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.771,
-    "weighted_n": 12.82,
-    "mean_all": 70.261
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 71.12,
-   "projection": 70.3,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game.",
-   "why": [
-    "<b>Nico Collins</b> went under 71.5 rec yds in <b>3 of 7 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 55.4,
-   "role": {
-    "snap": 0.75,
-    "tgt_share": 0.2437,
     "car": 0.0,
     "n": 3
    },
@@ -1547,21 +1601,21 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
-   "line": 36.5,
+   "line": 37.5,
    "game": "Indianapolis Colts @ Houston Texans",
    "game_id": "66f9e83cf025d58acee12bce18661fb3",
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "hardrockbet",
+   "book": "draftkings",
    "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1868436040577057169",
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389629156%232367323534_13L88808Q11672585396Q20",
    "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 54,
-   "model_p": 53.7,
+   "model_p": 54.0,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 52.4,
    "edge": 1.6,
@@ -1727,7 +1781,7 @@
    "why": [
     "<b>Kayshon Boutte</b> went under 2.5 rec in <b>2 of 5 games</b> in 2026 and 10 of 17 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 53.8,
+   "model_p": 53.7,
    "role": {
     "snap": 0.4467,
     "tgt_share": 0.0781,
@@ -1752,7 +1806,7 @@
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
    "book": "hardrockbet",
-   "price": -225,
+   "price": -230,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/3066750108031910318",
    "n_books": 1,
    "clears_price_floor": true,
@@ -1761,8 +1815,8 @@
    "raw": "19 of 24",
    "record": "19 of 24",
    "rate": 77,
-   "break_even": 69.2,
-   "edge": -15.2,
+   "break_even": 69.7,
+   "edge": -15.7,
    "season_detail": {
     "h25": 13,
     "n25": 15,
@@ -1896,7 +1950,7 @@
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
    "book": "hardrockbet",
-   "price": -150,
+   "price": -135,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/3284106703391555979",
    "n_books": 3,
    "clears_price_floor": true,
@@ -1905,8 +1959,8 @@
    "raw": "22 of 27",
    "record": "22 of 27",
    "rate": 71,
-   "break_even": 60.0,
-   "edge": -7.0,
+   "break_even": 57.4,
+   "edge": -4.4,
    "season_detail": {
     "h25": 15,
     "n25": 17,
@@ -1951,7 +2005,7 @@
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
    "book": "hardrockbet",
-   "price": -105,
+   "price": 105,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/4685347584982778257",
    "n_books": 3,
    "clears_price_floor": true,
@@ -1960,8 +2014,8 @@
    "confidence": 52,
    "model_p": 51.9,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 51.2,
-   "edge": 0.8,
+   "break_even": 48.8,
+   "edge": 3.2,
    "role": {
     "snap": 0.3967,
     "tgt_share": 0.13,
@@ -1974,11 +2028,11 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jonathan Taylor",
+   "player": "Kayshon Boutte",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
-   "side": "over",
-   "line": 20.5,
+   "side": "under",
+   "line": 26.5,
    "game": "Indianapolis Colts @ Houston Texans",
    "game_id": "66f9e83cf025d58acee12bce18661fb3",
    "away": "Indianapolis Colts",
@@ -1986,40 +2040,40 @@
    "commence": "2026-11-20T01:15:00Z",
    "book": "hardrockbet",
    "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/5634007143530234268",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7190235871367528851",
    "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 52,
-   "raw": "12 of 27",
-   "record": "12 of 27",
-   "rate": 46,
+   "raw": "9 of 22",
+   "record": "9 of 22",
+   "rate": 36,
    "break_even": 52.4,
    "edge": -0.4,
    "season_detail": {
     "h25": 7,
     "n25": 17,
-    "h26": 5,
-    "n26": 10,
-    "w25": 0.286,
-    "p0": 0.452,
-    "weighted_n": 14.86,
-    "mean_all": 22.889
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.314,
+    "weighted_n": 12.56,
+    "mean_all": 38.682
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 22.24,
-   "projection": 22.9,
+   "own_mean": 42.29,
+   "projection": 38.7,
    "projection_unit": "rec yds",
    "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 27 games this record is built from \u2014 22.9 rec yds a game.",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 38.7 rec yds a game.",
    "why": [
-    "<b>Jonathan Taylor</b> went over 20.5 rec yds in <b>5 of 10 games</b> in 2026 and 7 of 17 in 2025, when he played at least half the snaps."
+    "<b>Kayshon Boutte</b> went under 26.5 rec yds in <b>2 of 5 games</b> in 2026 and 7 of 17 in 2025, when he played at least half the snaps."
    ],
    "model_p": 51.8,
    "role": {
-    "snap": 0.6633,
-    "tgt_share": 0.1711,
-    "car": 12.3,
+    "snap": 0.4467,
+    "tgt_share": 0.0781,
+    "car": 0.0,
     "n": 3
    },
    "rank": 23,
@@ -2190,22 +2244,23 @@
    "away": "Indianapolis Colts",
    "home": "Houston Texans",
    "commence": "2026-11-20T01:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6263719586737291665",
-   "n_books": 3,
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389628978%232367706732_13L88808Q11536843598Q20",
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [
     "Over his last 3 games he has played 44% of the snaps and 8.7 carries a game.",
     "The Indianapolis Colts allow 107.9 rushing yards a game to running backs (10th most of 32).",
-    "The model gives it <b>61%</b>; at -110 it needs 52.4% to pay."
+    "The Indianapolis Colts list DT Jerry Tillery (Out).",
+    "The model gives it <b>61%</b>; at -111 it needs 52.6% to pay."
    ],
    "confidence": 61,
    "model_p": 61.0,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 8.6,
+   "break_even": 52.6,
+   "edge": 8.4,
    "role": {
     "snap": 0.4433,
     "tgt_share": 0.0267,
@@ -2214,6 +2269,67 @@
    },
    "rank": 2,
    "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Nico Collins",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 72.5,
+   "game": "Indianapolis Colts @ Houston Texans",
+   "game_id": "66f9e83cf025d58acee12bce18661fb3",
+   "away": "Indianapolis Colts",
+   "home": "Houston Texans",
+   "commence": "2026-11-20T01:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7206120196415816105",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "11 of 23",
+   "record": "11 of 23",
+   "rate": 61,
+   "break_even": 53.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 8,
+    "n25": 16,
+    "h26": 3,
+    "n26": 7,
+    "w25": 0.364,
+    "p0": 0.777,
+    "weighted_n": 12.82,
+    "mean_all": 70.261
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 71.12,
+   "projection": 70.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game.",
+   "why": [
+    "Over his last 3 games he has played 75% of the snaps and 24% of the team's targets.",
+    "<b>Nico Collins</b> went under 72.5 rec yds in <b>3 of 7 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps.",
+    "The Indianapolis Colts allow 149 receiving yards a game to wide receivers (16th fewest of 32).",
+    "The Indianapolis Colts list CB Charvarius Ward (Out).",
+    "The model gives it <b>56%</b>; at -115 it needs 53.5% to pay."
+   ],
+   "model_p": 55.6,
+   "role": {
+    "snap": 0.75,
+    "tgt_share": 0.2437,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 3,
+   "why_card": [
+    "<b>Nico Collins</b> went under 72.5 rec yds in <b>3 of 7 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
+   ]
   },
   {
    "kind": "fb",
@@ -2251,68 +2367,8 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 3,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Nico Collins",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 71.5,
-   "game": "Indianapolis Colts @ Houston Texans",
-   "game_id": "66f9e83cf025d58acee12bce18661fb3",
-   "away": "Indianapolis Colts",
-   "home": "Houston Texans",
-   "commence": "2026-11-20T01:15:00Z",
-   "book": "draftkings",
-   "price": -111,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA389629209%232369674227_13L88808Q11125900131Q20",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "11 of 23",
-   "record": "11 of 23",
-   "rate": 61,
-   "break_even": 52.6,
-   "edge": 2.4,
-   "season_detail": {
-    "h25": 8,
-    "n25": 16,
-    "h26": 3,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.771,
-    "weighted_n": 12.82,
-    "mean_all": 70.261
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 71.12,
-   "projection": 70.3,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 23 games this record is built from \u2014 70.3 rec yds a game.",
-   "why": [
-    "Over his last 3 games he has played 75% of the snaps and 24% of the team's targets.",
-    "<b>Nico Collins</b> went under 71.5 rec yds in <b>3 of 7 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps.",
-    "The Indianapolis Colts allow 149 receiving yards a game to wide receivers (16th fewest of 32).",
-    "The model gives it <b>55%</b>; at -111 it needs 52.6% to pay."
-   ],
-   "model_p": 55.4,
-   "role": {
-    "snap": 0.75,
-    "tgt_share": 0.2437,
-    "car": 0.0,
-    "n": 3
-   },
    "rank": 4,
-   "why_card": [
-    "<b>Nico Collins</b> went under 71.5 rec yds in <b>3 of 7 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
-   ]
+   "why_card": []
   },
   {
    "kind": "fb",
@@ -2351,45 +2407,6 @@
     "n": 3
    },
    "rank": 5,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Tank Dell",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 36.5,
-   "game": "Indianapolis Colts @ Houston Texans",
-   "game_id": "66f9e83cf025d58acee12bce18661fb3",
-   "away": "Indianapolis Colts",
-   "home": "Houston Texans",
-   "commence": "2026-11-20T01:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1868436040577057169",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [
-    "Over his last 3 games he has played 40% of the snaps and 13% of the team's targets.",
-    "The Indianapolis Colts allow 149 receiving yards a game to wide receivers (16th fewest of 32).",
-    "The model gives it <b>54%</b>; at -110 it needs 52.4% to pay."
-   ],
-   "confidence": 54,
-   "model_p": 53.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 1.6,
-   "role": {
-    "snap": 0.3967,
-    "tgt_share": 0.13,
-    "car": 0.7,
-    "n": 3
-   },
-   "rank": 6,
    "why_card": []
   },
   {
@@ -2447,10 +2464,50 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 7,
+   "rank": 6,
    "why_card": [
     "<b>Laquon Treadwell</b> went under 27.5 rec yds in <b>6 of 9 games</b> in 2026, when he played at least half the snaps."
    ]
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Tank Dell",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "Indianapolis Colts @ Houston Texans",
+   "game_id": "66f9e83cf025d58acee12bce18661fb3",
+   "away": "Indianapolis Colts",
+   "home": "Houston Texans",
+   "commence": "2026-11-20T01:15:00Z",
+   "book": "hardrockbet",
+   "price": 105,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4685347584982778257",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "Over his last 3 games he has played 40% of the snaps and 13% of the team's targets.",
+    "The Indianapolis Colts allow 9.7 catches a game to wide receivers (5th fewest of 32).",
+    "The Indianapolis Colts list CB Charvarius Ward (Out).",
+    "The model gives it <b>52%</b>; at +105 it needs 48.8% to pay."
+   ],
+   "confidence": 52,
+   "model_p": 51.9,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 48.8,
+   "edge": 3.2,
+   "role": {
+    "snap": 0.3967,
+    "tgt_share": 0.13,
+    "car": 0.7,
+    "n": 3
+   },
+   "rank": 7,
+   "why_card": []
   }
  ],
  "n_longshots_excluded": 6,
