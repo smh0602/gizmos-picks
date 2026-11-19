@@ -83,8 +83,16 @@ def refit_summary(doc, name, now, due=None):
     A report built before it is LAST week's and is said to be, never shown as current:
     Monday runs have started 7-9 hours late, after this email."""
     seen = W._when((doc or {}).get("built_at"))
-    head = ("%s: this week's contest has not reported yet (its run was due %s)" % (
-        name, due.strftime("%a %Y-%m-%d %H:%MZ")) if due is not None and (seen is None or seen < due) else None)
+    # `[review, 2026-11-17]` a run that could not score the league (fb_refit.weekly: the champion's
+    #    history seasons unreadable) keeps last week's report with its error beside it: said so
+    err, failed = (doc or {}).get("error"), W._when((doc or {}).get("error_at"))
+    ran = bool(err and failed and (seen is None or failed > seen))
+    if due is not None and (seen is None or seen < due):
+        head = ("%s: this week's contest could not be run (%s)" % (name, err) if ran and failed >= due else
+                "%s: this week's contest has not reported yet (its run was due %s)" % (
+                    name, due.strftime("%a %Y-%m-%d %H:%MZ")))
+    else:
+        head = "%s: the latest contest could not be run (%s)" % (name, err) if ran else None
     if not doc:
         return head + ", and no weekly report has landed before." if head else "%s: no weekly report yet." % name
     age = W.fb_refit_age_days(doc, now)
@@ -144,7 +152,9 @@ def refit_summary(doc, name, now, due=None):
             "NO DATA": "its data is not stored yet",
             "WITHDRAWN": ("withdrawn for good on %s, it was worse on past games" % x["withdrawn_since"]
                           if x.get("withdrawn_since") else "withdrawn, it was worse on past games"),
-            "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
+            "NOT APPLICABLE": ("not built this week, and never scored on part of its seasons (%s)"
+                               % x["history_incomplete"]) if x.get("history_incomplete") else
+                              "not applicable against the current champion (how it should read is yours "
                               "to decide)"}.get(v, "%s, %s" % (counted_words(x, doc), said))))
     ps = props_summary(doc)
     if ps:

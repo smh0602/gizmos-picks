@@ -663,6 +663,36 @@ note boxes, tags and the stale bar now require their absence.
   rewrite is how an nflverse outage is seen. Only the check skips an unchanged rewrite. The first
   build took the deadline off, and a 10-day outage read stale nowhere: a check weakened to let a
   change pass, caught in review.
+  `[2026-11-17]` A stale stored-only row is the watchdog's `stored:<lg>` (DEGRADED, no repair:
+  only its writer's own run rewrites it), never `fresh:<lg>`, whose "the converge loop repairs
+  this" now covers only rows `freshness.owes` (9 of 9 sampled `fresh:ncaaf` 10-14 -> 11-01 were
+  stored-only rows); a stale row the contract will not plan now (a `held` rebuild, a
+  REPORT_ONLY_HEALTH row) is `held:<lg>`, with its reason. All three are split by freshness's own
+  predicates (`owes`, `stored_only`), never a second copy, and name no repair (`test_watchdog.py`).
+  ⛔ Every file a named CHAMPION declares (`fb_challengers.CHALLENGERS[...]
+  ["files"]`, each declared season: HC's four history files) is its input
+  (`freshness.champion_inputs`), never stored only: HC had been the college champion since
+  11-10 with its history still "Stored only". `test_fb_refit.py` (the class), `test_watchdog.py`.
+  `[review, 2026-11-17]` ⛔ The reader, the contract and the writers ask ONE question of such a file:
+  `fb_history._stored` and the contract's HEALTH both read `freshness.history_problem` (a stamped
+  season with no games had failed HC while the contract called it fresh), and every writer run
+  ends by asking the contract itself (`fb_history._landed`), naming every file still stale in
+  `rebuild-attempts.json` whatever it did or skipped (an unstamped college file had been owed on
+  every pass, a CFBD sweep an hour, while store_cfb saw a file and did nothing). The hold lasts
+  until the writer's own next deadline (~~20 hours~~, which released it at 03:10Z, four hours
+  before cfb-probe's 07:00Z: two sweeps a day). `test_fb_history.py` §6 (every state, both
+  leagues), §7 (48 hourly passes: the writer runs at its own deadlines, never once more).
+  `[review 2, 2026-11-17]` ⛔ EVERY CHALLENGER INPUT THAT READS A HISTORY SEASON READS ALL THE STORED
+  ONES OR REFUSES, not only H / HC's training rows: T75's QB, QP, QBC and QPC read every stored
+  schedule (`attach_qb`), and a truncated NFL 2020 moved 514 of 557 real rows' QB inputs with no error
+  while H, on the same file, was refused. `fb_challengers.history_games` / `history_lines` are the one
+  way in (a stored file that cannot be read raises HistoryIncomplete); h_own asks `need_history`
+  itself; `fb_refit.league` makes that challenger NOT APPLICABLE, never the league's job. T75 declares
+  the history schedules it reads (`files` / `seasons`), so named champion they are its contract
+  inputs. An unstamped readable history season is never the watchdog's `nostamp:` ("only a code
+  change clears it"): its writer stamps it in place (`freshness.stamped_by_writer`).
+  `test_fb_history_inputs.py` (every challenger, both leagues), `test_fb_refit.py` §18,
+  `test_watchdog.py`.
 - 🔴 **THE GAME-DAY INJURY CHECK: 9AM, 12PM AND 7PM ET, BOTH FOOTBALL LEAGUES.** `[Sam,
   2026-10-26]` *"make sure we're looking at injury status at 12pm of games starting and 7pm so we
   can make sure the models adjusted for injuries when deciding outcome for a vame"*; asked "Should
@@ -686,7 +716,7 @@ note boxes, tags and the stale bar now require their absence.
   (`INJURY_RETRIES`; `[2026-10-27, review 2]` PLANNED on the next pass, `freshness.injury_retry`,
   never a deadline: ~~a retry moment a second after the failure~~ made the row stale at the end of
   the failed pass, a `fresh:` finding over one failed attempt); an NFL source down at 2 slots in a
-  row is a `health` warning (a `fresh:` finding) that is ⛔ never replanned (`REPORT_ONLY_HEALTH`:
+  row is a `health` warning (a ~~`fresh:`~~ `held:` finding `[2026-11-17]`) that is ⛔ never replanned (`REPORT_ONLY_HEALTH`:
   each run would rebuild the card); `[2026-10-27, review 2]` so is the check ITSELF reading nothing
   at its last 2 slots, either league, whatever the cause (our own code raising included: the
   probe's slot log), until an attempt reads again; a run that serves no slot (the first pass after
@@ -1578,6 +1608,14 @@ fb_challengers.py T65's frozen challengers to the football game model
                   and defence opponent-adjusted); `[Sam, 2026-11-10]` T75 QB/QBC
                   (the expected starter's grade, fb_qb.py) and QP/QPC (plus the
                   other positions out). fb_model reads it only for a named CHAMPION.
+                  `[2026-11-17]` `history_rows` fails closed (`need_history`,
+                  HistoryIncomplete) when any season H / HC declares is missing or
+                  unreadable: one bad college schedule had trained HC on 798 rows of
+                  1,590 in silence. `history_files`: the declaration, as paths.
+                  `[review 2, 2026-11-17]` `history_games` / `history_lines`: the
+                  ONE way a challenger reads a stored history file (every stored
+                  season, or HistoryIncomplete); T75's QB/QP/QBC/QPC declare the
+                  schedules they read. `test_fb_history_inputs.py`.
 fb_qb.py          T75's BACKUP-QB BACKGROUND CHECK (Sam, 2026-11-10): one
                   league's stored QB starts, each start's mark against the own
                   ratings, a QB's grade shrunk toward replacement level, the
@@ -1603,7 +1641,23 @@ fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
                   `nfl-logs` / `cfb-probe`. ⛔ Never in latest/; never raises.
                   `[2026-10-27]` Every file is stamped (`written_at`); an unstamped
-                  stored one is stamped in place once, its games untouched.
+                  stored one is stamped in place once, its games untouched
+                  (`[review, 2026-11-17]` ~~NFL only~~ both leagues, `_stamp_once`,
+                  no CFBD call).
+                  `[2026-11-17]` ~~once while missing~~ once while missing OR
+                  UNREADABLE: `_stored` is the one reader (a truncated gzip, bad
+                  JSON or no games is corrupt; ~~`_jz` let EOFError out and read
+                  bad JSON as a file to skip~~), and its content test is the
+                  contract's own (`freshness.history_problem`). A corrupt file is
+                  rebuilt like a missing one (college priced first) and only then moved to
+                  `history/corrupt/<name>.<UTC time>`: ⛔ never deleted, never read.
+                  ~~A file a run could not land~~ Every file the contract still reads
+                  stale when a run ends (`_landed`) is named in
+                  `history/rebuild-attempts.json` (`freshness.rebuild_held`). H / HC
+                  train on every declared season or none (`fb_challengers.need_history`,
+                  HistoryIncomplete: card-fb keeps the last good fb-model.json; the
+                  Monday contest marks H NOT APPLICABLE, or keeps a champion's league's
+                  last report with the error beside it). `test_fb_history.py` §4-§7.
 fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   and FBS-vs-FBS college games within 7 days at outdoor US
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
@@ -1768,6 +1822,18 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   next pass ("Yes, build it": a merged model change is live
                   within the hour). Parsed, never imported; no model file
                   beside it plans nothing. test_code_moves.py.
+                  `[2026-11-17]` `champion_inputs`: ~~the champion's `input`~~
+                  every file it declares (`files` x `seasons`, `champion_path`), so
+                  HC's history seasons plan `cfb-probe` when missing or unreadable;
+                  never a stored-only row beside one (WX's weather, IN's injuries
+                  had both). `rebuild_held` (REBUILD_ATTEMPTS, ~~REBUILD_RETRY_MIN 20 h~~
+                  `[review, 2026-11-17]` until the writer's own next deadline,
+                  REBUILD_RETRY_MAX_MIN 2 days with none): a rebuild its writer tried
+                  and could not land is `held`: stale, not owed, no reason a cron
+                  cannot stand down, so a refused CFBD price check is retried by the
+                  writer's own deadline run, never a sweep a pass and never an extra
+                  one (20 h had released it four hours before cfb-probe's 07:00Z).
+                  HEALTH also asks `history_problem` of a stamped history season.
                   `health` also judges both leagues' slot logs (the last 2
                   slots read nothing, any cause).
                   ⛔ It imports no other repo module ~~(none at all)~~ at load

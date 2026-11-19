@@ -484,6 +484,14 @@ with gzip.open(os.path.join(LG, "data", "nfl", "latest", "schedule-2025.json.gz"
 os.makedirs(os.path.join(H9, "data", "nfl", "history"))
 jgz(os.path.join(H9, "data", "nfl", "history", "schedule-2019.json.gz"), {"season": 2019, "games": [
     dict(g, id="h%d" % i, start=str(int(g["start"][:4]) - 6) + g["start"][4:]) for i, g in enumerate(_g25)]})
+# `[2026-11-17]` H trains on every declared season or none (fb_challengers.need_history): the other
+#    six planted readable, one game not yet final each, adding no training row.
+import fb_challengers as _FC  # noqa: E402
+for _p in _FC.history_files("H", H9):
+    if not os.path.exists(_p):
+        _s = int(os.path.basename(_p).split("-")[1][:4])
+        jgz(_p, {"season": _s, "games": [{"id": "y%d" % _s, "start": "%d-09-01T17:00" % _s, "home": "SEA",
+                                          "away": "NE", "final": False}]})
 _seen9 = {}
 
 

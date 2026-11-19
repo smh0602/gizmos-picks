@@ -151,17 +151,24 @@ CHALLENGERS = {
     #    from the first Monday AFTER the day its entry reaches main, no earlier than 2026-11-16; every
     #    past week counts (§3k: "All past weeks too"); a WINS also needs the QB delta's weight to point
     #    the expected way (fb_refit.direction, "Yes, require it"). No withdrawal rule.
+    #    `[review 2, 2026-11-17]` `files` / `seasons`: the history schedules attach_qb reads ("every
+    #    stored schedule, latest and history", §3k), declared so that, named champion, their
+    #    contract rows plan a repair (freshness.champion_inputs). What they read is unchanged.
     "QB": {"league": "nfl", "what": "backup QB check", "markets": ("spread", "total", "moneyline"),
-           "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+           "files": ("../history/schedule-{s}.json.gz",), "seasons": (2018, 2019, 2020, 2021, 2022, 2023, 2024),  # QB
+           "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
            "on_merge": True},
     "QBC": {"league": "ncaaf", "what": "backup QB check", "markets": ("spread", "total", "moneyline"),
-            "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+            "files": ("../history/schedule-{s}.json.gz",), "seasons": (2023, 2024),  # QBC
+            "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
             "on_merge": True},
     "QP": {"league": "nfl", "what": "backup QB check and positions", "markets": ("spread", "total", "moneyline"),
-           "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+           "files": ("../history/schedule-{s}.json.gz",), "seasons": (2018, 2019, 2020, 2021, 2022, 2023, 2024),  # QP
+           "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
            "on_merge": True},
     "QPC": {"league": "ncaaf", "what": "backup QB check and positions", "markets": ("spread", "total", "moneyline"),
-            "files": (), "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
+            "files": ("../history/schedule-{s}.json.gz",), "seasons": (2023, 2024),  # QPC
+            "key": "qb_d", "withdrawable": False, "input": None, "registered_from": "2026-11-16",
             "on_merge": True},
 }
 HIST = ("H", "HC")
@@ -513,10 +520,10 @@ def team_out(reports, logs, team_qb, season, team, week, day):
 
 
 def history_rating_games(lg, root=None):
-    """fb_model.rating_games' tuples for the history seasons (fb_history.py)."""
-    import fb_history
+    """fb_model.rating_games' tuples for the history seasons (fb_history.py): every STORED season,
+    or HistoryIncomplete (`history_games`). Read by h_own (H / HC), rated_games and attach_qb (T75)."""
     out = []
-    for g in fb_history.games(lg, root):
+    for g in history_games(lg, root):
         if (g.get("final") and FM.t60r.kick(g) is not None and g.get("home_score") is not None
                 and g.get("away_score") is not None):
             out.append((g["start"][:10], g["home"], g["away"], 0.0 if g.get("neutral") else 1.0,
@@ -526,7 +533,11 @@ def history_rating_games(lg, root=None):
 
 def h_own(lg, rows, root=None):
     """§3d: each row's own margin and total from the frozen own-ratings solve over
-    `latest/` AND `history/` (one copy per date, home, away)."""
+    `latest/` AND `history/` (one copy per date, home, away).
+    `[review 2, 2026-11-17]` Only from every declared season (`need_history`), asked HERE too: it
+    was computed on the seasons that could be read, and was saved only because history_rows asked
+    later in the same build."""
+    need_history(lg, root)                   # H / HC's own input: every declared season, or none
     G = sorted(set(FM.rating_games(lg, root)) | set(history_rating_games(lg, root)))
     own = FM.own_ratings(G, {FM.monday(r["day"]) for r in rows})
     for r in rows:
@@ -535,13 +546,77 @@ def h_own(lg, rows, root=None):
     return rows
 
 
+class HistoryIncomplete(RuntimeError):
+    """§3d: H / HC train on EVERY history season they declare, or not at all (`need_history`)."""
+
+
+def history_files(name, root=None):
+    """The files history challenger `name` declares (`files` x `seasons`), as paths: the same
+    declaration freshness.champion_inputs turns into the champion's contract rows."""
+    c = CHALLENGERS[name]
+    return [os.path.normpath(os.path.join(latest(c["league"], root), f.format(s=s)))
+            for s in c["seasons"] for f in c["files"]]
+
+
+def need_history(lg, root=None):
+    """`[2026-11-17]` FAIL CLOSED. Raise HistoryIncomplete naming every file the league's history
+    challenger (H, HC) declares that is missing or unreadable (fb_history.state_of). With one
+    college schedule unreadable, HC trained on 798 history rows of 1,590 and said nothing; with
+    a truncated one it raised EOFError. ⛔ Never a subset: card-fb logs the error and keeps the
+    last good fb-model.json, and the champion's contract row (freshness.champion_inputs) plans
+    the file's writer, which rebuilds it."""
+    import fb_history
+    for name in HIST:
+        if CHALLENGERS[name]["league"] != lg:
+            continue
+        bad = [(p, st) for p in history_files(name, root) for st in (fb_history.state_of(p),) if st != "present"]
+        _refuse(root, bad, "%s trains on every history season or none, and %%d of its files" % name)
+
+
+def history_games(lg, root=None):
+    """`[review 2, 2026-11-17]` THE ONE WAY A CHALLENGER READS THE STORED HISTORY SCHEDULES
+    (fb_history.games): every STORED season, or HistoryIncomplete naming each one that cannot be
+    read. T75's QB / QP (and QBC / QPC) read "every stored schedule" (attach_qb, rated_games), and
+    once fb_history.games stopped raising, one unreadable NFL season was dropped there in silence:
+    on a copy of the real tree a truncated 2020 moved 514 of 557 NFL rows' QB inputs, while H, on
+    the same file, was refused. A season never stored is not one of T75's ("Use what's stored now");
+    H and HC also need every season they DECLARE (`need_history`). ⛔ test_fb_history_inputs.py fails
+    any other read of fb_history.games or lines, in any module, and any challenger, either league,
+    whose input moves when a stored season becomes unreadable (the class)."""
+    import fb_history
+    bad = []
+    got = fb_history.games(lg, root, bad=bad)
+    _refuse(root, bad, "every stored " + lg + " history season is read or none, and %d stored file(s)")
+    return got
+
+
+def history_lines(root=None):
+    """As history_games, for the stored college history lines (fb_history.lines)."""
+    import fb_history
+    bad = []
+    got = fb_history.lines(root, bad=bad)
+    _refuse(root, bad, "every stored ncaaf history lines file is read or none, and %d stored file(s)")
+    return got
+
+
+def _refuse(root, bad, head):
+    """Raise HistoryIncomplete when `bad`, [(path, state)], names a file: `head` (its %d: how many),
+    then each file under data/ with its state. The one message both checks give (fb_refit's NOT
+    APPLICABLE and the Monday email print it)."""
+    if bad:
+        base = os.path.join(root or FM.ROOT, "data")
+        raise HistoryIncomplete("%s cannot be read: %s" % (head % len(bad), ", ".join(
+            "%s (%s)" % (os.path.relpath(p, base).replace(os.sep, "/"), st) for p, st in bad)))
+
+
 def history_rows(lg, root=None):
     """§3d: one training row per final history game (college FBS vs FBS), labelled
-    at its closing line by fb_model.training_line, with its own numbers."""
-    import fb_history
-    cfb = fb_history.lines(root) if lg == "ncaaf" else None
+    at its closing line by fb_model.training_line, with its own numbers.
+    `[2026-11-17]` Only from every declared season (`need_history`), never a subset."""
+    need_history(lg, root)
+    cfb = history_lines(root) if lg == "ncaaf" else None
     out = []
-    for g in fb_history.games(lg, root):
+    for g in history_games(lg, root):
         k = FM.t60r.kick(g)
         if (k is None or not g.get("final") or g.get("home_score") is None or g.get("away_score") is None
                 or (lg == "ncaaf" and not (g.get("home_class") == "fbs" and g.get("away_class") == "fbs"))):
@@ -827,7 +902,8 @@ def name_key(name):
 def rated_games(lg, root=None):
     """§3k: the (team, day) games the CHAMPION's own rating reads, the only games T75's QB mix
     reads: fb_model.rating_games (latest/) for today's model and every champion built on today's
-    own numbers; plus the history seasons' for H or HC (h_own's solve)."""
+    own numbers; plus the history seasons' for H or HC (h_own's solve: every stored one, or
+    HistoryIncomplete, `history_games`; the champion's own build has asked `need_history` first)."""
     G = list(FM.rating_games(lg, root))
     if FM.CHAMPION.get(lg) in HIST:
         G += history_rating_games(lg, root)
@@ -842,7 +918,10 @@ def attach_qb(name, lg, rows, root=None):
     QP also r["sig"]["qp"] = {"off", "ol", "def": (home, away)}: IN's offence and defence
     shares out and the linemen listed out, counted; QPC {"off", "def"}: college's own shares out
     (cfb_injuries' reading; none: 0). "Listed out": Out, Doubtful (NFL, the game week's report) or
-    Out, Out for Season, Doubtful (college, the 9:00 report), as IN and cfb_injuries read them."""
+    Out, Out for Season, Doubtful (college, the 9:00 report), as IN and cfb_injuries read them.
+    `[review 2, 2026-11-17]` Every stored schedule or none: a stored history season that cannot be
+    read raises HistoryIncomplete (`history_games`), and the Monday contest reports the challenger
+    NOT APPLICABLE, as H on the same file (fb_refit.league), never scored on part of its seasons."""
     import fb_qb
     G = sorted(set(FM.rating_games(lg, root)).union(history_rating_games(lg, root)))     # every stored schedule
     book = fb_qb.Book(lg, G, root, rated=rated_games(lg, root))

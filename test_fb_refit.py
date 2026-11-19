@@ -95,6 +95,46 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:     for fname, due in champion_inputs(league):
 #   with:     for fname, due in []:
 #
+# @vacuity 🔴 ...one for EVERY file a champion declares (H and HC's history seasons: the class)
+#   file: freshness.py
+#   find: for f in c.get("files") or ():
+#   with: for f in ():
+#
+# @vacuity 🔴 ...and never a stored-only row beside it (WX's weather, IN's injuries)
+#   file: freshness.py
+#   find: continue                     # `[2026-11-17]` WX's weather, IN's injuries: a champion's input
+#   with: pass                     # `[2026-11-17]` WX's weather, IN's injuries: a champion's input
+#
+# @vacuity 🔴 [review, 2026-11-17] one unreadable history season makes H NOT APPLICABLE, never a crash
+#   file: fb_refit.py
+#   find: except FC.HistoryIncomplete as e:        # one challenger's seasons: §4's NOT APPLICABLE
+#   with: except ZeroDivisionError as e:        # one challenger's seasons: §4's NOT APPLICABLE
+#
+# @vacuity 🔴 ...and the champion's (HC) keeps last week's report, error beside it, the next league run
+#   file: fb_refit.py
+#   find: except FC.HistoryIncomplete as e:            # the champion's own seasons: last week's report
+#   with: except ZeroDivisionError as e:            # the champion's own seasons: last week's report
+#
+# @vacuity 🔴 ...and pushes no branch for last week's WINS
+#   file: fb_refit.py
+#   find: for x in [] if failed else doc["challengers"]:
+#   with: for x in doc["challengers"]:
+#
+# @vacuity 🔴 ...and the Monday email says this week's contest could not be run
+#   file: status.py
+#   find: head = ("%s: this week's contest could not be run (%s)" % (name, err) if ran and failed >= due else
+#   with: head = ("%s: this week's contest could not be run (%s)" % (name, err) if False else
+#
+# @vacuity 🔴 ...and that H was not built this week (never "not applicable against the current champion")
+#   file: status.py
+#   find: % x["history_incomplete"]) if x.get("history_incomplete") else
+#   with: % x["history_incomplete"]) if False else
+#
+# @vacuity 🔴 [review 2, 2026-11-17] an INPUT that refuses a history subset (T75's QB, QP) makes its own challenger NOT APPLICABLE, never the league's job
+#   file: fb_refit.py
+#   find:             unread[n] = e
+#   with:             raise
+#
 # @vacuity 🔴 the Monday email shows the section
 #   file: status.py
 #   find:     L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now, W.last_due_for(
@@ -202,8 +242,8 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 T71: ...and SM is fitted on the input built BEFORE the contest, never on zeros
 #   file: fb_refit.py
-#   find:                                fits=challenger_fits(rows, n, lg, root) if reg else None,
-#   with:                                fits=challenger_fits([dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in rows], n, lg, root) if reg else None,
+#   find:                 fits = challenger_fits(rows, n, lg, root) if reg else None
+#   with:                 fits = challenger_fits([dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in rows], n, lg, root) if reg else None
 #
 # @vacuity 🔴 T71: the pins see rushing by every position, not QBs and RBs only
 #   file: fb_matchups.py
@@ -217,8 +257,8 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 T71: the Monday email says NOT APPLICABLE in words
 #   file: status.py
-#   find:             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
-#   with:             "NOT APPLICABLE ": "not applicable against the current champion (how it should read is yours "
+#   find:             "NOT APPLICABLE": ("not built this week, and never scored on part of its seasons (%s)"
+#   with:             "NOT APPLICABLE ": ("not built this week, and never scored on part of its seasons (%s)"
 #
 # @vacuity 🔴 T71: the Monday job checks out full history
 #   file: .github/workflows/fb-refit.yml
@@ -232,8 +272,8 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 R1: a report built before this Monday's run is said to be last week's
 #   file: status.py
-#   find:         name, due.strftime("%a %Y-%m-%d %H:%MZ")) if due is not None and (seen is None or seen < due) else None)
-#   with:         name, due.strftime("%a %Y-%m-%d %H:%MZ")) if False else None)
+#   find:     if due is not None and (seen is None or seen < due):
+#   with:     if False:
 #
 # @vacuity 🔴 R1: with a CHAMPION already named, push_branch pushes nothing
 #   file: fb_refit.py
@@ -307,7 +347,7 @@ import fb_refit as R  # noqa: E402
 import freshness as F  # noqa: E402
 import status as S  # noqa: E402
 import watchdog as W  # noqa: E402
-from tcheck import ck, eq, section  # noqa: E402
+from tcheck import ck, copy_latest, eq, section  # noqa: E402
 
 # `[2026-11-08]` §3j: this file tests the contest and the model with the champions IT names (planted),
 #    so it starts from none, whatever main names (a test asks the code, never the live constant; #339's
@@ -333,6 +373,20 @@ def put(root, rel, doc):
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with (gzip.open(p, "wt") if p.endswith(".gz") else open(p, "w", encoding="utf-8")) as fh:
         json.dump(doc, fh)
+
+
+def fill_history(root, names):
+    """`[2026-11-17]` Plant every history file the named challengers (H, HC) declare that `root`
+    lacks, readable and adding no training row and no rating game (one game not yet final; one
+    line for a game no schedule holds): they train on every declared season or none."""
+    for n in names:
+        for p in FC.history_files(n, root):
+            if os.path.exists(p):
+                continue
+            s = int(os.path.basename(p).split("-")[1][:4])
+            put(root, os.path.relpath(p, root), {"season": s, "written_at": "2026-10-15T00:00:00Z", "games": (
+                {"x": {"spread": 1.0, "total": 40.0}} if os.path.basename(p).startswith("lines-") else
+                [{"id": "x%d" % s, "start": "%d-09-01T17:00" % s, "home": "T1", "away": "T2", "final": False}])})
 
 
 def row(gid, lg, day, home, away, season=2026, **kw):
@@ -616,6 +670,36 @@ finally:
     F.champion_inputs = _ci
 ck(len(fr) == 1 and fr[0]["stale"] and fr[0]["mode"] == "nfl-logs",
    "🔴 CHAMPION E's missing def-epa file is a stale freshness row like the others", fr)
+# 🔴 `[2026-11-17]` THE CLASS: every challenger that DECLARES files (`files`), named champion, has one
+#    champion's-input row per declared file, each declared season (`seasons`) or this season's, and no
+#    "Stored only" row beside it. HC, the live college champion since 11-10, had none: its four
+#    history files stayed stored-only rows that never planned a run (input None; `files` was ignored).
+_ci2, _miss = F.champion_inputs, {}
+for _n, _c in FC.CHALLENGERS.items():
+    if not _c.get("files"):
+        continue
+    _d = T6.replace("\\", "/") + "/data/" + _c["league"]
+    F.champion_inputs = lambda lg, champion=None, _x={_c["league"]: _n}: _ci2(lg, _x)
+    try:
+        _rs = F.contract(_d, T6, NOW)
+    finally:
+        F.champion_inputs = _ci2
+    _yr = F.current_football_season(NOW)
+    _want = {os.path.normpath("%s/latest/%s" % (_d, f.format(s=s)))
+             for f in _c["files"] for s in (_c.get("seasons") or (_yr,))}
+    _by = {}
+    for _r in _rs:
+        _by.setdefault(os.path.normpath(_r[1][1]), []).append(_r[4])
+    _bad = sorted(os.path.basename(p) for p in _want if _by.get(p) != [F.CHAMPION_INPUT])
+    if _bad:
+        _miss[_n] = _bad
+# `[review 2, 2026-11-17]` ~~(E, P, T, TS, WX, WXC, IN, H, HC)~~: T75's QB, QP, QBC and QPC declare the history
+#    schedules attach_qb reads (test_fb_history_inputs.py holds every challenger to what it reads).
+eq(_miss, {}, "🔴 every challenger that declares files (E, P, T, TS, WX, WXC, IN, H, HC, QB, QP, QBC, QPC), named "
+   "champion, has exactly one champion's-input row per declared file (never a stored-only one beside it)")
+eq(sorted(n for n, c in FC.CHALLENGERS.items() if c.get("files")),
+   sorted(["E", "P", "T", "TS", "WX", "WXC", "IN", "H", "HC", "QB", "QP", "QBC", "QPC"]),
+   "   (and those are the challengers that declare files)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("7. 🔴 THE MONDAY EMAIL: THE SECTION, A WINS UNDER \"NEEDS YOU\", AND AN OLD REPORT")
@@ -928,6 +1012,10 @@ ck(".github/workflows/fb-refit.yml" in _deep and all(_deep.values()),
 # ══════════════════════════════════════════════════════════════════════
 section("13. 🔴 league() SCORES EVERY REGISTERED CHALLENGER; ONE IT CANNOT BUILD IS NOT APPLICABLE")
 # ══════════════════════════════════════════════════════════════════════
+# `[2026-11-17]` H and HC train on every declared history season or none (fb_challengers.need_history):
+#    registered here by `added`, they need their files. Planted readable, adding no training row and
+#    no rating game (one game not yet final; one line for a game no schedule holds).
+fill_history(T11, FC.HIST)
 for _lg, _sm in (("nfl", "SM"), ("ncaaf", "SMC")):
     _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == _lg]
     _bare = [dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in _rows11[_lg]]
@@ -1097,6 +1185,7 @@ for _i, g in enumerate(_sch[:48]):                       # six years earlier, cl
                       closing_spread=3.0 if _fav else -3.0, closing_total=44.5,
                       closing_ml_home=-160 if _fav else 140, closing_ml_away=140 if _fav else -160))
 put(T16, "data/nfl/history/schedule-2019.json.gz", {"season": 2019, "games": _hist})
+fill_history(T16, ("H",))                # `[2026-11-17]` every declared season, or H is not built
 _rows16 = [dict(r, sig=dict(r["sig"])) for r in _rows11["nfl"]]
 FC.attach("H", "nfl", _rows16, T16)
 
@@ -1198,3 +1287,127 @@ ck(all(abs(a - b) < 1e-6 for lg in PIN17 for x, y in zip(_pin17[lg], PIN17[lg]) 
    and all(len(_pin17[lg]) == len(PIN17[lg]) == 2 for lg in PIN17),
    "🔴 CL, WL, MC and AJ's numbers (and CLC, WLC, MCC, AJC's) are the numbers T72's code gave "
    "(a change is a new challenger)", _pin17)
+
+# ══════════════════════════════════════════════════════════════════════
+section("18. 🔴 ONE UNREADABLE HISTORY SEASON NEVER STOPS THE MONDAY JOB: THE OTHER CHALLENGERS, THE OTHER LEAGUE, "
+        "THE INJURY TEST AND T74 STILL RUN")
+# ══════════════════════════════════════════════════════════════════════
+# `[review, 2026-11-17]` need_history makes history_rows raise HistoryIncomplete, and neither league() (for
+#    challenger H) nor weekly() (for a champion HC, through fb_model.build_rows) caught it: one corrupt NFL
+#    season aborted the whole Monday job before any fb-refit.json was written, college's contest, the
+#    injury test and T74 with it. On base the same tree finished (H trained on 6 seasons of 7, in silence).
+#    ⚠️ The contest runs on NO rows here (league() with rows=[], the finding's own repro): every challenger
+#    is still built and judged, quickly, and H's history files are read first.
+T18 = tree()
+copy_latest(os.path.join(T11, "data"), os.path.join(T18, "data"))     # T11's planted data, heartbeats settled
+_add18 = {n: "2025-01-01" for n in FC.CHALLENGERS}
+os.remove(os.path.join(T18, "data", "nfl", "history", "schedule-2019.json.gz"))
+with open(os.path.join(T18, "data", "nfl", "history", "schedule-2021.json.gz"), "wb") as fh:
+    fh.write(gzip.compress(b'{"season": 2021, "games": ['))
+# weekly(): the NFL challenger's files as above, AND the college CHAMPION's own (HC) unreadable
+with open(os.path.join(T18, "data", "ncaaf", "history", "lines-2023.json.gz"), "wb") as fh:
+    fh.write(gzip.compress(json.dumps({"season": 2023, "games": {"x": {"spread": 1.0}}}).encode("utf-8"))[:20])
+_prev18 = dict(DOC, league="ncaaf", champion="HC", built_at="2026-10-26T10:05:00Z", challengers=[
+    {"name": "T", "what": "talent", "verdict": "WINS", "registered": "2026-10-19", "counts": "all",
+     "counted": {"predictions": 320, "differing": 320, "games": 160, "mean_d": 0.01, "p": 0.0004,
+                 "champion_log_loss": 0.68, "challenger_log_loss": 0.67},
+     "scored": {"predictions": 320, "games": 160, "p": 0.0004, "champion_log_loss": 0.68,
+                "challenger_log_loss": 0.67}}])
+put(T18, "data/ncaaf/latest/fb-refit.json", _prev18)
+_league18, _auto18, _ps18, _champ18 = R.league, IB.auto, R.props_contest, dict(FM.CHAMPION)
+
+
+def _wrap18(lg, root, now, prev=None, added=None):
+    """The real league(), on no rows plus, for a history champion, fb_model.build_rows' own last step."""
+    rows = []
+    if FM.CHAMPION.get(lg) and FC.CHALLENGERS[FM.CHAMPION[lg]].get("history"):
+        rows = rows + FC.history_rows(lg, root)
+    return _league18(lg, root, now, rows=rows, prev=prev, added=added)
+
+
+try:
+    R.league, IB.auto = _wrap18, (lambda *a, **k: {"state": "waiting"})
+    R.props_contest = lambda lg, root=None, now=None, added=None, wf=None: {"name": R.PROPS_NAME,
+                                                                          "verdict": "NOT YET REGISTERED"}
+    FM.CHAMPION.update(nfl=None, ncaaf="HC")
+    try:
+        R.weekly(root=T18, now=NOW, run=_nogit, added=_add18)
+        _w18 = None
+    except Exception as e:        # noqa: BLE001
+        _w18 = e
+finally:
+    R.league, IB.auto, R.props_contest = _league18, _auto18, _ps18
+    FM.CHAMPION.update(_champ18)
+_d18 = {}
+for _lg in ("nfl", "ncaaf"):
+    try:
+        _d18[_lg] = json.load(open(os.path.join(T18, "data", _lg, "latest", "fb-refit.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        _d18[_lg] = {}
+_n18, _c18 = _d18["nfl"], _d18["ncaaf"]
+_by18 = {x["name"]: x for x in _n18.get("challengers", [])}
+_h18 = _by18.get("H", {})
+_k18 = sum(1 for x in _by18.values() if x["registered"] and not x.get("withdrawn"))
+# `[review 2, 2026-11-17]` ~~"the other 14 NFL challengers are all built and judged"~~: that asserted the
+#    defect. T75's QB and QP read every stored history schedule too (attach_qb), and were scored here on
+#    the 5 seasons that could be read while H was refused. Every challenger that DECLARES the unreadable
+#    season (read off the registry, which test_fb_history_inputs.py holds to what each one reads) is NOT
+#    APPLICABLE now.
+_rd18 = sorted(n for n in _by18 if FC.CHALLENGERS[n].get("seasons") and any(
+    p.replace(os.sep, "/").endswith("nfl/history/schedule-2021.json.gz") for p in FC.history_files(n, T18)))
+ck(_w18 is None and _n18.get("built_at") == "2026-11-02T11:17:00Z" and _h18.get("verdict") == "NOT APPLICABLE"
+   and "nfl/history/schedule-2019.json.gz (missing)" in _h18.get("history_incomplete", "")
+   and "nfl/history/schedule-2021.json.gz (corrupt: JSONDecodeError)" in _h18.get("history_incomplete", "")
+   and _h18.get("registered") and _h18.get("alpha") == 0.01 / _k18 and _k18 == len(_by18) == 15
+   and "H" in _rd18 and len(_rd18) > 1
+   and all("counted" in x and x["verdict"] != "NOT APPLICABLE" for n, x in _by18.items() if n not in _rd18),
+   "🔴 weekly(), one NFL history season missing and one corrupt: the NFL report still lands; the %d NFL "
+   "challengers that do not read that season are all built and judged, and H is NOT APPLICABLE, both files "
+   "named, still in the divisor (0.01 / 15: no bar loosens), never scored on 5 seasons of 7 and never a crash"
+   % (len(_by18) - len(_rd18)), repr(_w18) if _w18 else {n: x.get("verdict") for n, x in _by18.items()})
+ck(all(_by18[n].get("verdict") == "NOT APPLICABLE" and _by18[n].get("registered")
+       and _by18[n].get("alpha") == 0.01 / _k18 and "counted" not in _by18[n]
+       and "nfl/history/schedule-2021.json.gz (corrupt: JSONDecodeError)" in _by18[n].get("history_incomplete", "")
+       for n in _rd18 if n != "H")
+   and all("schedule-2019" not in _by18[n].get("history_incomplete", "") for n in _rd18 if n != "H"),
+   "🔴 ...and so is every other challenger that reads it (%s: T75's QB check, every stored schedule): never "
+   "scored on the seasons that could be read, still in the divisor, the unreadable file named (2019 was never "
+   "stored, so it is not one of theirs)" % ", ".join(n for n in _rd18 if n != "H"),
+   {n: (_by18[n].get("verdict"), _by18[n].get("history_incomplete")) for n in _rd18})
+ck("HistoryIncomplete" in _c18.get("error", "") and "ncaaf/history/lines-2023.json.gz (corrupt" in _c18["error"]
+   and _c18.get("error_at") == "2026-11-02T11:17:00Z" and _c18.get("built_at") == _prev18["built_at"]
+   and _c18.get("challengers") == _prev18["challengers"] and _c18.get("injury_backtest") == {"state": "waiting"}
+   and (_c18.get("props_seasons") or {}).get("verdict") == "NOT YET REGISTERED",
+   "🔴 ...and with the college CHAMPION's own season unreadable (HC), the college report keeps last week's contest "
+   "with this week's error beside it, pushes nothing (no git ran, last week's WINS untouched), and the injury "
+   "test and T74 still run", {k: _c18.get(k) for k in ("error", "error_at", "built_at")})
+_due18 = W.last_due_for("data/nfl/latest/fb-refit.json", NOW)
+_sc18 = S.refit_summary(_c18, "College", NOW, due=_due18)
+_sn18 = S.refit_summary(_n18, "NFL", NOW, due=_due18)
+ck(_sc18.startswith("College: this week's contest could not be run (HistoryIncomplete: HC trains on every history "
+                    "season or none") and ". Last week's report, built 2026-10-26T10:05:00Z, said: " in _sc18,
+   "🔴 the Monday email says the college contest could not be run, and why, and that the numbers are last week's",
+   _sc18[:400])
+ck("Challenger H (more seasons): not built this week, and never scored on part of its seasons (H trains on every "
+   "history season or none" in _sn18,
+   "🔴 ...and that NFL's H was not built this week (never \"not applicable against the current champion\")",
+   _sn18[_sn18.find("Challenger H"):][:300])
+ck(all("Challenger %s (%s): not built this week, and never scored on part of its seasons (every stored nfl "
+       "history season is read or none, and 1 stored file(s) cannot be read: nfl/history/schedule-2021.json.gz "
+       "(corrupt: JSONDecodeError))" % (n, FC.CHALLENGERS[n]["what"]) in _sn18 for n in _rd18 if n != "H"),
+   "🔴 ...and so does every other challenger that reads that season (T75's QB and QP), naming the file",
+   _sn18[_sn18.find("Challenger QB"):][:300])
+# ⛔ only that known state: our own exception still stops the job red (fail loud)
+T18b = tree()
+os.makedirs(os.path.join(T18b, "data", "nfl", "latest"))
+try:
+    R.league = lambda lg, root, now, prev=None, added=None: (_ for _ in ()).throw(RuntimeError("our own bug"))
+    try:
+        R.weekly(root=T18b, now=NOW, run=_nogit, added=_add18)
+        _w18b = None
+    except RuntimeError as e:
+        _w18b = e
+finally:
+    R.league = _league18
+ck(isinstance(_w18b, RuntimeError) and not os.path.exists(os.path.join(T18b, "data", "nfl", "latest", "fb-refit.json")),
+   "   ...and any other exception still stops the job (red), as before", repr(_w18b))

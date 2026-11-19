@@ -525,6 +525,13 @@ put(_T7h, "data/nfl/history/schedule-2019.json.gz", {"season": 2019, "games": [
     {"id": "x%d" % i, "season": 2019, "start": "2019-09-%02dT17:00:00Z" % (8 + i), "home": "SEA", "away": "NE",
      "final": True, "home_score": 20 + i, "away_score": 17, "closing_spread": 3.0, "closing_total": 44.5,
      "closing_ml_home": -160, "closing_ml_away": 140} for i in range(4)]})
+# `[2026-11-17]` H trains on every declared season or none (fb_challengers.need_history): the other
+#    six planted readable, one game not yet final each, adding no row.
+for _p in FC.history_files("H", _T7h):
+    if not os.path.exists(_p):
+        _s = int(os.path.basename(_p).split("-")[1][:4])
+        put(_T7h, os.path.relpath(_p, _T7h).replace(os.sep, "/"), {"season": _s, "games": [
+            {"id": "y%d" % _s, "start": "%d-09-08T17:00:00Z" % _s, "home": "SEA", "away": "NE", "final": False}]})
 _hr = FC.history_rows("nfl", _T7h)
 ck(len(_hr) == 4 and all(FM.is_history(r) and r["season"] not in FM.SEASONS for r in _hr),
    "🔴 every history row carries the flag (and none is a counted season)", [(r["id"], r.get("history")) for r in _hr])

@@ -422,8 +422,17 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     rows = FM.build_rows(lg, root) if rows is None else rows
     champion = FM.CHAMPION.get(lg)
     names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == lg and n != champion]
+    unread = {}                         # challenger -> the HistoryIncomplete building its inputs raised
     for n in names:                     # §3j: one with only its own inputs never reads history rows
-        FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
+        try:
+            FC.attach(n, lg, [r for r in rows if not FM.is_history(r)] if n in FC.OWN_SCORE else rows, root)
+        except FC.HistoryIncomplete as e:
+            # `[review 2, 2026-11-17]` ITS INPUTS TOO, NOT ONLY H's TRAINING ROWS: T75's QB / QP read
+            #    every stored history schedule (attach_qb), and with one unreadable they were scored on
+            #    the rest in silence while H, on the same file, was NOT APPLICABLE. Every input that
+            #    reads a history season now refuses a subset (fb_challengers.history_games), and the
+            #    refusal is contained to its challenger here, as challenger_fits' is below.
+            unread[n] = e
     since = (prev or {}).get("champion_since")
     if prev is not None and prev.get("champion") != champion:
         since = monday_on_or_after(today)          # §2: scored weeks restart at the next Monday
@@ -437,16 +446,32 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     res = []
     for n in names:
         reg = registration(n, root, added)
+        c = FC.CHALLENGERS[n]
         if reg and rows and not FC.applies(n, rows[0]):
-            c = FC.CHALLENGERS[n]           # §4 `[2026-10-16]`: never a crash, never scored
+            # §4 `[2026-10-16]`: never a crash, never scored
             res.append({"name": n, "what": c["what"], "markets": list(c["markets"]), "registered": reg,
                         "scored_from": None, "withdrawn": False, "verdict": "NOT APPLICABLE",
                         "why": "its frozen inputs cannot be built against champion %s" % champion})
         else:
-            res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
-                               entered=bool(reg) and reg <= today,
-                               fits=challenger_fits(rows, n, lg, root) if reg else None,
-                               withdrawn_since=gone.get(n)))
+            try:
+                if reg and n in unread:              # its inputs could not be built (above)
+                    raise unread[n]
+                fits = challenger_fits(rows, n, lg, root) if reg else None
+            except FC.HistoryIncomplete as e:        # one challenger's seasons: §4's NOT APPLICABLE
+                # `[review, 2026-11-17]` H / HC train on every history season or none (need_history),
+                #    and one unreadable season aborted the whole Monday job, both leagues. Contained to
+                #    the challenger, as §4's NOT APPLICABLE: registered, still in the divisor (no bar
+                #    loosens), never scored on part of its seasons. Its writer's daily run rebuilds
+                #    the file (the champion's contract row when it is the champion's), and the next
+                #    Monday scores it.
+                res.append({"name": n, "what": c["what"], "markets": list(c["markets"]), "registered": reg,
+                            "scored_from": None, "withdrawn": False, "verdict": "NOT APPLICABLE",
+                            "history_incomplete": str(e),
+                            "why": "its history files cannot be read this week (%s)" % e})
+            else:
+                res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
+                                   entered=bool(reg) and reg <= today, fits=fits,
+                                   withdrawn_since=gone.get(n)))
         x = res[-1]
         if n in gone:                                 # kept on a week it could not be built too
             x["withdrawn"], x["withdrawn_since"] = True, gone[n]
@@ -693,9 +718,18 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
         if os.path.exists(path):
             with open(path, encoding="utf-8") as fh:
                 prev = json.load(fh)
-        doc = league(lg, root, now, prev=prev, added=added)
-        wins = branch_order(doc["challengers"])
-        for x in doc["challengers"]:
+        try:
+            doc, failed = league(lg, root, now, prev=prev, added=added), False
+        except FC.HistoryIncomplete as e:            # the champion's own seasons: last week's report
+            # `[review, 2026-11-17]` THE CHAMPION'S OWN SEASONS CANNOT BE READ (HC: fb_model.build_rows
+            #    -> history_rows): nothing can be scored against it this week. This league keeps last
+            #    week's report with this week's error beside it (the email says so, as props_seasons'),
+            #    pushes no branch, and the loop goes on: the other league, the injury test and T74
+            #    still run. ⛔ Only this known state: any other exception still stops the job red.
+            doc, failed = dict(prev or {"league": lg, "challengers": []}, error="%s: %s" % (
+                type(e).__name__, e), error_at=now.strftime("%Y-%m-%dT%H:%M:%SZ")), True
+        wins = [] if failed else branch_order(doc["challengers"])
+        for x in [] if failed else doc["challengers"]:
             if x["verdict"] == "WINS":
                 if x is not wins[0]:          # §3g: every WINS is reported; ONE branch, to the first
                     x["branch"], x["branch_pushed"], x["outranked_by"] = None, False, wins[0]["name"]
@@ -731,8 +765,8 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
         doc["elapsed_seconds"] = round(time.time() - t0, 1)
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(doc, fh, indent=1)
-        log("%s: %s (%.0fs)" % (lg, "; ".join("%s %s" % (x["name"], x["verdict"])
-                                              for x in doc["challengers"]), doc["elapsed_seconds"]))
+        log("%s: %s (%.0fs)" % (lg, "NOT RUN, %s" % doc["error"] if failed else "; ".join(
+            "%s %s" % (x["name"], x["verdict"]) for x in doc["challengers"]), doc["elapsed_seconds"]))
 
 
 if __name__ == "__main__":

@@ -700,10 +700,20 @@ def check_freshness(rep, now):
         #    standing `fresh:nfl`, read as staleness that fixes itself. Named on its own.
         #    ⚠️ Asked of the file NOW (`F.stamp_of`), not of freshness.json alone, which the
         #    pass wrote before this step's repairs: a file a repair just wrote, stamped, is
-        #    not named; and only a file the contract can READ (`F._load`): a truncated or
-        #    corrupt one stays under fresh:<lg>, which a rebuild repairs `[review, 2026-10-27]`.
+        #    not named; and only a file the contract can READ (`F._load`): ~~a truncated or
+        #    corrupt one stays under fresh:<lg>, which a rebuild repairs~~ `[review, 2026-10-27]`
+        #    `[2026-11-17]` a truncated or corrupt one is a staleness like a missing one, reported
+        #    below by what the contract does about it (owed, stored only, or held). That comment
+        #    was wrong: no rebuild ever repaired an unreadable history file (fb_history read
+        #    it as a file and moved on); it does now.
+        #    `[review 2, 2026-11-17]` ⛔ NOT a file its writer stamps in place on its next run
+        #    (`F.stamped_by_writer`: the history seasons, fb_history._stamp_once, both leagues, at
+        #    no call). For one, "only a code change clears it" was false: an unstamped HC season
+        #    is owed and planned (cfb-probe), and that run stamps it. It falls through to the
+        #    split below like any stale row, by what the contract does about it.
         nostamp = sorted(str(r["path"]) for r in stale
                          if r.get("missing") and r.get("kind") == "file" and r.get("path")
+                         and not F.stamped_by_writer(str(r["path"]))
                          and os.path.isfile(os.path.join(ROOT, str(r["path"])))
                          and F._load(os.path.join(ROOT, str(r["path"]))) is not None
                          and F.stamp_of(os.path.join(ROOT, str(r["path"]))) is None)
@@ -716,8 +726,19 @@ def check_freshness(rep, now):
                      "writes none, every rebuild is the same, and only a code change "
                      "clears it." % ", ".join(nostamp[:6] + (["..."] if len(nostamp) > 6 else [])))
             stale = [r for r in stale if str(r.get("path")) not in nostamp]
-            if not stale:  # every stale row was an unstamped file, named above
-                continue
+        # 🔴 `[2026-11-17]` ONLY A ROW THE CONTRACT OWES IS ONE "THE CONVERGE LOOP REPAIRS".
+        #    Every stale row used to land in `fresh:<lg>` and its sentence, and 9 of 9 sampled
+        #    `fresh:ncaaf` findings 10-14 -> 11-01 were STORED-ONLY rows, which converge never
+        #    plans. Split by freshness's own predicates (rule 207, no second copy): `F.owes` ->
+        #    fresh:, `F.stored_only` -> stored: (`_stored_finding`), and the rest, stale rows the
+        #    contract will not plan now (a `held` rebuild, a REPORT_ONLY_HEALTH row) -> held:.
+        _held_finding(rep, lg, [r for r in stale if not F.stored_only(r) and not F.owes(r)])
+        _stored_finding(rep, lg, [r for r in stale if F.stored_only(r)])
+        stale = [r for r in stale if F.owes(r)]
+        # `[review 2, 2026-11-17]` the ONE "nothing owed" exit (~~a second one after nostamp~~, which this
+        #    one made dead code, so its mutation could not bite): every stale row unstamped, stored or held
+        if not stale:  # nothing the contract owes: no "the converge loop repairs" line
+            continue
         names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
         # ⛔ NO REPAIR NAMED, ON PURPOSE. The converge loop in this same
         #    job is what repairs staleness, and it has already run by the
@@ -731,6 +752,46 @@ def check_freshness(rep, now):
                  "⚠️ The converge loop repairs this on its own; it is "
                  "reported so a PERSISTENT staleness becomes visible."
                  % len(stale))
+
+
+def _listed(paths, n=6):
+    paths = sorted(str(p) for p in paths)
+    return ", ".join(paths[:n] + (["..."] if len(paths) > n else []))
+
+
+def _stored_finding(rep, lg, rows):
+    """`[2026-11-17]` Stale STORED-ONLY rows (freshness.stored_only): files no tab or model reads
+    yet, which converge never plans. DEGRADED, no repair named: only their writer's own run
+    rewrites them."""
+    if not rows:
+        return
+    rep.warn("stored:%s" % lg,
+             "%d stored-only %s file(s) are stale or missing (no tab or model reads them yet)"
+             % (len(rows), lg),
+             "%s. ⛔ The converge loop never plans a run for a stored-only file: only its writer's "
+             "own run (%s) rewrites it, when that runs for its own deadlines, and a missing or "
+             "unreadable history season is rebuilt then."
+             % (_listed(r.get("path") for r in rows), ", ".join(sorted({str(r.get("mode")) for r in rows}))))
+
+
+def _held_finding(rep, lg, rows):
+    """`[2026-11-17]` Stale rows the contract owes but will not plan now: a rebuild its writer
+    could not land (`held`, freshness.REBUILD_ATTEMPTS: retried by its writer's own next deadline
+    run) or a REPORT_ONLY_HEALTH row (never planned again). DEGRADED, no repair named; each row
+    says why."""
+    if not rows:
+        return
+
+    def why(r):
+        h = r.get("held") or {}
+        if h:
+            return "%s: its writer (%s) tried at %s and could not rebuild it (%s); it is tried " \
+                   "again by that writer's own next deadline run, never by an extra one" % (
+                       r.get("path"), r.get("mode"), h.get("tried_at"), h.get("outcome"))
+        return "%s: %s; reported, never planned again" % (r.get("path"), r.get("unhealthy") or "stale")
+    rep.warn("held:%s" % lg,
+             "%d %s file(s) are stale and the converge loop is not rebuilding them now" % (len(rows), lg),
+             "; ".join(why(r) for r in sorted(rows, key=lambda r: str(r.get("path")))[:6]) + ".")
 
 
 def check_late_builds(rep, now):
