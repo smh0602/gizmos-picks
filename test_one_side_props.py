@@ -266,6 +266,16 @@ ck(not any("Tdguy" in str(x) for k in ("picks", "liked", "top_plays") for x in C
 _ghost = sorted((r["player"], r["side"]) for r in CARD.get("picks") or [] if r.get("player", "").startswith("Ghost"))
 ck(bool(_ghost) and len({p for p, _s in _ghost}) == len(_ghost),
    "🔴 a prop no log or model rates shows one side only (never both ways), and it does show", str(_ghost))
+# `[2026-11-18, #249]` THE POOL ITSELF, not only what a list shows. Since 2026-10-16
+#    `card_fb.one_per_player_market` keeps one Ghost row on the board either way, and no
+#    other list takes an unrated row, so switching `one_per_wager` off left every list the
+#    same and this file green (nightly 11-02 -> 11-18). The card's own count of the rows it
+#    priced is the one published number that holds the whole pool: each planted wager once
+#    (the three rated props on their 50%+ side, the unrated Ghost on one side), the 30% TD left.
+_POOL = len(_GAMES) * (len(_PL) + 1)
+ck(CARD.get("n_priced") == CARD.get("n_on_slate_day") == _POOL,
+   "🔴 the card's pool holds each planted wager once: the unrated Ghost prop on one side, never both",
+   "n_priced %r, n_on_slate_day %r, want %d" % (CARD.get("n_priced"), CARD.get("n_on_slate_day"), _POOL))
 eq(O.prop_conflicts([r for k in ("picks", "liked", "top_plays") for r in CARD.get(k) or []], _ck,
                     lambda r: r.get("model_p")), [],
    "🔴 the guard on the built card: no list shows a side under 50% or a prop both ways")

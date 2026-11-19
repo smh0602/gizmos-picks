@@ -860,6 +860,90 @@ def verdict(results, leak_ok):
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 A PULL REQUEST'S SWEEP FAILS ON A GUARD THAT PROVES NOTHING.
+#      `[2026-11-18, #249]`
+# ══════════════════════════════════════════════════════════════════════
+# `[measured]` Four declared mutations stopped biting in two days (the PRs that
+# merged 2026-10-16 and 10-17 masked them: a later filter, a later check), and every
+# pr-tests sweep part stayed GREEN: `test_vacuity.py` asked only that the two CFBD
+# mutations bite. The nightly found all four, every night from 11-02, and a full
+# set of parts with findings updates #249 rather than turning a run red, so the
+# next one would have arrived as one more bullet in an issue already open for weeks.
+# ✅ SO EVERY PR'S SHARE IS JUDGED, ROW BY ROW, BY `verdict()`'s OWN CLASSIFICATION
+#    (`gate`, run by `test_vacuity.py` on the share it swept): a finding fails the
+#    share unless `KNOWN_VACUOUS` names that declaration in that state, with the
+#    reason and the issue it is reported in. ⛔ A row still owing its green
+#    (`green_owed`) fails whatever the list says: nobody resolved it.
+# ⛔ THE LIST ONLY SHRINKS. `test_vacuity_gate.py` holds the set as recorded and fails
+#    on any entry outside it; an entry whose declaration BITES again fails the share
+#    that swept it until it is taken off. Taking one off is the only edit that is
+#    automatically right, as for `BLIND_CEILING`.
+# ⚠️ IT ONLY EVER ADDS A FAILURE. `verdict()`, the nightly and the issue are unchanged:
+#    a listed finding is still reported every night, so its issue stays open.
+# ⚠️ A TIMEOUT is not judged here, exactly as `verdict()` does not judge one: a test
+#    that never answered under its mutation said nothing either way.
+# Entry shape (key = the declaration's own four fields):
+#   ("test_x.py", "x.py", "<find>", "<with>"):
+#       {"state": "VACUOUS", "why": "<plain words>", "issue": "#249"},
+# `[2026-11-18]` EMPTY: #249's four were strengthened in the same change, and the
+#    nightlies 11-11 -> 11-18 (24.04) named nothing else.
+KNOWN_VACUOUS = {}
+
+
+def known_key(r):
+    """A declaration's identity, from a sweep row or from `declarations()`."""
+    return (r.get("test"), r.get("file"), r.get("find"), r.get("with"))
+
+
+def gate(results, known=None):
+    """What fails a pull request's sweep share. -> [plain words, one per row]; [] passes.
+
+    A row is a finding when `verdict()` says so of it alone (one classification,
+    never a second copy of its states). It passes only when `known` (default
+    `KNOWN_VACUOUS`) names its declaration in that very state."""
+    known = KNOWN_VACUOUS if known is None else known
+    out = []
+    for r in results:
+        k = known_key(r)
+        entry = known.get(k) or {}
+        where = "%s:%s (%s: `%s`)" % (r.get("test"), r.get("line"), r.get("file"),
+                                      (r.get("find") or "")[:60])
+        owed = bool(r.get("green_owed"))
+        if owed:
+            out.append("%s still owes its green-on-revert run: a row nobody resolved "
+                       "is never a pass, listed or not" % where)
+        elif verdict([r], True) == EXIT_VACUOUS:
+            if entry.get("state") != r.get("state"):
+                out.append("%s is %s and KNOWN_VACUOUS does not name it so: %s"
+                           % (where, r.get("state"), r.get("why")))
+        elif k in known and r.get("state") == "BITES":
+            out.append("%s BITES now: take it off KNOWN_VACUOUS (the list only "
+                       "shrinks)" % where)
+    return out
+
+
+def known_problems(root=ROOT, known=None):
+    """Every `KNOWN_VACUOUS` entry that is not a reasoned, reported finding on a
+    declaration that exists. -> [plain words]; [] is a sound list."""
+    entries = KNOWN_VACUOUS if known is None else known
+    have = [known_key(d) for d in declarations(root)]
+    out = []
+    for k, e in entries.items():
+        e = e if isinstance(e, dict) else {}
+        name = k[:2] if isinstance(k, tuple) else k
+        if have.count(k) != 1:
+            out.append("%r names %d declaration(s), not exactly one" % (name, have.count(k)))
+        if verdict([{"state": e.get("state")}], True) != EXIT_VACUOUS:
+            out.append("%r: state %r is not a finding" % (name, e.get("state")))
+        if not str(e.get("why") or "").strip():
+            out.append("%r gives no reason" % (name,))
+        if not re.fullmatch("#[0-9]+", str(e.get("issue") or "")):
+            out.append("%r names no issue it is reported in (#N), got %r"
+                       % (name, e.get("issue")))
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 🔴🔴 THE NIGHTLY SWEEPS IN PARTS TOO, AND THE PARTS ARE JUDGED AS ONE.
 #      `[2026-11-01]`
 # ══════════════════════════════════════════════════════════════════════

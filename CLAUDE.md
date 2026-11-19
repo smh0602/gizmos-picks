@@ -125,6 +125,8 @@ instance found: `docs/HANDOFF-2026-09-29-live-tree-tests.md`.
 call it done — an empty match, a stripped comment, a fixture missing the
 file under test, and a check that asserts its own prose have all passed
 green in this repo while proving nothing (rules 67, 244, 249).
+`[2026-11-18]` pr-tests now fails a PR whose sweep share holds a declared
+mutation that does not bite (`vacuity.gate`); four had passed it 10-16/17.
 
 ⛔ **AND A GUARD THAT FIRES ON CORRECT CODE IS THE OTHER FAILURE, NOT A
 SAFE ONE.** Three of mine did that in one week, each caught only by
@@ -2033,6 +2035,12 @@ vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   no untracked or ignored file or directory, git status and
                   `git clean -ndx`), on a tree that is exactly HEAD then
                   (`_owed_greens`). `test_vacuity_greens.py`.
+                  `[2026-11-18, #249]` A PR's sweep part FAILS on any
+                  declaration in its share that is VACUOUS, RED_BOTH_WAYS
+                  or MALFORMED (or still owes its green), unless
+                  `KNOWN_VACUOUS` names it with its reason and issue
+                  (`gate`, test_vacuity.py §4b). ⛔ The list only shrinks
+                  (`test_vacuity_gate.py`); it started EMPTY.
 ```
 
 ⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`
