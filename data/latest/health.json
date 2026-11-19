@@ -1,11 +1,25 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-19T04:39:49Z",
+ "checked_at": "2026-11-19T11:29:14Z",
  "et_date": "2026-11-19",
  "healthy": false,
  "broken": 0,
- "degraded": 14,
+ "degraded": 16,
  "findings": [
+  {
+   "key": "stopped:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf has not updated since Thu 03:54Z",
+   "why": "cfb-probe are past due with no collect run for ncaaf since then (oldest: cfb-probe, due 2026-11-19T07:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Thu 03:54Z",
+   "why": "nfl-logs are past due with no collect run for nfl since then (oldest: nfl-logs, due 2026-11-19T07:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
   {
    "key": "late:card-fb:ncaaf",
    "severity": "DEGRADED",
@@ -93,8 +107,8 @@
   {
    "key": "clock:browser",
    "severity": "DEGRADED",
-   "what": "browser's render used 80% of its clock in the last 7 days",
-   "why": "browser's render used 80% of its 25-minute job clock (1212s, run 247, 2026-11-18T04:03). 1 job(s) of this workflow were at 75% or more: render 80%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "what": "browser's render used 84% of its clock in the last 7 days",
+   "why": "browser's render used 84% of its 25-minute job clock (1264s, run 251, 2026-11-19T04:30). 1 job(s) of this workflow were at 75% or more: render 84%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
    "repair": null
   },
   {
@@ -111,14 +125,14 @@
  "credits": {
   "state": "HEALTHY",
   "balance": 14478,
-  "pulled_at": "2026-11-19T01:38:22Z",
+  "pulled_at": "2026-11-19T11:07:05Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 3.0,
+  "reading_age_hours": 0.4,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-19T01:38:22Z",
-  "source": "data/ncaaf/2026-11-19/gamelines/0138.json.gz",
-  "readings_on_disk": 1768,
+  "newest_paid_pull": "2026-11-19T11:07:05Z",
+  "source": "data/2026-11-19/props-pitcher/1107.json.gz",
+  "readings_on_disk": 1771,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
@@ -153,9 +167,9 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 272,
+  "jobs_measured": 298,
   "days": 7,
   "warn_at": 0.75,
-  "slowest": "browser's render used 80% of its 25-minute job clock (1212s, run 247, 2026-11-18T04:03)"
+  "slowest": "browser's render used 84% of its 25-minute job clock (1264s, run 251, 2026-11-19T04:30)"
  }
 }
