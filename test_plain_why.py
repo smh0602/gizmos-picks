@@ -93,6 +93,11 @@ Planted rows and planted cards only; nothing here reads the live data tree or th
 #   file: verify_card.py
 #   find:          or not any("His own record puts it at <b>%s%%</b>" % r.get('confidence') in w
 #   with:          or not any("His own record puts it at" in w
+#
+# @vacuity 🔴 verify_card.py's hitter check asks for the RECORD label too
+#   file: verify_card.py
+#   find: if r.get('confidence_basis') != 'RECORD'
+#   with: if False
 """
 import ast
 import copy
@@ -341,6 +346,15 @@ _wn["picks"][3]["why"][-1] = _wn["picks"][3]["why"][-1].replace(
     "<b>%d%%</b>" % H_FULL["confidence"], "<b>%d%%</b>" % (H_FULL["confidence"] + 3))
 eq((verify(_nr).get(HITTER), verify(_wn).get(HITTER)), (False, False),
    "🔴 a hitter why without its record sentence, or with another number than the row's: FAIL")
+# The check's other half: the row stays RECORD. The why is the right sentence with the row's own
+# number, so only the label can fail it (section 6's rule-55 check asks the same of the label).
+_nm = planted()
+_nm["picks"][3]["confidence_basis"] = "MODEL"
+ck(_nm["picks"][3]["why"] == H_FULL["why"] and _nm["picks"][3].get("kind") == "hitter",
+   "⚠️ rule 67: the planted row differs from a passing one in its label only")
+eq(verify(_nm).get(HITTER), False,
+   "🔴 a hitter row with its record sentence but labelled MODEL: FAIL (it never claims MODEL "
+   "provenance)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("5. 🔴 FOOTBALL READS THE SAME LIST, AND ITS OWN WHYS ARE PLAIN UNDER IT")
