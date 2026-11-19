@@ -1130,7 +1130,9 @@ ck("the average recomputes from the rows shown", not _agg, str(_agg[:3]))
 # ⛔ LEDGER RULE 55 AND OWED-TEST T36. Sam asked for this to feed the
 # confidence score. It must not until T36 passes. There is no way to prove
 # a negative from the card alone, so this checks the two things that ARE
-# observable: it is labelled DESCRIPTIVE, and the row says so in words.
+# observable: it is labelled DESCRIPTIVE, and its data note says so in words.
+# The why no longer says so (Sam, 2026-11-18, "the 'not part of the model's
+# math' endings go"): the label lives in the data, checked here.
 ck("every block is labelled DESCRIPTIVE (rule 55)",
    all(r['opp_recent'].get('basis') == 'DESCRIPTIVE' for r in _orr))
 ck("every block states in words that it is not a model input",
@@ -1220,11 +1222,34 @@ ck("every row still explains itself",
    all(len(r.get('why') or []) >= 3 for r in allrows),
    str([r.get('pitcher') or r.get('player') for r in allrows
         if len(r.get('why') or []) < 3][:3]))
-# The honesty those phrases carried has to survive in plain words.
+# 🔴 [Sam, 2026-11-18] THE WHY CARRIES NO CAVEAT SENTENCE.
+# Asked whether MLB's whys drop their caveat sentences the way football's did on
+# 10-09, Sam chose "Drop them like football": "The 'One thing to know' line and
+# the 'not part of the model's math' endings go." This check asked for the old
+# words ("not a projection", "we don't have a hitter model") and is rewritten to
+# the new requirement, never deleted: the why still says whose number it is, BY
+# THE NUMBER ("His own record puts it at 64%", the row's own confidence), and the
+# label stays in the data (confidence_basis RECORD and its note, section 6).
 _h = [r for r in hit_rows if r.get('why')]
-ck("every hitter row still says its number is a record, not a forecast",
-   all(any('not a projection' in w or "don't have a hitter model" in w
-           for w in r['why']) for r in _h))
+_hbad = [r.get('player') for r in _h
+         if r.get('confidence_basis') != 'RECORD'
+         or not any("His own record puts it at <b>%s%%</b>" % r.get('confidence') in w
+                    for w in r['why'])]
+ck(f"every hitter row's why gives its number as his own record ({len(_h)} rows)",
+   not _hbad, str(_hbad[:3]))
+# ...and no why carries a caveat sentence: the CLASS, every list the card holds,
+# one phrase list for both leagues (plain_why.PHRASES, card.why_caveats). Only a
+# card this code built carries the stamp: a published card is permanent, never
+# rebuilt, and keeps its old lines.
+ck("a card dated after Sam's 2026-11-18 change carries the why stamp",
+   doc.get('why_rule') == C.WHY_RULE or str(doc.get('date') or '') <= '2026-11-18',
+   f"date {doc.get('date')}, why_rule {doc.get('why_rule')!r}")
+_cav = C.why_caveats(doc)
+if _cav is None:
+    print("  NOTE  this card has no why_rule stamp: published before Sam's "
+          "2026-11-18 change, so its whys keep their old lines (not checked)")
+else:
+    ck("no why on the card carries a caveat sentence", not _cav, str(_cav[:3]))
 
 print("\n38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON")
 # 🔴 Sam, 2026-08-26: "we have to advertise a clean look ... that doesnt

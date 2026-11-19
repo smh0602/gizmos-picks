@@ -106,6 +106,7 @@ sys.path.insert(0, ROOT)
 os.environ["LEAGUE"] = "nfl"
 from tcheck import ck, eq, section  # noqa: E402
 from jsblock import js_block  # noqa: E402
+import plain_why  # noqa: E402  the one caveat list, both leagues (rule 117)
 
 UTC = datetime.timezone.utc
 NOW = datetime.datetime.now(UTC).replace(second=0, microsecond=0)
@@ -227,11 +228,14 @@ _snaps = ", when he played at least half the snaps."
 eq(M_.get("why"), ["<b>Model Guy</b> went over 3.5 rec in <b>4 of 4 games</b> in %d and 10 of 10 in %d"
                    % (S, S - 1) + _snaps], "🔴 the row's one sentence is his record at the line, this season first")
 _rows = (DOC.get("picks") or []) + (STALE.get("picks") or [])
+# `[Sam, 2026-11-18]` the caveat phrases are the ONE list both leagues' checks read
+#    (plain_why.PHRASES, which verify_card.py reads for MLB); football's one-sentence row adds
+#    the words it never needs.
+_FB_ONLY = ("forecast", "never faced", "prediction", "averaged", "model", "box scores")
 _bad = [(r["player"], s) for r in _rows for s in r.get("why") or []
-        if len(r.get("why") or []) != 1 or any(w in s for w in (
-            "forecast", "never faced", "prediction", "small sample", "averaged", "model", "box scores"))]
+        if len(r.get("why") or []) != 1 or plain_why.found(s) or any(w in s for w in _FB_ONLY)]
 _bad += [(r["player"], k) for r in _rows for k in ("confidence_note", "projection_note", "basis")
-         if any(w in (r.get(k) or "") for w in ("no football model", "not a forecast", "no model"))]
+         if plain_why.found(r.get(k)) or "no model" in (r.get(k) or "")]
 ck(bool(_rows) and not _bad, "🔴 every row, priced or not: one sentence, and no caveat in it or its notes",
    str(_bad[:3]))
 

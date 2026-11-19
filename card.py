@@ -49,8 +49,14 @@ import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (C2)
 import calibration as _calib  # noqa: E402  the ONE per-band "runs hot" rule
 import one_side  # noqa: E402  one team per game: the expected winner (Sam, 2026-10-16)
 import freshness as _F  # noqa: E402  with_heartbeat: a file's stamps as last written
+import plain_why  # noqa: E402  the caveat phrases no why carries, all leagues (Sam, 2026-11-18)
 
 MODEL_VERSION = "v5.0"
+
+# 🔴 `[Sam, 2026-11-18]` "Drop them like football": the whys this code writes carry no
+#    caveat sentence (`plain_why.PHRASES`). Every card main() builds is stamped with it, so
+#    verify_card.py holds THAT card to it and never a card published before (permanent).
+WHY_RULE = "plain-2026-11-18"
 
 # Sam's board size, in his words: "i would like to see 25-50 players
 # everytime, including hitters props as well as pitchers."
@@ -107,6 +113,32 @@ def one_side_problems(doc):
             if any(c is not None and c < 50 for c in p.get("leg_confidences") or [])]
     out += [("a starred rung under 50%", (r.get("pitcher") or r.get("player"), r["ladder_pick"].get("line")))
             for r in rows + top if r.get("ladder_pick") and (r["ladder_pick"].get("blend") or 0) < 50]
+    return out
+
+
+def why_caveats(doc):
+    """The guard verify_card.py runs: every why line on the card that carries a caveat
+    phrase -> [(who, phrase, line)], every list and row the card holds (the board, below the
+    floor, the top 10, the game lines, any list added later). None when the card was not
+    built by this code (no `why_rule` stamp): a published card is permanent and keeps its
+    old lines (`[Sam, 2026-11-18]`, from the first 2027 card)."""
+    if not isinstance(doc, dict) or doc.get("why_rule") != WHY_RULE:
+        return None
+    out = []
+
+    def walk(x, who=None):
+        if isinstance(x, dict):
+            who = x.get("pitcher") or x.get("player") or who
+            w = x.get("why")
+            for line in (w if isinstance(w, list) else [w] if isinstance(w, str) else []):
+                out.extend((who, p, str(line)[:90]) for p in plain_why.found(line))
+            for k, v in x.items():
+                if k != "why":
+                    walk(v, who)
+        elif isinstance(x, list):
+            for v in x:
+                walk(v, who)
+    walk(doc)
     return out
 
 
@@ -1276,10 +1308,11 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
 
     He is right, and the old version was written for the ledger rather than
     for a reader. ⛔ NO test IDs (T23, T24, STEP 4B), no "measured null",
-    no t-statistics, no "edge of N points", no coefficients. The honesty
-    those phrases carried is KEPT -- it is just said in English: a small
-    sample is "too small to read anything into", and a number that is not
-    a model output says "that isn't part of the model's math".
+    no t-statistics, no "edge of N points", no coefficients. And no caveat
+    sentence (Sam, 2026-11-18, "Drop them like football"; `plain_why.PHRASES`,
+    checked by verify_card.py): the counts stay in the sentence ("He has faced
+    TB 2 times and cleared it 1") and the labels in the data
+    (`opp_recent.basis` DESCRIPTIVE and its note).
 
     ✅ STATS ARE THE ARGUMENT. Sam: "use as many stats as you can to back
     up your picks ... incorporate it in a casual way." Every sentence
@@ -1316,10 +1349,9 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
             line1 += " — " + ", ".join(bits)
         line1 += "."
         if vs:
+            # The meeting count is the stat; no small-sample caveat (Sam, 2026-11-18).
             line1 += (f" He has faced {ab(opp_team)} {vs[1]} time"
-                      f"{'s' if vs[1] > 1 else ''} and {verb} it {vs[0]}."
-                      + (" That's too small a sample to read much into."
-                         if vs[1] < 4 else ""))
+                      f"{'s' if vs[1] > 1 else ''} and {verb} it {vs[0]}.")
         else:
             line1 += f" He has never faced {ab(opp_team)}."
         w.append(line1)
@@ -1356,11 +1388,14 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
                  f"<b>{ah} of {an} starts</b> against {ab(opp_team)} this season "
                  f"({100.0 * ah / an:.0f}%).")
     else:
+        # The count is the stat; no "nothing to read there" caveat (Sam, 2026-11-18).
         w.append(f"Only {an} comparable start{'s' if an != 1 else ''} against "
-                 f"{ab(opp_team)} exist this season, so there's nothing to read there "
-                 f"either way.")
+                 f"{ab(opp_team)} exist this season.")
 
     # ---- 5. what this lineup has actually done to starters lately
+    # No "not part of the model's math" ending (Sam, 2026-11-18: "the 'not part of the
+    # model's math' endings go"). The block is still DESCRIPTIVE in the data
+    # (`opp_recent.basis` and its note) and still feeds no number (T36).
     if opp_recent:
         r = opp_recent
         if market == "strikeouts":
@@ -1368,15 +1403,13 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
                        if (x["k"] > line if side == "over" else x["k"] < line))
             w.append(f"The last {r['n']} starters to face {ab(opp_team)} averaged "
                      f"<b>{r['mean_k']:.1f} strikeouts</b> over {r['mean_ip']} innings, "
-                     f"and <b>{same} of {r['n']}</b> landed on this side of {line}. "
-                     f"That's recent history, not part of the model's math.")
+                     f"and <b>{same} of {r['n']}</b> landed on this side of {line}.")
         else:
             same = sum(1 for x in r["starts"]
                        if (x["outs"] > line if side == "over" else x["outs"] < line))
             w.append(f"Starters haven't been going deep against {ab(opp_team)}: the last "
                      f"{r['n']} to face them averaged <b>{r['mean_ip']} innings</b>, and "
-                     f"<b>{same} of {r['n']}</b> finished on this side of {line} outs. "
-                     f"That's recent history, not part of the model's math.")
+                     f"<b>{same} of {r['n']}</b> finished on this side of {line} outs.")
 
     # ---- 6. what kind of arm he is
     kind = ("a strikeout arm" if k9 >= 9.5 else
@@ -1644,8 +1677,13 @@ def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
     """Same plain-English rule as the pitcher rows. Sam, 2026-08-26:
     "for the hitters in gizmos picks simply use the player props tab stats
     ... and convert that into the why."
-    ⛔ No rule numbers, no "DESCRIPTIVE", no jargon. The honesty stays,
-    said in English."""
+    ⛔ No rule numbers, no "DESCRIPTIVE", no jargon, and no caveat sentence
+    (Sam, 2026-11-18, "Drop them like football": "The 'One thing to know'
+    line ... go[es]"; `plain_why.PHRASES`, checked by verify_card.py). The
+    sentence still says whose number it is, by the number ("His own record
+    puts it at 64%"), and the data still labels it (`confidence_basis`
+    RECORD, `confidence_note`). The lineup-risk clause stays: it says what
+    usually happens to the bet."""
     # ⛔ Not `.lower()` -- that printed "stayed under 0.5 rbis". These are
     # written the way a person says them out loud.
     lbl = {"batter_hits": "hits", "batter_total_bases": "total bases",
@@ -1675,8 +1713,7 @@ def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
     w = [first + "."]
 
     if vn:
-        w.append(f"Against {opp} he's {vh} for {vn} on this line"
-                 + (". Too small a sample to read much into." if vn < 8 else "."))
+        w.append(f"Against {opp} he's {vh} for {vn} on this line.")
     else:
         w.append(f"He hasn't faced {opp} this season.")
 
@@ -1688,9 +1725,6 @@ def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
     if price is not None and be is not None:
         w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the "
                  f"time just to break even. His own record puts it at <b>{rate:.0f}%</b>.")
-    w.append("One thing to know: that number is his own track record at this exact "
-             "line, not a projection — we don't have a hitter model yet, so this is "
-             "history rather than a forecast.")
     return w
 
 # --------------------------------------------------------------- pairs
@@ -3023,6 +3057,7 @@ def main(dry=False):
         "kind": "gizmos-card",
         "generated_by": "card.py -- automated, unattended",
         "model_version": MODEL_VERSION,
+        "why_rule": WHY_RULE,
         "odds_pulled_at": B.get("pitcher_odds_at"),
         "logs_pulled_at": P.get("pulled_at"),
         "opponent_table": {
