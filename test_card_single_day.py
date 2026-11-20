@@ -59,6 +59,16 @@ published and stays as it was; editing a published pick is Sam's call.
 #   file: card.py
 #   find:         LAST_GAME_MODEL.update(_gmod or {})
 #   with:         LAST_GAME_MODEL.update({})
+#
+# @vacuity 🔴 [Sam, 2026-11-18] the card main() builds carries the why stamp
+#   file: card.py
+#   find:         "why_rule": WHY_RULE,
+#   with:         "why_rule": None,
+#
+# @vacuity 🔴 [Sam, 2026-11-18] ...and no why on it says "not part of the model's math"
+#   file: card.py
+#   find: f"and <b>{same} of {r['n']}</b> landed on this side of {line}.")
+#   with: f"and <b>{same} of {r['n']}</b> landed on this side of {line}. That's recent history, not part of the model's math.")
 """
 import datetime
 import gzip
@@ -303,3 +313,18 @@ ck("🔴 the REAL card keeps, in memory, the game model it built its game lines 
    "for one team per game)",
    "games" in _gmk and _gmk.get("slate") == (C.get("game_lines_meta") or {}).get("slate"),
    str(sorted(_gmk)[:8]))
+
+section("6. 🔴 [Sam, 2026-11-18] THE REAL CARD IS STAMPED, AND NO WHY ON IT CARRIES A CAVEAT")
+# "Drop them like football": "The 'One thing to know' line and the 'not part of the model's math'
+#    endings go." This is the REAL card.main() on the planted board, so its pitcher whys carry the
+#    opponent's recent starter log, the sentence the "not part of the model's math" ending sat on.
+#    The hitter and outs branches are planted in test_plain_why.py (this board seats strikeouts
+#    rows only).
+import card as _K  # noqa: E402  the stamp and the one guard verify_card.py runs
+_ow = [w for r in picks for w in r.get("why") or [] if "on this side of" in w]
+ck("⚠️ rule 67: every pick on the real card carries the opponent-log sentence",
+   picks and len(_ow) == len(picks) and all(r.get("opp_recent") for r in picks),
+   "%d opponent-log sentence(s) on %d picks" % (len(_ow), len(picks)))
+ck("🔴 the card main() built carries the why stamp, and no why on it carries a caveat phrase",
+   C.get("why_rule") == _K.WHY_RULE and _K.why_caveats(C) == [],
+   "why_rule %r, caveats %s" % (C.get("why_rule"), (_K.why_caveats(C) or [])[:3]))

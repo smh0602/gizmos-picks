@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""plain_why.py — THE CAVEAT PHRASES NO PICK'S "WHY" CARRIES, ALL THREE LEAGUES.
+
+`[Sam, 2026-10-09]` football: "Remove the caveat sentences" (card_fb.build_why).
+`[Sam, 2026-11-18]` MLB, asked whether its whys drop theirs the same way, from the
+first 2027 card, he chose "Drop them like football": "The 'One thing to know' line and
+the 'not part of the model's math' endings go."
+
+A why gives the stats; it does not hedge them. The pick's own numbers (%, price, book,
+break-even, edge) sit beside it, and every label, basis and count stays in the DATA
+(`confidence_basis`, `confidence_note`, `basis`, `opp_recent.note`, the record fields).
+
+⛔ ONE LIST, READ BY BOTH LEAGUES' CHECKS (rule 117): `verify_card.py`, through
+`card.why_caveats`, on every MLB card this code builds, `test_fb_props_confidence.py`
+on the football card's rows and their notes, and `test_card_fb.py` §15 on the football
+projection note. A phrase is the distinctive part of a caveat sentence one
+of the two removed, never a word a stat sentence needs ("model", "averaged", "never
+faced" are football's own extras, for its one-sentence row only).
+⚠️ Matched case-insensitively, HTML tags stripped and curly apostrophes made straight,
+so "<b>Too small</b> a sample" is still caught. Stdlib only; imports nothing from the
+repo.
+"""
+import re
+
+PHRASES = (
+    # "not a forecast" and its kin (football to 10-09, the MLB hitter line to 11-18)
+    "not a forecast",
+    "rather than a forecast",
+    "rather than a prediction",
+    "history rather than",
+    "not a projection",
+    "one thing to know",
+    "hitter model",
+    "no football model",
+    # "not part of the model's math" (the MLB pitcher rows' opponent log, to 11-18)
+    "part of the model's math",
+    "recent history",
+    # the small-sample warnings (both leagues)
+    "small sample",
+    "small a sample",
+    "read much into",
+    "read anything into",
+    "nothing to read",
+    "to mean anything",
+    # the MLB rows' ledger-era hedges (to 08-26), the same family
+    "never been tested",
+    # football's far-line warning and college box-score note (to 10-09)
+    "a long way from what he",
+    "not evidence about",
+    "box scores list a player",
+)
+
+_TAG = re.compile(r"<[^>]*>")
+
+
+def _plain(text):
+    return _TAG.sub("", str(text or "")).replace(chr(0x2019), "'").replace(chr(0x2018), "'").lower()
+
+
+def found(text):
+    """Every listed phrase in `text`, in list order ([] = a plain sentence)."""
+    t = _plain(text)
+    return [p for p in PHRASES if p in t]

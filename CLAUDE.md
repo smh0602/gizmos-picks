@@ -522,11 +522,21 @@ note boxes, tags and the stale bar now require their absence.
   2026-08-26: *"lose the technical wording ... all of these things that a
   casual fine wont know about has to go."* ⛔ No test IDs (T23, T24, STEP
   4B), no "measured null", no t-statistics, no "edge of N points", no
-  coefficients, no "DESCRIPTIVE". The honesty those phrases carried is
+  coefficients, no "DESCRIPTIVE". ~~The honesty those phrases carried is
   KEPT — said in English: a thin sample is "too small to read much into",
   and a number outside the model says "that isn't part of the model's
-  math". ✅ **Every sentence should carry a number** — the stats are the
+  math".~~ ✅ **Every sentence should carry a number** — the stats are the
   argument. `verify_card.py` fails the build on a jargon list.
+  `[Sam, 2026-11-18]` *"Drop them like football"*: no why in any league
+  carries a caveat sentence (MLB's hitter "One thing to know ... not a
+  projection" line, the pitcher "not part of the model's math" endings and
+  the small-sample warnings went, as football's did 2026-10-09), from the
+  first 2027 card; published cards keep theirs. The count stays in the
+  sentence, every label (RECORD, DESCRIPTIVE) stays in the DATA, and the
+  lineup-risk clause stays. `plain_why.PHRASES` is the one list both
+  leagues' checks read; `verify_card.py` fails a card stamped `why_rule`
+  (every card `card.main()` builds) whose why carries one.
+  `test_plain_why.py`.
 - 🔴 **`inningsPitched` fractions are THIRDS.** Only `.0`, `.1`, `.2` exist.
   There is no `.3`. A value outside that domain is fabricated data —
   `outs_of()` raises on it deliberately. Do not "fix" it by rounding.
@@ -1175,7 +1185,10 @@ note boxes, tags and the stale bar now require their absence.
   model change and this project does not make those without a
   pre-registered test. ⛔ It must never touch `confidence`, `blend`,
   `carried`, a band or a pair before T36. `verify_card.py` checks it is
-  labelled DESCRIPTIVE and says so in words.
+  labelled DESCRIPTIVE ~~and says so in words~~ and its data `note` says
+  so `[Sam, 2026-11-18]`: the why no longer says "not part of the model's
+  math" (THE WHY IS WRITTEN FOR A READER); `test_plain_why.py` fails if the
+  log moves any of those numbers.
 - 🔴 **IT DOES NOT NEED STATMUSE, AND MUST NOT USE IT.** Sam asked for this
   from StatMuse. **All 3,852 starts in `pitchers.json.gz` already name their
   opponent** (verified 2026-08-26), so it is a query over data the collector
@@ -1978,6 +1991,11 @@ one_side.py       ONE TEAM PER GAME (Sam, 2026-10-16): the expected winner
                   every list of side picks runs, and the guard verify_card.py
                   runs. ⛔ Only removes; stdlib only. `[Sam, 2026-10-17]` also
                   `shown_score`: whole-number scores that never contradict a pick.
+plain_why.py      THE CAVEAT PHRASES NO WHY CARRIES, ALL LEAGUES (Sam, 2026-11-18,
+                  "Drop them like football"): `PHRASES` and `found()`, read by
+                  verify_card.py (through `card.why_caveats`, on cards stamped
+                  `why_rule`), test_fb_props_confidence.py and test_card_fb.py
+                  §15 (the projection note). Stdlib only.
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
                   ⛔ Never `import yaml`: PyYAML is NOT on the CI
