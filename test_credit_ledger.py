@@ -161,6 +161,8 @@ import collect as C  # noqa: E402
 import credits as K  # noqa: E402
 import watchdog as W  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
+for _tv in ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH"):   # no test reads the run's trigger
+    os.environ.pop(_tv, None)                           # (test_trigger_cleared.py)
 
 UTC = datetime.timezone.utc
 

@@ -70,11 +70,28 @@ def spent(doc):
     return int(doc.get("credits_used") or 0) + int(doc.get("half_total_credits") or 0)
 
 
+def games(doc):
+    """-> [(game id, credits)] for the games ONE paid snapshot lists as bought
+    (`bought`, e.g. alt-lines'), each priced by its own `billed_per_event` when
+    the two line up, else the snapshot's bill split evenly; None when it lists
+    none. `[2026-11-19]` collect.alt_plan buys each game once, so a game in two
+    buys is a double buy whatever deadline each was for."""
+    ids = doc.get("bought")
+    if not isinstance(ids, list):
+        return None
+    bill = doc.get("billed_per_event")
+    if isinstance(bill, list) and len(bill) == len(ids):
+        pairs = [(g, int(b or 0)) for g, b in zip(ids, bill)]
+    else:
+        pairs = [(g, spent(doc) / len(ids)) for g in ids]
+    return [(g, c) for g, c in pairs if isinstance(g, (str, int))]
+
+
 def buys(data, kinds):
-    """-> [(pulled_at, kind, credits spent, path)] for every paid snapshot under
-    `data` that SPENT credits, oldest path first. `[2026-11-19]` For the
-    watchdog's double-buy check. ⛔ A snapshot that bought nothing (`spent_nothing`,
-    or 0 spent) is no buy, and an unreadable one is skipped, never a buy.
+    """-> [(pulled_at, kind, credits spent, path, games)] for every paid snapshot
+    under `data` that SPENT credits, oldest path first; `games` is `games(doc)`.
+    `[2026-11-19]` For the watchdog's double-buy check. ⛔ A snapshot that bought
+    nothing (0 spent) is no buy, and an unreadable one is skipped, never a buy.
     `pulled_at` is the snapshot's own, else its path's date and minute (UTC)."""
     if not kinds:
         return []
@@ -82,12 +99,13 @@ def buys(data, kinds):
     for key, kind, j, f in sorted(_paid_docs(data, kinds), key=lambda r: r[0]):
         try:
             n = spent(j)
+            bought = games(j)
         except (TypeError, ValueError):
             continue
         if n <= 0:
             continue
         at = j.get("pulled_at") or "%sT%s:%s:00Z" % (key[0], key[1][:2], key[1][2:])
-        out.append((at, kind, n, f))
+        out.append((at, kind, n, f, bought))
     return out
 
 

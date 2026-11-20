@@ -1203,34 +1203,46 @@ def check_credit_reconciliation(rep, now):
 # 💰 `[2026-11-19]` ONE DEADLINE, ONE BUY, AND A SECOND BUY IS VISIBLE. Since 09-21
 #    GitHub starts scheduled runs 6-10 hours late; 11-12 -> 11-19 a late football
 #    gamelines cron bought again a deadline already bought and on main 19 times (194
-#    credits), and two runs racing one deadline bought it twice 7 more times (449, the
-#    college props pull 3x158 on 11-14). `freshness.stand_down` now stops the first kind;
-#    this makes ANY repeat visible, whatever its cause. ✅ Every stored paid snapshot of
-#    the last DOUBLE_BUY_H hours that spent credits (`credits.buys`), keyed by the
-#    contract deadline in force when it was pulled (`freshness.paid_times`).
+#    credits), and runs racing one deadline bought it again 7 more times (449, the
+#    college props pull 3x158 on 11-14) and re-bought 83 alt-line games (166).
+#    `freshness.stand_down` now stops the first kind; this makes ANY repeat visible,
+#    whatever its cause. ✅ Every stored paid snapshot of the last DOUBLE_BUY_H hours
+#    that spent credits (`credits.buys`), keyed by the contract deadline in force when
+#    it was pulled (`freshness.paid_times`).
 # ⛔ DEGRADED, NEVER BROKEN, AND NO REPAIR: the board is current, what was wrong is the
 #    spend, and nothing a run can do gets it back.
 # ⚠️ FOOTBALL ONLY: MLB's in-season props pattern (two kinds a deadline, the us2 backup
 #    on the same directory) has not been measured against this rule yet.
-# ⚠️ alt-lines IS EXEMPT: it buys each game at the last props deadline before its
-#    kickoff, and a later pass for the same deadline buys only the games not bought yet
-#    (its `bought` list), so two snapshots for one deadline are two purchases.
+# 🔴 alt-lines IS KEYED BY GAME, NOT BY DEADLINE (~~alt-lines IS EXEMPT~~): it buys each
+#    game once, at the last props deadline before its kickoff (`collect.alt_plan`), so a
+#    later pass for one deadline that buys only games not bought yet is a top-up, and a
+#    game in two buys' `bought` lists is a double buy whatever the deadline
+#    (`credits.games`). ~~Exempt~~ hid 11-14's 19:04Z, 19:12Z and 19:14Z college passes,
+#    each of which bought the same 40 games before any had landed (160 credits).
 DOUBLE_BUY_H = 48
-DOUBLE_BUY_EXEMPT = {"alt-lines"}
+DOUBLE_BUY_BY_GAME = {"alt-lines"}
 
 
 def check_double_buys(rep, now):
-    """💰 A football deadline bought more than once in the last DOUBLE_BUY_H hours."""
+    """💰 A football deadline, or an alt-line game, bought more than once in the
+    last DOUBLE_BUY_H hours."""
     lo = now - datetime.timedelta(hours=DOUBLE_BUY_H)
     days = sorted({(now - datetime.timedelta(days=k)).strftime("%Y-%m-%d")
                    for k in range(DOUBLE_BUY_H // 24 + 2)})     # each UTC day dir it can reach
     for lg in [x for x in LEAGUES if x in F.FB_TIMES]:
-        times = {m: t for m, t in F.paid_times(lg, now).items() if m not in DOUBLE_BUY_EXEMPT}
-        got = {}
+        times = F.paid_times(lg, now)
+        got, by_game = {}, {}
         for day in days:
-            for at, kind, n, path in C.buys(os.path.join(ROOT, DATA[lg], day), tuple(sorted(times))):
+            for at, kind, n, path, bought in C.buys(os.path.join(ROOT, DATA[lg], day),
+                                                    tuple(sorted(times))):
                 t = _when(at)
-                due = F.last_due(times[kind], t) if t is not None and lo < t <= now else None
+                if t is None or not lo < t <= now:
+                    continue
+                if kind in DOUBLE_BUY_BY_GAME:
+                    if bought:
+                        by_game.setdefault(kind, []).append((t, bought))
+                    continue
+                due = F.last_due(times[kind], t)
                 if due is not None:
                     got.setdefault((kind, due), []).append((t, n))
         for kind in sorted({k for k, _d in got}):
@@ -1253,6 +1265,32 @@ def check_double_buys(rep, now):
                          "; ".join("due %s: %s" % (d.strftime("%a %H:%MZ"), ", ".join(
                              "%s (%d)" % (t.strftime("%a %H:%MZ"), n) for t, n in g))
                                    for d, g in twice)))
+        for kind, snaps in sorted(by_game.items()):
+            first, again = {}, []
+            for t, bought in sorted(snaps, key=lambda s: s[0]):
+                seen = [(g, c) for g, c in bought if g in first]
+                if seen:
+                    again.append((t, len(bought), seen, min(first[g] for g, _c in seen)))
+                for g, _c in bought:
+                    first.setdefault(g, t)
+            if not again:
+                continue
+            repeated = {g for _t, _n, r, _f in again for g, _c in r}
+            cr = sum(c for _t, _n, r, _f in again for _g, c in r)
+            rep.warn("double-buy:%s:%s" % (kind, lg),
+                     "%s %s bought %d game(s) more than once (%d extra game buys, %d credits)" % (
+                         lg, kind, len(repeated), sum(len(r) for _t, _n, r, _f in again), round(cr)),
+                     "%d pass(es) in the last %d hours bought games an earlier pass had already "
+                     "bought: %s. It buys each game once (collect.alt_plan skips what an earlier "
+                     "snapshot it can read bought), so a repeat is a pass that could not see the "
+                     "earlier buy (two runs that bought before either landed) or a defect in that "
+                     "rule. Nothing to repair: "
+                     "the lines are current; this clears when no game in the window was "
+                     "bought twice." % (
+                         len(again), DOUBLE_BUY_H,
+                         "; ".join("%s: %d of its %d game(s) again, %d credits (first bought %s)"
+                                   % (t.strftime("%a %H:%MZ"), len(r), n, round(sum(c for _g, c in r)),
+                                      f.strftime("%a %H:%MZ")) for t, n, r, f in again)))
 
 
 def check_board_not_empty(rep, now):

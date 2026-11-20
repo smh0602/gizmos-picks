@@ -54,6 +54,8 @@ import card as CA  # noqa: E402
 import collect as C  # noqa: E402
 import freshness as F  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
+for _tv in ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH"):   # no test reads the run's trigger
+    os.environ.pop(_tv, None)                           # (test_trigger_cleared.py)
 
 UTC = datetime.timezone.utc
 T = datetime.datetime(2026, 10, 6, 18, 0, tzinfo=UTC)      # 14:00 ET, after the 07:00 Odds deadline

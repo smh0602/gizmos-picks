@@ -5,18 +5,25 @@ ONE DEADLINE BOUGHT TWICE IS VISIBLE (watchdog.check_double_buys).
 💰 `[2026-11-19]` 11-12 -> 11-19 the stored snapshots show football deadlines
 bought more than once: 19 late gamelines re-buys of a deadline already on main
 (194 credits, which `freshness.stand_down` now stops) and 7 buys by runs that
-raced one deadline (449 credits; on 11-14 the college props pull 3 x 158).
+raced one deadline (449 credits; on 11-14 the college props pull 3 x 158),
+whose alt-line top-ups bought the same games again (83 game buys, 166 credits:
+11-14's 19:04Z, 19:12Z and 19:14Z passes each bought the same 40 games).
 Nothing said so. ✅ The watchdog now reports `double-buy:<kind>:<league>`,
 DEGRADED with no repair, for any football deadline bought more than once in
-the last 48 hours, read from the snapshots' own bills through `credits.buys`.
+the last 48 hours, read from the snapshots' own bills through `credits.buys`,
+and for any alt-line GAME bought more than once (`credits.games`):
+`collect.alt_plan` buys each game once, so its repeats are keyed by game,
+whatever the deadline (~~alt-lines exempt~~: the review found the 160 credits
+the exemption hid).
 
 ⛔ IT MUST NOT FIRE ON CORRECT DATA: one buy, two buys for two deadlines, a
 snapshot that spent nothing, a backup that stood down (it writes nothing),
-alt-lines' top-ups (each buys new games for one deadline), an MLB pull, and a
-buy older than the window are all silent.
+alt-lines' top-ups that buy games not bought yet, an alt-lines pass that lists
+no games, an MLB pull, and a buy older than the window are all silent.
 
 🔴 THE CLASS: every football league x every paid kind of its contract
-(`freshness.paid_times`) not exempted, derived, never listed.
+(`freshness.paid_times`), derived, never listed: keyed by deadline, or by game
+for a kind whose snapshots list the games they bought (`DOUBLE_BUY_BY_GAME`).
 ⛔ Planted trees only, at a pinned minute. Nothing reads production.
 """
 import datetime
@@ -40,8 +47,10 @@ M = datetime.timedelta(minutes=1)
 NOW = datetime.datetime(2026, 11, 16, 3, 0, tzinfo=UTC)      # pinned; nothing reads today
 
 
-def snap(root, lg, kind, at, used=12, half=None, n=0, balance=True):
-    """One stored paid snapshot pulled at `at`, as collect.write() names it."""
+def snap(root, lg, kind, at, used=12, half=None, n=0, balance=True, games=None, billed=True):
+    """One stored paid snapshot pulled at `at`, as collect.write() names it.
+    `games`: the ids it bought (alt-lines' `bought`), each billed an even share
+    (`billed_per_event`, as collect writes it) unless `billed` is False."""
     d = os.path.join(root, W.DATA[lg], at.strftime("%Y-%m-%d"), kind)
     os.makedirs(d, exist_ok=True)
     doc = {"pulled_at": at.strftime("%Y-%m-%dT%H:%M:%SZ"), "credits_used": used}
@@ -49,6 +58,10 @@ def snap(root, lg, kind, at, used=12, half=None, n=0, balance=True):
         doc["credits_remaining"] = 15000
     if half is not None:
         doc["half_total_credits"] = half
+    if games is not None:
+        doc["bought"] = list(games)
+        if billed:
+            doc["billed_per_event"] = [used // max(1, len(games))] * len(games)
     name = at.strftime("%H%M") + ("-%d" % n if n else "") + ".json.gz"
     with gzip.open(os.path.join(d, name), "wt", encoding="utf-8") as fh:
         json.dump(doc, fh)
@@ -77,19 +90,20 @@ def keys(items):
 section("1. THE CLASS, DERIVED FROM THE CONTRACT")
 # ══════════════════════════════════════════════════════════════════════
 FOOTBALL = [lg for lg in W.LEAGUES if lg in F.FB_TIMES]
-CLASS = [(lg, k, t) for lg in FOOTBALL for k, t in sorted(F.paid_times(lg, NOW).items())
-         if k not in W.DOUBLE_BUY_EXEMPT]
-EXEMPT = [(lg, k, t) for lg in FOOTBALL for k, t in sorted(F.paid_times(lg, NOW).items())
-          if k in W.DOUBLE_BUY_EXEMPT]
+PAID = [(lg, k, t) for lg in FOOTBALL for k, t in sorted(F.paid_times(lg, NOW).items())]
+CLASS = [x for x in PAID if x[1] not in W.DOUBLE_BUY_BY_GAME]       # keyed by deadline
+BY_GAME = [x for x in PAID if x[1] in W.DOUBLE_BUY_BY_GAME]         # keyed by game
 ck("⚠️ every football league's paid kinds were derived (rule 67: never empty)",
    {(lg, k) for lg, k, _t in CLASS} >= {(lg, k) for lg in ("nfl", "ncaaf")
                                         for k in ("gamelines", "props-player")},
    sorted((lg, k) for lg, k, _t in CLASS))
-ck("⚠️ ...and the exemption names a real paid kind (alt-lines), nothing else",
-   {k for _lg, k, _t in EXEMPT} == W.DOUBLE_BUY_EXEMPT == {"alt-lines"},
-   sorted({k for _lg, k, _t in EXEMPT}))
+ck("⚠️ ...and every kind keyed by game is a paid kind of every football league "
+   "(none left out: rule 67)",
+   W.DOUBLE_BUY_BY_GAME and {(lg, k) for lg, k, _t in BY_GAME}
+   == {(lg, k) for lg in FOOTBALL for k in W.DOUBLE_BUY_BY_GAME},
+   sorted((lg, k) for lg, k, _t in BY_GAME))
 ck("⚠️ every paid kind is a registered one (collect.PAID_KINDS)",
-   {k for _lg, k, _t in CLASS + EXEMPT} <= set(W.PAID_KINDS), W.PAID_KINDS)
+   {k for _lg, k, _t in PAID} <= set(W.PAID_KINDS), W.PAID_KINDS)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -145,8 +159,8 @@ for lg, kind, times in CLASS:
     old = F.last_due(times, NOW - 50 * H)
     # @vacuity ⛔ only the last DOUBLE_BUY_H hours are read
     #   file: watchdog.py
-    #   find: if t is not None and lo < t <= now else None
-    #   with: if t is not None and t <= now else None
+    #   find:                 if t is None or not lo < t <= now:
+    #   with:                 if t is None or not t <= now:
     eq(keys(findings(lambda r: (snap(r, lg, kind, old + 5 * M),
                                 snap(r, lg, kind, old + 9 * M)))), [],
        "⛔ %s bought twice for %s, over %d hours ago: outside the window, silent" % (
@@ -164,17 +178,67 @@ for lg, kind, times in _gl[:1]:
 
 
 # ══════════════════════════════════════════════════════════════════════
-section("3. ⛔ WHAT IS NOT ASKED: alt-lines' top-ups, and MLB")
+section("3. 🔴 A KIND THAT LISTS ITS GAMES (alt-lines): ONE GAME BOUGHT TWICE, WHATEVER THE DEADLINE")
 # ══════════════════════════════════════════════════════════════════════
-for lg, kind, times in EXEMPT:
-    due = F.last_due(times, NOW - 3 * H)
-    # @vacuity ⛔ alt-lines buys new games for one deadline: not a double buy
+IDS = ["g%02d" % i for i in range(40)]
+for lg, kind, times in BY_GAME:
+    due = F.last_due(times, NOW - 20 * H)
+    nxt = F.next_due(times, due)
+    key = "double-buy:%s:%s" % (kind, lg)
+    tag = "%s %s (deadline %s)" % (lg, kind, due.strftime("%a %H:%MZ"))
+    ck("   (%s: both deadlines' passes fall inside the window it reads)" % tag,
+       LO < due + 5 * M and nxt + 5 * M <= NOW, "%s .. %s" % (LO, NOW))
+    # @vacuity ⛔ a top-up that buys games not bought yet is not a double buy
     #   file: watchdog.py
-    #   find: DOUBLE_BUY_EXEMPT = {"alt-lines"}
-    #   with: DOUBLE_BUY_EXEMPT = set()
-    eq(keys(findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=80),
-                                snap(r, lg, kind, due + 40 * M, used=6)))), [],
-       "⛔ %s %s twice for %s (new games each time): silent" % (lg, kind, due.strftime("%a %H:%MZ")))
+    #   find:                 if kind in DOUBLE_BUY_BY_GAME:
+    #   with:                 if False:
+    eq(keys(findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=4, games=IDS[:2]),
+                                snap(r, lg, kind, due + 40 * M, used=2, games=IDS[2:3])))), [],
+       "⛔ %s, a top-up for the same deadline that buys only new games: silent" % tag)
+    # @vacuity 🔴 a game in two buys' `bought` lists is reported
+    #   file: watchdog.py
+    #   find:                 seen = [(g, c) for g, c in bought if g in first]
+    #   with:                 seen = [(g, c) for g, c in bought if g in ()]
+    got = findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=4, games=IDS[:2]),
+                              snap(r, lg, kind, due + 12 * M, used=4, games=IDS[1:3])))
+    eq(keys(got), [key], "🔴 %s, a second pass that bought one of the same games again: one `%s`"
+       % (tag, key))
+    f = (got or [{}])[0]
+    ck("   ...DEGRADED, no repair, and it names the game buys and their credits",
+       f.get("severity") == "DEGRADED" and f.get("repair") is None
+       and "1 game(s) more than once (1 extra game buys, 2 credits)" in f.get("what", "")
+       and "1 of its 2 game(s) again, 2 credits" in f.get("why", ""), f)
+    eq(keys(findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=4, games=IDS[:2]),
+                                snap(r, lg, kind, nxt + 5 * M, used=4, games=IDS[:2])))), [key],
+       "🔴 %s, the same games bought again at the next deadline (%s): one finding" % (
+           tag, nxt.strftime("%a %H:%MZ")))
+    # 🔴 11-14's shape: three passes in 10 minutes, the same 40 games, 80 credits each.
+    got = findings(lambda r: [snap(r, lg, kind, due + k * M, used=80, games=IDS) for k in (4, 12, 14)])
+    eq(keys(got), [key], "🔴 %s, three passes buying the same 40 games: one finding" % tag)
+    ck("   ...40 games, 80 extra game buys, 160 credits",
+       "40 game(s) more than once (80 extra game buys, 160 credits)"
+       in (got or [{}])[0].get("what", ""), got)
+    got = findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=9, games=IDS[:3], billed=False),
+                              snap(r, lg, kind, due + 9 * M, used=9, games=IDS[2:5], billed=False)))
+    ck("🔴 %s, no per-game bill stored: the bill split evenly (one repeat, 3 credits)" % tag,
+       keys(got) == [key] and "(1 extra game buys, 3 credits)" in got[0]["what"], got)
+    # ── ⛔ AND SILENT ON CORRECT DATA ────────────────────────────────────
+    eq(keys(findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=4, games=IDS[:2]),
+                                snap(r, lg, kind, due + 9 * M, used=0, games=[], balance=False)))),
+       [], "⛔ %s, a second pass that bought nothing (all already bought): silent" % tag)
+    eq(keys(findings(lambda r: (snap(r, lg, kind, due + 5 * M, used=4),
+                                snap(r, lg, kind, due + 9 * M, used=4)))), [],
+       "⛔ %s, two passes that list no games: cannot tell which, silent (never a guess)" % tag)
+    old = F.last_due(times, NOW - 50 * H)
+    eq(keys(findings(lambda r: (snap(r, lg, kind, old + 5 * M, used=4, games=IDS[:2]),
+                                snap(r, lg, kind, old + 9 * M, used=4, games=IDS[:2])))), [],
+       "⛔ %s, the same games twice for %s, over %d hours ago: silent" % (
+           lg + " " + kind, old.strftime("%a %H:%MZ"), W.DOUBLE_BUY_H))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. ⛔ WHAT IS NOT ASKED: MLB")
+# ══════════════════════════════════════════════════════════════════════
 _mlb = sorted(F.paid_times("mlb", NOW).items())
 ck("⚠️ MLB's paid kinds were derived too", _mlb, _mlb)
 for kind, times in _mlb:

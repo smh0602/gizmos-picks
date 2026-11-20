@@ -120,6 +120,12 @@ No rule-67 case waited for from the live board (plant it, as #156 did; the
 live check is an extra). A `collect.py` run from a test passes
 `converge-off` with the keys blank (`test_collect_subprocess.py`). Every
 instance found: `docs/HANDOFF-2026-09-29-live-tree-tests.md`.
+`[2026-11-19]` Nor the CI run's own trigger: a test that calls, in-process,
+anything that reads `GITHUB_EVENT_NAME` / `GITHUB_EVENT_PATH` (derived:
+`collect.converge`, `collect.main`, `freshness.stand_down` with no env of its
+own) clears both first: once a paid mode could stand down,
+`test_converge_judge.py` went red under every collect cron and stayed green
+in pr-tests (found in review before it merged; `test_trigger_cleared.py`).
 
 ⚠️ **A GUARD THAT CANNOT FAIL IS NOT A GUARD.** Prove it bites before you
 call it done — an empty match, a stripped comment, a fixture missing the
@@ -1363,10 +1369,16 @@ note boxes, tags and the stale bar now require their absence.
   snapshot of the last 48 hours that spent credits (`credits.buys`, the snapshots' own
   bills), keyed by the contract deadline in force when it was pulled
   (`freshness.paid_times`); a deadline bought more than once -> `double-buy:<kind>:<lg>`,
-  DEGRADED, no repair. alt-lines is exempt (each top-up buys new games for one deadline);
-  MLB is not asked until its in-season props pattern is measured. 11-12 to 11-19 it would
-  have named 19 late re-buys (194 credits, now stood down) and 7 buys by runs that raced
-  one deadline (449 credits, which no stand-down can see). `test_double_buys.py`.
+  DEGRADED, no repair. alt-lines is keyed by GAME instead (`credits.games`; ~~alt-lines is
+  exempt~~, the first draft, whose premise that a second pass only buys new games the stored
+  snapshots disproved in review): it buys each
+  game once (`collect.alt_plan`), so a game in two buys' `bought` lists is a double buy
+  whatever the deadline, and a top-up of games not bought yet is silent. MLB is not asked
+  until its in-season props pattern is measured. 11-12 to 11-19 it would have named 19
+  late re-buys (194 credits, now stood down) and, from runs that raced one deadline
+  before either landed (which no stand-down can see), 7 buys (449 credits) and 83 alt-line
+  game buys (166; 11-14's 19:04Z, 19:12Z and 19:14Z passes each bought the same 40 games).
+  `test_double_buys.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -1945,7 +1957,8 @@ credits.py        THE CREDIT BALANCE CHAIN: the one reader of stored
                   mid-month, as on 10-23); the watchdog reconciles inside
                   each, never across one. `[2026-11-19]` Also `buys`: every
                   paid snapshot that spent credits (`spent`: credits_used +
-                  half_total_credits), for the watchdog's double-buy check.
+                  half_total_credits) and the games it lists as bought
+                  (`games`), for the watchdog's double-buy check.
 calibration.py    is the product still winning? the automatic answer.
 relay.py          THE RELAY (Sam, 2026-10-06): at the end of an MLB run's
                   hold, may it dispatch one successor? ⛔ Not while another

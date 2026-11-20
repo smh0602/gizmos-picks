@@ -30,6 +30,7 @@ import datetime
 import gzip
 import importlib
 import io
+import itertools
 import json
 import os
 import re
@@ -83,9 +84,15 @@ def contract_rows(lg, now, board=True):
         shutil.rmtree(d, ignore_errors=True)
 
 
+_EVENTS = itertools.count()
+
+
 def event(cron, name="schedule"):
-    """A GitHub event file for a run `cron` started -> its env."""
-    p = os.path.join(_TMP, "event-%d.json" % len(os.listdir(_TMP)))
+    """A GitHub event file for a run `cron` started -> its env.
+    ⚠️ Each file its own name, whatever else sits in _TMP: ~~named by the count
+    of files there~~, §4's 43 crons (no tree beside them) all wrote ONE file,
+    so the property was asked of the last cron 43 times (review, 11-19)."""
+    p = os.path.join(_TMP, "event-%d.json" % next(_EVENTS))
     with open(p, "w", encoding="utf-8") as fh:
         json.dump({"schedule": cron}, fh)
     return {"GITHUB_EVENT_NAME": name, "GITHUB_EVENT_PATH": p}
@@ -357,8 +364,22 @@ section("4. 🔴 THE SAFETY PROPERTY, EVERY LEAGUE (MLB TOO), EVERY CRON collect
 CRONS = sorted(set(RR.declared_crons(ROOT)["collect"]["crons"]))
 ck("⚠️ the crons were read from collect.yml (never a hand list)", len(CRONS) >= 40, len(CRONS))
 ENVS = {c: event(c) for c in CRONS}
+
+
+def _named(e):
+    with open(e["GITHUB_EVENT_PATH"], encoding="utf-8") as fh:
+        return json.load(fh).get("schedule")
+
+
+# ⚠️ Shown red by hand with the old naming (1 path for 43 crons, every file naming
+#    `9 */3 * * *`): a @vacuity line cannot mutate the file that declares it.
+eq(len({e["GITHUB_EVENT_PATH"] for e in ENVS.values()}), len(CRONS),
+   "🔴 one event file per declared cron (else the property asks one cron, many times)")
+ck("🔴 ...and each file names its own cron, so fired_cron reads that cron",
+   all(_named(e) == c and F.fired_cron(e) == c for c, e in ENVS.items()),
+   sorted((c, _named(e)) for c, e in ENVS.items() if _named(e) != c)[:5])
 answered = owed = broke = 0
-bad = []
+bad, asked_by = [], set()
 START = datetime.datetime(2026, 11, 12, 0, 7, tzinfo=UTC)
 for lg in ("mlb", "nfl", "ncaaf"):
     box = tempfile.mkdtemp(prefix="prop-%s-" % lg, dir=_TMP)
@@ -381,6 +402,7 @@ for lg in ("mlb", "nfl", "ncaaf"):
                 for c in CRONS:
                     if F.stand_down(rows, m, now, ENVS[c]) is not None:
                         answered += 1
+                        asked_by.add(F.fired_cron(ENVS[c]))     # the cron it READ, not the key
                         if not landed:
                             broke += 1
                             if len(bad) < 5:
@@ -393,6 +415,10 @@ ck("⚠️ the property was asked of owed pulls too (else it asks nothing)", owe
 #   with:     if since is None or not mine:
 ck("✅ a paid pull whose deadline already has one is stood down for some cron", answered > 0,
    "⛔ on the code before 11-19 every paid mode answered None: %d" % answered)
+ck("⚠️ ...and the paid routes' own crons are among those that stood one down (%d of %d "
+   "crons did)" % (len(asked_by), len(CRONS)),
+   {c for c, _lg, _m, _t, _f in CASES} <= asked_by,
+   sorted({c for c, _lg, _m, _t, _f in CASES} - asked_by))
 eq(broke, 0, "🔴🔴 NEVER a stand-down without that deadline's pull: %d of %d answers%s" % (
     broke, answered, (" e.g. %s" % bad) if bad else ""))
 
@@ -400,5 +426,6 @@ shutil.rmtree(_TMP, ignore_errors=True)
 
 note("💰 WHAT IT SAVES, MEASURED 11-12 -> 11-19 from the stored snapshots: 19 late "
      "re-buys of a football gamelines deadline already on main, 194 credits (~28 a "
-     "day). Two runs RACING one deadline (7 buys, 449 credits) are not stopped here: "
-     "neither could see the other's pull (watchdog `double-buy:*` names them).")
+     "day). Runs RACING one deadline (7 buys, 449 credits, and 83 alt-line game buys, 166) "
+     "are not stopped here: neither could see the other's pull (watchdog `double-buy:*` "
+     "names them).")

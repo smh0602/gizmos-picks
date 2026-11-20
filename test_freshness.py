@@ -76,6 +76,8 @@ Three causes, all fixed together (any one alone turns the file red):
 import contextlib, datetime, gzip, io, json, os, re, shutil, sys, tempfile, time
 import freshness as F
 from tcheck import ck, note, shown   # the shared gate — see tcheck.py
+for _tv in ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH"):   # no test reads the run's trigger
+    os.environ.pop(_tv, None)                           # (test_trigger_cleared.py)
 
 UTC = datetime.timezone.utc
 PASS, FAIL = [], []

@@ -130,10 +130,24 @@ def pinned(collect):
         collect.now, fresh.plan, fresh.survey = saved
 
 
+TRIGGER = ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH")
+
+
 def converge(d, fail, explicit=()):
     """Run the real converge in `d`, at NOW; `fail` maps a mode to the
-    exception it raises. -> (exit code, stdout)."""
+    exception it raises. -> (exit code, stdout).
+
+    🔴 `[2026-11-19]` WITH NO CRON BEHIND IT. A paid mode now stands down like
+    a metered one (`freshness.stand_down`), and the sandbox's board is 2
+    minutes old: under the CI run's own trigger (a scheduled collect run, the
+    nightly sweep) its explicit gamelines stood down for every one of the 43
+    crons, so §2 and §4 would have gone red there and stayed green in pr-tests
+    (found in review). The run's trigger is cleared for the call and restored
+    after (test_trigger_cleared.py)."""
     cwd = os.getcwd()
+    saved = {}
+    for k in TRIGGER:
+        saved[k] = os.environ.pop(k, None)
     os.chdir(d)
     try:
         import collect
@@ -150,6 +164,9 @@ def converge(d, fail, explicit=()):
         return code, out.getvalue()
     finally:
         os.chdir(cwd)
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
 
 
 def survey_line(out, mode):
