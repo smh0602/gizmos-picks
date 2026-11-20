@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-20T23:34:05Z",
+ "checked_at": "2026-11-20T23:55:52Z",
  "et_date": "2026-11-20",
  "healthy": false,
  "broken": 0,
- "degraded": 15,
+ "degraded": 17,
  "findings": [
   {
    "key": "late:cfb-probe:ncaaf",
@@ -98,6 +98,20 @@
    "repair": null
   },
   {
+   "key": "double-buy:gamelines:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf gamelines was bought 2 times for its Thu 19:00Z deadline (14 credits)",
+   "why": "1 deadline(s) in the last 48 hours were bought more than once, 1 extra buy(s), 7 credits: due Thu 19:00Z: Thu 19:52Z (7), Fri 01:36Z (7). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "repair": null
+  },
+  {
+   "key": "double-buy:gamelines:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl gamelines was bought 3 times for its Fri 18:00Z deadline (18 credits)",
+   "why": "2 deadline(s) in the last 48 hours were bought more than once, 4 extra buy(s), 26 credits: due Thu 18:00Z: Thu 19:48Z (7), Thu 20:52Z (7), Fri 00:56Z (7); due Fri 18:00Z: Fri 19:33Z (6), Fri 19:34Z (6), Fri 20:19Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "repair": null
+  },
+  {
    "key": "clock:browser",
    "severity": "DEGRADED",
    "what": "browser's render used 84% of its clock in the last 7 days",
@@ -121,7 +135,7 @@
   "pulled_at": "2026-11-20T20:26:20Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 3.1,
+  "reading_age_hours": 3.5,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-20T20:26:20Z",
   "source": "data/2026-11-20/props-pitcher/2026.json.gz",
