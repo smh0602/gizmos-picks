@@ -458,6 +458,30 @@ note boxes, tags and the stale bar now require their absence.
   a league switch keeps the tab (`nextTab`). ⛔ Never draw a league's own bar
   again. `test_tab_bar.py`; the computed style is measured in a browser by
   `test_league_switch.py`.
+- 🔴 **AN OPEN FOOTBALL TAB FOLLOWS THE DATA.** `[2026-11-18]` Every football file the
+  page reads was memoised once and never let go, and the 180 s and 60 s refreshes are
+  MLB's, so an open football tab drew its first card and prices until a reload.
+  ✅ Every 3 minutes `fbRefreshTick` (index.html) asks every football league whose files the
+  page holds for its freshness.json `built_at` (it moved in 160 of the 164 NFL commits that
+  changed a file the page reads, 2026-11-10 00:00Z to 11-18 03:42Z, the card's
+  `generated_at` in 98; the other 4 were watchdog commits, and the next pass moved it 4 min
+  to 3 h 45 min later).
+  Moved: a league not on screen lets its files go; the league on screen reads them again
+  (no-cache), each copy kept until its new one is in (`fbKeep`), and is drawn again only when
+  one changed. Every minute `fbKickTick` draws
+  Gizmo's Picks, Odds and Player Props again once a game in their file has started, on the
+  tab and league the last draw showed; the refresh's reads have their own flag
+  (`fbChecking`), so they never hold that check or the Scores poll off. ⛔ Never
+  while a box score or an opened row is open, never on MLB, the scroll and the SET STATE
+  picker kept (`fbRedraw`), a redraw the reader's own draw already made not made again
+  (`fbDrawStarts`), nothing new drawn, and a timed redraw of Scores never waits on ESPN
+  under its Loading shell (`fbLiveFresh`). Every async function on the page writes a
+  football memo under the league it took before its first await (`const lg = LEAGUE`),
+  never `LEAGUE` after it: `test_fb_refresh.py` scans every one. ⛔ A new football memo is a
+  plain object keyed `lg` or `lg|...`, in `fbMemos()` (read again, or only dropped) or in
+  `test_fb_refresh.py`'s ALLOW with its reason; that file fails on one in neither, on a Map,
+  on one that starts null, undefined, `[]` or a Set outside ALLOW, and on a reader turned to
+  null.
 - 🔴 **ONE LOOK FOR ALL THREE LEAGUES: DESIGN I.** `[Sam, 2026-10-17]` *"i like the
   light blue on i think that oone is good"*, choosing design I of the layouts he was
   shown: a white page; the ONE `<header>` is a navy side panel (logo, league switch,

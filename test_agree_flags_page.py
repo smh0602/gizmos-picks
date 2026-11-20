@@ -32,8 +32,8 @@ what is DRAWN.
 #
 # @vacuity [Sam, 2026-10-17] the page loads nothing from agreement.json (~~[Sam, 2026-10-01] a started game's row no longer says 'frozen before kickoff'~~)
 #   file: index.html
-#   find:   FBFLAGS[LEAGUE] = await jget(
-#   with:   FBFLAGS.ag = await jget(`${LG_DATA[LEAGUE]}/latest/agreement.json`); FBFLAGS[LEAGUE] = await jget(
+#   find:   FBFLAGS[lg] = await jget(
+#   with:   FBFLAGS.ag = await jget(`${LG_DATA[lg]}/latest/agreement.json`); FBFLAGS[lg] = await jget(
 #
 # @vacuity [Sam, 2026-10-17] no row draws a label span (~~[Sam, 2026-10-01] a started row never frozen draws nothing, not its label_note~~)
 #   file: index.html

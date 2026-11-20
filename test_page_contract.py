@@ -70,6 +70,13 @@ EXEMPT = {
     "data/latest/freshness.json":
         "the contract's OWN OUTPUT — a row on it would ask the report "
         "whether the report is fresh",
+    # `[2026-11-18]` read by the football refresh (index.html `fbRefreshTick`) as its stamp.
+    "data/nfl/latest/freshness.json":
+        "the NFL contract's OWN OUTPUT, read as the football refresh's stamp — a row on "
+        "it would ask the report whether the report is fresh",
+    "data/ncaaf/latest/freshness.json":
+        "the college contract's OWN OUTPUT, read as the football refresh's stamp — a row "
+        "on it would ask the report whether the report is fresh",
     "picks/{day}.json":
         "MLB. ⛔ FROZEN, and already covered by the `card` row for the "
         "current slate; older days are the permanent record, which is "
@@ -144,11 +151,12 @@ def resolve(p):
             outs.append(re.sub(r"\$\{LG_DATA\[\w+\]\}", d, p))
     else:
         outs.append(p)
-    # `picks/fb-${LEAGUE}-latest.json` names one file per league.
+    # `picks/fb-${LEAGUE}-latest.json` names one file per league. `[2026-11-18]` So does
+    # `picks/fb-${lg}-latest.json`: fbCardLoad takes the league once (`const lg = LEAGUE`).
     expanded = []
     for o in outs:
-        if "${LEAGUE}" in o:
-            expanded += [o.replace("${LEAGUE}", lg) for lg in ("ncaaf", "nfl")]
+        if "${LEAGUE}" in o or "${lg}" in o:
+            expanded += [o.replace("${LEAGUE}", lg).replace("${lg}", lg) for lg in ("ncaaf", "nfl")]
         else:
             expanded.append(o)
     outs = expanded
