@@ -1441,10 +1441,12 @@ def check_fb_refit(rep, now):
 # its 500, and nothing said so. Sam re-registered it (§3a). ✅ THE CLASS: every arm a league's
 # card-calibration.json stores with a registered method and date (`method`, `registered_from`)
 # and no `superseded_by`. When that league graded card rows in the last CAL_STARVED_DAYS but
-# none of the arm's method for longer, it is DEGRADED. ⛔ No repair and no issue: no rebuild
-# feeds it, and registering again is Sam's (rule 13). A league that graded nothing in the
-# window (the off-season) is silent. The days are fb_card_calibration.newest_graded's, read
-# from the file: this module imports no model.
+# none the arm counts for longer, it is DEGRADED. ⛔ No repair and no issue: no rebuild feeds
+# it, and registering again is Sam's (rule 13). A league that graded nothing in the window
+# (the off-season) is silent. The days are fb_card_calibration.newest_graded's, read from the
+# file: this module imports no model. `[2026-11-19, review]` "Counts" is the arm's own rule
+# (its props method AND a readable kickoff from its date), so a row of its method the arm
+# refuses is not "fed", and the finding says which of the two it can be.
 CAL_STARVED_DAYS = 14
 
 
@@ -1467,13 +1469,18 @@ def check_calibration_arm(rep, now):
             if idle > CAL_STARVED_DAYS and fed:
                 rep.warn("calibration:%s:%s" % (lg, name),
                          "the %s card's graded picks no longer count toward Sam's calibration test "
-                         "(%s): none of its method, %s, for %d days, while the card graded others up "
-                         "to %s" % (lg.upper(), name, arm["method"], idle, other),
-                         "data/%s/latest/card-calibration.json: the newest graded row of %s is %s; of "
-                         "any method, %s. The test counts only that method from %s "
-                         "(research/fb_card_calibration_spec.md §3a), so this league adds nothing to "
-                         "it. Registering it again is Sam's (rule 13)." % (
-                             lg, arm["method"], mine or "none", other, arm["registered_from"]))
+                         "(%s): none it counts (method %s, games from %s) for %d days, while the "
+                         "card graded others up to %s" % (lg.upper(), name, arm["method"],
+                                                          arm["registered_from"], idle, other),
+                         "data/%s/latest/card-calibration.json: the newest card day with a graded "
+                         "row the test counts is %s; with any graded row, %s. The test counts only "
+                         "rows of %s whose game kicks off (US Eastern date) on or after %s "
+                         "(research/fb_card_calibration_spec.md §3a), so this league adds nothing "
+                         "to it. If the card's props method changed, registering the test again is "
+                         "Sam's (rule 13); if rows of %s are still graded, their kickoff is missing "
+                         "or unreadable (record-detail.json.gz `commence`), a grader defect." % (
+                             lg, mine or "none", other, arm["method"], arm["registered_from"],
+                             arm["method"]))
 
 
 # ══════════════════════════════════════════════════════════════════════

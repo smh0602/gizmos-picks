@@ -382,7 +382,7 @@ ck(all(json.dumps({k: _docs[lg][k] for k in _old}, sort_keys=True)
    "🔴 the earlier arms are byte-identical with or without today's rows; with none, the new arm reads nothing")
 eq(_newest, {"nfl": {"method": "2026-12-03", "any": "2026-12-03"},
              "ncaaf": {"method": "2026-12-03", "any": "2026-12-06"}},
-   "🔴 each league's newest graded day of the arm's method, and of any method (what the watchdog reads)")
+   "🔴 each league's newest graded day holding a row the arm counts, and of any row (what the watchdog reads)")
 eq(_rr["newest_graded"], _newest, "   ...and the arm stores it")
 
 # the spec and the code say the same thing

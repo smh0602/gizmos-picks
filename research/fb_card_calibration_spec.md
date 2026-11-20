@@ -139,13 +139,15 @@ written and committed (2026-11-18).
   removes `card_fb.game_method`'s part (`test_fb_card_calibration.py`
   fails if card_fb ever appends anything after it), and the arm is
   stored as `test_reregistered`, beside each league's newest graded day
-  of its method and of any method (`newest_graded`). The two earlier
+  ~~of its method~~ `[2026-11-19]` holding a row the arm counts
+  (`counts`: its method AND a readable kickoff from 2026-11-23) and of
+  any method (`newest_graded`). The two earlier
   arms carry `superseded_by`. `status.py` puts any arm whose verdict
   reads QUALIFIES under "Needs you" in the Monday email;
   `watchdog.check_calibration_arm` reports DEGRADED (no repair, no
-  issue) when a league graded card rows in the last 14 days but none of
-  a registered arm's method for longer. A league that graded nothing
-  (the off-season) is silent.
+  issue) when a league graded card rows in the last 14 days but none
+  ~~of a registered arm's method~~ `[2026-11-19]` the arm counts for
+  longer. A league that graded nothing (the off-season) is silent.
 
 ## Changelog
 
@@ -176,3 +178,11 @@ written and committed (2026-11-18).
   tagged with Sam's name only, so a later reader would take the date and
   the method rule for his decisions. Caught in review before the branch
   was pushed; no definition changed.
+- **2026-11-19:** the watchdog's "is the arm still fed?" day now asks
+  the arm's own rule (`counts`). Mistake: `newest_graded` asked the
+  props method alone, at any kickoff, so rows of today's method with no
+  readable kickoff (which the arm refuses) read as feeding it, and an
+  arm counting nothing would never have been reported. Root cause: the
+  watchdog's day was written as a second, looser copy of the arm's rule
+  instead of calling it. Caught in review before the branch was pushed;
+  no definition in §3a changed.
