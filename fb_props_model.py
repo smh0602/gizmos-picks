@@ -13,9 +13,15 @@ the stored prop snapshots, graded at the best Hard Rock / FanDuel /
 DraftKings price, and scored champion-vs-challenger against the existing
 props card's own probabilities.
 
-⛔ IT DOES NOT REPLACE THE CARD. `card_fb.py` never imports this file, and
-the champion's probabilities are RECOMPUTED with the card's own
-`rate_for`, never edited. Switching is Sam's decision.
+⛔ ~~IT DOES NOT REPLACE THE CARD.~~ `[Sam, 2026-10-09]` it sets the card's
+confidence where it prices a prop (CLAUDE.md: THE PROPS MODEL SETS THE FOOTBALL
+CARD'S CONFIDENCE).
+~~`card_fb.py` never imports this file~~ `[2026-11-20]` card_fb imports it only inside
+`row_reads_price`, the price-words guard its tests run (`card_fb.price_claims`); no
+card build calls that function (`test_import_claims.py` holds every such sentence to
+the imports). The champion's probabilities are RECOMPUTED with the card's own
+`rate_for`, never edited. ~~Switching is Sam's decision.~~ Sam switched it on
+2026-10-09.
 ⛔ NEVER INVENTS A PRICE: a side with no quote at the three books is not
 picked, and a rung with no outcome in the logs is not graded.
 ⚠️ STDLIB ONLY.

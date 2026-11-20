@@ -2072,6 +2072,14 @@ wfparse.py        the one HAND parser for a workflow file -- jobs,
                   a block scalar, its body never scanned as keys.
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
+import_claims.py  `[2026-11-20]` the sentences in the top-level modules and
+                  this file saying one module never imports another (struck
+                  text is history), each asked of the subject's own imports
+                  through tcheck's reader. Fails on a false one; a sentence
+                  it cannot resolve ("it") is printed, never guessed. Two
+                  docstrings said card_fb never imported the game and props
+                  models after `card_fb.row_reads_price` began to.
+                  test_import_claims.py. Stdlib only.
 self_repair.py    self-repair triage: which watcher issue the repair agent
                   gets, and whether it is started at all. ⛔ An issue whose
                   watcher marks it a counter (`COUNTER`, e.g. T58/T59's

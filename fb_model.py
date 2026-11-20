@@ -8,8 +8,12 @@ One ridge-logistic model per league × market (spread, total, moneyline) on
 signals 1–8. Walk-forward weekly over 2025 and 2026, graded ONLY at Hard
 Rock, FanDuel and DraftKings prices that existed before kickoff.
 
-⛔ IT DOES NOT REPLACE THE CARD. `card_fb.py` never imports this file; the
-page shows these picks in their own MODEL section beside the card.
+⛔ IT DOES NOT REPLACE THE CARD. ~~`card_fb.py` never imports this file~~
+`[2026-11-20]` card_fb imports it only inside `row_reads_price`, the price-words
+guard its tests run (`card_fb.price_claims`); no card build calls that function
+(`test_import_claims.py` holds every such sentence to the imports). ~~the page
+shows these picks in their own MODEL section beside the card~~ `[Sam, 2026-10-17]`
+the page shows no section of its own (Gizmo's Picks is as simple as MLB's).
 ⛔ NEVER INVENTS A PRICE. A game with no price at the three books is
 trained on and not graded.
 ✅ A SECOND, SEPARATE RECORD `[Sam, 2026-09-23]`: the same walk-forward
