@@ -70,6 +70,8 @@ sys.path.insert(0, ROOT)
 import wfparse as W                      # noqa: E402  the one workflow parser
 from wfroutes import parse_arms          # noqa: E402
 from tcheck import ck, eq, note, section  # noqa: E402
+for _tv in ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH"):   # no test reads the run's trigger
+    os.environ.pop(_tv, None)                           # (test_trigger_cleared.py)
 
 import collect as C                      # noqa: E402  asked, never run
 

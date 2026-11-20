@@ -209,6 +209,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
 from tcheck import ck, eq, note, section, shown  # noqa: E402
+for _tv in ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH"):   # no test reads the run's trigger
+    os.environ.pop(_tv, None)                           # (test_trigger_cleared.py)
 
 os.environ["LEAGUE"] = "mlb"
 os.environ.setdefault("ODDS_API_KEY", "test")

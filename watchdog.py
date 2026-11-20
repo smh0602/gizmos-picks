@@ -1160,7 +1160,7 @@ def _balance_steps(root=None, since=None):
         at = j.get("pulled_at") or ""
         if since and at < since:
             continue
-        used = int(j.get("credits_used") or 0) + int(j.get("half_total_credits") or 0)
+        used = C.spent(j)                       # credits_used + half_total_credits
         rows.append((at, j["credits_remaining"], f, used))
     out = []
     for period in C.periods(rows):
@@ -1198,6 +1198,99 @@ def check_credit_reconciliation(rep, now):
         "the next run may buy again. Largest gaps: %s"
         % "; ".join("%s −%d (%s)" % (r[0], r[4], os.path.relpath(r[5], ROOT))
                     for r in worst))
+
+
+# 💰 `[2026-11-19]` ONE DEADLINE, ONE BUY, AND A SECOND BUY IS VISIBLE. Since 09-21
+#    GitHub starts scheduled runs 6-10 hours late; 11-13 -> 11-20 a late football
+#    gamelines cron bought again a deadline already bought and on main 21 times (206
+#    credits), and runs racing one deadline bought it again 7 more times (449, the
+#    college props pull 3x158 on 11-14) and re-bought 83 alt-line games (166).
+#    `freshness.stand_down` now stops the first kind; this makes ANY repeat visible,
+#    whatever its cause. ✅ Every stored paid snapshot of the last DOUBLE_BUY_H hours
+#    that spent credits (`credits.buys`), keyed by the contract deadline in force when
+#    it was pulled (`freshness.paid_times`).
+# ⛔ DEGRADED, NEVER BROKEN, AND NO REPAIR: the board is current, what was wrong is the
+#    spend, and nothing a run can do gets it back.
+# ⚠️ FOOTBALL ONLY: MLB's in-season props pattern (two kinds a deadline, the us2 backup
+#    on the same directory) has not been measured against this rule yet.
+# 🔴 alt-lines IS KEYED BY GAME, NOT BY DEADLINE: it buys each
+#    game once, at the last props deadline before its kickoff (`collect.alt_plan`), so a
+#    later pass for one deadline that buys only games not bought yet is a top-up, and a
+#    game in two buys' `bought` lists is a double buy whatever the deadline
+#    (`credits.games`). Keyed so, it names 11-14's 19:04Z, 19:12Z and 19:14Z college
+#    passes, each of which bought the same 40 games before any had landed (160 credits).
+DOUBLE_BUY_H = 48
+DOUBLE_BUY_BY_GAME = {"alt-lines"}
+
+
+def check_double_buys(rep, now):
+    """💰 A football deadline, or an alt-line game, bought more than once in the
+    last DOUBLE_BUY_H hours."""
+    lo = now - datetime.timedelta(hours=DOUBLE_BUY_H)
+    days = sorted({(now - datetime.timedelta(days=k)).strftime("%Y-%m-%d")
+                   for k in range(DOUBLE_BUY_H // 24 + 2)})     # each UTC day dir it can reach
+    for lg in [x for x in LEAGUES if x in F.FB_TIMES]:
+        times = F.paid_times(lg, now)
+        got, by_game = {}, {}
+        for day in days:
+            for at, kind, n, path, bought in C.buys(os.path.join(ROOT, DATA[lg], day),
+                                                    tuple(sorted(times))):
+                t = _when(at)
+                if t is None or not lo < t <= now:
+                    continue
+                if kind in DOUBLE_BUY_BY_GAME:
+                    if bought:
+                        by_game.setdefault(kind, []).append((t, bought))
+                    continue
+                due = F.last_due(times[kind], t)
+                if due is not None:
+                    got.setdefault((kind, due), []).append((t, n))
+        for kind in sorted({k for k, _d in got}):
+            twice = sorted((due, sorted(g)) for (k, due), g in got.items()
+                           if k == kind and len(g) > 1)
+            if not twice:
+                continue
+            due, last = twice[-1]
+            extra = sum(len(g) - 1 for _d, g in twice)
+            rep.warn("double-buy:%s:%s" % (kind, lg),
+                     "%s %s was bought %d times for its %s deadline (%d credits)" % (
+                         lg, kind, len(last), due.strftime("%a %H:%MZ"), sum(n for _t, n in last)),
+                     "%d deadline(s) in the last %d hours were bought more than once, %d extra "
+                     "buy(s), %d credits: %s. A late cron that buys a deadline another run "
+                     "already bought (freshness.stand_down should stand it down), or two runs "
+                     "that bought it before either landed. Nothing to repair: the board is "
+                     "current; this clears when no deadline in the window was bought twice." % (
+                         len(twice), DOUBLE_BUY_H, extra,
+                         sum(n for _d, g in twice for _t, n in g[1:]),
+                         "; ".join("due %s: %s" % (d.strftime("%a %H:%MZ"), ", ".join(
+                             "%s (%d)" % (t.strftime("%a %H:%MZ"), n) for t, n in g))
+                                   for d, g in twice)))
+        for kind, snaps in sorted(by_game.items()):
+            first, again = {}, []
+            for t, bought in sorted(snaps, key=lambda s: s[0]):
+                seen = [(g, c) for g, c in bought if g in first]
+                if seen:
+                    again.append((t, len(bought), seen, min(first[g] for g, _c in seen)))
+                for g, _c in bought:
+                    first.setdefault(g, t)
+            if not again:
+                continue
+            repeated = {g for _t, _n, r, _f in again for g, _c in r}
+            cr = sum(c for _t, _n, r, _f in again for _g, c in r)
+            rep.warn("double-buy:%s:%s" % (kind, lg),
+                     "%s %s bought %d game(s) more than once (%d extra game buys, %d credits)" % (
+                         lg, kind, len(repeated), sum(len(r) for _t, _n, r, _f in again), round(cr)),
+                     "%d pass(es) in the last %d hours bought games an earlier pass had already "
+                     "bought: %s. It buys each game once (collect.alt_plan skips what an earlier "
+                     "snapshot it can read bought), so a repeat is a pass that could not see the "
+                     "earlier buy (two runs that bought before either landed) or a defect in that "
+                     "rule. Nothing to repair: "
+                     "the lines are current; this clears when no game in the window was "
+                     "bought twice." % (
+                         len(again), DOUBLE_BUY_H,
+                         "; ".join("%s: %d of its %d game(s) again, %d credits (first bought %s)"
+                                   % (t.strftime("%a %H:%MZ"), len(r), n, round(sum(c for _g, c in r)),
+                                      f.strftime("%a %H:%MZ")) for t, n, r, f in again)))
 
 
 def check_board_not_empty(rep, now):
@@ -1735,6 +1828,8 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           # 💰 THE ELEVENTH: the balance header must reconcile with what
           #    the stored snapshots say was spent.
           check_credit_reconciliation,
+          # 💰 `[2026-11-19]` one football deadline bought twice, DEGRADED only.
+          check_double_buys,
           # `[Sam, 2026-10-12]` the football model's weekly contest, DEGRADED only.
           check_fb_refit,
           # `[Sam, 2026-11-18]` a calibration arm its league stopped feeding, DEGRADED only.
@@ -1879,6 +1974,7 @@ FILES_FIRST = {    # the finding key's first part -> the files to read first
     "fresh": "freshness.py, collect.py", "late": "freshness.py, relay.py",
     "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
     "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
+    "double-buy": "freshness.py (stand_down), collect.py (converge), relay.py",
     "landing": "data/latest/runs.json, runs_report.py, the learner's own .py and workflow (read only)",
     "clock": "data/latest/runs.json (clock_runs), runs_report.py, the workflow named, vacuity.py",
 }

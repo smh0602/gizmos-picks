@@ -34,14 +34,10 @@ def snapshot_re(kinds):
                       % "|".join(re.escape(k) for k in kinds))
 
 
-def readings(data, kinds):
-    """-> [(pulled_at, credits_remaining, path)] for every paid snapshot under
-    `data` (every league's directory beneath it), NEWEST PATH FIRST.
-    ⛔ Read-only, zero spend. An unreadable file is skipped, never a 0."""
-    if not kinds:
-        return []
+def _paid_docs(data, kinds):
+    """(path key, kind, document, path) for every readable paid snapshot under
+    `data`. ⛔ The one reading loop: `readings` and `buys` both walk it."""
     rx = snapshot_re(kinds)
-    rows = []
     for f in glob.glob(os.path.join(data, "**", "*.json.gz"), recursive=True):
         m = rx.search(f.replace(os.sep, "/"))
         if not m:
@@ -52,10 +48,65 @@ def readings(data, kinds):
             continue
         if not isinstance(j, dict):
             continue
-        key = (m.group(1), m.group(3), int(m.group(4)[1:] or 0))
-        rows.append((key + (f,), (j.get("pulled_at"), j.get("credits_remaining"), f)))
+        yield (m.group(1), m.group(3), int(m.group(4)[1:] or 0), f), m.group(2), j, f
+
+
+def readings(data, kinds):
+    """-> [(pulled_at, credits_remaining, path)] for every paid snapshot under
+    `data` (every league's directory beneath it), NEWEST PATH FIRST.
+    ⛔ Read-only, zero spend. An unreadable file is skipped, never a 0."""
+    if not kinds:
+        return []
+    rows = [(key, (j.get("pulled_at"), j.get("credits_remaining"), f))
+            for key, _kind, j, f in _paid_docs(data, kinds)]
     rows.sort(key=lambda r: r[0], reverse=True)
     return [r for _k, r in rows]
+
+
+def spent(doc):
+    """The credits ONE paid snapshot records it spent: `credits_used`, plus the
+    first-half totals billed on the same gamelines pull (`half_total_credits`,
+    a separate bill that is never folded into `credits_used`)."""
+    return int(doc.get("credits_used") or 0) + int(doc.get("half_total_credits") or 0)
+
+
+def games(doc):
+    """-> [(game id, credits)] for the games ONE paid snapshot lists as bought
+    (`bought`, e.g. alt-lines'), each priced by its own `billed_per_event` when
+    the two line up, else the snapshot's bill split evenly; None when it lists
+    none. `[2026-11-19]` collect.alt_plan buys each game once, so a game in two
+    buys is a double buy whatever deadline each was for."""
+    ids = doc.get("bought")
+    if not isinstance(ids, list):
+        return None
+    bill = doc.get("billed_per_event")
+    if isinstance(bill, list) and len(bill) == len(ids):
+        pairs = [(g, int(b or 0)) for g, b in zip(ids, bill)]
+    else:
+        pairs = [(g, spent(doc) / len(ids)) for g in ids]
+    return [(g, c) for g, c in pairs if isinstance(g, (str, int))]
+
+
+def buys(data, kinds):
+    """-> [(pulled_at, kind, credits spent, path, games)] for every paid snapshot
+    under `data` that SPENT credits, oldest path first; `games` is `games(doc)`.
+    `[2026-11-19]` For the watchdog's double-buy check. ⛔ A snapshot that bought
+    nothing (0 spent) is no buy, and an unreadable one is skipped, never a buy.
+    `pulled_at` is the snapshot's own, else its path's date and minute (UTC)."""
+    if not kinds:
+        return []
+    out = []
+    for key, kind, j, f in sorted(_paid_docs(data, kinds), key=lambda r: r[0]):
+        try:
+            n = spent(j)
+            bought = games(j)
+        except (TypeError, ValueError):
+            continue
+        if n <= 0:
+            continue
+        at = j.get("pulled_at") or "%sT%s:%s:00Z" % (key[0], key[1][:2], key[1][2:])
+        out.append((at, kind, n, f, bought))
+    return out
 
 
 def newest(rows):
