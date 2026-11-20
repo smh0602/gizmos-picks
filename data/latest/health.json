@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-20T00:47:18Z",
+ "checked_at": "2026-11-20T00:56:16Z",
  "et_date": "2026-11-19",
  "healthy": false,
  "broken": 0,
@@ -117,15 +117,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14412,
-  "pulled_at": "2026-11-19T20:52:47Z",
+  "balance": 14405,
+  "pulled_at": "2026-11-20T00:56:13Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 3.9,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-19T20:52:47Z",
-  "source": "data/nfl/2026-11-19/gamelines/2052.json.gz",
-  "readings_on_disk": 1790,
+  "newest_paid_pull": "2026-11-20T00:56:13Z",
+  "source": "data/nfl/2026-11-20/gamelines/0056.json.gz",
+  "readings_on_disk": 1791,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
@@ -160,7 +160,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 339,
+  "jobs_measured": 342,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46)"
