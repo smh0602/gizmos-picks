@@ -86,12 +86,63 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #   file: docs/upload/status.yml
 #   find:           if [ ! -s "$BODY" ]; then
 #   with:           if false; then
+#
+# @vacuity 🔴 [Sam, 2026-11-18] a calibration arm whose verdict reads QUALIFIES is under "Needs you"
+#   file: status.py
+#   find:     won += calibration_qualifies(root)
+#   with:     won += []
+#
+# @vacuity 🔴 ...and only one that QUALIFIES (NOT YET MEASURABLE needs nothing)
+#   file: status.py
+#   find:             if isinstance(x, dict) and x.get("verdict") == "QUALIFIES":
+#   with:             if isinstance(x, dict) and x.get("verdict") in ("QUALIFIES", "NOT YET MEASURABLE"):
+#
+# @vacuity 🔴 ...once per arm: the test pools both leagues, so both files carry it
+#   file: status.py
+#   find:                 found.setdefault(arm, []).append((name, path, x))
+#   with:                 found.setdefault(arm + name, []).append((name, path, x))
+#
+# @vacuity 🔴 ...and a file that is not an object never stops the email
+#   file: status.py
+#   find:         for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
+#   with:         for arm, x in sorted(doc.items()):
+#
+# @vacuity 🔴 [2026-11-19, review] ...with the prompt ready to paste, never "ask Claude"
+#   file: status.py
+#   find:                            "1. Paste this into Claude Code:", "", "```text", prompt, "```", "",
+#   with:                            "1. Ask Claude for the pull request that applies it.",
+#
+# @vacuity 🔴 ...and the merge clicks, as every other Needs-you item gives them
+#   file: status.py
+#   find:                            "4. Click \"Merge pull request\", then \"Confirm merge\" (or \"Close pull "
+#   with:                            "4. Merge it as usual (or \"Close pull "
+#
+# @vacuity 🔴 ...and the prompt names the files that say QUALIFIES
+#   file: status.py
+#   find:                       arm, " and ".join(p for _n, p, _x in got),
+#   with:                       arm, "the card-calibration file",
+#
+# @vacuity 🔴 [2026-11-19, review] ...and an arm Sam has applied asks nothing more
+#   file: status.py
+#   find:             if isinstance(x, dict) and x.get("applied"):
+#   with:             if False:
+#
+# @vacuity 🔴 ...one league's file saying applied is enough: the test is one test
+#   file: status.py
+#   find:         if arm in applied:
+#   with:         if False:
+#
+# @vacuity 🔴 ...and the prompt asks the apply PR to mark the arm applied, so the line stops
+#   file: status.py
+#   find:                   "same pull request, make fb_card_calibration.build store `applied: true` on arm `%s` "
+#   with:                   "same pull request, leave arm `%s` as fb_card_calibration.build stores it "
 """
 import atexit
 import datetime
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -327,3 +378,78 @@ ck("🔴 ...with a 13-hour-old one it is: \"Needs you\" and the what-to-do block
    and "check `watchdog:health`" in _b8, _b8[:120])
 ck("🔴 on a Monday it always is: the week, with a fresh health report too",
    S.today(tree(), NOW).startswith("Nothing needs you this week."))
+
+section("8. 🔴 A CALIBRATION ARM THAT QUALIFIES REACHES SAM [Sam, 2026-11-18]")
+# Sam: "plus a line in the Monday email if it ever qualifies" (research/fb_card_calibration_spec.md
+# §3a). Planted card-calibration.json files, as fb_card_calibration.build writes them.
+_ARM = {"n": 612, "mean_d": 0.031, "t": 2.4, "p": 0.0091, "clusters": 140, "verdict": "QUALIFIES",
+        "graded_picks": 790, "min_n": 500, "alpha": 0.05, "applied": False,
+        "method": "season-blend+props-own", "registered_from": "2026-11-23",
+        "spec": "research/fb_card_calibration_spec.md §3a"}
+_OLD = {"n": 70, "mean_d": None, "p": None, "clusters": 30, "verdict": "NOT YET MEASURABLE",
+        "graded_picks": 157, "min_n": 500, "applied": False, "superseded_by": "spec §3a [Sam, 2026-11-18]"}
+
+
+def cal_tree(arm, old=_OLD, leagues=("nfl", "ncaaf")):
+    t = tree()
+    for lg in leagues:
+        put(t, "data/%s/latest/card-calibration.json" % lg,
+            {"league": lg, "test": old, "test_after_fix": dict(old, method="season-blend"),
+             "test_reregistered": arm})
+    return t
+
+
+_want = ("the football props card's calibration test QUALIFIES in the NFL and College files (arm "
+         "test_reregistered: season-blend+props-own, games from 2026-11-23): the corrected confidence "
+         "predicted better than the printed one over 612 picks in 140 games, one-sided p = 0.0091 (it "
+         "needed 500 picks and p under 0.05)")
+_bq, _nq = S.build(cal_tree(_ARM), NOW)
+eq(_nq, [_want], "🔴🔴 an arm that QUALIFIES is under \"Needs you\": once (the test pools both leagues), with "
+   "its leagues, its arm, its method and date")
+ck("🔴 ...on the email's first line, then what to do: nothing changes until Sam decides",
+   _bq.splitlines()[0] == "Needs you: %s." % _want and ("**%s.**" % _want) in _bq
+   and "Nothing changes by itself" in _bq, _bq[:200])
+# `[2026-11-19, review]` CLAUDE.md rule 4: click by click, and the prompt ready to paste (an alert's form,
+#    watchdog.what_to_do), never "ask Claude for the pull request ... then merge it as usual".
+_qi = _bq[_bq.find("**%s.**" % _want):]
+_q0 = _qi.find("```text\n")
+_qs = _qi[_q0 + 8:_qi.find("\n```\n", _q0)] if _q0 >= 0 else ""
+ck("🔴 ...a prompt ready to paste: the arm, both leagues' files and §3a, Sam's usage check, never merge, no spend",
+   _qs.startswith("Read CLAUDE.md first") and "arm `test_reregistered`" in _qs
+   and "data/nfl/latest/card-calibration.json and data/ncaaf/latest/card-calibration.json" in _qs
+   and "research/fb_card_calibration_spec.md §3a" in _qs and W.USAGE_CHECK in _qs
+   and "never merge" in _qs and "No API spend" in _qs and "Never commit to main" in _qs, _qi[:400])
+_steps = [ln for ln in _qi.splitlines() if re.match(r"\d\. ", ln)]
+ck("🔴 ...then the clicks, numbered: paste it, open the PR, wait for the checks, merge (or close)",
+   [ln[:2] for ln in _steps[:4]] == ["1.", "2.", "3.", "4."] and _steps[0] == "1. Paste this into Claude Code:"
+   and "\"All checks have passed\"" in _steps[2]
+   and "\"Merge pull request\", then \"Confirm merge\"" in _steps[3] and "Close pull request" in _steps[3],
+   "got %r" % _steps)
+# `[2026-11-19, review]` THE LINE STOPS ONCE SAM HAS ACTED. The verdict pools every row the arm ever
+#    counted, so once it reads QUALIFIES it keeps reading it: without `applied`, every later Monday asked
+#    again, with the same prompt, after the apply PR had merged (a second, duplicate apply PR).
+ck("🔴 ...and the prompt asks that same PR to store `applied: true` on the arm, so the line stops",
+   "store `applied: true` on arm `test_reregistered`" in _qs, _qs[:600])
+_ba, _na = S.build(cal_tree(dict(_ARM, applied=True)), NOW)
+eq((_ba.splitlines()[0], _na, "calibration test" in _ba), ("Nothing needs you this week.", [], False),
+   "🔴🔴 an arm that QUALIFIES and is marked applied asks nothing more: no Needs-you line, no prompt")
+_t1 = cal_tree(_ARM, leagues=("ncaaf",))
+put(_t1, "data/nfl/latest/card-calibration.json",
+    {"league": "nfl", "test": _OLD, "test_after_fix": dict(_OLD, method="season-blend"),
+     "test_reregistered": dict(_ARM, applied=True)})
+eq(S.build(_t1, NOW)[1], [],
+   "🔴 ...and one league's file saying applied is enough (the other says it at its next card-fb pass)")
+eq(S.build(cal_tree(dict(_ARM, applied=False)), NOW)[1], [_want],
+   "   ✅ ...while `applied: false`, as the build writes it today, still asks")
+_bn, _nn = S.build(cal_tree(dict(_ARM, verdict="NOT YET MEASURABLE", n=40, p=None)), NOW)
+eq((_bn.splitlines()[0], _nn), ("Nothing needs you this week.", []),
+   "🔴 NOT YET MEASURABLE (and a superseded arm that is not QUALIFIES) needs nothing")
+_bo, _no = S.build(cal_tree(dict(_ARM, verdict="DOES NOT QUALIFY"), old=dict(_OLD, verdict="QUALIFIES", n=520,
+                                                                             p=0.01), leagues=("nfl",)), NOW)
+eq(_no, ["the football props card's calibration test QUALIFIES in the NFL file (arm %s, superseded): the "
+         "corrected confidence predicted better than the printed one over 520 picks in 30 games, one-sided "
+         "p = 0.01 (it needed 500 picks)" % a for a in ("test", "test_after_fix")],
+   "🔴 any stored arm that reads QUALIFIES is named, a superseded one too, with the league whose file says so")
+_tj = tree()
+put(_tj, "data/nfl/latest/card-calibration.json", ["not", "an", "object"])
+eq(S.build(_tj, NOW)[1], [], "🔴 a card-calibration.json that is not an object never stops the email")

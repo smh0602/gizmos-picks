@@ -4,7 +4,9 @@ Status: APPROVED BY SAM 2026-09-24 — rule in section 2 set by Sam before any s
 
 ⚠️ **Written and committed before any code that scores a calibration
 exists.** Sections 2 and 3 are hashed by `test_prereg_gate.py`, so neither
-can be edited after a result is seen.
+can be edited after a result is seen. `[Sam, 2026-11-18]` So is section
+3a, which re-registers the test; §2 and §3 are also pinned on their own,
+at the hash they had before it was added.
 
 ## In plain English (for Sam)
 
@@ -17,6 +19,13 @@ can be edited after a result is seen.
   better by a margin that is unlikely to be luck, over at least 500
   graded plays. Otherwise the printed number stays, and the card carries
   a visible warning.
+- `[Sam, 2026-11-18]` The test counted only cards made the old way, which
+  stopped in September, so it could never reach 500. Sam re-registered it
+  on the way the cards are made now, with the same test and the same
+  500-play bar. The details (which cards count, and only games from
+  Monday 2026-11-23 on) were set by Claude in section 3a, where Sam can
+  overrule them. If it ever qualifies, the Monday email says so under
+  "Needs you"; nothing changes on the card until Sam decides.
 
 ## 1. Scope and background
 
@@ -68,13 +77,82 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
 | After this PR | The test is re-scored every `card-fb` run and its status is shown. ⛔ **A later QUALIFIES is not applied automatically.** The page says it qualifies and is waiting for Sam, because changing what the card prints is Sam's decision; applying it is a separate PR. |
 | Reported beside the verdict, not part of it | Per-league mean log loss, raw and calibrated. Stated against actual, in 10-point bands, raw and calibrated, on the scored picks. The mapping (a, b) each week. |
 
+## 3a. Re-registered on the method the cards print now `[Sam's decision, 2026-11-18; definitions by Claude]`
+
+**Sam's decision, 2026-11-18** (changing a pre-registered test is his, rule 13). He was
+asked: *"The football props-card calibration test you pre-registered counts only cards built
+with the '2025-only' method, which stopped being used on 9-21 (NFL) and 9-19 (college). It has
+157 graded picks (95 after the fix) and needs 500, so it can never finish. What should happen
+to it?"* He chose *"Re-register on today's method (Recommended)"*: *"Same test and same
+500-pick bar, counting only picks from the new registration date on, plus a line in the Monday
+email if it ever qualifies."*
+
+Written and committed before any code that scores it existed, and before any game it counts
+kicked off. ~~Nothing above it is edited:~~ `[2026-11-19]` §2 and §3 are not edited; they are
+pinned on their own by `test_prereg_gate.py`. (The note at the top and the plain-English summary
+each gained a line about this section; neither is part of a rule.)
+
+⚠️ **Sam chose to re-register the test with the same bar (quoted above); he did not choose the
+details below.** The table's definitions beyond his choice (which card methods count as today's
+props method, the `+game-<name>` rule among them; the US Eastern kickoff-date filter; the
+2026-11-23 date and the reasoning after the table) were fixed by Claude before any code that
+scores them existed, so nothing can be tuned after seeing a result, and are disclosed here so
+Sam can overrule any of it. `[2026-11-19]` This paragraph was added after a review, before the
+section left its branch; no definition changed.
+
+| | |
+|---|---|
+| The method | `season-blend+props-own`: the props method every football card prints today, NFL and college alike. |
+| A card's props method | The card's `card_method` without the game model's part, `card_fb.game_method`'s `+game-<name>` (the last part `card_fb` appends). That part names the game model's champion, which makes the card's game lines; this test reads only the props rows (`days`), so `season-blend+props-own+game-HC` (college today) is the same method. Any other difference is a different method, and its rows are not counted: a props-model switch (`-last2`), signal 9 (`+signal9`) or a new props model prints a different number. |
+| The registration date | **2026-11-23**, a Monday. |
+| The picks | §3's picks (graded, rated rows of `days`, both leagues, a void left out) whose card's props method is the method above AND whose game kicks off on or after the registration date, by the kickoff's US Eastern date (`card_fb.et_date`). A row with no readable kickoff is left out. Nothing else is read: the weekly mapping is fitted only on these picks, so the first weeks after registration train it (no mapping before 150 picks, as §3) and are not scored. |
+| Everything else | Exactly §2 and §3: raw probability, weeks, the mapping, the scored predictions, log loss, the test (pooled over both leagues, clustered by game), the verdict (**QUALIFIES** needs n ≥ 500, mean d > 0 and one-sided p < 0.05; **NOT YET MEASURABLE** under 500; otherwise **DOES NOT QUALIFY**), and what is reported beside it (per-league log loss, the 10-point bands raw and calibrated, each week's mapping). Nothing is tuned. |
+| When it ends | Never by a date or a count. In a league whose props method changes, the later rows stop counting; registering again is Sam's. |
+| The earlier arms | §3's test (`2025-only`) and the fixed card's arm (`season-blend`, `[Sam, 2026-09-24]`) are still scored and stored as they are, labelled superseded by this section. |
+| If it qualifies | §3's "After this PR" holds: nothing is applied automatically; applying it is a separate PR and Sam's decision. The page has shown none of this since 2026-10-01, so the Monday email says it under "Needs you". |
+
+**Why 2026-11-23, and why written here.** This repo registers a section added by a merge in
+one of two ways: a date written into it (T65's `REGISTERED_FROM`, 2026-10-19, and T66 in
+`fb_refit_spec.md` §3a), or the first Monday AFTER the merge day, read from git (T71 to T75,
+§3e onward there). This test takes the first: the first Monday after the day this section was
+written and committed (2026-11-18).
+
+1. What it scores, the confidence each card prints, is published before kickoff whether or
+   not this section has merged, so the merge day decides nothing about which predictions
+   exist. Pre-registration needs every counted game to kick off after the rule was fixed; a
+   written date gives that and cannot move. A game between 2026-11-23 and a later merge still
+   counts, for the same reason.
+2. The test is scored in the collector's `card-fb` pass, whose checkout holds one commit
+   (collect.yml's `actions/checkout` sets no depth). Measured 2026-11-18 on a depth-1 clone:
+   git's answer for the day a line was added is the clone's own commit day (2026-11-18,
+   against 2026-11-10 in full history). A date read from git would move forward every run,
+   and the test would never start.
+3. A Monday, because §3's weeks run Monday to Sunday.
+
 ## 4. What runs
 
 - `fb_card_calibration.py` scores the rule above. It rides `card-fb` and
   writes `data/<league>/latest/card-calibration.json` (with a freshness
-  row), which the page reads.
+  row), ~~which the page reads~~ (the page has read none of it since
+  2026-10-01).
 - ⛔ It never edits the card, a published pick, or anything MLB. There is
   no cron change and no spend.
+- `[2026-11-18]` §3a as built: `counts` chooses the rows, `props_method`
+  removes `card_fb.game_method`'s part (`test_fb_card_calibration.py`
+  fails if card_fb ever appends anything after it), and the arm is
+  stored as `test_reregistered`, beside each league's newest graded day
+  ~~of its method~~ `[2026-11-19]` holding a row the arm counts
+  (`counts`: its method AND a readable kickoff from 2026-11-23) and of
+  any method (`newest_graded`). The two earlier
+  arms carry `superseded_by`. `status.py` puts any arm whose verdict
+  reads QUALIFIES under "Needs you" in the Monday email;
+  `watchdog.check_calibration_arm` reports DEGRADED (no repair, no
+  issue) when a league graded card rows in the last 14 days but none
+  ~~of a registered arm's method~~ `[2026-11-19]` the arm counts for
+  longer. A league that graded nothing (the off-season) is silent.
+  `[2026-11-19]` Neither reads an arm marked `applied`: the PR that
+  applies a QUALIFIES sets it (the email's paste prompt asks it to), and
+  one league's file saying so is enough for the email.
 
 ## Changelog
 
@@ -90,3 +168,42 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
     logit scale). Every printed confidence maps to roughly 50–53%, so on
     this evidence the printed number carries almost no information about
     which props hit.
+- **2026-11-18:** §3a added on Sam's decision: the same test re-registered
+  on `season-blend+props-own`, games from 2026-11-23, the same bar. Root
+  cause: §3 counted only `2025-only` rows, and the fixed card's arm only
+  rows whose whole method was `season-blend`; the cards stopped printing
+  both (the second when `+props-model` was appended, 2026-10-09), so both
+  sat below 500 for good, and nothing said so. Written before any code
+  that scores it; §2 and §3 are unchanged and pinned on their own by
+  `test_prereg_gate.py`.
+- **2026-11-19:** §3a's heading and a new paragraph under Sam's quote say
+  which parts are his (the re-registration and its bar) and which Claude
+  fixed (the props-method rule, the Eastern kickoff-date filter, the
+  2026-11-23 date). Mistake: the section was written under a heading
+  tagged with Sam's name only, so a later reader would take the date and
+  the method rule for his decisions. Caught in review before the branch
+  was pushed; no definition changed.
+- **2026-11-19:** the watchdog's "is the arm still fed?" day now asks
+  the arm's own rule (`counts`). Mistake: `newest_graded` asked the
+  props method alone, at any kickoff, so rows of today's method with no
+  readable kickoff (which the arm refuses) read as feeding it, and an
+  arm counting nothing would never have been reported. Root cause: the
+  watchdog's day was written as a second, looser copy of the arm's rule
+  instead of calling it. Caught in review before the branch was pushed;
+  no definition in §3a changed.
+- **2026-11-19:** §3a's "Nothing above it is edited" struck and replaced
+  with what is true: §2 and §3 are not edited. Mistake: the code commit
+  added a line to the note at the top and a plain-English bullet, both
+  above §3a, after §3a had said nothing above it was edited; the note's
+  "the text before it is pinned" now names §2 and §3. Root cause: a
+  sentence in a frozen section described the whole file when only §2
+  and §3 are pinned. Caught in review before the branch was pushed; no
+  definition changed.
+- **2026-11-19:** an arm the apply PR marks `applied` is no longer put
+  under "Needs you" or watched (§4); the paste prompt asks that PR to
+  mark it. Mistake: a QUALIFIES verdict pools every row the arm ever
+  counted, so it would have asked again every Monday after Sam acted,
+  and the watchdog would have called the applied arm starved once the
+  card's props method changed. Root cause: both read the verdict and
+  the method, never the arm's own `applied` field. Caught in review
+  before the branch was pushed.

@@ -1434,6 +1434,60 @@ def check_fb_refit(rep, now):
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🔴 A REGISTERED CALIBRATION ARM THAT CAN NEVER FINISH IS VISIBLE. `[Sam, 2026-11-18]`
+# ══════════════════════════════════════════════════════════════════════
+# The football props card's calibration test (research/fb_card_calibration_spec.md) counted
+# only `2025-only` rows for eight weeks after the cards stopped printing them, stuck at 157 of
+# its 500, and nothing said so. Sam re-registered it (§3a). ✅ THE CLASS: every arm a league's
+# card-calibration.json stores with a registered method and date (`method`, `registered_from`)
+# and no `superseded_by`. When that league graded card rows in the last CAL_STARVED_DAYS but
+# none the arm counts for longer, it is DEGRADED. ⛔ No repair and no issue: no rebuild feeds
+# it, and registering again is Sam's (rule 13). A league that graded nothing in the window
+# (the off-season) is silent. The days are fb_card_calibration.newest_graded's, read from the
+# file: this module imports no model. `[2026-11-19, review]` "Counts" is the arm's own rule
+# (its props method AND a readable kickoff from its date), so a row of its method the arm
+# refuses is not "fed", and the finding says which of the two it can be. `[2026-11-19, review]`
+# An arm marked `applied` is not watched either: once Sam has applied it, the card's props
+# method is expected to change and stop feeding it, and that is not a defect.
+CAL_STARVED_DAYS = 14
+
+
+def check_calibration_arm(rep, now):
+    today = datetime.date.fromisoformat(_et_today(now))
+    for lg in ("nfl", "ncaaf"):
+        doc = _read(os.path.join(ROOT, "data", lg, "latest", "card-calibration.json"))
+        for name, arm in sorted(doc.items() if isinstance(doc, dict) else []):
+            if not isinstance(arm, dict) or not (arm.get("method") and arm.get("registered_from")):
+                continue
+            if arm.get("superseded_by"):
+                continue
+            if arm.get("applied"):
+                continue
+            seen = (arm.get("newest_graded") or {}).get(lg) or {}
+            mine, other = seen.get("method"), seen.get("any")
+            try:
+                idle = (today - datetime.date.fromisoformat(mine or arm["registered_from"])).days
+                fed = bool(other) and (today - datetime.date.fromisoformat(other)).days <= CAL_STARVED_DAYS
+            except (TypeError, ValueError):
+                continue
+            if idle > CAL_STARVED_DAYS and fed:
+                rep.warn("calibration:%s:%s" % (lg, name),
+                         "the %s card's graded picks no longer count toward Sam's calibration test "
+                         "(%s): none it counts (method %s, games from %s) for %d days, while the "
+                         "card graded others up to %s" % (lg.upper(), name, arm["method"],
+                                                          arm["registered_from"], idle, other),
+                         "data/%s/latest/card-calibration.json: the newest card day with a graded "
+                         "row the test counts is %s; with any graded row, %s. The test counts only "
+                         "rows of %s whose game kicks off (US Eastern date) on or after %s "
+                         "(research/fb_card_calibration_spec.md §3a), so this league adds nothing "
+                         "to it. If the card's props method changed, registering the test again is "
+                         "Sam's (rule 13); if rows of %s are still graded, their kickoff is missing "
+                         "or unreadable (record-detail.json.gz `commence`), a grader defect." % (
+                             lg, mine or "none", other, arm["method"], arm["registered_from"],
+                             arm["method"]))
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 🔴 A SCHEDULED LEARNER THAT NEVER LANDS ITS FILE IS VISIBLE. `[R1, 2026-10-18]`
 # ══════════════════════════════════════════════════════════════════════
 # The weekly learners (fb-refit, mlb-refit, t60r) each run on their own cron and
@@ -1683,6 +1737,8 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_credit_reconciliation,
           # `[Sam, 2026-10-12]` the football model's weekly contest, DEGRADED only.
           check_fb_refit,
+          # `[Sam, 2026-11-18]` a calibration arm its league stopped feeding, DEGRADED only.
+          check_calibration_arm,
           # `[2026-11-13]` no job or test file near its own clock, DEGRADED only.
           check_job_clocks,
           # `[R1, 2026-10-18]` every scheduled learner lands its file, DEGRADED only.

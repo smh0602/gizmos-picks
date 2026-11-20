@@ -346,6 +346,68 @@ def refit_wins(doc, name):
     return out
 
 
+def calibration_qualifies(root):
+    """`[Sam, 2026-11-18]` "plus a line in the Monday email if it ever qualifies": [(the "Needs you"
+    item, what to do)] for every arm of the football props card's calibration test
+    (research/fb_card_calibration_spec.md) whose stored verdict reads QUALIFIES, named by arm and
+    league. One item per arm: the test pools both leagues, so both leagues' files carry it.
+    ⛔ Nothing is applied by itself (spec §3): what the card prints changes only by Sam's decision,
+    in a separate PR. Read from the files: status.py imports no model.
+    `[2026-11-19, review]` An arm marked `applied` (the apply PR sets it, as the prompt below asks)
+    needs nothing more: its verdict pools every row it ever counted, so it would read QUALIFIES,
+    and ask again, every Monday after Sam had acted. One league's file saying so is enough (the
+    test is one test; the other league's file says it at its own next card-fb pass)."""
+    found, applied = {}, set()
+    for name, d in FB:
+        path = "%s/latest/card-calibration.json" % d
+        doc = _read(os.path.join(root, path))
+        for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
+            if isinstance(x, dict) and x.get("applied"):
+                applied.add(arm)
+                continue
+            if isinstance(x, dict) and x.get("verdict") == "QUALIFIES":
+                found.setdefault(arm, []).append((name, path, x))
+    out = []
+    for arm, got in sorted(found.items()):
+        if arm in applied:
+            continue
+        x = got[0][2]
+        what = ("the football props card's calibration test QUALIFIES in the %s file%s (arm %s%s%s): the "
+                "corrected confidence predicted better than the printed one over %s picks in %s games, "
+                "one-sided p = %.4g (it needed %s picks%s)" % (
+                    " and ".join(n for n, _p, _x in got), "s" if len(got) > 1 else "", arm,
+                    ": %s, games from %s" % (x["method"], x["registered_from"])
+                    if x.get("method") and x.get("registered_from") else "",
+                    ", superseded" if x.get("superseded_by") else "",
+                    x.get("n"), x.get("clusters"), x.get("p") or 0.0, x.get("min_n"),
+                    " and p under %g" % x["alpha"] if x.get("alpha") is not None else ""))
+        # `[2026-11-19, review]` CLAUDE.md rule 4: click by click, with the prompt ready to paste
+        #    (watchdog.what_to_do's form). There is no branch yet: Claude opens the PR, Sam merges it.
+        prompt = ("Read CLAUDE.md first and follow every rule in it. The football props card's "
+                  "calibration test, arm `%s`, reads QUALIFIES in %s (%s). Sam has decided to apply it: "
+                  "open ONE pull request that does what research/fb_card_calibration_spec.md section 2 "
+                  "says (the card prints the calibrated confidence in place of the raw one, and the pick "
+                  "rule uses it), with a guard test that is red under its own @vacuity mutation. In the "
+                  "same pull request, make fb_card_calibration.build store `applied: true` on arm `%s` "
+                  "(it is still scored and stored), so the Monday email stops asking for it and the "
+                  "watchdog stops watching it. Change "
+                  "no published pick, no model coefficient and no test's bar. Never commit to main and "
+                  "never merge it. No API spend.\n\n%s\n\n⛔ Do not tell Sam it is done until the "
+                  "pr-tests check shows GREEN on GitHub." % (
+                      arm, " and ".join(p for _n, p, _x in got),
+                      x.get("spec") or "research/fb_card_calibration_spec.md",
+                      arm, W.USAGE_CHECK))
+        out.append((what, ["Nothing changes by itself: the card keeps printing its own number until you "
+                           "decide (rule 13). To keep the card's own number, do nothing.",
+                           "To print the corrected number instead:",
+                           "1. Paste this into Claude Code:", "", "```text", prompt, "```", "",
+                           "2. Open the pull request link Claude gives you.",
+                           "3. Wait until the box at the bottom says \"All checks have passed\".",
+                           "4. Click \"Merge pull request\", then \"Confirm merge\" (or \"Close pull "
+                           "request\" to keep the card's own number)."]))
+    return out
+
+
 def injury_recorded(root, lg):
     """`[2026-10-26]` Does THIS tree's research/fb_sim_backtest.json hold `lg`'s injury entry?
     (It reaches main only by Sam's merge of the injury branch.)"""
@@ -455,6 +517,7 @@ def build(root=ROOT, now=None):
     won = [w for name, d, doc in refit for w in refit_wins(doc, name) + props_wins(
         doc, name, props_switched(root, d.split("/")[-1])) + injury_branch(
         doc, name, injury_recorded(root, d.split("/")[-1]))]
+    won += calibration_qualifies(root)        # `[Sam, 2026-11-18]` spec §3a
     needs = [f["what"] for f in broken] + [w[0] for w in won]
     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
     for what, clicks in won:

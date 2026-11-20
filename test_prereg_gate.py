@@ -78,6 +78,31 @@ claim that can be wrong (rule 166).
 #   find: - **History rows train; they are never scored.** The rows H and HC add (§3d's older seasons)
 #   with: - **History rows train; they are scored too.** The rows H and HC add (§3d's older seasons)
 #
+# @vacuity 🔴 card calibration §3a [Sam, 2026-11-18]: any edit to the registration date goes red
+#   file: research/fb_card_calibration_spec.md
+#   find: | The registration date | **2026-11-23**, a Monday. |
+#   with: | The registration date | **2026-11-30**, a Monday. |
+#
+# @vacuity 🔴 card calibration §3a: ...and to the method it is registered on
+#   file: research/fb_card_calibration_spec.md
+#   find: | The method | `season-blend+props-own`: the props method every football card prints today, NFL and college alike. |
+#   with: | The method | `season-blend+props-own-last2`: the props method every football card prints today, NFL and college alike. |
+#
+# @vacuity 🔴🔴 card calibration: a one-character edit to §3, written before §3a, still goes red (FROZEN's whole-region hash; the pin's presence is the lettered-section class check's, below)
+#   file: research/fb_card_calibration_spec.md
+#   find: | Verdict | **QUALIFIES** if n ≥ 500, mean d > 0 and p < 0.05.
+#   with: | Verdict | **QUALIFIES** if n ≥ 400, mean d > 0 and p < 0.05.
+#
+# @vacuity 🔴🔴 [2026-11-19, review] a lettered section 3 outside the hashed region goes red (nothing would freeze it)
+#   file: research/fb_card_calibration_spec.md
+#   find: ## Changelog
+#   with: ## 3a. Changelog
+#
+# @vacuity 🔴 ...and a new one there, with no pin, too
+#   file: research/fb_model_live_spec.md
+#   find: ## Changelog
+#   with: ## 3z. Changelog
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -171,7 +196,21 @@ FROZEN = {
     "fb_model_lambda_spec.md": "0d04a78d959d75097a24196e282d6aa48fed5455fdbfb00e9952fde67d54ca8b",
     # [Sam, 2026-09-24] rule in section 2 before any scoring; section 3
     # fixed by Claude before any scoring code existed.
-    "fb_card_calibration_spec.md": "73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda",
+    # ~~"73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda"~~
+    # [Sam, 2026-11-18] "Re-register on today's method (Recommended)": "Same test and same 500-pick
+    # bar, counting only picks from the new registration date on, plus a line in the Monday email
+    # if it ever qualifies." Section 3a: its definitions (season-blend+props-own, games from
+    # 2026-11-23) fixed by Claude and disclosed there as Claude's, written before any code that
+    # scores it; §2 and §3 are pinned on their own below. ⛔ It moved because SAM changed the test
+    # (rule 13), not because a result was seen.
+    # ~~"b8c438a2f64a94e550d2eaa33a56238bb8738ed66112360d8e1c1a7ff15e95b1"~~ [2026-11-19, review,
+    # before the branch was pushed] 3a's heading and a paragraph saying which parts are Claude's;
+    # no definition changed.
+    # ~~"0bb98339ac70d2b201720e582977d29b2f3039dd14264675ad59d76a02d49441"~~ [2026-11-19, review
+    # round 2, before the branch was pushed] 3a's "Nothing above it is edited" struck: the note at
+    # the top and the plain-English summary had each gained a line; it now says §2 and §3 are not
+    # edited. No definition changed.
+    "fb_card_calibration_spec.md": "9d0e864388fb930364e3c074bf98c8f1710b187c9acafcdb925568b9e234019b",
     # [Sam, 2026-09-24] ship rule in section 2 before any result; the
     # formula and scoring in section 3 fixed by Claude before any scoring.
     "fb_card_fix_spec.md": "8162387a90aaae4228a661e898cbe72c9e8cd3ee4d6ed2ebbbfcfed7f05715a1",
@@ -259,7 +298,8 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3i. ", "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd"),
                  ("fb_refit_spec.md", "\n## 3j. ", "ab46a495ddf77fac50b7d880d2e54241ec4c5786142b2d2b449c1301d5e52f10"),
                  ("fb_refit_spec.md", "\n## 3k. ", "280d3576ae1d6db18a5052e28a77408e0f1d83e7b83d73bc4548438ce95f20df"),
-                 ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
+                 ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398"),
+                 ("fb_card_calibration_spec.md", "\n## 3a. ", "73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda")]
 
 
 def frozen_region(text):
@@ -301,6 +341,38 @@ for _name, _stop, _want in FROZEN_BEFORE:
     ck("🔴🔴 %s: the rule frozen before %r was added is unchanged" % (_name, _stop.strip()),
        0 <= _i < _j and hashlib.sha256(_txt[_i:_j].encode("utf-8")).hexdigest() == _want,
        "⛔ the earlier test's rule moved when a new one was added beside it")
+
+# 🔴🔴 THE CLASS: EVERY LETTERED SECTION 3 OF A FROZEN SPEC IS HASHED AND PINNED. `[2026-11-19, review]`
+#    Adding a section beside an approved rule (`## 3a. `, `## 3b. ` ...) moves that spec's FROZEN hash,
+#    legitimately, when Sam changes the test. What then keeps an edit to the EARLIER text, slipped in at
+#    the same moment, visible is that section's own FROZEN_BEFORE pin, and nothing failed when a pin was
+#    missing. Measured on the card-calibration spec with its pin deleted: §3's "n ≥ 500" edited to 400
+#    and FROZEN re-hashed to the edited file passed (rc 0); with the pin kept it is red. So every such
+#    heading has its pin, and lies inside the hashed region (`## 2. ` .. `## 4. `): a section added
+#    after `## 4. ` would be frozen by nothing at all.
+#    ⚠️ The pin's presence has no @vacuity line of its own: a mutation of THIS file would have to
+#    `find` text its own declaration repeats, so it never matches once (vacuity.rotted). Deleting the
+#    card-calibration pin was run by hand on 2026-11-19 and turned this check red.
+_LETTERED = re.compile(r"\n## (3[a-z])\. ")
+_pinned = {(_n, _s) for _n, _s, _h in FROZEN_BEFORE}
+_unpinned, _outside = [], []
+for _name in sorted(FROZEN):
+    _p = os.path.join(ROOT, "research", _name)
+    if not os.path.exists(_p):
+        continue
+    _txt = open(_p, encoding="utf-8").read()
+    _i, _j = _txt.find("\n## 2. "), _txt.find("\n## 4. ")
+    for _h in _LETTERED.finditer(_txt):
+        if (_name, "\n## %s. " % _h.group(1)) not in _pinned:
+            _unpinned.append((_name, _h.group(1)))
+        if not 0 <= _i < _h.start() < _j:
+            _outside.append((_name, _h.group(1)))
+ck("🔴🔴 every lettered section 3 of a frozen spec has its own FROZEN_BEFORE pin, so the rule frozen "
+   "before it can never move unseen", not _unpinned,
+   "⛔ unpinned (spec, section): %r. Pin the text from `## 2. ` up to the heading at the hash it "
+   "had BEFORE the section was added (git show <that commit>:research/<spec>)" % _unpinned)
+ck("🔴🔴 ...and lies inside the hashed region (`## 2. ` to `## 4. `), so its own rule is frozen too",
+   not _outside, "⛔ outside the frozen region (spec, section): %r" % _outside)
 
 # 🔴 T60R's power table, recomputed from the formula T60 used.
 _spec = os.path.join(ROOT, "research", "t60r_spec.md")
