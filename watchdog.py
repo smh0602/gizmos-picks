@@ -1201,8 +1201,8 @@ def check_credit_reconciliation(rep, now):
 
 
 # 💰 `[2026-11-19]` ONE DEADLINE, ONE BUY, AND A SECOND BUY IS VISIBLE. Since 09-21
-#    GitHub starts scheduled runs 6-10 hours late; 11-12 -> 11-19 a late football
-#    gamelines cron bought again a deadline already bought and on main 19 times (194
+#    GitHub starts scheduled runs 6-10 hours late; 11-13 -> 11-20 a late football
+#    gamelines cron bought again a deadline already bought and on main 21 times (206
 #    credits), and runs racing one deadline bought it again 7 more times (449, the
 #    college props pull 3x158 on 11-14) and re-bought 83 alt-line games (166).
 #    `freshness.stand_down` now stops the first kind; this makes ANY repeat visible,
@@ -1213,12 +1213,12 @@ def check_credit_reconciliation(rep, now):
 #    spend, and nothing a run can do gets it back.
 # ⚠️ FOOTBALL ONLY: MLB's in-season props pattern (two kinds a deadline, the us2 backup
 #    on the same directory) has not been measured against this rule yet.
-# 🔴 alt-lines IS KEYED BY GAME, NOT BY DEADLINE (~~alt-lines IS EXEMPT~~): it buys each
+# 🔴 alt-lines IS KEYED BY GAME, NOT BY DEADLINE: it buys each
 #    game once, at the last props deadline before its kickoff (`collect.alt_plan`), so a
 #    later pass for one deadline that buys only games not bought yet is a top-up, and a
 #    game in two buys' `bought` lists is a double buy whatever the deadline
-#    (`credits.games`). ~~Exempt~~ hid 11-14's 19:04Z, 19:12Z and 19:14Z college passes,
-#    each of which bought the same 40 games before any had landed (160 credits).
+#    (`credits.games`). Keyed so, it names 11-14's 19:04Z, 19:12Z and 19:14Z college
+#    passes, each of which bought the same 40 games before any had landed (160 credits).
 DOUBLE_BUY_H = 48
 DOUBLE_BUY_BY_GAME = {"alt-lines"}
 

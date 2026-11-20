@@ -329,7 +329,7 @@ note boxes, tags and the stale bar now require their absence.
 | **ONE projection per player per stat, the same everywhere** | ~~A projection is an INVERSION of the displayed confidence... do not print `central`~~ — **BOTH RETIRED 2026-08-27, ledger rule 66.** Inversion made the projection a property of the ROW, so every rung of one ladder implied a different number: 51 of 608 player-market combos disagreed with themselves, worst 2.1 K. Sam: *"you should have the same numbers across the entire website."* ✅ Pitchers now show the model's own `central` (E[K] / mu), hitters their own per-game mean — both line-independent by construction. `apply_projections()` is the ONLY writer of the field. ⛔ Still do not compute one in JavaScript; that is a second copy of the model. |
 | **THE REGION IS THE PRICE, NOT THE BOOK LIST** | Cost is `markets × REGIONS × games` and **books are FREE inside a region** — one `us,us2` pull returned **18 books for 6 credits** (measured 2026-08-26). `BOOKS` is applied AFTER the response arrives; it is a display filter and saves nothing. ⛔ Do not try to cut credits by dropping books. Only dropping a REGION halves a pull, and `us2` is the region Hard Rock lives in. |
 | **The budget is DERIVED, not written down** | `python budget.py` reads the cron schedule out of the workflow and the market lists out of `collect.py` and computes the spend. ⛔ Do not put a credit total in a comment — this project has done it three times and been wrong twice. Run the script. |
-| **Every props pull is scheduled TWICE, 15 minutes apart** | The backup costs **nothing** when the first one landed: `props_is_fresh()` stands it down ~~inside a 45-minute window~~ `[2026-10-24]` once a pull has landed for the deadline in force, which is the contract's own answer (`freshness.pull_owed`). A pull the contract owes is never stood down: the 45-minute window refused the owed pull because one had landed 23 minutes before the deadline, and turned collect red (10-18, 10-24). GitHub drops scheduled runs — only 29 of 70 gamelines hour-slots produced a file, measured 2026-08-26 — and with three props pulls a day one drop is a third of the board's freshness. ⛔ The guard keys on the STORAGE DIRECTORY, not the region, so a cheap `us2` backup stands down behind a full `us,us2` primary. `[2026-11-19]` One deadline, one buy: a late cron's PAID mode now stands down like a metered one (`freshness.stand_down`, the same `served()` rule) when every row it builds is inside contract and was built for the deadline that cron fires for; a pull the contract owes is still bought, and `pull_owed` is unchanged. A late football gamelines cron had re-bought a deadline already on main 19 times, 194 credits, 11-12 to 11-19 (`test_paid_standdown.py`). |
+| **Every props pull is scheduled TWICE, 15 minutes apart** | The backup costs **nothing** when the first one landed: `props_is_fresh()` stands it down ~~inside a 45-minute window~~ `[2026-10-24]` once a pull has landed for the deadline in force, which is the contract's own answer (`freshness.pull_owed`). A pull the contract owes is never stood down: the 45-minute window refused the owed pull because one had landed 23 minutes before the deadline, and turned collect red (10-18, 10-24). GitHub drops scheduled runs — only 29 of 70 gamelines hour-slots produced a file, measured 2026-08-26 — and with three props pulls a day one drop is a third of the board's freshness. ⛔ The guard keys on the STORAGE DIRECTORY, not the region, so a cheap `us2` backup stands down behind a full `us,us2` primary. `[2026-11-19]` One deadline, one buy: a late cron's PAID mode now stands down like a metered one (`freshness.stand_down`, the same `served()` rule) when every row it builds is inside contract and was built for the deadline that cron fires for; a pull the contract owes is still bought, and `pull_owed` is unchanged. A late football gamelines cron had re-bought a deadline already on main 21 times, 206 credits, 11-13 to 11-20 (`test_paid_standdown.py`). |
 | **Paid pulls are anchored to the CARDS** | The full two-region pull runs at 14:08–14:28Z, immediately before the 14:46Z card. ⛔ Do not move it later "to be fresher" — a noon pull lands AFTER the morning card, which then falls back to the 4am prices, 6¾ hours stale. |
 | **Five books for MLB, THREE for football** (`BOOKS`, `FB_BOOK_KEYS` in collect.py) | MLB: Hard Rock, DraftKings, FanDuel, Caesars (`williamhill_us`), BetMGM — Sam, 2026-08-23. **Football: Hard Rock, FanDuel, DraftKings only — Sam, 2026-09-22 ("just use those three").** `league_books()` is the one filter. Hard Rock's Ohio skin is the same book and is never counted twice. ⚠️ Props still pull `us,us2`; books are free inside a region, so this changes what is shown, not what is spent. A price from a book he cannot bet is not a better price. |
 | **`picks/<date>.json` already written** | Published estimates are a permanent record. ⛔ Never edit or delete one after its games have started. |
@@ -1369,13 +1369,11 @@ note boxes, tags and the stale bar now require their absence.
   snapshot of the last 48 hours that spent credits (`credits.buys`, the snapshots' own
   bills), keyed by the contract deadline in force when it was pulled
   (`freshness.paid_times`); a deadline bought more than once -> `double-buy:<kind>:<lg>`,
-  DEGRADED, no repair. alt-lines is keyed by GAME instead (`credits.games`; ~~alt-lines is
-  exempt~~, the first draft, whose premise that a second pass only buys new games the stored
-  snapshots disproved in review): it buys each
+  DEGRADED, no repair. alt-lines is keyed by GAME instead (`credits.games`): it buys each
   game once (`collect.alt_plan`), so a game in two buys' `bought` lists is a double buy
   whatever the deadline, and a top-up of games not bought yet is silent. MLB is not asked
-  until its in-season props pattern is measured. 11-12 to 11-19 it would have named 19
-  late re-buys (194 credits, now stood down) and, from runs that raced one deadline
+  until its in-season props pattern is measured. 11-13 to 11-20 it would have named 21
+  late re-buys (206 credits, now stood down) and, from runs that raced one deadline
   before either landed (which no stand-down can see), 7 buys (449 credits) and 83 alt-line
   game buys (166; 11-14's 19:04Z, 19:12Z and 19:14Z passes each bought the same 40 games).
   `test_double_buys.py`.
@@ -1861,8 +1859,8 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   the contract owes, a dispatch, ~~a paid mode,~~ and the Sunday
                   14:35Z rebuild all run as before. `test_cron_stand_down.py`.
                   `[2026-11-19]` A mode with a PAID row stands down by the same
-                  rule (a late gamelines cron re-bought its deadline 19 times,
-                  194 credits, 11-12 -> 11-19); STAND_DOWN stays the free list.
+                  rule (a late gamelines cron re-bought its deadline 21 times,
+                  206 credits, 11-13 -> 11-20); STAND_DOWN stays the free list.
                   `paid_times`: each paid row's deadlines, for the watchdog's
                   double-buy check. `test_paid_standdown.py`.
                   `[Sam, 2026-10-26]` the `injury-check` row: `INJURY_CHECK_ET`

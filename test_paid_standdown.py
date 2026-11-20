@@ -6,7 +6,7 @@ ONE DEADLINE, ONE BUY: A LATE CRON DOES NOT BUY AGAIN WHAT ITS DEADLINE ALREADY 
 `freshness.stand_down` answered None for every mode outside STAND_DOWN (the
 free metered list), so a late football `gamelines` cron (`2 11`, `4 19`,
 `7 12`, `6 18`) bought again a deadline another pass had already bought and
-landed on main: 19 such re-buys, 194 credits, 11-12 -> 11-19, counted from
+landed on main: 21 such re-buys, 206 credits, 11-13 -> 11-20, counted from
 the stored snapshots.
 
 ✅ A mode with a PAID contract row now stands down exactly as a metered one
@@ -89,9 +89,9 @@ _EVENTS = itertools.count()
 
 def event(cron, name="schedule"):
     """A GitHub event file for a run `cron` started -> its env.
-    ⚠️ Each file its own name, whatever else sits in _TMP: ~~named by the count
-    of files there~~, §4's 43 crons (no tree beside them) all wrote ONE file,
-    so the property was asked of the last cron 43 times (review, 11-19)."""
+    ⚠️ Each file its own name (a counter), whatever else sits in _TMP: named by
+    the count of files there, §4's 43 crons (no tree beside them) would all write
+    ONE file, and the property would be asked of the last cron 43 times."""
     p = os.path.join(_TMP, "event-%d.json" % next(_EVENTS))
     with open(p, "w", encoding="utf-8") as fh:
         json.dump({"schedule": cron}, fh)
@@ -424,8 +424,8 @@ eq(broke, 0, "🔴🔴 NEVER a stand-down without that deadline's pull: %d of %d
 
 shutil.rmtree(_TMP, ignore_errors=True)
 
-note("💰 WHAT IT SAVES, MEASURED 11-12 -> 11-19 from the stored snapshots: 19 late "
-     "re-buys of a football gamelines deadline already on main, 194 credits (~28 a "
+note("💰 WHAT IT SAVES, MEASURED 11-13 -> 11-20 from the stored snapshots: 21 late "
+     "re-buys of a football gamelines deadline already on main, 206 credits (~29 a "
      "day). Runs RACING one deadline (7 buys, 449 credits, and 83 alt-line game buys, 166) "
      "are not stopped here: neither could see the other's pull (watchdog `double-buy:*` "
      "names them).")

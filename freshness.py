@@ -2432,8 +2432,8 @@ SOURCE_BACKED = {"cfb-probe", "nfl-logs", "fb-scores"}
 # 🔴 `[2026-11-19]` ONE DEADLINE, ONE BUY: A PAID MODE STANDS DOWN THE SAME WAY.
 #    Since 09-21 GitHub starts scheduled runs 6-10 hours late, and a late
 #    football `gamelines` cron (`2 11`, `4 19`, `7 12`, `6 18`) bought again a
-#    deadline another pass had already bought and landed on main: 19 such
-#    re-buys, 194 credits, 11-12 -> 11-19 (counted from the stored snapshots).
+#    deadline another pass had already bought and landed on main: 21 such
+#    re-buys, 206 credits, 11-13 -> 11-20 (counted from the stored snapshots).
 #    ✅ `stand_down` asks STAND_DOWN (the free metered modes) OR any mode with a
 #    PAID contract row (`gamelines`, `props-player`, `alt-lines`), by the same
 #    `served()` / SERVES_MIN rule, unchanged. ⛔ A pull the contract owes is

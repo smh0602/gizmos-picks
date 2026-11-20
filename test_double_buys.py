@@ -2,9 +2,9 @@
 """
 ONE DEADLINE BOUGHT TWICE IS VISIBLE (watchdog.check_double_buys).
 
-💰 `[2026-11-19]` 11-12 -> 11-19 the stored snapshots show football deadlines
-bought more than once: 19 late gamelines re-buys of a deadline already on main
-(194 credits, which `freshness.stand_down` now stops) and 7 buys by runs that
+💰 `[2026-11-19]` 11-13 -> 11-20 the stored snapshots show football deadlines
+bought more than once: 21 late gamelines re-buys of a deadline already on main
+(206 credits, which `freshness.stand_down` now stops) and 7 buys by runs that
 raced one deadline (449 credits; on 11-14 the college props pull 3 x 158),
 whose alt-line top-ups bought the same games again (83 game buys, 166 credits:
 11-14's 19:04Z, 19:12Z and 19:14Z passes each bought the same 40 games).
@@ -13,8 +13,7 @@ DEGRADED with no repair, for any football deadline bought more than once in
 the last 48 hours, read from the snapshots' own bills through `credits.buys`,
 and for any alt-line GAME bought more than once (`credits.games`):
 `collect.alt_plan` buys each game once, so its repeats are keyed by game,
-whatever the deadline (~~alt-lines exempt~~: the review found the 160 credits
-the exemption hid).
+whatever the deadline.
 
 ⛔ IT MUST NOT FIRE ON CORRECT DATA: one buy, two buys for two deadlines, a
 snapshot that spent nothing, a backup that stood down (it writes nothing),

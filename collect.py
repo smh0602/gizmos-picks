@@ -6149,7 +6149,7 @@ def converge(explicit=(), allow_paid=True):
         #    day after an hourly pass had built cfb-probe for its deadline,
         #    ~37 calls a day. ⛔ Only a free metered mode (`[2026-11-19]` or a
         #    mode with a PAID row: a late football gamelines cron re-bought a
-        #    deadline already on main 19 times, 194 credits, 11-12 -> 11-19),
+        #    deadline already on main 21 times, 206 credits, 11-13 -> 11-20),
         #    only when every row
         #    it builds is inside contract and was built for this cron (after
         #    the deadline it fires for, else after its own minute); anything
