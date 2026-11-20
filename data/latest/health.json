@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-20T13:44:32Z",
+ "checked_at": "2026-11-20T16:32:27Z",
  "et_date": "2026-11-20",
  "healthy": false,
  "broken": 0,
- "degraded": 15,
+ "degraded": 16,
  "findings": [
   {
    "key": "late:cfb-probe:ncaaf",
@@ -44,8 +44,15 @@
   {
    "key": "late:alt-lines:nfl",
    "severity": "DEGRADED",
-   "what": "nfl alt-lines was built 163 minutes after it was due",
-   "why": "due 2026-11-20T11:00Z, built 2026-11-20T13:42Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "what": "nfl alt-lines was built 91 minutes after it was due",
+   "why": "due 2026-11-20T15:00Z, built 2026-11-20T16:31Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:card-fb:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl card-fb was built 62 minutes after it was due",
+   "why": "due 2026-11-20T15:30Z, built 2026-11-20T16:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -72,8 +79,8 @@
   {
    "key": "late:news:nfl",
    "severity": "DEGRADED",
-   "what": "nfl news was built 176 minutes after it was due",
-   "why": "due 2026-11-19T14:05Z, built 2026-11-19T17:00Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "what": "nfl news was built 147 minutes after it was due",
+   "why": "due 2026-11-20T14:05Z, built 2026-11-20T16:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -86,15 +93,15 @@
   {
    "key": "late:props-board:nfl",
    "severity": "DEGRADED",
-   "what": "nfl props-board was built 164 minutes after it was due",
-   "why": "due 2026-11-20T11:00Z, built 2026-11-20T13:43Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "what": "nfl props-board was built 92 minutes after it was due",
+   "why": "due 2026-11-20T15:00Z, built 2026-11-20T16:31Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:props-player:nfl",
    "severity": "DEGRADED",
-   "what": "nfl props-player was built 163 minutes after it was due",
-   "why": "due 2026-11-20T11:00Z, built 2026-11-20T13:42Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "what": "nfl props-player was built 91 minutes after it was due",
+   "why": "due 2026-11-20T15:00Z, built 2026-11-20T16:31Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -117,15 +124,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14192,
-  "pulled_at": "2026-11-20T13:43:35Z",
+  "balance": 14126,
+  "pulled_at": "2026-11-20T16:31:29Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-20T13:43:35Z",
-  "source": "data/nfl/2026-11-20/props-player/1343.json.gz",
-  "readings_on_disk": 1802,
+  "newest_paid_pull": "2026-11-20T16:31:29Z",
+  "source": "data/nfl/2026-11-20/props-player/1631.json.gz",
+  "readings_on_disk": 1804,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
@@ -160,7 +167,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 426,
+  "jobs_measured": 427,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46)"
