@@ -1587,7 +1587,8 @@ fb_card_calibration.py  the football props card's stated-vs-actual bands
                   in the Monday email with a prompt to paste (status.py);
                   an arm with no row it counts for over 14 days while its
                   league grades others is DEGRADED
-                  (`watchdog.check_calibration_arm`).
+                  (`watchdog.check_calibration_arm`). Neither reads an
+                  arm marked `applied`, which the apply PR sets.
                   `test_fb_card_calibration.py`.
 fb_card_fix.py    scores the football props card's season fix (reads 2026
                   first, 2025 as the start, shrunk toward the position

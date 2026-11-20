@@ -5,7 +5,8 @@ Status: APPROVED BY SAM 2026-09-24 — rule in section 2 set by Sam before any s
 ⚠️ **Written and committed before any code that scores a calibration
 exists.** Sections 2 and 3 are hashed by `test_prereg_gate.py`, so neither
 can be edited after a result is seen. `[Sam, 2026-11-18]` So is section
-3a, which re-registers the test; the text before it is pinned on its own.
+3a, which re-registers the test; §2 and §3 are also pinned on their own,
+at the hash they had before it was added.
 
 ## In plain English (for Sam)
 
@@ -87,8 +88,9 @@ to it?"* He chose *"Re-register on today's method (Recommended)"*: *"Same test a
 email if it ever qualifies."*
 
 Written and committed before any code that scores it existed, and before any game it counts
-kicked off. Nothing above it is edited: §2 and §3 are pinned on their own by
-`test_prereg_gate.py`.
+kicked off. ~~Nothing above it is edited:~~ `[2026-11-19]` §2 and §3 are not edited; they are
+pinned on their own by `test_prereg_gate.py`. (The note at the top and the plain-English summary
+each gained a line about this section; neither is part of a rule.)
 
 ⚠️ **Sam chose to re-register the test with the same bar (quoted above); he did not choose the
 details below.** The table's definitions beyond his choice (which card methods count as today's
@@ -148,6 +150,9 @@ written and committed (2026-11-18).
   issue) when a league graded card rows in the last 14 days but none
   ~~of a registered arm's method~~ `[2026-11-19]` the arm counts for
   longer. A league that graded nothing (the off-season) is silent.
+  `[2026-11-19]` Neither reads an arm marked `applied`: the PR that
+  applies a QUALIFIES sets it (the email's paste prompt asks it to), and
+  one league's file saying so is enough for the email.
 
 ## Changelog
 
@@ -186,3 +191,19 @@ written and committed (2026-11-18).
   watchdog's day was written as a second, looser copy of the arm's rule
   instead of calling it. Caught in review before the branch was pushed;
   no definition in §3a changed.
+- **2026-11-19:** §3a's "Nothing above it is edited" struck and replaced
+  with what is true: §2 and §3 are not edited. Mistake: the code commit
+  added a line to the note at the top and a plain-English bullet, both
+  above §3a, after §3a had said nothing above it was edited; the note's
+  "the text before it is pinned" now names §2 and §3. Root cause: a
+  sentence in a frozen section described the whole file when only §2
+  and §3 are pinned. Caught in review before the branch was pushed; no
+  definition changed.
+- **2026-11-19:** an arm the apply PR marks `applied` is no longer put
+  under "Needs you" or watched (§4); the paste prompt asks that PR to
+  mark it. Mistake: a QUALIFIES verdict pools every row the arm ever
+  counted, so it would have asked again every Monday after Sam acted,
+  and the watchdog would have called the applied arm starved once the
+  card's props method changed. Root cause: both read the verdict and
+  the method, never the arm's own `applied` field. Caught in review
+  before the branch was pushed.

@@ -121,6 +121,21 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #   file: status.py
 #   find:                       arm, " and ".join(p for _n, p, _x in got),
 #   with:                       arm, "the card-calibration file",
+#
+# @vacuity 🔴 [2026-11-19, review] ...and an arm Sam has applied asks nothing more
+#   file: status.py
+#   find:             if isinstance(x, dict) and x.get("applied"):
+#   with:             if False:
+#
+# @vacuity 🔴 ...one league's file saying applied is enough: the test is one test
+#   file: status.py
+#   find:         if arm in applied:
+#   with:         if False:
+#
+# @vacuity 🔴 ...and the prompt asks the apply PR to mark the arm applied, so the line stops
+#   file: status.py
+#   find:                   "same pull request, make fb_card_calibration.build store `applied: true` on arm `%s` "
+#   with:                   "same pull request, leave arm `%s` as fb_card_calibration.build stores it "
 """
 import atexit
 import datetime
@@ -410,6 +425,22 @@ ck("🔴 ...then the clicks, numbered: paste it, open the PR, wait for the check
    and "\"All checks have passed\"" in _steps[2]
    and "\"Merge pull request\", then \"Confirm merge\"" in _steps[3] and "Close pull request" in _steps[3],
    "got %r" % _steps)
+# `[2026-11-19, review]` THE LINE STOPS ONCE SAM HAS ACTED. The verdict pools every row the arm ever
+#    counted, so once it reads QUALIFIES it keeps reading it: without `applied`, every later Monday asked
+#    again, with the same prompt, after the apply PR had merged (a second, duplicate apply PR).
+ck("🔴 ...and the prompt asks that same PR to store `applied: true` on the arm, so the line stops",
+   "store `applied: true` on arm `test_reregistered`" in _qs, _qs[:600])
+_ba, _na = S.build(cal_tree(dict(_ARM, applied=True)), NOW)
+eq((_ba.splitlines()[0], _na, "calibration test" in _ba), ("Nothing needs you this week.", [], False),
+   "🔴🔴 an arm that QUALIFIES and is marked applied asks nothing more: no Needs-you line, no prompt")
+_t1 = cal_tree(_ARM, leagues=("ncaaf",))
+put(_t1, "data/nfl/latest/card-calibration.json",
+    {"league": "nfl", "test": _OLD, "test_after_fix": dict(_OLD, method="season-blend"),
+     "test_reregistered": dict(_ARM, applied=True)})
+eq(S.build(_t1, NOW)[1], [],
+   "🔴 ...and one league's file saying applied is enough (the other says it at its next card-fb pass)")
+eq(S.build(cal_tree(dict(_ARM, applied=False)), NOW)[1], [_want],
+   "   ✅ ...while `applied: false`, as the build writes it today, still asks")
 _bn, _nn = S.build(cal_tree(dict(_ARM, verdict="NOT YET MEASURABLE", n=40, p=None)), NOW)
 eq((_bn.splitlines()[0], _nn), ("Nothing needs you this week.", []),
    "🔴 NOT YET MEASURABLE (and a superseded arm that is not QUALIFIES) needs nothing")

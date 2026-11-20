@@ -352,16 +352,25 @@ def calibration_qualifies(root):
     (research/fb_card_calibration_spec.md) whose stored verdict reads QUALIFIES, named by arm and
     league. One item per arm: the test pools both leagues, so both leagues' files carry it.
     ⛔ Nothing is applied by itself (spec §3): what the card prints changes only by Sam's decision,
-    in a separate PR. Read from the files: status.py imports no model."""
-    found = {}
+    in a separate PR. Read from the files: status.py imports no model.
+    `[2026-11-19, review]` An arm marked `applied` (the apply PR sets it, as the prompt below asks)
+    needs nothing more: its verdict pools every row it ever counted, so it would read QUALIFIES,
+    and ask again, every Monday after Sam had acted. One league's file saying so is enough (the
+    test is one test; the other league's file says it at its own next card-fb pass)."""
+    found, applied = {}, set()
     for name, d in FB:
         path = "%s/latest/card-calibration.json" % d
         doc = _read(os.path.join(root, path))
         for arm, x in sorted(doc.items() if isinstance(doc, dict) else []):
+            if isinstance(x, dict) and x.get("applied"):
+                applied.add(arm)
+                continue
             if isinstance(x, dict) and x.get("verdict") == "QUALIFIES":
                 found.setdefault(arm, []).append((name, path, x))
     out = []
     for arm, got in sorted(found.items()):
+        if arm in applied:
+            continue
         x = got[0][2]
         what = ("the football props card's calibration test QUALIFIES in the %s file%s (arm %s%s%s): the "
                 "corrected confidence predicted better than the printed one over %s picks in %s games, "
@@ -378,12 +387,16 @@ def calibration_qualifies(root):
                   "calibration test, arm `%s`, reads QUALIFIES in %s (%s). Sam has decided to apply it: "
                   "open ONE pull request that does what research/fb_card_calibration_spec.md section 2 "
                   "says (the card prints the calibrated confidence in place of the raw one, and the pick "
-                  "rule uses it), with a guard test that is red under its own @vacuity mutation. Change "
+                  "rule uses it), with a guard test that is red under its own @vacuity mutation. In the "
+                  "same pull request, make fb_card_calibration.build store `applied: true` on arm `%s` "
+                  "(it is still scored and stored), so the Monday email stops asking for it and the "
+                  "watchdog stops watching it. Change "
                   "no published pick, no model coefficient and no test's bar. Never commit to main and "
                   "never merge it. No API spend.\n\n%s\n\n⛔ Do not tell Sam it is done until the "
                   "pr-tests check shows GREEN on GitHub." % (
                       arm, " and ".join(p for _n, p, _x in got),
-                      x.get("spec") or "research/fb_card_calibration_spec.md", W.USAGE_CHECK))
+                      x.get("spec") or "research/fb_card_calibration_spec.md",
+                      arm, W.USAGE_CHECK))
         out.append((what, ["Nothing changes by itself: the card keeps printing its own number until you "
                            "decide (rule 13). To keep the card's own number, do nothing.",
                            "To print the corrected number instead:",

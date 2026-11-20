@@ -112,6 +112,26 @@ scored exactly as `research/fb_card_calibration_spec.md` fixes it
 #   file: watchdog.py
 #   find:         for name, arm in sorted(doc.items() if isinstance(doc, dict) else []):
 #   with:         for name, arm in sorted(doc.items()):
+#
+# @vacuity 🔴 [2026-11-19, review] ...and an arm Sam has applied is never reported
+#   file: watchdog.py
+#   find:             if arm.get("applied"):
+#   with:             if False:
+#
+# @vacuity 🔴 [2026-11-19, review] "in the same 14 days" includes the 14th day
+#   file: watchdog.py
+#   find:                 fed = bool(other) and (today - datetime.date.fromisoformat(other)).days <= CAL_STARVED_DAYS
+#   with:                 fed = bool(other) and (today - datetime.date.fromisoformat(other)).days < CAL_STARVED_DAYS
+#
+# @vacuity 🔴🔴 [2026-11-19, review] a day of ungraded or void rows is not a graded day (a grader outage said "graded others")
+#   file: fb_card_calibration.py
+#   find:             if graded:
+#   with:             if rows:
+#
+# @vacuity 🔴 [2026-11-19, review] ...and a graded but unrated row of the arm's method never feeds it
+#   file: fb_card_calibration.py
+#   find:             if any(r.get("confidence") is not None and counts(r, method, since) for r in graded):
+#   with:             if any(counts(r, method, since) for r in graded):
 """
 import ast
 import datetime
@@ -461,9 +481,9 @@ def _watch(files, now=NOW):
         shutil.rmtree(t, ignore_errors=True)
 
 
-def _file(lg, seen, method=OWN, since="2026-11-23", superseded=None):
+def _file(lg, seen, method=OWN, since="2026-11-23", superseded=None, applied=False):
     arm = {"verdict": "NOT YET MEASURABLE", "n": 0, "method": method, "registered_from": since,
-           "newest_graded": {lg: seen}}
+           "newest_graded": {lg: seen}, "applied": applied}
     if superseded:
         arm["superseded_by"] = superseded
     return {K.REREG_KEY: arm}
@@ -489,6 +509,17 @@ eq((_watch({"ncaaf": _file("ncaaf", {"method": None, "any": "2026-12-19"})}),
    "🔴 an arm whose method its league NEVER graded counts from registration: 27 days is DEGRADED, 7 is not")
 eq(_watch({"nfl": _file("nfl", _starved, method="2025-only", since="2026-09-24", superseded=K.SUPERSEDED)}),
    [], "🔴 a superseded arm is never reported, however starved")
+# `[2026-11-19, review]` ...nor one Sam has applied: the card's props method is expected to change once
+#    he does, which stops feeding it, and that is not a defect.
+eq(_watch({"nfl": _file("nfl", _starved, applied=True)}), [],
+   "🔴 an arm marked applied is never reported, however starved")
+# `[2026-11-19, review]` THE OTHER HALF, "while that league graded other card rows in the same 14 days":
+#    inclusive, as the idle half's "more than 14 days" is exclusive.
+eq((_watch({"nfl": _file("nfl", {"method": "2026-12-01", "any": "2026-12-06"})}),
+    _watch({"nfl": _file("nfl", {"method": "2026-12-01", "any": "2026-12-05"})})),
+   ([(_KEY % "nfl", "DEGRADED", None)], []),
+   "🔴 \"in the same 14 days\": a league whose last graded row is 14 days old still grades (DEGRADED); "
+   "at 15 days it graded nothing in the window, as in the off-season (silent)")
 eq(_watch({}), [], "   ✅ no file, nothing said")
 eq(_watch({"nfl": ["not", "an", "object"]}), [], "   ✅ a file that is not an object: nothing said, and no crash")
 ck(W.check_calibration_arm in W.CHECKS, "🔴 the check is registered, so the real watchdog runs it")
@@ -538,3 +569,49 @@ eq(([_du[lg][K.REREG_KEY]["graded_picks"] for lg in ("nfl", "ncaaf")], _nu),
 eq(_watch({lg: _du[lg] for lg in _du}, now=datetime.datetime(2026, 12, 21, 15, 0, tzinfo=datetime.timezone.utc)),
    [(_KEY % "nfl", "DEGRADED", None), (_KEY % "ncaaf", "DEGRADED", None)],
    "🔴🔴 ...so the watchdog says it, in both leagues: DEGRADED 28 days after registration with nothing counted")
+
+
+# `[2026-11-19, review]` WHAT "GRADED" AND "COUNTED" MEAN TO newest_graded, ON BOTH SIDES. Rows the arm
+#    counts are graded 11-23 .. 12-01 in both leagues; the later cards, 12-02 .. 12-19, hold only `later`'s
+#    rows. A grader outage (every later row still ungraded, or void) leaves both days where they were, so
+#    the watchdog is silent: reading an ungraded day as "graded" said "the card graded others up to 12-19",
+#    which was untrue. Graded but unrated rows of today's method advance "any" and never "method".
+def _plant_later(root, later):
+    days = {"nfl": {}, "ncaaf": {}}
+    for lg, m in (("nfl", OWN), ("ncaaf", HC)):
+        for k in range(27):                               # cards 2026-11-23 .. 2026-12-19
+            d = (datetime.date(2026, 11, 23) + datetime.timedelta(days=k)).isoformat()
+            for i in range(4):
+                r = _row("LATE", k * 4 + i, d, m, lg=lg)
+                days[lg].setdefault(d, []).append(r if d <= "2026-12-01" else later(lg, r))
+    for lg in ("nfl", "ncaaf"):
+        os.makedirs(os.path.join(root, "data", lg, "latest"), exist_ok=True)
+        with gzip.open(os.path.join(root, "data", lg, "latest", "record-detail.json.gz"), "wt",
+                       encoding="utf-8") as fh:
+            json.dump({"days": days[lg]}, fh)
+
+
+def _later(later):
+    t = tempfile.mkdtemp(prefix="callate-")
+    try:
+        _plant_later(t, later)
+        docs = {}
+        for lg in ("nfl", "ncaaf"):
+            p = os.path.join(t, "out-%s.json" % lg)
+            K.build(lg, t, p)
+            docs[lg] = json.load(open(p, encoding="utf-8"))
+        return K.newest_graded(t), _watch(docs)
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+
+
+_DEC1 = {"method": "2026-12-01", "any": "2026-12-01"}
+eq(_later(lambda lg, r: dict(r, won=None, state="owed" if lg == "nfl" else "void — postponed")),
+   ({"nfl": _DEC1, "ncaaf": _DEC1}, []),
+   "🔴🔴 a grader outage (NFL's later rows all ungraded, college's all void) is not \"graded\": both "
+   "days stay at 12-01, and the watchdog is silent, never \"the card graded others up to 12-19\"")
+_UNR = {"method": "2026-12-01", "any": "2026-12-19"}
+eq(_later(lambda lg, r: dict(r, confidence=None)),
+   ({"nfl": _UNR, "ncaaf": _UNR}, [(_KEY % "nfl", "DEGRADED", None), (_KEY % "ncaaf", "DEGRADED", None)]),
+   "🔴🔴 graded but unrated rows of today's method (the arm scores none) advance the league's graded day, "
+   "never the arm's: DEGRADED in both leagues 19 days after the last row it counts")

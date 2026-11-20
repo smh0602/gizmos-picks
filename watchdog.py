@@ -1446,7 +1446,9 @@ def check_fb_refit(rep, now):
 # (the off-season) is silent. The days are fb_card_calibration.newest_graded's, read from the
 # file: this module imports no model. `[2026-11-19, review]` "Counts" is the arm's own rule
 # (its props method AND a readable kickoff from its date), so a row of its method the arm
-# refuses is not "fed", and the finding says which of the two it can be.
+# refuses is not "fed", and the finding says which of the two it can be. `[2026-11-19, review]`
+# An arm marked `applied` is not watched either: once Sam has applied it, the card's props
+# method is expected to change and stop feeding it, and that is not a defect.
 CAL_STARVED_DAYS = 14
 
 
@@ -1458,6 +1460,8 @@ def check_calibration_arm(rep, now):
             if not isinstance(arm, dict) or not (arm.get("method") and arm.get("registered_from")):
                 continue
             if arm.get("superseded_by"):
+                continue
+            if arm.get("applied"):
                 continue
             seen = (arm.get("newest_graded") or {}).get(lg) or {}
             mine, other = seen.get("method"), seen.get("any")
