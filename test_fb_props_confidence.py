@@ -88,6 +88,11 @@ and Low Guy's over at 41.6% must never reach the card (test_one_side_props.py ho
 #   file: card_fb.py
 #   find:                 if r.get("confidence_basis") == "MODEL":
 #   with:                 if False:
+#
+# @vacuity 🔴 [2026-11-19] a MODEL row's note never says a price made its number
+#   file: card_fb.py
+#   find:                                                "and line, priced on this card's own board."),
+#   with:                                                "and line, corrected against the price on this card's own board."),
 """
 import atexit
 import datetime
@@ -238,6 +243,21 @@ _bad += [(r["player"], k) for r in _rows for k in ("confidence_note", "projectio
          if plain_why.found(r.get(k)) or "no model" in (r.get(k) or "")]
 ck(bool(_rows) and not _bad, "🔴 every row, priced or not: one sentence, and no caveat in it or its notes",
    str(_bad[:3]))
+# `[2026-11-19]` ...and no row's note or why says a price made its number while the method that made
+#    it reads none (Sam, 2026-10-11: "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS"):
+#    the props model's stage 2 (asked of s2_features: fb_props_model.stage2_reads_price) and a
+#    player's own record. plain_why.PRICE_INPUT is the one list (test_price_words.py, MLB too).
+import fb_props_model as _FPM  # noqa: E402
+_s2p = _FPM.stage2_reads_price()
+_rows_l = _rows + [r for d in (DOC, STALE) for r in (d.get("liked") or []) if isinstance(r, dict)]
+_pin = [(r["player"], k, plain_why.price_input(t)) for r in _rows_l
+        if r.get("confidence_basis") == "RECORD" or (r.get("confidence_basis") == "MODEL" and not _s2p)
+        for k in ("confidence_note", "why")
+        for t in ((r.get(k) or []) if k == "why" else [r.get(k)]) if plain_why.price_input(t)]
+ck(not _s2p and any(r.get("confidence_basis") == "MODEL" and r.get("confidence_note") for r in _rows_l)
+   and not _pin,
+   "🔴 no row's note or why, the model's or the record's, says a price made its number (stage 2 reads "
+   "none)", str(_pin[:3]))
 
 section("4. 🔴 THE TRACK RECORD STARTS A NEW METHOD FROM THE SWITCH")
 # `[Sam, 2026-10-11]` ~~"+props-model"~~ -> "+props-own": the model's own chance, no price.

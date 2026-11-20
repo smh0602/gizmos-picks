@@ -171,8 +171,9 @@ def graded_rows(root=ROOT, before=None):
 
 
 def mappings(before, root=ROOT):
-    """{market: fitted C2 mapping, or None below fb_model.MIN_TRAIN}, fitted
-    on every graded row with a card date before `before` (walk-forward)."""
+    """{market: the fitted ~~C2~~ `SHIPPED` mapping (C1 since `[Sam, 2026-10-11]`),
+    or None below fb_model.MIN_TRAIN}, fitted on every graded row with a card
+    date before `before` (walk-forward)."""
     rows = graded_rows(root, before)
     out = {}
     for mk in MARKETS:
@@ -200,6 +201,32 @@ def smoothed(r):
 
 def features(r, cand):
     return [logit(r["blend"])] if cand == "C1" else [logit(r["blend"]), logit(r["be"])]
+
+
+def reads_price(method):
+    """Does a pitcher row printed by `method` take its PRICE as an input? -> bool.
+
+    `[2026-11-19]` The words under the number say how it was made (card.py's
+    `correction_words`), and a card's note and why said "corrected against the
+    price" on every C1 card from 2026-10-12 to 10-28, after Sam's 2026-10-11
+    "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS" removed the price.
+    ✅ ASKED OF THE SCORED CODE, NEVER A LIST TYPED HERE: two rows that differ
+    ONLY in their price (the break-even, `be`) are given to the method's own
+    inputs, `features` for the fitted corrections and `smoothed` for D, as
+    `walk_forward` computes them; a method that reads the price tells them
+    apart. "BLEND" (no mapping, card.py's label) and None (the off switch,
+    `SHIPPED = None`) print the plain blend, which no price enters.
+    ⛔ A method this file does not score raises: a new one is answered by its
+    code, never assumed."""
+    if method in (None, "BLEND"):
+        return False
+    if method not in CANDIDATES:
+        raise ValueError("mlb_pitcher_cal: no scored method %r" % (method,))
+    a = {"blend": 0.62, "be": 0.45, "model": 0.60, "h": 7, "n": 12}
+    b = dict(a, be=0.58)
+    if method == "D":
+        return smoothed(a) != smoothed(b)
+    return features(a, method) != features(b, method)
 
 
 def walk_forward(rows):

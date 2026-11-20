@@ -242,8 +242,12 @@ def section39(doc, rows):
 
     def _ck(name, ok, detail=""):
         got[re.sub(r"\s*\(\d+ priced rows\)", "", name)] = bool(ok)
+    # `[2026-11-19]` the section asks card.py's own words and guard too (OWN_NUMBER_RULE,
+    #    correction_words, price_claims: test_price_words.py drives them), read from card.py.
     ns = {"doc": doc, "pit_rows": rows, "ck": _ck, "print": lambda *a, **k: None,
-          "C": types.SimpleNamespace(LAST_PITCHER_ROWS=[])}
+          "C": types.SimpleNamespace(LAST_PITCHER_ROWS=[], OWN_NUMBER_RULE=C.OWN_NUMBER_RULE,
+                                     correction_words=C.correction_words,
+                                     price_claims=C.price_claims)}
     exec(compile(_S39, "verify_card.py#section39", "exec"), ns)
     return got
 

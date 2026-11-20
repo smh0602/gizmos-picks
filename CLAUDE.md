@@ -319,7 +319,7 @@ note boxes, tags and the stale bar now require their absence.
 | | |
 |---|---|
 | **Model coefficients in `card.py`** | Fitted, re-fit monthly. ⛔ Do not "tune" one, round one, or tier a term that ships pooled. |
-| **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. `[2026-09-25]` ~~A pitcher row prints its blend~~ — it now PRINTS `confidence` = the blend corrected ~~against the price (C2, `mlb_pitcher_cal.py`, pre-registered and passed)~~ `[Sam, 2026-10-11]` by its own past misses, no price (C1, the same pre-registered run, also passed). `blend` itself is unchanged and still stored. |
+| **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. `[2026-09-25]` ~~A pitcher row prints its blend~~ — it now PRINTS `confidence` = the blend corrected ~~against the price (C2, `mlb_pitcher_cal.py`, pre-registered and passed)~~ `[Sam, 2026-10-11]` by its own past misses, no price (C1, the same pre-registered run, also passed). `blend` itself is unchanged and still stored. `[2026-11-19]` ~~Its note and why said "corrected against the price" / "Before checking it against the price"~~ on every C1 card 10-12 to 10-28 (published, kept): the words now come from the method (`card.correction_words`, asked of `mlb_pitcher_cal.reads_price`), still with the number before the correction. |
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The payout bands have FLOORS ONLY** | `[Sam, 2026-09-22]` Two-leg 1.8x and up; three- and four-leg 3x and up; **no ceiling** (~~1.8–2.2x / 3–6x~~). Every list is ranked by its chance to land, highest first — Sam: "we still have to make sure the bets we provide have a high % to hit". `PARLAY_BANDS` in `card.py` and `card_fb.py` hold `(floor, None)`; read them through `band_ok()`. |
@@ -437,7 +437,14 @@ note boxes, tags and the stale bar now require their absence.
   moneyline and run line never read a price (`CORRECTED` is totals only, and totals
   are not on the card); pitcher rows' printed bands are kept per
   `confidence_method` in record.json (`calibration_printed_by_method`).
-  `test_mlb_own_number.py`.
+  `test_mlb_own_number.py`. `[2026-11-19]` THE WORDS TOO: a note or why never says a price,
+  the books' chance or a de-vigged chance made a number whose method reads none (every C1 card
+  10-12 to 10-28 said its pitcher rows were "corrected against the price"; published cards keep
+  it). Whether a method reads a price is asked of its code (`mlb_pitcher_cal.reads_price`,
+  `fb_props_model.stage2_reads_price`), never typed; `plain_why.PRICE_INPUT` is the one list;
+  `verify_card.py` fails a card stamped `own_number_rule` (a sibling of `why_rule`, every card
+  `card.main()` builds) that carries one (`card.price_claims`). The break-even sentence and
+  "That price is X's, not Hard Rock's" stay. `test_price_words.py`.
 - 🔴 **THE PAGE SHOWS EACH TAB'S CONTENT, NOT NOTES ABOUT IT.** `[Sam,
   2026-10-01]` *"i just want what's supposed to be in each tab to be in
   each tab. do this for all 3 leagues"*; asked what stays, he chose:
@@ -1587,15 +1594,17 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   stat distribution from the stored logs 2021-26 (`[Sam,
                   2026-10-27]` or last season plus this one once a §3i switch
-                  is merged: `train_logs`, `card_fb.PROPS_SEASONS`), the
-                  market line folded in from EARLIER priced weeks only,
+                  is merged: `train_logs`, `card_fb.PROPS_SEASONS`), ~~the
+                  market line folded in from EARLIER priced weeks only~~
+                  (stage 2 has read no price since 2026-10-11),
                   walk-forward at the three books' prices, and scored
                   against the props card's OWN recomputed probabilities.
                   Rides `card-fb`. ~~⛔ Never touches the card; the switch
                   is Sam's.~~ `[Sam, 2026-10-09]` Sets the card's
                   confidence where it prices a prop; built first in
                   `build_card_fb`, from the props board. `[Sam, 2026-10-11]`
-                  Its stage 2 takes no price. Design:
+                  Its stage 2 takes no price (`[2026-11-19]` `stage2_reads_price`,
+                  asked of `s2_features`). Design:
                   research/fb_props_design.md.
 fb_card_calibration.py  the football props card's stated-vs-actual bands
                   and Sam's pre-registered calibration test
@@ -2037,7 +2046,11 @@ plain_why.py      THE CAVEAT PHRASES NO WHY CARRIES, ALL LEAGUES (Sam, 2026-11-1
                   "Drop them like football"): `PHRASES` and `found()`, read by
                   verify_card.py (through `card.why_caveats`, on cards stamped
                   `why_rule`), test_fb_props_confidence.py and test_card_fb.py
-                  §15 (the projection note). Stdlib only.
+                  §15 (the projection note). `[2026-11-19]` Also `PRICE_INPUT`
+                  and `price_input()`: the words that say a price made a
+                  number, never on a row whose method reads none
+                  (`card.price_claims`, on cards stamped `own_number_rule`;
+                  test_price_words.py). Stdlib only.
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
                   ⛔ Never `import yaml`: PyYAML is NOT on the CI
@@ -2165,6 +2178,9 @@ mlb_pitcher_cal.py  audit C/D, scored to `research/mlb_pitcher_cal_spec.md`
                   card.py reads `mappings()`/`corrected()` from here and
                   never imports `fb_model` (it drags in card_fb, which
                   exits under LEAGUE=mlb). Off switch: `SHIPPED = None`.
+                  `[2026-11-19]` `reads_price(method)`: does that method take
+                  the price? Asked of `features`/`smoothed`, never a list;
+                  card.py's correction words follow it.
 vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   sweeps one share (pr-tests' parallel parts, never a
                   sample: test_pr_shards.py). ⛔ It MUTATES SOURCE
