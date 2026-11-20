@@ -342,8 +342,10 @@ ck("🔴 the card main() built carries the why stamp, and no why on it carries a
 section("7. 🔴 [2026-11-19] THE REAL CARD CARRIES THE OWN-NUMBER STAMP, AND NO SENTENCE ON IT SAYS A "
         "PRICE MADE A NUMBER NO PRICE MADE")
 # Sam, 2026-10-11: "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS". Every pick here prints
-#    its break-even sentence (the price may say what it needs); the corrected branches (C1, C2) are
-#    planted in test_price_words.py (this tree holds no graded record, so no mapping is fitted).
+#    its break-even sentence (the price may say what it needs). The tree's copied record.json
+#    usually fits C1 mappings, so the real card's pitcher rows are corrected and their note and why
+#    are read here; whether a mapping is fitted depends on that copy, so every method (C1, C2, D)
+#    is planted in test_price_words.py, where it never does.
 _be = [r for r in picks if any("just to break even" in w for w in r.get("why") or [])]
 ck("⚠️ rule 67: every pick on the real card carries its break-even sentence",
    picks and len(_be) == len(picks), "%d of %d" % (len(_be), len(picks)))
