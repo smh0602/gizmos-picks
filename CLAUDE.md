@@ -444,7 +444,13 @@ note boxes, tags and the stale bar now require their absence.
   `fb_props_model.stage2_reads_price`), never typed; `plain_why.PRICE_INPUT` is the one list;
   `verify_card.py` fails a card stamped `own_number_rule` (a sibling of `why_rule`, every card
   `card.main()` builds) that carries one (`card.price_claims`). The break-even sentence and
-  "That price is X's, not Hard Rock's" stay. `test_price_words.py`.
+  "That price is X's, not Hard Rock's" stay. `test_price_words.py`. `[2026-11-20]` ~~D answered
+  from `smoothed()`~~: `reads_price` asks `corrected()`, the path the card prints through, so D
+  (the blend and the price there) reads the price. Football walks EVERY list too, one walk for
+  both leagues (`plain_why.price_claims`; `card_fb.price_claims`: a game line or alternate
+  spread asked of `fb_model.features_read_price`, a props row of the props model, MARKET may
+  name the books), run by its tests on what the real code builds (`test_fb_game_picks.py`,
+  `test_fb_props_confidence.py`); football has no card verifier step.
 - 🔴 **THE PAGE SHOWS EACH TAB'S CONTENT, NOT NOTES ABOUT IT.** `[Sam,
   2026-10-01]` *"i just want what's supposed to be in each tab to be in
   each tab. do this for all 3 leagues"*; asked what stays, he chose:
@@ -2050,7 +2056,9 @@ plain_why.py      THE CAVEAT PHRASES NO WHY CARRIES, ALL LEAGUES (Sam, 2026-11-1
                   and `price_input()`: the words that say a price made a
                   number, never on a row whose method reads none
                   (`card.price_claims`, on cards stamped `own_number_rule`;
-                  test_price_words.py). Stdlib only.
+                  test_price_words.py). `[2026-11-20]` `price_claims(doc,
+                  reads_price)`: the ONE walk of every list, both leagues
+                  (card.py's and card_fb.py's guards). Stdlib only.
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
                   ⛔ Never `import yaml`: PyYAML is NOT on the CI
@@ -2179,8 +2187,10 @@ mlb_pitcher_cal.py  audit C/D, scored to `research/mlb_pitcher_cal_spec.md`
                   never imports `fb_model` (it drags in card_fb, which
                   exits under LEAGUE=mlb). Off switch: `SHIPPED = None`.
                   `[2026-11-19]` `reads_price(method)`: does that method take
-                  the price? Asked of `features`/`smoothed`, never a list;
-                  card.py's correction words follow it.
+                  the price? Asked of ~~`features`/`smoothed`~~ `[2026-11-20]`
+                  `corrected()` itself (the path the card prints; D reads the
+                  price there), never a list; card.py's correction words
+                  follow it.
 vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   sweeps one share (pr-tests' parallel parts, never a
                   sample: test_pr_shards.py). ⛔ It MUTATES SOURCE

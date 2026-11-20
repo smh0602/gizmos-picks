@@ -117,6 +117,25 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #   file: record_fb.py
 #   find: if r.get("market") != "alternate_spread":
 #   with: if False:
+#
+# `[2026-11-20]` THE WORDS UNDER A GAME-LINE NUMBER (Sam, 2026-10-11: "BASED ON THE MODELS CONFIDENCE
+#    SCORE NOT THE SPORTSBOOKS"): no model pick's or alternate spread's sentence says a price made it
+#    (`card_fb.price_claims`, the walk MLB's verify_card.py makes). Before this, the review changed the
+#    first one below and every test passed.
+# @vacuity 🔴 a game-line pick's why never says the books' chance made its number
+#   file: card_fb.py
+#   find:             "why": ["The game model gives %s %d%% %s; the price %+d needs %s%%."
+#   with:             "why": ["The game model gives %s %d%% %s, corrected against the books' chance; the price %+d needs %s%%."
+#
+# @vacuity 🔴 ...nor an alternate spread's
+#   file: card_fb.py
+#   find:                         why=["The game model gives %s %d%% to cover %+g; the best price, %+d "
+#   with:                         why=["The game model gives %s %d%% to cover %+g from the books' chance; the best price, %+d "
+#
+# @vacuity 🔴 ...and the guard runs on them
+#   file: card_fb.py
+#   find:     return plain_why.price_claims(doc, row_reads_price)
+#   with:     return []
 """
 import json
 import os
@@ -235,6 +254,15 @@ ck("🔴 an alternate spread only under its own listed pick",
    all(_big[i + 1]["market"] == "alternate_spread" and _big[i + 1]["game"] == r["game"]
        for i, r in enumerate(_big) if r["market"] == "spread")
    and len(_big) == 2 * len(_bm), "%d rows for %d picks" % (len(_big), len(_bm)))
+# `[2026-11-20]` the words under these numbers: the model's own chance, so no sentence says a
+#    price made one (Sam, 2026-10-11); a planted one on each kind of row is found.
+_planted = [dict(r, why=list(r["why"]) + ["Corrected against the books' chance."]) for r in (MODEL[0], _a)]
+ck("🔴 [2026-11-20] no game-line pick's or alternate spread's sentence says a price made its number "
+   "(card_fb.price_claims on the rows the real code built), and a planted one on each is found",
+   MODEL and _a and C.price_claims({"game_lines": ROWS, "game_lines_liked": ROWS[:1]}) == []
+   and [(w, p) for w, p, _t in C.price_claims({"game_lines": _planted})]
+   == [(MODEL[0]["player"], "books' chance"), (_a["player"], "books' chance")],
+   str((C.price_claims({"game_lines": ROWS}), C.price_claims({"game_lines": _planted}))))
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 AN OLDER CARD'S PRICE-GAP ROW NEVER STAYS, AND IS NEVER DRAWN")

@@ -157,9 +157,12 @@ def correction_words(method):
     corrected it -> (the note's ending, the why's opening), or None for the plain blend.
     `[2026-11-19]` ~~"then corrected against the price" on every corrected row~~: true under
     C2, false on every C1 card from 2026-10-12 (Sam, 2026-10-11: "BASED ON THE MODELS
-    CONFIDENCE SCORE NOT THE SPORTSBOOKS"). ⛔ Whether a price entered is asked of the scored
-    code (`mlb_pitcher_cal.reads_price`), never typed here, so a method switch cannot leave
-    the words behind again."""
+    CONFIDENCE SCORE NOT THE SPORTSBOOKS"). ⛔ Whether a price entered is asked of the code
+    the card prints through (`mlb_pitcher_cal.reads_price`, which drives `corrected()`), never
+    typed here, so a method switch cannot leave the words behind again. Every method
+    `corrected()` prints is fitted on graded pitcher plays from earlier cards (`mappings`), so
+    the two sentences cover it: with the price (C2, and D as `corrected()` prints it
+    `[2026-11-20]`) or without (C1)."""
     if method in (None, "BLEND"):
         return None
     if pcal.reads_price(method):
@@ -183,28 +186,11 @@ def price_claims(doc):
     and every why line, in every list the card holds (`plain_why.PRICE_INPUT`). A row whose
     method reads the price (C2) may say so. None when the card was not built by this code
     (no `own_number_rule` stamp): a published card is permanent and keeps its words
-    (`[2026-11-19]`, from the first 2027 card)."""
+    (`[2026-11-19]`, from the first 2027 card). `[2026-11-20]` The walk is plain_why's, the
+    one football's guard makes too (`card_fb.price_claims`, rule 117)."""
     if not isinstance(doc, dict) or doc.get("own_number_rule") != OWN_NUMBER_RULE:
         return None
-    out = []
-    text = ("confidence_note", "why")
-
-    def walk(x, who=None):
-        if isinstance(x, dict):
-            who = x.get("pitcher") or x.get("player") or who
-            if ("confidence" in x or "confidence_note" in x) and not row_reads_price(x):
-                for k in text:
-                    w = x.get(k)
-                    for line in (w if isinstance(w, list) else [w] if isinstance(w, str) else []):
-                        out.extend((who, p, str(line)[:90]) for p in plain_why.price_input(line))
-            for k, v in x.items():
-                if k not in text:
-                    walk(v, who)
-        elif isinstance(x, list):
-            for v in x:
-                walk(v, who)
-    walk(doc)
-    return out
+    return plain_why.price_claims(doc, row_reads_price)
 
 
 def player_market_repeats(rows):

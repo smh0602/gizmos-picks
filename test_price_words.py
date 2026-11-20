@@ -15,19 +15,29 @@ model's stage 2 takes no price (`fb_props_model.s2_features`).
 Planted rows and planted cards only; nothing here reads the live data tree or the clock.
   1. ONE list (`plain_why.PRICE_INPUT`) catches every sentence that said a price or the books'
      chance made a number, and never one that only says which bet is priced and its break-even.
-  2. `mlb_pitcher_cal.reads_price` is asked of the scored code, never a list: C1 no, C2 yes, D
-     no, the plain blend no; a price put into C1's inputs turns it yes; an unscored method raises.
+  2. `mlb_pitcher_cal.reads_price` is asked of the code the card prints through
+     (`corrected()`), never a list: C1 no, C2 yes, D YES (`[2026-11-20]` the card prints D
+     through `corrected()`, whose inputs are the blend and the price; ~~D no~~ asked
+     `walk_forward`'s `smoothed`, which the card never prints), the plain blend no; a price put
+     into C1's inputs turns it yes, a `corrected()` that drops the price turns C2's no, a method
+     that prints nothing without a price reads it; an unscored method raises.
   3. The MLB pitcher rows card.py builds: under C1 the note and why name no price and keep the
      number before the correction; under C2 (SHIPPED patched) they say "against the price",
      which is then true; the break-even and Hard Rock sentences stay; no number moves.
+     `[2026-11-20]` EVERY scored method, each at two prices: its words name the price exactly
+     when its printed number moves with the price (D included: 59.8 at -120, 54.8 at +150).
   4. `card.price_claims`: every list of a card this code built, never a published one; a row
-     whose method reads the price (C2) may say so.
+     whose method reads the price (C2, D) may say so. The walk is `plain_why.price_claims`,
+     football's too (`card_fb.price_claims`, §6).
   5. verify_card.py's own lines on planted cards: the rewritten note check and the class guard,
      red on the old words under C1, green on the new, the old question on a published card,
      red on a new card that lost its stamp.
   6. Football: `fb_props_model.stage2_reads_price` is asked of s2_features (no price since
      10-11; a price input added turns it yes, and any new input stops this file until someone
-     says whether it is one); fb_why's chance sentences name no price.
+     says whether it is one); fb_why's chance sentences name no price. `[2026-11-20]` The game
+     model's fits are asked too (`fb_model.features_read_price`), and `card_fb.price_claims`
+     walks every list of a planted football card: the board, the liked lists, the game lines,
+     the alternate spreads, the top plays, `why_card` included; MARKET may name the books.
 
 # @vacuity 🔴 a C1 note never says "corrected against the price" again
 #   file: card.py
@@ -49,15 +59,30 @@ Planted rows and planted cards only; nothing here reads the live data tree or th
 #   find: oppRank, central, shown=shown, method=conf_method),
 #   with: oppRank, central, shown=shown),
 #
-# @vacuity 🔴 reads_price is asked of the scored code, never a typed answer
+# @vacuity 🔴 reads_price is asked of the code, never a typed answer
 #   file: mlb_pitcher_cal.py
-#   find:     return features(a, method) != features(b, method)
+#   find:     return at[0] != at[1] or bare is None
 #   with:     return method == "C2"
 #
-# @vacuity 🔴 ...and of D's own formula too
+# @vacuity 🔴 [2026-11-20] D is answered by the path the card prints through, never walk_forward's smoothed()
 #   file: mlb_pitcher_cal.py
-#   find:         return smoothed(a) != smoothed(b)
-#   with:         return False
+#   find:     return at[0] != at[1] or bare is None
+#   with:     return (smoothed({"model": .6, "h": 7, "n": 12, "be": .45}) != smoothed({"model": .6, "h": 7, "n": 12, "be": .58})) if method == "D" else (at[0] != at[1] or bare is None)
+#
+# @vacuity 🔴 [2026-11-20] ...asked of corrected() itself, not of features() beside it
+#   file: mlb_pitcher_cal.py
+#   find:     at = [corrected(probe, "probe", 62.0, be, method=method) for be in (45.0, 58.0)]
+#   with:     at = [features({"blend": 0.62, "be": be / 100.0}, method) for be in (45.0, 58.0)]
+#
+# @vacuity 🔴 [2026-11-20] a method that prints nothing without a price reads the price
+#   file: mlb_pitcher_cal.py
+#   find:     return at[0] != at[1] or bare is None
+#   with:     return at[0] != at[1]
+#
+# @vacuity 🔴 [2026-11-20] corrected() prints the method it is asked about
+#   file: mlb_pitcher_cal.py
+#   find:     method = SHIPPED if method is _AS_SHIPPED else method
+#   with:     method = SHIPPED
 #
 # @vacuity 🔴 a card published before the change is never checked
 #   file: card.py
@@ -65,14 +90,24 @@ Planted rows and planted cards only; nothing here reads the live data tree or th
 #   with:     if not isinstance(doc, dict):
 #
 # @vacuity 🔴 every list the card holds is walked, not only the board
-#   file: card.py
-#   find:                 if k not in text:
+#   file: plain_why.py
+#   find:                 if k not in ROW_TEXT:
 #   with:                 if k == "picks":
 #
 # @vacuity 🔴 a row whose method reads the price may say so (a guard that fires on true words fails too)
-#   file: card.py
-#   find:             if ("confidence" in x or "confidence_note" in x) and not row_reads_price(x):
+#   file: plain_why.py
+#   find:             if ("confidence" in x or "confidence_note" in x) and not reads_price(x):
 #   with:             if ("confidence" in x or "confidence_note" in x):
+#
+# @vacuity 🔴 [2026-11-20] MLB's guard asks each row's own method
+#   file: card.py
+#   find:     return plain_why.price_claims(doc, row_reads_price)
+#   with:     return plain_why.price_claims(doc, lambda r: True)
+#
+# @vacuity 🔴 [2026-11-20] football's copy of the card's sentence (why_card) is read too
+#   file: plain_why.py
+#   find: ROW_TEXT = ("confidence_note", "why", "why_card")
+#   with: ROW_TEXT = ("confidence_note", "why")
 #
 # @vacuity 🔴 the list catches what it lists
 #   file: plain_why.py
@@ -103,6 +138,26 @@ Planted rows and planted cards only; nothing here reads the live data tree or th
 #   file: fb_props_model.py
 #   find:     return list(inspect.signature(s2_features).parameters) != ["market", "p1"]
 #   with:     return False
+#
+# @vacuity 🔴 [2026-11-20] football: the game model's answer is asked of its fits' inputs
+#   file: fb_model.py
+#   find:     return any(features(a, mk) != features(b, mk) for mk in ("moneyline", "spread", "total"))
+#   with:     return False
+#
+# @vacuity 🔴 [2026-11-20] football: a game-line row is answered by the game model, a props row by the props model
+#   file: card_fb.py
+#   find:     if row.get("kind") == "fb-line":
+#   with:     if row.get("kind") == "fb-line" and False:
+#
+# @vacuity 🔴 [2026-11-20] football: a MARKET row may name the books
+#   file: card_fb.py
+#   find:     if basis == "MARKET":
+#   with:     if basis == "MARKET" and False:
+#
+# @vacuity 🔴 [2026-11-20] football: a player's own record reads no price
+#   file: card_fb.py
+#   find:     if basis == "MARKET":
+#   with:     if basis in ("MARKET", "RECORD"):
 """
 import atexit
 import copy
@@ -174,27 +229,49 @@ eq(plain_why.price_input("<b>Corrected AGAINST the price</b>"), ["against the pr
    "🔴 ...inside a tag, in capitals")
 
 # ══════════════════════════════════════════════════════════════════════
-section("2. 🔴 mlb_pitcher_cal.reads_price IS ASKED OF THE SCORED CODE")
+section("2. 🔴 mlb_pitcher_cal.reads_price IS ASKED OF THE CODE THE CARD PRINTS THROUGH")
 # ══════════════════════════════════════════════════════════════════════
+# `[2026-11-20]` ~~"D and the plain blend do not"~~: D was answered by walk_forward's smoothed(),
+#    which the card never prints through. Under SHIPPED = "D" the card prints corrected(), whose
+#    inputs (features) are the blend AND the price, so a D row's number moves with its price.
 eq({m: pcal.reads_price(m) for m in ("C1", "C2", "D", "BLEND", None)},
-   {"C1": False, "C2": True, "D": False, "BLEND": False, None: False},
-   "🔴 C1 (shipped 2026-10-11) reads no price, C2 does, D and the plain blend do not")
+   {"C1": False, "C2": True, "D": True, "BLEND": False, None: False},
+   "🔴 C1 (shipped 2026-10-11) reads no price; C2 does, and so does D as the card prints it "
+   "(corrected(): the blend and the price); the plain blend does not")
+eq((pcal.corrected({"strikeouts": {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08]}},
+                   "strikeouts", 62, 45, method="D") is not None,
+    round(pcal.corrected({"strikeouts": {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08]}},
+                         "strikeouts", 62, 45, method="D")
+          - pcal.corrected({"strikeouts": {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08]}},
+                           "strikeouts", 62, 58, method="D"), 2),
+    pcal.corrected({"strikeouts": {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08]}},
+                   "strikeouts", 62, None, method="D")),
+   (True, -4.55, None),
+   "⚠️ rule 67, the fact behind it: under D corrected() prints 46.69 at a 45% break-even, 51.24 at "
+   "58%, and nothing with no price")
 try:
     pcal.reads_price("C9")
     _raised = False
 except ValueError:
     _raised = True
 ck(_raised, "🔴 a method the file does not score raises: answered by its code, never assumed")
-_feat, _smooth = pcal.features, pcal.smoothed
+_feat, _corr = pcal.features, pcal.corrected
 try:
-    pcal.features = lambda r, cand: [pcal.logit(r["blend"]), pcal.logit(r["be"])]
-    pcal.smoothed = lambda r: 0.5 * r["model"] + 0.5 * r["be"]
-    _taught = {m: pcal.reads_price(m) for m in ("C1", "D")}
+    pcal.features = lambda r, cand: [pcal.logit(r["blend"]), pcal.logit(r["be"] if r["be"] is not None else 0.5)]
+    _taught = {"price into C1's inputs": pcal.reads_price("C1")}
+    pcal.features = lambda r, cand: [pcal.logit(r["blend"])] if cand == "C1" else [pcal.logit(r["blend"]), 0.0]
+    _taught["C2's price weight nil, but nothing printed without one"] = pcal.reads_price("C2")
+    pcal.features = _feat
+    # a corrected() that stops reading the price (every row printed at a 45% break-even)
+    pcal.corrected = lambda maps, market, b, be=None, method=None: _corr(maps, market, b, 45.0, method=method)
+    _taught["corrected() drops the price"] = pcal.reads_price("C2")
 finally:
-    pcal.features, pcal.smoothed = _feat, _smooth
-eq(_taught, {"C1": True, "D": True},
-   "🔴 a price put into C1's inputs (or D's formula) turns its answer yes: the answer follows "
-   "the code, it is not a list")
+    pcal.features, pcal.corrected = _feat, _corr
+eq(_taught, {"price into C1's inputs": True, "C2's price weight nil, but nothing printed without one": True,
+             "corrected() drops the price": False},
+   "🔴 the answer follows the code the card prints through: a price put into C1's inputs turns it "
+   "yes; a method that prints nothing without a price reads it; a corrected() that no longer reads "
+   "the price turns C2's no (it is not a list, and not features() asked beside corrected())")
 eq((card.row_reads_price({"confidence_method": "C1"}), card.row_reads_price({"confidence_method": "C2"}),
     card.row_reads_price({"kind": "hitter", "confidence_basis": "RECORD"}),
     card.row_reads_price({"kind": "mlb-line", "confidence_basis": "MODEL"})),
@@ -217,15 +294,17 @@ def _starts():
 
 PITCHERS = {101: {"name": "Ace One", "team": "HOU", "era": "3.40", "whip": 1.15, "throws": "R",
                   "g": _starts()}}
-# The fitted mappings' shape (fb_model.fit): C1 takes the blend, C2 the blend and the price.
-MAPS = {"C1": {"mu": [0.65], "sd": [0.40], "w": [0.07, 0.14], "n_train": 400, "before": TODAY},
-        "C2": {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08], "n_train": 400,
-               "before": TODAY}}
+# The fitted mappings' shape (fb_model.fit), by the number of inputs the method's `features`
+#    gives (mappings() fits on them): C1 the blend; C2 and D the blend and the price.
+_WIDE = {1: {"mu": [0.65], "sd": [0.40], "w": [0.07, 0.14], "n_train": 400, "before": TODAY},
+         2: {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08], "n_train": 400,
+             "before": TODAY}}
+MAPS = {m: _WIDE[len(pcal.features({"blend": 0.62, "be": 0.45}, m))] for m in pcal.CANDIDATES}
 
 
-def pitcher_row(mk, line, method, book="draftkings"):
+def pitcher_row(mk, line, method, book="draftkings", price=-120):
     """card.build_play with `method` shipped and its planted mapping (BLEND: no mapping)."""
-    prop = {"market": mk, "line": line, "side": "over", "price": -120, "book": book, "pid": 101}
+    prop = {"market": mk, "line": line, "side": "over", "price": price, "book": book, "pid": 101}
     old = pcal.SHIPPED
     card.PCAL.clear()
     try:
@@ -302,6 +381,31 @@ ck(_k1c2["confidence_note"] != K1["confidence_note"] and _last(_k1c2) != _last(K
    "⚠️ the two rows differ in their words")
 eq({k: _k1c2.get(k) for k in _NUM}, {k: K1.get(k) for k in _NUM},
    "🔴 ...and in nothing else: no %, price, edge, band or method moves with the words")
+# `[2026-11-20]` EVERY SCORED METHOD, EACH AT TWO PRICES: the words name a price exactly when the
+#    printed number moves with the price. ~~D answered from smoothed()~~: under SHIPPED = "D" the
+#    Ace One over 5.5 printed 59.8 at -120 and 54.8 at +150 while its note said "no price enters it",
+#    and the guard required those words.
+_two = {m: (pitcher_row("pitcher_strikeouts", 5.5, m), pitcher_row("pitcher_strikeouts", 5.5, m, price=150))
+        for m in pcal.CANDIDATES}
+_said = lambda r: bool(plain_why.price_input(r["confidence_note"])  # noqa: E731
+                       or [p for w in r["why"] for p in plain_why.price_input(w)])
+ck(all(a.get("confidence_method") == b.get("confidence_method") == m and a["blend"] == b["blend"]
+       and round(a["confidence_value"]) != round(a["blend"]) for m, (a, b) in _two.items())
+   and any(a["confidence_value"] != b["confidence_value"] for a, b in _two.values())
+   and any(a["confidence_value"] == b["confidence_value"] for a, b in _two.values()),
+   "⚠️ rule 67: every method's row is built on it at both prices, corrected, the same blend; some "
+   "methods' numbers move with the price and some do not",
+   str({m: (a.get("blend"), a.get("confidence_value"), b.get("confidence_value")) for m, (a, b) in _two.items()}))
+eq({m: (a["confidence_value"] != b["confidence_value"], pcal.reads_price(m), _said(a), _said(b))
+    for m, (a, b) in _two.items()},
+   {"C1": (False,) * 4, "C2": (True,) * 4, "D": (True,) * 4},
+   "🔴 every scored method: its number moves with the price exactly when reads_price says so, and "
+   "its note and why name the price exactly then (D's 59.8 at -120 and 54.8 at +150 say so)")
+eq((round(_two["D"][0]["confidence_value"], 1), round(_two["D"][1]["confidence_value"], 1)), (59.8, 54.8),
+   "⚠️ ...the D row is the one the review built")
+eq(card.price_claims({"own_number_rule": card.OWN_NUMBER_RULE, "date": "2027-04-01",
+                      "picks": [r for ab in _two.values() for r in ab]}), [],
+   "✅ ...and the class guard passes them all: each says what its own method did")
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. 🔴 card.price_claims: EVERY LIST OF A CARD THIS CODE BUILT, NEVER A PUBLISHED ONE")
@@ -402,6 +506,10 @@ eq(verify(planted()), {NOTE_NEW: True, STAMP: True, CLAIMS: True},
    "✅ a C1 card this code built passes all three")
 eq(verify(planted(rows=[K2, HIT])), {NOTE_NEW: True, STAMP: True, CLAIMS: True},
    "✅ ...and so does a C2 one, its words naming the price (the old requirement, still required)")
+eq(verify(planted(rows=[_two["D"][0], _two["D"][1], HIT])), {NOTE_NEW: True, STAMP: True, CLAIMS: True},
+   "✅ `[2026-11-20]` ...and a D one: D reads the price as the card prints it, and its words say so")
+eq(verify(edited(planted(rows=[_two["D"][0], HIT]), 0, confidence_note=K1["confidence_note"])).get(NOTE_NEW),
+   False, "🔴 `[2026-11-20]` a D row saying \"no price enters it\" (the words the old answer gave it): FAIL")
 eq(verify(edited(planted(), 0, confidence_note=OLD_NOTE)), {NOTE_NEW: False, STAMP: True, CLAIMS: False},
    "🔴 the old note back on a new C1 card: both the note check and the guard FAIL")
 eq(verify(edited(planted(), 1, why_add=OLD_WHY)), {NOTE_NEW: True, STAMP: True, CLAIMS: False},
@@ -442,6 +550,52 @@ row = {"player": "Model Guy", "market": "player_receptions", "line": 3.5, "side"
        "confidence": 51, "confidence_basis": "MODEL", "price": -110, "break_even": 52.4,
        "home": "H", "away": "A", "commence": "2026-11-22T18:00:00Z"}
 out["why"] = [fb_why.prop_why(row, ctx), fb_why.prop_why(dict(row, confidence_basis="RECORD", confidence=71), ctx)]
+# `[2026-11-20]` the game model's fits, asked the same way, and football's guard on every list
+import card_fb, fb_model
+out["game_reads"] = fb_model.features_read_price(%(lg)r)
+_f = fb_model.features
+fb_model.features = lambda r, market, M=None, T=None: list(_f(r, market, M, T)) + [r["pml"]]
+out["game_reads_with_price"] = fb_model.features_read_price(%(lg)r)
+fb_model.features = _f
+CLAIM = "Corrected against the books' chance."
+PROP = {"kind": "fb", "player": "Model Guy", "market": "player_receptions", "confidence": 51,
+        "confidence_basis": "MODEL", "confidence_note": "The props model's chance for this exact side "
+        "and line, priced on this card's own board.", "why": ["<b>Model Guy</b> went over 3.5 rec in "
+        "<b>4 of 4 games</b> in 2026, when he played at least half the snaps."]}
+REC = dict(PROP, player="Record Guy", confidence=71, confidence_basis="RECORD", confidence_note=None)
+MKT = dict(PROP, player="Market Guy", confidence=55, confidence_basis="MARKET",
+           why=["The books' own chance for this side, with the vig taken out."])
+LINE = {"kind": "fb-line", "league": %(lg)r, "player": "Purdue", "market": "spread", "confidence": 58,
+        "confidence_basis": "MODEL", "why": ["The game model gives Purdue 58%% to cover +3.5; the price "
+        "-110 needs 52.4%%."]}
+ALT = dict(LINE, player="Alt Team", market="alternate_spread", confidence=61, why=["The game model "
+           "gives Alt Team 61%% to cover +6.5; the best price, -150 at DraftKings, needs 60.0%%."])
+LIKED = dict(PROP, player="Liked Guy", why=list(fb_why.prop_why(PROP, ctx)), why_card=list(PROP["why"]))
+GLL = dict(LINE, player="Liked Team", why=fb_why.line_why(LINE, ctx), why_card=list(LINE["why"]))
+TOP = dict(PROP, player="Top Guy")
+fb_model.features = lambda r, market, M=None, T=None: list(_f(r, market, M, T)) + [r["pml"]]
+out["rows_with_game_price"] = [card_fb.row_reads_price(x) for x in (LINE, ALT, PROP, REC, MKT)]
+fb_model.features = _f
+out["rows"] = [card_fb.row_reads_price(x) for x in (LINE, ALT, PROP, REC, MKT)]
+def fbcard():
+    return json.loads(json.dumps({"picks": [PROP, REC, MKT], "liked": [LIKED], "game_lines": [LINE, ALT],
+                                  "game_lines_liked": [GLL], "top_plays": [TOP],
+                                  "parlays": {"2": [{"legs": ["Model Guy over 3.5"], "joint": 30.0}]}}))
+out["clean"] = card_fb.price_claims(fbcard())
+out["planted"] = {}
+for where, lst, i, key in (("a props row", "picks", 0, "why"), ("a props note", "picks", 0, "confidence_note"),
+                           ("a record row", "picks", 1, "why"), ("a game line", "game_lines", 0, "why"),
+                           ("an alternate spread", "game_lines", 1, "why"),
+                           ("a liked game line", "game_lines_liked", 0, "why"),
+                           ("a liked row's card sentence", "liked", 0, "why_card"),
+                           ("a top play", "top_plays", 0, "why")):
+    d = fbcard()
+    row = d[lst][i]
+    row[key] = (row.get(key) or "") + " " + CLAIM if key == "confidence_note" else list(row.get(key) or []) + [CLAIM]
+    out["planted"][where] = [[w, ph] for w, ph, _t in card_fb.price_claims(d)]
+d = fbcard()
+d["picks"][2]["why"].append(CLAIM)
+out["market_claim"] = card_fb.price_claims(d)
 print(json.dumps(out))
 """
 _fb = {}
@@ -464,3 +618,28 @@ ck(len(_s) == 4 and all("needs 52.4% to pay" in s for s in _s),
    "⚠️ fb_why's chance sentences were built, MODEL and RECORD, both leagues", str(_s)[:300])
 eq([s for s in _s if plain_why.price_input(s)], [],
    "✅ ...and neither says a price made the number (football's card rows: test_fb_props_confidence.py)")
+# `[2026-11-20]` THE GAME MODEL AND EVERY LIST OF THE FOOTBALL CARD. ~~The props rows and the liked
+#    list only~~: a game-line why saying "corrected against the books' chance" passed every test.
+eq([(_fb[lg].get("game_reads"), _fb[lg].get("game_reads_with_price")) for lg in _fb], [(False, True)] * 2,
+   "🔴 the game model's fits read no price (fb_model.features: its own ratings since 2026-10-11, the "
+   "college champion's included); the books' chance put into them turns the answer yes")
+eq([(_fb[lg].get("rows"), _fb[lg].get("rows_with_game_price")) for lg in _fb],
+   [([False, False, False, False, True], [True, True, False, False, True])] * 2,
+   "🔴 each football row is asked of its own method: a game line and an alternate spread of the game "
+   "model (a price put into its fits turns them yes, and only them), a props row of the props model, "
+   "a record row reads none, a MARKET row is the books' own number")
+eq([_fb[lg].get("clean") for lg in _fb], [[], []],
+   "✅ a planted football card whose every sentence is the code's own: nothing to report, a MARKET row "
+   "naming the books' chance included (it is the books' number)")
+_FB_WANT = {"a props row": [["Model Guy", "books' chance"]], "a props note": [["Model Guy", "books' chance"]],
+            "a record row": [["Record Guy", "books' chance"]], "a game line": [["Purdue", "books' chance"]],
+            "an alternate spread": [["Alt Team", "books' chance"]],
+            "a liked game line": [["Liked Team", "books' chance"]],
+            "a liked row's card sentence": [["Liked Guy", "books' chance"]],
+            "a top play": [["Top Guy", "books' chance"]]}
+eq([_fb[lg].get("planted") for lg in _fb], [_FB_WANT] * 2,
+   "🔴 card_fb.price_claims finds a price claim in every list a football card holds: the board (the "
+   "props model's row, its note, a player's record), the game lines and the alternate spreads, the "
+   "liked lists (their why_card too) and the top plays, named by its row, both leagues")
+eq([_fb[lg].get("market_claim") for lg in _fb], [[], []],
+   "✅ ...but never on a MARKET row: the books' own number may say it is theirs")

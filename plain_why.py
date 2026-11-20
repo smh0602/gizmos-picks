@@ -27,9 +27,12 @@ MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS". A price may still say which bet is
 and what it needs to break even ("At +120 this has to hit about 45% ... to break even",
 "That price is FanDuel's"), so a phrase here is never "price" or "break even" alone.
 ⛔ A sentence on a row whose method reads NO price never carries one: `card.price_claims`
-(verify_card.py, on every MLB card this code builds) and the football card's rows
-(`test_fb_props_confidence.py`, `test_price_words.py`). A method that does read the books'
-number (MLB's C2 to 2026-10-11, the football alt parlays, MARKET) may say so: it is true.
+(verify_card.py, on every MLB card this code builds) and ~~the football card's rows~~
+`card_fb.price_claims` `[2026-11-20]` (every list of the football card: its tests on what
+the real code builds, `test_fb_props_confidence.py`, `test_fb_game_picks.py`,
+`test_price_words.py`), both through ONE walk here (`price_claims`). A method that does read
+the books' number (MLB's C2 to 2026-10-11, the football alt parlays, MARKET) may say so: it
+is true.
 """
 import re
 
@@ -103,3 +106,37 @@ def price_input(text):
     input). The same matcher as `found()`: tags stripped, apostrophes straight, lower case."""
     t = _plain(text)
     return [p for p in PRICE_INPUT if p in t]
+
+
+# The sentences under a row's number: its data note, its why lines, and football's copy of the
+# card's own sentence (`why_card`, kept by fb_why.explain).
+ROW_TEXT = ("confidence_note", "why", "why_card")
+
+
+def price_claims(doc, reads_price):
+    """`[2026-11-20]` THE ONE WALK BOTH LEAGUES' GUARDS MAKE (rule 117): `card.price_claims`
+    (MLB, verify_card.py on every card this code builds) and `card_fb.price_claims` (football,
+    its tests on the cards and rows the real code builds). Every row in every list `doc` holds,
+    at any depth (a row: a dict with a `confidence` or a `confidence_note`), whose method reads
+    NO price (`reads_price(row)` is False, asked of each league's own code), and every sentence
+    under it (`ROW_TEXT`) that names a price as an input -> [(who, phrase, text)]. A row whose
+    method reads one may say so: it is true. ~~One walk in card.py~~ (2026-11-19): football's
+    game lines, alternate spreads and top plays had no walk at all."""
+    out = []
+
+    def walk(x, who=None):
+        if isinstance(x, dict):
+            who = x.get("pitcher") or x.get("player") or who
+            if ("confidence" in x or "confidence_note" in x) and not reads_price(x):
+                for k in ROW_TEXT:
+                    w = x.get(k)
+                    for line in (w if isinstance(w, list) else [w] if isinstance(w, str) else []):
+                        out.extend((who, p, str(line)[:90]) for p in price_input(line))
+            for k, v in x.items():
+                if k not in ROW_TEXT:
+                    walk(v, who)
+        elif isinstance(x, list):
+            for v in x:
+                walk(v, who)
+    walk(doc)
+    return out
