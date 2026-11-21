@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-21T19:43:07Z",
+ "checked_at": "2026-11-21T19:58:11Z",
  "et_date": "2026-11-21",
  "healthy": false,
  "broken": 0,
@@ -59,7 +59,7 @@
    "key": "double-buy:gamelines:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf gamelines was bought 2 times for its Sat 19:00Z deadline (99 credits)",
-   "why": "2 deadline(s) in the last 48 hours were bought more than once, 2 extra buy(s), 56 credits: due Thu 19:00Z: Thu 19:52Z (7), Fri 01:36Z (7); due Sat 19:00Z: Sat 19:25Z (50), Sat 19:29Z (49). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "why": "1 deadline(s) in the last 48 hours were bought more than once, 1 extra buy(s), 49 credits: due Sat 19:00Z: Sat 19:25Z (50), Sat 19:29Z (49). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
    "repair": null
   },
   {
@@ -80,7 +80,7 @@
    "key": "double-buy:gamelines:nfl",
    "severity": "DEGRADED",
    "what": "nfl gamelines was bought 3 times for its Fri 18:00Z deadline (18 credits)",
-   "why": "2 deadline(s) in the last 48 hours were bought more than once, 4 extra buy(s), 26 credits: due Thu 18:00Z: Thu 19:48Z (7), Thu 20:52Z (7), Fri 00:56Z (7); due Fri 18:00Z: Fri 19:33Z (6), Fri 19:34Z (6), Fri 20:19Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "why": "2 deadline(s) in the last 48 hours were bought more than once, 3 extra buy(s), 19 credits: due Thu 18:00Z: Thu 20:52Z (7), Fri 00:56Z (7); due Fri 18:00Z: Fri 19:33Z (6), Fri 19:34Z (6), Fri 20:19Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
    "repair": null
   },
   {
@@ -107,7 +107,7 @@
   "pulled_at": "2026-11-21T19:30:22Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.2,
+  "reading_age_hours": 0.5,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-21T19:30:22Z",
   "source": "data/ncaaf/2026-11-21/alt-lines/1930.json.gz",
