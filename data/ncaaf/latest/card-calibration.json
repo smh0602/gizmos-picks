@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-11-20T22:52:06Z",
+ "built_at": "2026-11-21T01:17:20Z",
  "spec": "research/fb_card_calibration_spec.md",
  "bands": [
   {
@@ -441,7 +441,8 @@
   "verdict": "NOT YET MEASURABLE",
   "graded_picks": 345,
   "min_n": 500,
-  "applied": false
+  "applied": false,
+  "superseded_by": "research/fb_card_calibration_spec.md \u00a73a [Sam, 2026-11-18]: re-registered on season-blend+props-own, games from 2026-11-23"
  },
  "test_after_fix": {
   "n": 95,
@@ -452,7 +453,50 @@
   "verdict": "NOT YET MEASURABLE",
   "graded_picks": 348,
   "min_n": 500,
-  "method": "season-blend"
+  "method": "season-blend",
+  "superseded_by": "research/fb_card_calibration_spec.md \u00a73a [Sam, 2026-11-18]: re-registered on season-blend+props-own, games from 2026-11-23"
+ },
+ "test_reregistered": {
+  "n": 0,
+  "mean_d": null,
+  "t": null,
+  "p": null,
+  "clusters": 0,
+  "verdict": "NOT YET MEASURABLE",
+  "graded_picks": 0,
+  "min_n": 500,
+  "alpha": 0.05,
+  "applied": false,
+  "method": "season-blend+props-own",
+  "registered_from": "2026-11-23",
+  "spec": "research/fb_card_calibration_spec.md \u00a73a",
+  "log_loss": {
+   "nfl": {
+    "n": 0,
+    "raw": null,
+    "calibrated": null
+   },
+   "ncaaf": {
+    "n": 0,
+    "raw": null,
+    "calibrated": null
+   }
+  },
+  "scored_bands": {
+   "raw": [],
+   "calibrated": []
+  },
+  "mappings": {},
+  "newest_graded": {
+   "nfl": {
+    "method": null,
+    "any": "2026-11-19"
+   },
+   "ncaaf": {
+    "method": null,
+    "any": "2026-11-19"
+   }
+  }
  },
  "log_loss": {
   "nfl": {
