@@ -1641,6 +1641,38 @@ def card_game_lines(model_picks, games, ladder, slate, win_chances=None, sigma=N
     return order_game_lines(rows)
 
 
+def row_reads_price(row):
+    """`[2026-11-20]` Does this football row's number take a price as an input? -> bool, asked
+    of the code that made it (Sam, 2026-10-11: "BASED ON THE MODELS CONFIDENCE SCORE NOT THE
+    SPORTSBOOKS"). A game-line row (`fb-line`: the model's picks and the alternate spreads, both
+    MODEL since 10-11) is the game model's: `fb_model.features_read_price`. Any other MODEL row is
+    the props model's: `fb_props_model.stage2_reads_price` (asked of `s2_features`). RECORD is
+    the player's own record at the line, which no price enters. MARKET is the books' own number,
+    so it may say so (the failed-name-check rows, the alt parlays' legs)."""
+    basis = row.get("confidence_basis")
+    if basis == "MARKET":
+        return True
+    if basis != "MODEL":
+        return False
+    if row.get("kind") == "fb-line":
+        import fb_model
+        return fb_model.features_read_price(row.get("league") or LEAGUE)
+    import fb_props_model
+    return fb_props_model.stage2_reads_price()
+
+
+def price_claims(doc):
+    """`[2026-11-20]` Football's guard, MLB's twin (`card.price_claims`), through the ONE walk
+    (`plain_why.price_claims`, rule 117): every sentence on the card, in every list it holds
+    (the board, the liked lists, the game lines and alternate spreads, the top plays), that says
+    a price made a number whose method reads none -> [(who, phrase, text)]. ~~The props rows and
+    the liked list only~~ (2026-11-19, in test_fb_props_confidence.py): a game-line why saying
+    "the books' chance" passed every test. Run by the tests on what the real code builds; no
+    football card is ever re-checked once published."""
+    import plain_why
+    return plain_why.price_claims(doc, row_reads_price)
+
+
 def shown_scores(win_chances, model_picks, game_lines, legs):
     """`[Sam, 2026-10-17]` whole-number predicted scores that never contradict a pick shown for
     the game -> [{"away", "home", "score": {"home", "away"} or None}], one per game in the model's

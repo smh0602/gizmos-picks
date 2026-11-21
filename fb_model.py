@@ -8,8 +8,12 @@ One ridge-logistic model per league × market (spread, total, moneyline) on
 signals 1–8. Walk-forward weekly over 2025 and 2026, graded ONLY at Hard
 Rock, FanDuel and DraftKings prices that existed before kickoff.
 
-⛔ IT DOES NOT REPLACE THE CARD. `card_fb.py` never imports this file; the
-page shows these picks in their own MODEL section beside the card.
+⛔ IT DOES NOT REPLACE THE CARD. ~~`card_fb.py` never imports this file~~
+`[2026-11-20]` card_fb imports it only inside `row_reads_price`, the price-words
+guard its tests run (`card_fb.price_claims`); no card build calls that function
+(`test_import_claims.py` holds every such sentence to the imports). ~~the page
+shows these picks in their own MODEL section beside the card~~ `[Sam, 2026-10-17]`
+the page shows no section of its own (Gizmo's Picks is as simple as MLB's).
 ⛔ NEVER INVENTS A PRICE. A game with no price at the three books is
 trained on and not graded.
 ✅ A SECOND, SEPARATE RECORD `[Sam, 2026-09-23]`: the same walk-forward
@@ -643,6 +647,32 @@ def label(r, market, M=None, T=None):
     if r["pml"] is None or margin == 0:
         return None
     return 1 if margin > 0 else 0
+
+
+def features_read_price(lg):
+    """Do the game model's fits read a PRICE? -> bool (every market, `lg`'s CHAMPION included).
+
+    `[2026-11-20]` For the words under a football game-line row (`card_fb.row_reads_price`,
+    `plain_why.PRICE_INPUT`): a sentence about a number no price made never says one made it.
+    `[Sam, 2026-10-11]` the fits read the model's OWN ratings (~~logit(the books' moneyline
+    chance)~~, `base_features`). ✅ Asked of `features` itself, the one place a row becomes a
+    fit's inputs (training, prediction, and so the predicted score every spread and total pick
+    comes from): two rows the same in every signal and both lines (M, T: a line only sets the
+    threshold being priced) and different in every price a row carries (`pml` the books'
+    moneyline chance, `dk_ml` DraftKings' stored moneyline, `snap` the board's prices, `close`
+    the closing quotes). A fit that tells them apart reads a price. ⛔ `build` never calls it:
+    it changes no fit, pick or stamp."""
+    sig = {"h2h_m": 1.5, "h2h_t": 44.0, "form_m": 2.5, "form_t": 46.0, "def": 0.55, "poss": 0.02,
+           "out": 1.0, "vac_h": 0.1, "vac_a": 0.3, "neutral": 0.0, "dome": 0.0, "own_m": 3.0,
+           "own_t": 45.0}
+    a = {"lg": lg, "M": -3.5, "T": 44.5, "sig": sig, "pml": 0.62, "dk_ml": (-160, 135),
+         "snap": {"home": -160, "away": 135},
+         "close": {"spread": [(-3.5, -110, -110, False)], "total": [(44.5, -110, -110, False)],
+                   "moneyline": [(None, -160, 135, False)]}}
+    b = dict(a, pml=0.38, dk_ml=(140, -165), snap={"home": 140, "away": -165},
+             close={"spread": [(-6.5, 120, -140, False)], "total": [(47.5, 105, -125, False)],
+                    "moneyline": [(None, 140, -165, False)]})
+    return any(features(a, mk) != features(b, mk) for mk in ("moneyline", "spread", "total"))
 
 
 # ══════════════════════════════════════════════════════════════════════

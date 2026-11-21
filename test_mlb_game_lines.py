@@ -111,6 +111,20 @@ decision." Planted data throughout; the page in node.
 #   file: verify_record.py
 #   find:    (_gw, _gn, gl_void) == (_gl.get("w"), _gl.get("n"), _gl.get("voids")),
 #   with:    True,
+#
+# `[2026-11-20]` THE WORDS UNDER A GAME-LINE NUMBER (Sam, 2026-10-11: "BASED ON THE MODELS
+#    CONFIDENCE SCORE NOT THE SPORTSBOOKS"): the game model's own chance, so no row's note or why
+#    says a price made it (card.price_claims, which verify_card.py runs on every card). A review
+#    changed the why below to say so and every test passed; only the live card would have caught it.
+# @vacuity 🔴 an MLB game-line why never says the books' chance made its number
+#   file: card.py
+#   find:                 "why": ["The game model gives %s %d%% %s. It expects %s runs to %s, with %s "
+#   with:                 "why": ["The game model gives %s %d%% %s, corrected against the books' chance. It expects %s runs to %s, with %s "
+#
+# @vacuity 🔴 ...nor its note
+#   file: card.py
+#   find:                 "confidence_note": "The game model's own chance.",
+#   with:                 "confidence_note": "The game model's chance, corrected against the price.",
 """
 import collections
 import datetime
@@ -309,6 +323,15 @@ ck("🔴 a run-line row's confidence is the model's OWN chance, never the books'
    and "%d%%" % _rl[0]["confidence"] in _rl[0]["why"][0]
    and M.CORRECTED == ("total",) and "run_line" in M.MEASURED,
    "own %.1f, card %s, rows %s" % (_own, _g["card"]["run_line"], [(r["player"], r["confidence_value"]) for r in _rl]))
+# `[2026-11-20]` ...and the words under these numbers name no price as an input (the class guard
+#    verify_card.py runs, card.price_claims, asked of the rows the real code built here).
+_stamp = {"own_number_rule": CA.OWN_NUMBER_RULE, "date": "2027-04-01"}
+_glp = [dict(r, why=list(r["why"]) + ["Corrected against the books' chance."]) for r in ROWS[:1]]
+ck("🔴 [2026-11-20] no MLB game-line row's note or why says a price made its number, and a planted "
+   "one is found",
+   ROWS and _rl and CA.price_claims(dict(_stamp, game_lines=ROWS + _rl)) == []
+   and [p for _w, p, _t in CA.price_claims(dict(_stamp, game_lines=_glp))] == ["books' chance"],
+   str((CA.price_claims(dict(_stamp, game_lines=ROWS + _rl)) or [])[:3]))
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. 🔴 AT MOST 25, AND FROZEN AT FIRST PITCH")

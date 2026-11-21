@@ -69,6 +69,16 @@ published and stays as it was; editing a published pick is Sam's call.
 #   file: card.py
 #   find: f"and <b>{same} of {r['n']}</b> landed on this side of {line}.")
 #   with: f"and <b>{same} of {r['n']}</b> landed on this side of {line}. That's recent history, not part of the model's math.")
+#
+# @vacuity 🔴 [2026-11-19] the card main() builds carries the own-number stamp
+#   file: card.py
+#   find:         "own_number_rule": OWN_NUMBER_RULE,
+#   with:         "own_number_rule": None,
+#
+# @vacuity 🔴 [2026-11-19] ...and no sentence on it says a price made a number no price made
+#   file: card.py
+#   find:                  f"just to break even. We make it <b>{(blend if shown is None else shown):.0f}%</b>."
+#   with:                  f"just to break even. We make it <b>{(blend if shown is None else shown):.0f}%</b>, checked against the price."
 """
 import datetime
 import gzip
@@ -328,3 +338,18 @@ ck("⚠️ rule 67: every pick on the real card carries the opponent-log sentenc
 ck("🔴 the card main() built carries the why stamp, and no why on it carries a caveat phrase",
    C.get("why_rule") == _K.WHY_RULE and _K.why_caveats(C) == [],
    "why_rule %r, caveats %s" % (C.get("why_rule"), (_K.why_caveats(C) or [])[:3]))
+
+section("7. 🔴 [2026-11-19] THE REAL CARD CARRIES THE OWN-NUMBER STAMP, AND NO SENTENCE ON IT SAYS A "
+        "PRICE MADE A NUMBER NO PRICE MADE")
+# Sam, 2026-10-11: "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS". Every pick here prints
+#    its break-even sentence (the price may say what it needs). The tree's copied record.json
+#    usually fits C1 mappings, so the real card's pitcher rows are corrected and their note and why
+#    are read here; whether a mapping is fitted depends on that copy, so every method (C1, C2, D)
+#    is planted in test_price_words.py, where it never does.
+_be = [r for r in picks if any("just to break even" in w for w in r.get("why") or [])]
+ck("⚠️ rule 67: every pick on the real card carries its break-even sentence",
+   picks and len(_be) == len(picks), "%d of %d" % (len(_be), len(picks)))
+ck("🔴 the card main() built carries the own-number stamp, and no sentence on it says a price made "
+   "a number whose method reads none",
+   C.get("own_number_rule") == _K.OWN_NUMBER_RULE and _K.price_claims(C) == [],
+   "own_number_rule %r, claims %s" % (C.get("own_number_rule"), (_K.price_claims(C) or [])[:3]))
