@@ -1,7 +1,7 @@
 {
  "date": "2026-11-21",
  "league": "ncaaf",
- "generated_at": "2026-11-21T19:36:38Z",
+ "generated_at": "2026-11-21T20:24:53Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-21T19:29:54Z",
@@ -1991,35 +1991,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-21T19:36:15Z",
-  "ladder_built_at": "2026-11-21T19:36:21Z",
-  "alt_spreads": 17
+  "model_built_at": "2026-11-21T20:24:30Z",
+  "ladder_built_at": "2026-11-21T20:24:36Z",
+  "alt_spreads": 18
  },
  "scores_shown": [
-  {
-   "away": "Coastal Carolina Chanticleers",
-   "home": "Louisiana Ragin Cajuns",
-   "score": {
-    "home": 30,
-    "away": 20
-   }
-  },
-  {
-   "away": "Delaware Blue Hens",
-   "home": "New Mexico State Aggies",
-   "score": {
-    "home": 25,
-    "away": 29
-   }
-  },
-  {
-   "away": "Florida International Panthers",
-   "home": "Kennesaw State Owls",
-   "score": {
-    "home": 25,
-    "away": 20
-   }
-  },
   {
    "away": "LSU Tigers",
    "home": "Tennessee Volunteers",
@@ -2421,7 +2397,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 25 pick(s) for 2026-11-21 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (17 listed).",
+ "game_lines_rule": "The game model's own 25 pick(s) for 2026-11-21 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (18 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -3895,8 +3871,39 @@
    },
    {
     "legs": [
-     "L.J. Phillips Jr. u98.5 rush yds",
-     "Under 40.5 total"
+     "Maalik Murphy u266.5 pass yds",
+     "Under 51.5 total"
+    ],
+    "game": "Utah State Aggies @ Oregon State Beavers",
+    "game_id": "6e36f5c3c55edcb31749b0de4a146d14",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -108
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.615,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 66,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     66
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Chris Lawson u5.5 rec",
+     "Grant Wilson u214.5 pass yds"
     ],
     "game": "Indiana Hoosiers @ Washington Huskies",
     "game_id": "6b40f07e146bab0dba574f0d3b07659e",
@@ -3958,64 +3965,32 @@
    },
    {
     "legs": [
-     "Maalik Murphy u266.5 pass yds",
-     "Under 51.5 total"
+     "LaNorris Sellers o28.5 rush yds",
+     "Georgia Bulldogs -14.5 spread"
     ],
-    "game": "Utah State Aggies @ Oregon State Beavers",
-    "game_id": "6e36f5c3c55edcb31749b0de4a146d14",
+    "game": "Georgia Bulldogs @ South Carolina Gamecocks",
+    "game_id": "a05c0d32b35dfd5cca63a61af28b9739",
     "same_game": true,
     "book": "fanduel",
     "prices": [
      -114,
-     -108
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -105,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.615,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 66,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     66
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Chris Lawson u5.5 rec",
-     "Grant Wilson u214.5 pass yds"
-    ],
-    "game": "Indiana Hoosiers @ Washington Huskies",
-    "game_id": "6b40f07e146bab0dba574f0d3b07659e",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -154,
      -114
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.096,
+    "n_line_legs": 1,
+    "multiplier": 3.524,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 66,
+    "weakest_leg": 62,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     81,
-     66
+     62
     ],
     "band_floor": 1.8
    }
@@ -4225,46 +4200,12 @@
      60
     ],
     "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Maalik Murphy u266.5 pass yds",
-     "Jesse Legree u111.5 rec yds",
-     "Under 51.5 total"
-    ],
-    "game": "Utah State Aggies @ Oregon State Beavers",
-    "game_id": "6e36f5c3c55edcb31749b0de4a146d14",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -108
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.787,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 59,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     66,
-     59
-    ],
-    "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
   "games_with_rated_legs": 23,
-  "games_with_a_line_row": 21,
+  "games_with_a_line_row": 19,
   "games_used": 23,
   "per_game_cap": 2,
   "rejected": {
@@ -4277,7 +4218,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "23 game(s) on this card carry a rated leg and 21 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "23 game(s) on this card carry a rated leg and 19 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -14598,19 +14539,19 @@
   }
  },
  "name_match_rate": 0.954,
- "n_priced": 481,
+ "n_priced": 471,
  "single_day": true,
  "slate_date": "2026-11-21",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 481,
+ "n_on_slate_day": 471,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-21 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "481 priced football rows for 2026-11-21 across 58 board games; 25 shown.",
+ "coverage": "471 priced football rows for 2026-11-21 across 58 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 56.5% against a claimed 54.7% (+1.8 pts, n=62); 60-70 hit 50% against a claimed 62.6% (-12.6 pts, n=24). The under-60 band is currently the closest to its own claim. 70-80 has too few graded plays to read. 86 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -16946,7 +16887,7 @@
    ]
   }
  ],
- "n_longshots_excluded": 87,
+ "n_longshots_excluded": 84,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
