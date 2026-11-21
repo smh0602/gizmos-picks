@@ -16,14 +16,30 @@ no test file may be run by two steps of one job. A second step that needs what
 a test printed reads what the first step kept (browser.yml's RENDER_LOG), and
 never runs the file again. `wfparse.step_tests` reads what a step RUNS, never
 what it mentions (section 1 holds every case).
-⚠️ WHAT THIS CANNOT SEE (wfparse's own note): a step that runs another step's
-script (`bash -e "$loop"`, pr-tests' staged / offseason / champion jobs: one
-test step each), a harness that runs tests itself (vacuity.py), a test started
-from Python. ⚠️ Two steps whose `if:` conditions exclude each other would be
+✅ `[2026-11-21, review]` IT READS THE STEP AS BASH DOES (~~a pattern over the
+text~~). The first form matched `python test_x.py` anywhere: a step that only
+PRINTS how to rerun a file (`echo "::error::python test_a.py failed"`, a
+summary heredoc, a trailing `# python test_a.py` comment) counted as running
+it, so a correct job could go red; and a `done` inside a string ended a loop,
+so a real second run could be missed. It also missed `python ./test_x.py`,
+`python -X utf8 test_x.py`, `python3.11 test_x.py`, a `while read` or `xargs`
+fed by a pipe, and a `for` over `$(ls GLOB)`. Section 1 holds each of those;
+wfparse's note says what a runner, a command start and a loop are.
+⚠️ WHAT THIS CANNOT SEE (wfparse's own note, in full): a script handed to
+another shell or runner as a string or on stdin (`bash -e "$loop"`, pr-tests'
+staged / offseason / champion jobs: one test step each; `bash -c`, `bash
+<<EOF`), a file name kept in a variable outside a loop or built from pieces,
+an array loop, a loop fed by a redirection, `find -exec`, a function that runs
+its own argument, pytest, a harness that runs tests itself (vacuity.py), a
+test started from Python. The instance does not rest on this list:
+test_render_once.py counts the render files' real executions in both render
+jobs. ⚠️ Two steps whose `if:` conditions exclude each other would be
 reported too; none exists today, and one step is the simpler shape anyway.
 ✅ Driven on every real workflow file on the day it was written (both
-folders): it fired on browser.yml's render job (deployed and staged) and on
-pr-tests.yml's render job, five files each, and on nothing else.
+folders, base 85c434f01 and this branch, both forms of the reader giving the
+same answer on every step): it fired on browser.yml's render job (deployed
+and staged) and on pr-tests.yml's render job, five files each, and on
+nothing else.
 
 # @vacuity 🔴 the render job re-running a render file is caught (the 11-21 shape)
 #   file: docs/upload/browser.yml
@@ -42,23 +58,88 @@ pr-tests.yml's render job, five files each, and on nothing else.
 #
 # @vacuity ⚠️ a loop's glob is matched against the test files that exist
 #   file: wfparse.py
-#   find:                 out.update(fnmatch.filter(files, w) if any(c in w for c in "*?[") else [w])
-#   with:                 out.update([] if any(c in w for c in "*?[") else [w])
+#   find: self.out.update(fnmatch.filter(self.files, w) if any(c in w for c in "*?[") else [w])
+#   with: self.out.update([] if any(c in w for c in "*?[") else [w])
 #
-# @vacuity ⚠️ a `\` continuation is one line (the render loop spans two)
+# @vacuity ⚠️ a `\` continuation is one line
 #   file: wfparse.py
-#   find:     return live.replace("\\\n", " ")
-#   with:     return live
+#   find: if s.startswith("\\\n", i):
+#   with: if False:
 #
 # @vacuity ⚠️ a nested loop's `done` does not end the outer loop's body
 #   file: wfparse.py
-#   find:         depth += 1 if m.group(1) == "do" else -1
-#   with:         depth -= 1
+#   find: loop = self.loops.pop()
+#   with: loop = self.loops.pop(0)
 #
-# @vacuity ⚠️ a comment line is not a command
+# @vacuity 🔴 a comment is not a command, and an apostrophe in one opens no quote
 #   file: wfparse.py
-#   find:     live = "\n".join(l for l in (run or "").splitlines()
-#   with:     live = "\n".join(l for l in (run or "").replace("# ", "").splitlines()
+#   find: elif c == "#" and word is None:
+#   with: elif c == "#" and word is None and False:
+#
+# @vacuity 🔴 a runner counts only where a command starts (review: `echo python test_a.py`)
+#   file: wfparse.py
+#   find: target = _target(w)
+#   with: target = next((x for x in map(_target, (w[k:] for k in range(len(w)))) if x), None)
+#
+# @vacuity 🔴 a command inside a quoted string is text (review: `echo "a; python test_a.py"`)
+#   file: wfparse.py
+#   find: elif c == '"':
+#   with: elif c == '"' and False:
+#
+# @vacuity 🔴 a heredoc's body is text, never commands (review: a summary heredoc)
+#   file: wfparse.py
+#   find: heredocs.append(delim)
+#   with: heredocs.append(delim) if False else None
+#
+# @vacuity 🔴 a `done` that is an argument does not end the loop (review: a real run missed)
+#   file: wfparse.py
+#   find: elif cmd or tk[1] not in _KEYWORDS | _LOOP_WORDS:
+#   with: elif tk[1] not in _KEYWORDS | _LOOP_WORDS:
+#
+# @vacuity ⚠️ a path in front of the file is cut off (review: `python ./test_a.py`)
+#   file: wfparse.py
+#   find: base = target.rsplit("/", 1)[-1]
+#   with: base = target
+#
+# @vacuity ⚠️ python's -X and -W take a value (review: `python -X utf8 test_a.py`)
+#   file: wfparse.py
+#   find: if c in "XW":
+#   with: if c in "":
+#
+# @vacuity ⚠️ python3.N is a runner (review: `python3.11 test_a.py`)
+#   file: wfparse.py
+#   find: python(?:\d+(?:\.\d+)?)?
+#   with: python(?:\d+)?
+#
+# @vacuity ⚠️ -m test_a runs test_a.py
+#   file: wfparse.py
+#   find: return (a[j:] or (w[i + 1] if i + 1 < len(w) else "")).replace(".", "/") + ".py"
+#   with: return None
+#
+# @vacuity ⚠️ a `while read VAR` fed by a pipe runs what is piped in (review)
+#   file: wfparse.py
+#   find: if w[:1] == ["read"] and
+#   with: if w[:1] == ["read_"] and
+#
+# @vacuity ⚠️ a `for` over `$(ls GLOB)` runs the files the glob matches (review)
+#   file: wfparse.py
+#   find: out += self.names(sub)
+#   with: out += []
+#
+# @vacuity ⚠️ an xargs fed by a pipe runs what is piped in (review)
+#   file: wfparse.py
+#   find: xargs = w[:1] == ["xargs"]
+#   with: xargs = w[:1] == ["xargs_"]
+#
+# @vacuity ⚠️ a function of the step in front of a runner runs it (the suite's run_one)
+#   file: wfparse.py
+#   find: if w[0] in funcs:
+#   with: if False:
+#
+# @vacuity 🔴 ...only a function whose body runs its own argument (`say() { echo "$@"; }` does not)
+#   file: wfparse.py
+#   find: if _runs_its_argument(body, out):
+#   with: if True:
 """
 import glob
 import os
@@ -83,6 +164,7 @@ def test_files(root):
 section("1. WHAT A STEP RUNS, NEVER WHAT IT MENTIONS (planted bodies)")
 # ══════════════════════════════════════════════════════════════════════
 F = ["test_a.py", "test_b.py", "test_c.js"]
+AB = ["test_a.py", "test_b.py"]
 for body, want, why in (
         ("python test_a.py\n", ["test_a.py"], "a direct run"),
         ("python -B test_a.py\ntimeout 60 python3 \"test_b.py\" 2>&1\nnode test_c.js\n",
@@ -92,26 +174,73 @@ for body, want, why in (
         ("echo \"run test_a.py by hand\"\ngrep -c x test_b.py\ncat test_c.js\n"
          "python -m pip install test_a.py-helper\n", [],
          "🔴 a mention is not a run: echo, grep, cat, a module flag"),
-        ("# python test_a.py\n  # for t in test_b.py; do python \"$t\"; done\n", [],
-         "🔴 a comment line is not a command"),
+        # `[2026-11-21, review]` mentions that name the runner as well
+        ("echo \"::error::reproduce with: python test_a.py\"\necho python test_b.py\n"
+         "grep -q \"python test_a.py\" log\n", [],
+         "🔴 ...nor one that names the runner too: a runner counts only where a command starts"),
+        ("echo \"step 1; python test_a.py next\"\n", [],
+         "🔴 ...nor a command written inside a quoted string"),
+        ("run_it  # same as; python test_a.py\n# python test_a.py\n"
+         "  # for t in test_b.py; do python \"$t\"; done\n", [],
+         "🔴 a comment is not a command, after a command or on a line of its own"),
+        ("# the step's own loop\npython test_a.py\n", ["test_a.py"],
+         "   ...and an apostrophe in a comment opens no quote"),
+        ("cat >> \"$GITHUB_STEP_SUMMARY\" <<EOF\nRun it locally:\n  python test_a.py\nEOF\n"
+         "python test_b.py\n", ["test_b.py"],
+         "🔴 a heredoc's body is text, never commands; the line after it is a command"),
+        ("echo \"out: $(python test_a.py)\"\n", ["test_a.py"],
+         "   ...while a $(...) inside a quoted string IS a command"),
+        ("python ./test_a.py\npython \"$GITHUB_WORKSPACE/test_b.py\"\n", AB,
+         "a path in front of the file"),
+        ("python -X utf8 test_a.py\npython -W ignore test_b.py\n", AB,
+         "   ...python's -X and -W take a value"),
+        ("python -X test_a.py other.py\n", [], "   ...so the word after -X is not the file"),
+        ("python3.11 test_a.py\n", ["test_a.py"], "   ...python3.N is a runner"),
+        ("python -m test_a\n", ["test_a.py"], "   ...-m test_a runs test_a.py"),
+        ("python \\\n  test_a.py\n", ["test_a.py"], "   ...across a `\\` continuation"),
         ("for t in test_a.py \\\n         test_b.py; do\n  python \"$t\"\ndone\n",
-         ["test_a.py", "test_b.py"], "a loop over listed files, across a `\\` continuation"),
-        ("for t in test_*.py; do\n  [ -e \"$t\" ] || continue\n  run_one python \"$t\"\ndone\n",
-         ["test_a.py", "test_b.py"], "a glob loop: every test file it matches, through run_one"),
+         AB, "a loop over listed files, across a `\\` continuation"),
+        ("run_one() {   # $1 = runner, $2 = file\n  timeout -k 15 60 \"$1\" \"$2\"\n}\n"
+         "for t in test_*.py; do\n  [ -e \"$t\" ] || continue\n  run_one python \"$t\"\ndone\n",
+         AB, "a glob loop: every test file it matches, through a function of the step (run_one)"),
+        ("say() { echo \"::notice::$*\"; }\nsay python test_a.py\n"
+         "for t in test_b.py; do say python \"$t\"; done\n", [],
+         "🔴 ...but a function that only PRINTS its arguments runs nothing"),
         ("for t in test_a.py\ndo\n  python \"${t}\"\ndone\n", ["test_a.py"],
          "   ...`do` on its own line, ${t} spelled with braces"),
+        ("for t in $(ls test_*.py); do python \"$t\"; done\n", AB, "   ...over a $(ls GLOB)"),
+        ("ls test_*.py | while read -r t; do python \"$t\"; done\n", AB,
+         "a `while read` fed by a pipe runs what is piped in"),
+        ("ls test_*.py | xargs -n1 python\nprintf '%s\\n' test_c.js | xargs -I{} node {}\n", F,
+         "an xargs fed by a pipe runs what is piped in"),
         ("for t in test_a.py test_b.py; do\n  grep -qxF -- \"== $t\" \"$log\"\ndone\n", [],
          "🔴 a loop that only READS \"$t\" runs nothing (the new skipped-render check)"),
+        ("for t in test_a.py; do echo \"would run: python $t\"; done\n", [],
+         "   ...nor one that only prints the command"),
         ("for m in $MODES test_a.py; do python collect.py \"$m\"; done\n", [],
          "   ...nor one whose runner's argument is another file"),
         ("for t in test_a.py; do python x.py > \"$t.log\"; done\n", [],
          "   ...nor one that only names an output after \"$t\""),
+        ("for t in test_a.py test_b.py; do\n  echo \"not done yet: $t\"\n  echo done\n"
+         "  python \"$t\"\ndone\n", AB,
+         "🔴 a `done` in a string or as an argument does not end the loop"),
         ("for t in test_a.py; do\n  for i in 1 2; do echo $i; done\n  python \"$t\"\ndone\n",
          ["test_a.py"], "⚠️ a nested loop's `done` does not end the outer body"),
         ("out=$(for t in test_a.py test_b.py; do\n        [ -e \"$t\" ] && python \"$t\" 2>&1\n"
          "      done | grep -c \"NO BROWSER HERE\" || true)\n",
-         ["test_a.py", "test_b.py"], "🔴🔴 the 11-21 re-run shape is a run")):
+         AB, "🔴🔴 the 11-21 re-run shape is a run")):
     eq(W.step_tests(body, F), want, why)
+
+_hint = ("on: push\njobs:\n  j:\n    runs-on: x\n    steps:\n"
+         "      - name: Tests\n        run: |\n"
+         "          for t in test_*.py; do python \"$t\"; done\n"
+         "      - name: Tell\n        if: failure()\n        run: |\n"
+         "          echo \"::error::reproduce with: python test_a.py\"\n"
+         "          cat >> \"$GITHUB_STEP_SUMMARY\" <<EOF\n"
+         "          python test_b.py\n"
+         "          EOF\n")
+eq(W.rerun_tests(_hint, F), [],
+   "🔴 a suite step, then a step that only PRINTS how to rerun a file, is no finding (review)")
 
 _wf = ("on: push\njobs:\n"
        "  j:\n    runs-on: x\n    steps:\n"

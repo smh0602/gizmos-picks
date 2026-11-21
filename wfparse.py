@@ -398,55 +398,475 @@ def job_names(src):
 # run 44886195117; with a slow install, 1273s of its 1500s clock on #252).
 # `test_tests_run_once.py` asks it of every workflow as it will be live: no
 # test file is run by two steps of one job.
-# ⚠️ What a step RUNS, never what it mentions: a `python` / `node` command
-#    whose first argument after its flags is a test file, or a `for VAR in
-#    WORDS` loop whose body runs "$VAR" that way (a glob in WORDS matched
-#    against `files`, the test files that exist). Comment lines are not
-#    commands; a `\` continuation is one line.
-# ⛔ It cannot see a step that runs ANOTHER step's script (pr-tests' staged,
-#    offseason and champion jobs: `bash -e "$loop"`), a harness that runs
-#    tests itself (vacuity.py), or a test file started from Python.
-_RUNNER = r"\b(?:python3?|node)(?:\s+-[\w-]+)*\s+[\"']?"
-_RUNS_TEST = re.compile(_RUNNER + r"(test_[\w.-]*?\.(?:py|js))(?![\w.-])")
-_FOR = re.compile(r"\bfor\s+([A-Za-z_]\w*)\s+in\s+([^;\n]*?)\s*(?:;|\n)\s*do\b")
-_DO = re.compile(r"\b(do|done)\b")
+# ⚠️ What a step RUNS, never what it mentions. `[2026-11-21, review]` The
+#    body is split into words the way bash splits it (~~a pattern over the
+#    text: `echo "python test_a.py failed"` counted as a run, and a `done`
+#    inside a string ended a loop early~~): quotes, `\` continuations, `#`
+#    comments and heredoc bodies are text, never commands; `$(...)`,
+#    backticks and `<(...)` are commands, even inside "...".
+#    ✅ A runner counts only where a COMMAND starts (a line's start, after
+#    ; && || | & ( ) if then elif else do ! {), after any VAR=value words
+#    and any wrapper: timeout, env, nice, nohup, time, command, exec,
+#    stdbuf, xvfb-run, or a function the step defines that runs its own
+#    first argument as a command (run_one's `timeout ... "$1" "$2"`, so
+#    `run_one python "$t"`); one that only prints them (`say() { echo
+#    "$@"; }`) is no wrapper.
+#    A runner is python, python3, python3.N or node, any path in front; its
+#    file is its first word after its own options (python's -X and -W take
+#    a value; -c and - run no file; -m test_x runs test_x.py), any path in
+#    front. A loop runs its words when its body runs "$VAR" that way:
+#    `for VAR in WORDS` (a glob, or the globs in a `$(ls GLOB)`, matched
+#    against `files`, the test files that exist), and `... | while read
+#    VAR` or `... | xargs [-I R] RUNNER [R]`, read as yielding every test
+#    file the commands piped in name.
+# ⛔ It cannot see: a script handed to another shell or runner as a string
+#    or on stdin (`bash -e "$loop"`: pr-tests' staged, offseason and
+#    champion jobs; `bash -c "..."`; `bash <<EOF`; `python - < test_x.py`);
+#    a file name kept in a variable outside a loop, or built from pieces
+#    (`T=test_a.py; python "$T"`, `python "test_$x.py"`); an array loop
+#    (`"${files[@]}"`); a loop fed by a redirection (`done < list`); `find
+#    -exec`; a function that runs its own argument (`f() { python "$1"; };
+#    f test_a.py`); a test runner such as pytest; a harness that runs tests
+#    itself (vacuity.py); a test started from Python.
 _TEST_WORD = re.compile(r"^test_[\w.*?\[\]-]*\.(?:py|js)$")
+_TEST_FILE = re.compile(r"^test_[\w.-]*\.(?:py|js)$")
+_RUNNER_WORD = re.compile(r"^(?:python(?:\d+(?:\.\d+)?)?|node(?:js)?)$")
+_VAR_REF = re.compile(r"^\$(?:\{([A-Za-z_]\w*)\}|([A-Za-z_]\w*))$")
+_ASSIGN = re.compile(r"^[A-Za-z_]\w*(?:\[[^\]]*\])?\+?=")
+_FUNC_NAME = re.compile(r"^[A-Za-z_][\w-]*$")
+_SUB = "\x00"        # where a `$(...)` stood in a word: never part of a file name
+_OPS = ("<<<", "<<-", "&>>", "<<", ">>", "<&", ">&", "&>", "<>", ">|", "&&", "||",
+        ";;", "|&", ";", "&", "|", "(", ")", "<", ">")
+_REDIRS = {"<<<", "&>>", ">>", "<&", ">&", "&>", "<>", ">|", "<", ">"}   # each takes a word
+_KEYWORDS = {"then", "else", "elif", "if", "fi", "!", "{", "}", "esac"}
+_LOOP_WORDS = {"for", "while", "until", "do", "done"}
+_ARG_CMD = {"$1", "${1}", "$@", "${@}", "$*", "${*}"}   # a function running its argument
+# A wrapper runs the command after it -> its own options that take a value.
+_WRAPPERS = {"timeout": {"-k", "-s", "--kill-after", "--signal"},
+             "env": {"-u", "--unset", "-C", "--chdir"}, "nice": {"-n", "--adjustment"},
+             "nohup": set(), "time": set(), "command": set(), "exec": {"-a"},
+             "stdbuf": {"-i", "-o", "-e"}, "xvfb-run": {"-n", "-s", "-e", "-f", "-p", "-w"}}
+_NODE_ARG = {"-r", "--require", "--import", "--loader", "--experimental-loader",
+             "-C", "--conditions"}
+_XARGS_ARG = {"-n", "-L", "-P", "-d", "-E", "-s", "-a", "-I"}
+_READ_ARG = {"-d", "-n", "-N", "-p", "-t", "-u", "-a", "-i"}
 
 
-def _shell_code(run):
-    """A `run:` body as the shell reads it: comment lines dropped, `\\`
-    continuations joined."""
-    live = "\n".join(l for l in (run or "").splitlines()
-                     if not l.lstrip().startswith("#"))
-    return live.replace("\\\n", " ")
+def _close_of(s, i, opener, closer, depth=1):
+    """The index just past the `closer` that balances `depth` open `opener`s."""
+    while i < len(s) and depth:
+        if s[i] == "\\":
+            i += 1
+        elif s[i] == opener:
+            depth += 1
+        elif s[i] == closer:
+            depth -= 1
+        i += 1
+    return i
 
 
-def _loop_body(code, at):
-    """The text from `at` (just past a loop's `do`) to ITS `done`, nested
-    loops counted."""
-    depth = 1
-    for m in _DO.finditer(code, at):
-        depth += 1 if m.group(1) == "do" else -1
-        if depth == 0:
-            return code[at:m.start()]
-    return code[at:]
+def _backtick(s, i):
+    """The index of the backtick that closes one opened just before `i`."""
+    while i < len(s) and s[i] != "`":
+        i += 2 if s[i] == "\\" else 1
+    return i
+
+
+def _dollar(s, i, add, subs, quoted=False):
+    """A `$` expansion at `i` -> the index after it. A `$(...)` is commands
+    (its tokens join `subs`); `$((...))` is arithmetic; `${...}` is kept."""
+    if s.startswith("$((", i):
+        add(_SUB)
+        return _close_of(s, i + 3, "(", ")", 2)
+    if s.startswith("$(", i):
+        toks, j = _lex(s, i + 2, close=True)
+        subs.append(toks)
+        add(_SUB)
+        return j
+    if s.startswith("${", i):
+        j = _close_of(s, i + 2, "{", "}")
+        add(s[i:j])
+        return j
+    if not quoted and s.startswith("$'", i):
+        j = i + 2
+        while j < len(s) and s[j] != "'":
+            j += 2 if s[j] == "\\" else 1
+        add(s[i + 2:j])
+        return j + 1
+    if not quoted and s.startswith('$"', i):
+        return _dquote(s, i + 2, add, subs)
+    add("$")
+    return i + 1
+
+
+def _dquote(s, i, add, subs):
+    """A "..." string from `i` (just past its quote) -> the index after it.
+    Its text is part of one word; a `$(...)` or backtick in it is commands."""
+    add("")
+    while i < len(s) and s[i] != '"':
+        c = s[i]
+        if c == "\\" and s[i + 1:i + 2] in ('"', "\\", "$", "`", "\n"):
+            add(s[i + 1] if s[i + 1] != "\n" else "")
+            i += 2
+        elif c == "$":
+            i = _dollar(s, i, add, subs, quoted=True)
+        elif c == "`":
+            j = _backtick(s, i + 1)
+            subs.append(_lex(s[i + 1:j].replace("\\`", "`"))[0])
+            add(_SUB)
+            i = j + 1
+        else:
+            add(c)
+            i += 1
+    return i + 1
+
+
+def _heredoc_word(s, i):
+    """A heredoc's delimiter after `<<` -> (the index after it, the word
+    with its quotes taken off)."""
+    while i < len(s) and s[i] in " \t":
+        i += 1
+    j = i
+    while j < len(s) and s[j] not in " \t\n;&|()<>":
+        j += 1
+    return j, re.sub(r"[\"'\\]", "", s[i:j])
+
+
+def _heredoc_end(s, i, delim):
+    """The index just past a heredoc body that starts at `i`, its closing
+    line included."""
+    while i < len(s):
+        j = s.find("\n", i)
+        j = len(s) if j < 0 else j
+        line, i = s[i:j], j + 1
+        if line.strip() == delim:
+            break
+    return i
+
+
+def _lex(s, i=0, close=False):
+    """The shell tokens of `s` from `i` (to the `)` that ends a `$(` when
+    `close`) -> (tokens, the index after). A token is ("w", word, subs): the
+    word with its quotes taken off, each `$(...)` in it as _SUB and its own
+    tokens in `subs`; or ("op", text)."""
+    toks, heredocs, depth, n = [], [], 0, len(s)
+    word, subs = None, []          # None: between words
+
+    def add(text):
+        nonlocal word
+        word = (word or []) + [text]
+
+    def flush():
+        nonlocal word, subs
+        if word is not None:
+            toks.append(("w", "".join(word), subs))
+        word, subs = None, []
+
+    while i < n:
+        c = s[i]
+        if c == "\\":
+            if s.startswith("\\\n", i):   # a `\` continuation: one line
+                i += 2
+                continue
+            add(s[i + 1:i + 2])
+            i += 2
+        elif c == "'":
+            j = s.find("'", i + 1)
+            j = n if j < 0 else j
+            add(s[i + 1:j])
+            i = j + 1
+        elif c == '"':
+            i = _dquote(s, i + 1, add, subs)
+        elif c == "`":
+            j = _backtick(s, i + 1)
+            subs.append(_lex(s[i + 1:j].replace("\\`", "`"))[0])
+            add(_SUB)
+            i = j + 1
+        elif c == "$":
+            i = _dollar(s, i, add, subs)
+        elif word is None and c in "<>" and s.startswith("(", i + 1):   # <(...) >(...)
+            sub, i = _lex(s, i + 2, close=True)
+            subs.append(sub)
+            add(_SUB)
+        elif word is None and s.startswith("((", i):                  # (( arithmetic ))
+            i = _close_of(s, i + 2, "(", ")", 2)
+        elif c == "#" and word is None:                                # a comment, to the line's end
+            j = s.find("\n", i)
+            i = n if j < 0 else j
+        elif c in " \t\r":
+            flush()
+            i += 1
+        elif c == "\n":
+            flush()
+            toks.append(("op", "\n"))
+            i += 1
+            for delim in heredocs:          # their bodies start on the next line
+                i = _heredoc_end(s, i, delim)
+            heredocs = []
+        elif close and c == ")" and depth == 0:
+            flush()
+            return toks, i + 1
+        elif c in ";&|()<>":
+            if c in "<>" and word is not None and "".join(word).isdigit() and not subs:
+                word = None                 # `2>&1`: the 2 belongs to the redirection
+            flush()
+            op = next(o for o in _OPS if s.startswith(o, i))
+            i += len(op)
+            depth += (op == "(") - (op == ")" and depth > 0)
+            if op in ("<<", "<<-"):         # a heredoc: its body is text, never commands
+                i, delim = _heredoc_word(s, i)
+                heredocs.append(delim)
+            toks.append(("op", op))
+        else:
+            add(c)
+            i += 1
+    flush()
+    return toks, i
+
+
+def _unwrap(w, funcs=()):
+    """A command's words with the wrappers in front of its runner taken off."""
+    while w:
+        if w[0] in funcs:                 # a function of this step that runs the command after it
+            w = w[1:]
+            continue
+        takes = _WRAPPERS.get(w[0])
+        if takes is None:
+            return w
+        head, w = w[0], w[1:]
+        while w and (w[0].startswith("-") or _ASSIGN.match(w[0])):
+            w = w[2:] if w[0] in takes else w[1:]
+        if head == "timeout":
+            w = w[1:]                     # its duration
+    return w
+
+
+def _runs_arg(w, funcs):
+    """Is this command (its words) the function's own first argument, run?"""
+    while w and _ASSIGN.match(w[0]):
+        w = w[1:]
+    return (_unwrap(w, funcs)[:1] or [""])[0] in _ARG_CMD
+
+
+def _runs_its_argument(body, funcs):
+    """Does a function's body (the tokens after `name()`, to its closing
+    `}`) run its own first argument as a command: `"$1" "$2"`, `"$@"`,
+    after any wrapper or a function already known to be one?"""
+    depth, cmd, skip = 0, [], False
+    for t in body:
+        if t[0] == "op":
+            skip = t[1] in _REDIRS
+            if not skip:
+                if _runs_arg(cmd, funcs):
+                    return True
+                cmd = []
+        elif skip:                        # a redirection's word
+            skip = False
+        elif not cmd and t[1] in ("{", "}"):
+            depth += 1 if t[1] == "{" else -1
+            if depth <= 0:
+                break
+        elif cmd or t[1] not in _KEYWORDS | _LOOP_WORDS:
+            cmd.append(t[1])
+    return _runs_arg(cmd, funcs)
+
+
+def _functions(toks, out):
+    """`out` with the shell functions `toks` define (`name() {`, `function
+    name`) that run their own first argument as a command added: wrappers,
+    as `timeout` is."""
+    for k, t in enumerate(toks):
+        if t[0] != "w":
+            continue
+        for sub in t[2]:
+            _functions(sub, out)
+        if k and toks[k - 1][0] != "op":
+            continue
+        if toks[k + 1:k + 3] == [("op", "("), ("op", ")")] and _FUNC_NAME.match(t[1]):
+            name, body = t[1], toks[k + 3:]
+        elif t[1] == "function" and k + 1 < len(toks) and toks[k + 1][0] == "w":
+            name, body = toks[k + 1][1], toks[k + 2:]
+        else:
+            continue
+        if _runs_its_argument(body, out):
+            out.add(name)
+    return out
+
+
+def _target(w):
+    """The file a runner command runs: its first word after its own options;
+    "" when it names none (xargs supplies it); None when it is no runner, or
+    runs code (-c, -e) or stdin (-)."""
+    if not w or not _RUNNER_WORD.match(w[0].rsplit("/", 1)[-1]):
+        return None
+    node = w[0].rsplit("/", 1)[-1].startswith("node")
+    i = 1
+    while i < len(w):
+        a = w[i]
+        if a == "--":
+            return w[i + 1] if i + 1 < len(w) else ""
+        if a == "-" or (node and a in ("-e", "--eval", "-p", "--print")):
+            return None
+        if not a.startswith("-"):
+            return a
+        if node or a.startswith("--"):
+            i += 2 if a in _NODE_ARG else 1
+            continue
+        for j, c in enumerate(a[1:], 2):  # python's short options, grouped as getopt reads them
+            if c == "c":
+                return None
+            if c == "m":                  # -m test_x runs test_x.py
+                return (a[j:] or (w[i + 1] if i + 1 < len(w) else "")).replace(".", "/") + ".py"
+            if c in "XW":                 # -X utf8, -W ignore: an option with a value
+                i += j == len(a)
+                break
+        i += 1
+    return ""
+
+
+def _xargs(w):
+    """xargs's own options off its words -> (the command it runs, the word
+    its input stands in for: "" when none, appended at the end)."""
+    rep, i = "", 0
+    while i < len(w) and w[i].startswith("-"):
+        if w[i] in _XARGS_ARG:
+            rep = w[i + 1] if w[i] == "-I" and i + 1 < len(w) else rep
+            i += 2
+            continue
+        rep = w[i][2:] if w[i].startswith("-I") else rep
+        i += 1
+    return w[i:], rep
+
+
+def _read_vars(w):
+    """The variables a `read` command fills."""
+    out, i = set(), 0
+    while i < len(w):
+        if w[i] in _READ_ARG:
+            i += 2
+            continue
+        if not w[i].startswith("-"):
+            out.add(w[i])
+        i += 1
+    return out
+
+
+class _Runs:
+    """What one step's tokens run: `out`, the test files, once walked."""
+
+    def __init__(self, files, funcs):
+        self.files, self.funcs, self.out, self.loops = files, funcs, set(), []
+
+    def names(self, toks):
+        """The test-file words (globs too) among `toks` and their `$(...)`s,
+        any path cut off."""
+        out = []
+        for t in toks:
+            if t[0] != "w":
+                continue
+            base = t[1].rsplit("/", 1)[-1]
+            if _TEST_WORD.match(base):
+                out.append(base)
+            for sub in t[2]:
+                out += self.names(sub)
+        return out
+
+    def expand(self, names):
+        for w in names:
+            self.out.update(fnmatch.filter(self.files, w) if any(c in w for c in "*?[") else [w])
+
+    def done(self):
+        if self.loops:
+            loop = self.loops.pop()
+            if loop["runs"]:
+                self.expand(loop["items"])
+
+    def command(self, cmd, pipe):
+        """One simple command (its word tokens) and the commands piped into it."""
+        w = [t[1] for t in cmd]
+        while w and _ASSIGN.match(w[0]):
+            w = w[1:]
+        if w[:1] == ["read"] and self.loops and not self.loops[-1]["open"]:
+            self.loops[-1]["vars"].update(_read_vars(w[1:]))
+            return
+        w = _unwrap(w, self.funcs)
+        xargs = w[:1] == ["xargs"]
+        rep = None
+        if xargs:
+            w, rep = _xargs(w[1:])
+            w = _unwrap(w, self.funcs)
+        target = _target(w)
+        if target is None:
+            return
+        if xargs and target == rep:       # what is piped in is the file
+            self.expand(self.names(t for c in pipe for t in c))
+            return
+        base = target.rsplit("/", 1)[-1]
+        if _TEST_FILE.match(base):
+            self.out.add(base)
+            return
+        m = _VAR_REF.match(base)
+        for loop in (reversed(self.loops) if m else ()):
+            if (m.group(1) or m.group(2)) in loop["vars"]:
+                loop["runs"] = True
+                break
+
+    def walk(self, toks):
+        cmd, pipe, head, skip = [], [], None, False
+        for tk in toks:
+            if tk[0] == "w":
+                for sub in tk[2]:
+                    self.walk(sub)
+                if skip:                  # a redirection's word
+                    skip = False
+                elif head is not None:    # for VAR in WORDS
+                    if head["var"] is None:
+                        head["var"] = tk[1]
+                    elif tk[1] == "in" and not head["in"]:
+                        head["in"] = True
+                    elif head["in"]:
+                        head["items"] += self.names([tk])
+                elif cmd or tk[1] not in _KEYWORDS | _LOOP_WORDS:
+                    cmd.append(tk)
+                elif tk[1] == "for":
+                    head = {"var": None, "in": False, "items": []}
+                elif tk[1] in ("while", "until"):
+                    self.loops.append({"vars": set(), "runs": False, "open": False,
+                                       "items": self.names(t for c in pipe for t in c)})
+                elif tk[1] == "do":
+                    if self.loops:
+                        self.loops[-1]["open"] = True
+                elif tk[1] == "done":
+                    self.done()
+                continue
+            if tk[1] in _REDIRS:
+                skip = True
+                continue
+            if tk[1] in ("<<", "<<-"):
+                continue
+            if head is not None:          # the loop's words end at ; or a new line
+                self.loops.append({"vars": {head["var"]}, "items": head["items"],
+                                   "runs": False, "open": False})
+                head, pipe = None, []
+                continue
+            self.command(cmd, pipe)
+            pipe = pipe + [cmd] if tk[1] in ("|", "|&") else []
+            cmd = []
+        if head is not None:
+            self.loops.append({"vars": {head["var"]}, "items": head["items"],
+                               "runs": False, "open": False})
+        self.command(cmd, pipe)
 
 
 def step_tests(run, files):
     """Every test file one step's `run:` body executes, sorted. `files`: the
     test files that exist, which a loop's glob is matched against."""
-    code = _shell_code(run)
-    out = set(_RUNS_TEST.findall(code))
-    for m in _FOR.finditer(code):
-        var = re.escape(m.group(1))
-        if not re.search(_RUNNER + r"\$\{?" + var + r"\}?[\"']?(?![\w.])",
-                         _loop_body(code, m.end())):
-            continue
-        for w in m.group(2).split():
-            w = w.strip("\"'")
-            if _TEST_WORD.match(w):
-                out.update(fnmatch.filter(files, w) if any(c in w for c in "*?[") else [w])
-    return sorted(out)
+    toks = _lex(run or "")[0]
+    r = _Runs(files, _functions(toks, set()))
+    r.walk(toks)
+    while r.loops:                        # a loop with no `done` runs to the end
+        r.done()
+    return sorted(r.out)
 
 
 def rerun_tests(src, files):
