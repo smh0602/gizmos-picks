@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-21T20:12:14Z",
+ "checked_at": "2026-11-21T20:27:21Z",
  "et_date": "2026-11-21",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 14,
  "findings": [
+  {
+   "key": "fresh:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb tabs are showing data older than promised (gamelines, props-batter, props-pitcher)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:card-fb:ncaaf",
    "severity": "DEGRADED",
@@ -82,6 +89,20 @@
    "what": "nfl gamelines was bought 3 times for its Fri 18:00Z deadline (18 credits)",
    "why": "2 deadline(s) in the last 48 hours were bought more than once, 3 extra buy(s), 19 credits: due Thu 18:00Z: Thu 20:52Z (7), Fri 00:56Z (7); due Fri 18:00Z: Fri 19:33Z (6), Fri 19:34Z (6), Fri 20:19Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
    "repair": null
+  },
+  {
+   "key": "clock:browser",
+   "severity": "DEGRADED",
+   "what": "browser's render used 84% of its clock in the last 7 days",
+   "why": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46). 1 job(s) of this workflow were at 75% or more: render 84%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
+  },
+  {
+   "key": "clock:pr-tests",
+   "severity": "DEGRADED",
+   "what": "pr-tests's tests \u00b7 sweep 3/4 used 79% of its clock in the last 7 days",
+   "why": "pr-tests's tests \u00b7 sweep 3/4 used 79% of test_vacuity.py's 5400s clock (4303s, run 227, 2026-11-18T04:55). 3 job(s) of this workflow were at 75% or more: tests \u00b7 sweep 3/4 (file test_vacuity.py) 79%; render 79%; tests (ubuntu-26.04) \u00b7 sweep 2/4 (file test_vacuity.py) 76%. \u26d4 Add parts (pr-tests.yml's `shard:` matrix); do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
   }
  ],
  "repairs": [],
@@ -93,7 +114,7 @@
   "pulled_at": "2026-11-21T19:30:22Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.7,
+  "reading_age_hours": 0.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-21T19:30:22Z",
   "source": "data/ncaaf/2026-11-21/alt-lines/1930.json.gz",
@@ -132,6 +153,9 @@
   }
  },
  "job_clocks": {
-  "could_not_look": "the run list is 2 hours old"
+  "jobs_measured": 579,
+  "days": 7,
+  "warn_at": 0.75,
+  "slowest": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46)"
  }
 }
