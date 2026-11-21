@@ -186,8 +186,8 @@ conference feeds are stand-ins, and a real call fails the file.
 #
 # @vacuity 🔴 [2026-10-27, review 2] ...planned on the next pass, never a deadline that reads stale
 #   file: freshness.py
-#   find:         | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now)
-#   with:         | slate_moves(data, picks, now) | every_pass(data, now)
+#   find:         | slate_moves(data, picks, now) | injury_retry(data, now)
+#   with:         | slate_moves(data, picks, now)
 #
 # @vacuity ⛔ [2026-10-27, review 2] ...and only a check that read NOTHING is retried
 #   file: freshness.py

@@ -68,6 +68,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import freshness as F  # noqa: E402
 import credits as C  # noqa: E402
+import relay as RL  # noqa: E402  `[Sam, 2026-11-18]` the football chain's beat and its owed rule
 import runs_report as RR  # noqa: E402  the one cron reader (declared_crons, parse_cron, cron_matches)
 import wfparse  # noqa: E402  the one workflow reader (git_adds, job_timeouts)
 
@@ -1293,6 +1294,39 @@ def check_double_buys(rep, now):
                                       f.strftime("%a %H:%MZ")) for t, n, r, f in again)))
 
 
+def check_relay_chain(rep, now):
+    """`[Sam, 2026-11-18]` A DEAD FOOTBALL CHAIN IS NAMED, NOT BLAMED ON GITHUB. Every
+    football relay link writes data/<lg>/latest/relay-beat.json at the start of each
+    converge pass. While a football game is near (`relay.football_owed`, the chain's
+    own rule), the newer of the two beats more than relay.RELAY_BEAT_GRACE_MIN old
+    means no link has passed since: the cap was reached, a dispatch was refused, or a
+    link died before its relay step. DEGRADED, no repair: the next football cron to
+    finish restarts the chain. ⛔ Silent with no beat file at all (before Sam's upload
+    of the staged collect.yml) and in the off-season."""
+    data = os.path.join(ROOT, "data")
+    ages = {lg: RL.beat_age_min(lg, now, data) for lg in sorted(RL.FOOTBALL_LEAGUES)}
+    seen = [a for a in ages.values() if a is not None]
+    if not seen:
+        return
+    owed, why = RL.football_owed(now, data)
+    if not owed:
+        return
+    newest = min(seen)
+    if newest <= RL.RELAY_BEAT_GRACE_MIN:
+        return
+    at = now - datetime.timedelta(minutes=newest)
+    rep.warn("relay:football",
+             "no football relay link has passed since %s" % at.strftime("%a %H:%MZ"),
+             "the newest football relay beat is %d minutes old (%s), past the %d-minute grace, "
+             "while %s. Football deadlines are met only when a run happens to land: the "
+             "relay cap was reached, a dispatch was refused, or a link stopped before its "
+             "relay step. Nothing to repair: the next football cron to finish restarts the "
+             "chain (relay.py)." % (
+                 round(newest), ", ".join("%s %s" % (lg, "none" if a is None else "%d min" % round(a))
+                                          for lg, a in sorted(ages.items())),
+                 RL.RELAY_BEAT_GRACE_MIN, why))
+
+
 def check_board_not_empty(rep, now):
     """⚠️ THE BUILDER HAD CANDIDATES AND CARDED NONE OF THEM.
 
@@ -1830,6 +1864,8 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_credit_reconciliation,
           # 💰 `[2026-11-19]` one football deadline bought twice, DEGRADED only.
           check_double_buys,
+          # `[Sam, 2026-11-18]` the football relay chain stopped while a game is near, DEGRADED only.
+          check_relay_chain,
           # `[Sam, 2026-10-12]` the football model's weekly contest, DEGRADED only.
           check_fb_refit,
           # `[Sam, 2026-11-18]` a calibration arm its league stopped feeding, DEGRADED only.
@@ -1975,6 +2011,7 @@ FILES_FIRST = {    # the finding key's first part -> the files to read first
     "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
     "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
     "double-buy": "freshness.py (stand_down), collect.py (converge), relay.py",
+    "relay": "relay.py, .github/workflows/collect.yml (the held and relay steps), data/latest/runs.json",
     "landing": "data/latest/runs.json, runs_report.py, the learner's own .py and workflow (read only)",
     "clock": "data/latest/runs.json (clock_runs), runs_report.py, the workflow named, vacuity.py",
 }

@@ -1,6 +1,16 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: the two alerts leave their issue alone when they could not look `[2026-11-04]`
+## Current: the football relay keeps a run alive at every football deadline `[Sam, 2026-11-18]`
+
+Every click, the commit message, what to expect and how to tell it worked are
+in **`docs/upload/UPLOAD-collect-football-relay.md`**. One file, no cron
+change, +0 credits. Upload it after the pull request "The football relay: one
+run keeps football alive at every deadline, late crons step back, injuries
+every 2 hours" merges.
+
+---
+
+## ~~Current:~~ Done: the two alerts leave their issue alone when they could not look `[2026-11-04]`
 
 Every click and the commit message are in
 **`docs/upload/UPLOAD-collect-alerts.md`**. One file, no cron change.
