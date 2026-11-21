@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-21T19:39:39Z",
+ "checked_at": "2026-11-21T19:43:07Z",
  "et_date": "2026-11-21",
  "healthy": false,
  "broken": 0,
- "degraded": 11,
+ "degraded": 13,
  "findings": [
   {
    "key": "late:card-fb:ncaaf",
@@ -58,8 +58,22 @@
   {
    "key": "double-buy:gamelines:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf gamelines was bought 2 times for its Thu 19:00Z deadline (14 credits)",
-   "why": "1 deadline(s) in the last 48 hours were bought more than once, 1 extra buy(s), 7 credits: due Thu 19:00Z: Thu 19:52Z (7), Fri 01:36Z (7). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "what": "ncaaf gamelines was bought 2 times for its Sat 19:00Z deadline (99 credits)",
+   "why": "2 deadline(s) in the last 48 hours were bought more than once, 2 extra buy(s), 56 credits: due Thu 19:00Z: Thu 19:52Z (7), Fri 01:36Z (7); due Sat 19:00Z: Sat 19:25Z (50), Sat 19:29Z (49). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "repair": null
+  },
+  {
+   "key": "double-buy:props-player:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf props-player was bought 2 times for its Sat 19:00Z deadline (275 credits)",
+   "why": "1 deadline(s) in the last 48 hours were bought more than once, 1 extra buy(s), 138 credits: due Sat 19:00Z: Sat 19:25Z (137), Sat 19:29Z (138). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "repair": null
+  },
+  {
+   "key": "double-buy:alt-lines:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf alt-lines bought 38 game(s) more than once (38 extra game buys, 76 credits)",
+   "why": "1 pass(es) in the last 48 hours bought games an earlier pass had already bought: Sat 19:30Z: 38 of its 38 game(s) again, 76 credits (first bought Sat 19:25Z). It buys each game once (collect.alt_plan skips what an earlier snapshot it can read bought), so a repeat is a pass that could not see the earlier buy (two runs that bought before either landed) or a defect in that rule. Nothing to repair: the lines are current; this clears when no game in the window was bought twice.",
    "repair": null
   },
   {
@@ -89,15 +103,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 13094,
-  "pulled_at": "2026-11-21T19:25:45Z",
+  "balance": 12831,
+  "pulled_at": "2026-11-21T19:30:22Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-21T19:25:36Z",
-  "source": "data/ncaaf/2026-11-21/alt-lines/1925.json.gz",
-  "readings_on_disk": 1831,
+  "newest_paid_pull": "2026-11-21T19:30:22Z",
+  "source": "data/ncaaf/2026-11-21/alt-lines/1930.json.gz",
+  "readings_on_disk": 1834,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
