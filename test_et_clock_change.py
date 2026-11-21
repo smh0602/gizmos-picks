@@ -189,7 +189,9 @@ ALLOWED = {
     "collect.py": (3, MLB_DST + "; the finished slate and the results walk"),
     "mlb_game_model.py": (1, MLB_DST),
     "mlb_tables.py": (1, MLB_DST),
-    "freshness.py": (11, CONTRACT + "; `_et_day` uses it only without a tz database, and "
+    # `[2026-11-18]` ~~11~~: `every_pass`'s Wed-Sat day (ET_OFFSET) went with EVERY_PASS
+    #    (the college injury reader is planned before every college card, any day)
+    "freshness.py": (10, CONTRACT + "; `_et_day` uses it only without a tz database, and "
                      "`_et_today`'s use is unreachable"),
     "cfb_injuries.py": (1, "not an offset: `hours=5` shifts the moment the computed US rule "
                         "(`_us_eastern_offset`) is asked about"),
