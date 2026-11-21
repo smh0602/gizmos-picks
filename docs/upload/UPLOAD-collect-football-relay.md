@@ -19,7 +19,7 @@ of the 7 deadlines that were recorded at all.
 After this upload:
 
 - One extra run, titled **collect [relay ncaaf nfl]**, keeps football alive for
-  both leagues. It checks both every 15 to 35 minutes, builds whatever is due,
+  both leagues. It checks both every 15 to 60 minutes (~~15 to 35~~), builds whatever is due,
   and after about 4 hours 40 minutes starts its own replacement.
 - While it is alive, the late football crons step back: they build and buy
   nothing a deadline owes, so two runs can no longer buy the same odds. They
@@ -137,3 +137,6 @@ that the first **collect [relay ncaaf nfl]** run is green.
   mode, also on a day its props window is closed; the `relay:football`
   finding stays silent while the chain is switched off. Code only: the
   staged file, the clicks and the commit message are unchanged.
+- **2026-11-21:** "What this is" says the relay checks every 15 to 60
+  minutes (~~15 to 35~~), as "How to tell it worked" already did. The
+  clicks and the commit message are unchanged.
