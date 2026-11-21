@@ -6174,7 +6174,8 @@ def converge(explicit=(), allow_paid=True):
             f"due {r['due_et']:<20} {'PAID' if r['paid'] else 'free'}{late}"
             + (f"  UNHEALTHY: {r['unhealthy']}" if r.get("unhealthy") else ""))
 
-    # 🔴 `[Sam, 2026-11-18]` HELD (R4): a live football relay link beat within the hour, so
+    # 🔴 `[Sam, 2026-11-18]` HELD (R4): a live football relay link beat under
+    #    relay.HELD_BEAT_MIN minutes ago (~~within the hour~~), so
     #    IT converges this league and runs its gate. This scheduled run builds nothing the
     #    contract owes (paid, metered or free), writes neither freshness.json nor
     #    lateness.json, and runs only the extras no deadline covers (freshness.extras).
@@ -6209,7 +6210,8 @@ def converge(explicit=(), allow_paid=True):
     # 🔴 `[Sam, 2026-11-18]` "INJURY REPORTS READ BEFORE EVERY COLLEGE CARD", ON THE LIST THIS
     #    PASS RUNS (`[2026-11-20, review]` ~~plan() alone~~: a cron that names `card-fb`, its
     #    card inside contract, built the card from the last 2-hourly reading, "PLAN: card-fb").
-    #    ⚠️ A held run's extras are never a card (a card has a row), so it reads nothing here.
+    #    ⚠️ A held run's extras are never a card builder (~~a card has a row~~: on a closed props
+    #    window `props-player` has none; freshness.link_modes), so it reads nothing here.
     _with = _fresh.with_before_card(modes, DATA)
     if _with != modes:
         log(f"BEFORE THE CARD: {' '.join(m for m in _with if m not in modes) or 'the reader moves first'}"

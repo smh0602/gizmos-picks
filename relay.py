@@ -176,6 +176,22 @@ def football_owed(now=None, data="data"):
                        lo.strftime("%Y-%m-%d"), hi.strftime("%Y-%m-%d"), season))
 
 
+def football_chain_on(wf):
+    """(on?, why): is the football chain SWITCHED ON in the collect.yml `wf` (a path or its
+    text: the DEPLOYED one, for the watchdog)? On = its routing step (`id: mode`) names the
+    chain (`echo "relay_league=ncaaf nfl"`, a line that is not a comment) AND FB_DAY_CAP lets
+    a link start. `[2026-11-20, review]` A beat file left on main is no evidence: after a
+    switch-off (the previous collect.yml uploaded again, or FB_DAY_CAP 0) the old beats stay,
+    and `relay:football` read DEGRADED all season, saying a cron would restart the chain."""
+    if FB_DAY_CAP <= 0:
+        return False, "relay.FB_DAY_CAP is %d: no football relay link may start" % FB_DAY_CAP
+    import wfparse
+    route = wfparse.step_run(wf, step_id="mode") or ""
+    if not any(l.strip().startswith('echo "relay_league=%s"' % FOOTBALL) for l in route.splitlines()):
+        return False, "the deployed collect.yml's routing step names no football chain"
+    return True, "the deployed collect.yml routes the football chain (%s)" % FOOTBALL
+
+
 def decide_football(runs, me, now, data="data"):
     """(dispatch?, why) for a football run at its end (R2). The re-run rule is decide()'s."""
     holding = links_of(runs, me, FOOTBALL)
@@ -184,7 +200,7 @@ def decide_football(runs, me, now, data="data"):
             holding[0].get("databaseId"), holding[0].get("status"))
     today = now.strftime("%Y-%m-%d")
     started = [r for r in runs if _link_chain(r.get("displayTitle")) == FOOTBALL
-               and str(r.get("createdAt") or "")[:10] == today]
+               and str(r.get("createdAt") or "")[:10] == today]   # today's (UTC) links only
     if len(started) >= FB_DAY_CAP:
         return False, "%d football relay links already started today (cap %d)" % (
             len(started), FB_DAY_CAP)

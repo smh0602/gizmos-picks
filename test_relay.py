@@ -36,6 +36,16 @@ they were before it (research/relay_mlb_frozen.json): MLB is unchanged.
 #   find:           if python relay.py "$RUNS" --league "$RELAY_LEAGUE" --run-id "${GITHUB_RUN_ID:-0}" \
 #   with:           if python relay.py "$RUNS" --league mlb --run-id "${GITHUB_RUN_ID:-0}" \
 #
+# @vacuity 🔴 [2026-11-20, review] ...whose league is the routing step's own output (the step's env line)
+#   file: docs/upload/collect.yml
+#   find:           RELAY_LEAGUE: ${{ steps.mode.outputs.relay_league }}
+#   with:           RELAY_LEAGUE_GONE: ""
+#
+# @vacuity 🔴 [2026-11-20, review] the Converge step marks a football LINK (RELAY_LINK), so it beats
+#   file: docs/upload/collect.yml
+#   find:           RELAY_LINK: ${{ github.event.inputs.relay == 'true' && 'yes' || '' }}
+#   with:           RELAY_LINK_GONE: ""
+#
 # @vacuity 🔴 [Sam, 2026-11-18] a scheduled football run relays (the requirement Sam changed)
 #   file: docs/upload/collect.yml
 #   find:                && { [ "${{ github.event_name }}" = "schedule" ] || [ "$RELAY" = "true" ]; }; then
@@ -76,6 +86,11 @@ they were before it (research/relay_mlb_frozen.json): MLB is unchanged.
 #   find:     if len(started) >= FB_DAY_CAP:
 #   with:     if False:
 #
+# @vacuity 🔴 [2026-11-20, review] ...counting only TODAY's links (gh lists 200 runs, more than a day)
+#   file: relay.py
+#   find:                and str(r.get("createdAt") or "")[:10] == today]   # today's (UTC) links only
+#   with:                ]   # every listed link
+#
 # @vacuity 🔴 [Sam, 2026-11-18] ...derived from the hold
 #   file: relay.py
 #   find: FB_DAY_CAP = 1440 // FB_HOLD_MIN + 3
@@ -88,8 +103,8 @@ they were before it (research/relay_mlb_frozen.json): MLB is unchanged.
 #
 # @vacuity 🔴 [Sam, 2026-11-18] ...and a schedule that cannot be read is owed (fail closed)
 #   file: relay.py
-#   find:         if kicks is None:
-#   with:         if False:
+#   find:             return True, "the %s schedule (%s) cannot be read: a football link is owed (fail closed)" % (
+#   with:             return False, "the %s schedule (%s) cannot be read: a football link is owed (fail closed)" % (
 #
 # @vacuity 🔴 [Sam, 2026-11-18] a link beats at the start of each football pass
 #   file: collect.py
@@ -108,8 +123,28 @@ they were before it (research/relay_mlb_frozen.json): MLB is unchanged.
 #
 # @vacuity ⛔ [Sam, 2026-11-18] ...but not with no beat at all (before the upload)
 #   file: watchdog.py
-#   find:     if not seen:
+#   find:     seen = [a for a in ages.values() if a is not None]
+#   with:     seen = [a for a in ages.values() if a is not None] or [10 ** 6]
+#
+# @vacuity ⛔ [2026-11-20, review] ...nor while the chain is switched off (read from the DEPLOYED workflow)
+#   file: watchdog.py
+#   find:     if not RL.football_chain_on(os.path.join(ROOT, ".github", "workflows", "collect.yml"))[0]:
 #   with:     if False:
+#
+# @vacuity ⛔ [2026-11-20, review] ...a routing step that names no football chain is off
+#   file: relay.py
+#   find:     if not any(l.strip().startswith('echo "relay_league=%s"' % FOOTBALL) for l in route.splitlines()):
+#   with:     if False:
+#
+# @vacuity ⛔ [2026-11-20, review] ...and so is FB_DAY_CAP 0
+#   file: relay.py
+#   find:     if FB_DAY_CAP <= 0:
+#   with:     if False:
+#
+# @vacuity 🔴 [2026-11-20, review] the watchdog runs the check (it is in CHECKS)
+#   file: watchdog.py
+#   find:           check_relay_chain,
+#   with:           # check_relay_chain,
 #
 # @vacuity ⛔ [Sam, 2026-11-18] ...nor in the off-season
 #   file: watchdog.py
@@ -239,6 +274,7 @@ SRC = open(WF, encoding="utf-8").read()
 # `[Sam, 2026-11-18]` ~~"Relay — hand the hold to the next MLB run"~~: both chains use it
 STEP = "Relay — hand the hold to the next run of its chain"
 BODY = (wfparse.step_run(WF, step_name=STEP) or "").replace("\r", "")
+STEP_ENV = wfparse.step_env(WF, step_name=STEP) or {}
 ROUTE = (wfparse.step_run(WF, step_id="mode") or "").replace("\r", "")
 ROUTE_ENV = wfparse.step_env(WF, step_id="mode") or {}
 NOW = datetime.datetime.now(UTC)
@@ -274,10 +310,27 @@ def fb_schedules(root, kick):
         put(root, "data/%s/latest/schedule-%d.json.gz" % (lg, season), {"games": games})
 
 
-def relay(runs, games=2, attempt="1", relay_league=None, fb_kick=NOW + datetime.timedelta(days=1)):
+def step_env_from(outputs):
+    """The relay step's own `env:` as GitHub sets it for a run whose routing step gave
+    `outputs`: each `${{ steps.mode.outputs.X }}` line -> that output, "" when unset (as
+    GitHub does). `[2026-11-20, review]` ~~the test set RELAY_LEAGUE itself~~: the step's
+    env line is what reaches the step, so a line that is gone is a league that is gone."""
+    out = {}
+    for k, v in STEP_ENV.items():
+        m = re.fullmatch(r"\$\{\{\s*steps\.mode\.outputs\.([A-Za-z_]+)\s*\}\}", str(v).strip())
+        if m:
+            out[k] = str(outputs.get(m.group(1)) or "")
+    return out
+
+
+def relay(runs, games=2, attempt="1", relay_league=None, fb_kick=NOW + datetime.timedelta(days=1),
+          outputs=None):
     """Run the REAL relay step in a tree pinned to NOW. -> the gh calls it made.
-    `relay_league`: the routing step's `relay_league` (None: unset, as the deployed
-    workflow before the football relay, which MLB must still read as `mlb`)."""
+    `outputs`: the routing step's outputs (`relay_league`: the routing step's `relay_league`;
+    None: unset, as the deployed workflow before the football relay, which MLB must still read
+    as `mlb`), reaching the step through its own env lines (`step_env_from`)."""
+    if outputs is None:
+        outputs = {} if relay_league is None else {"relay_league": relay_league}
     t = tempfile.mkdtemp(prefix="relay-")
     try:
         shutil.copy(os.path.join(ROOT, "relay.py"), t)
@@ -305,8 +358,7 @@ def relay(runs, games=2, attempt="1", relay_league=None, fb_kick=NOW + datetime.
                    GITHUB_RUN_ID="100", GITHUB_RUN_ATTEMPT=attempt,
                    PYTHONPATH=ROOT, PYTHONUTF8="1")
         env.pop("RELAY_LEAGUE", None)
-        if relay_league is not None:
-            env["RELAY_LEAGUE"] = relay_league
+        env.update(step_env_from(outputs))
         p = subprocess.run(["bash", "step.sh"], cwd=t, capture_output=True, text=True,
                            timeout=300, env=env)
         calls = open(log, encoding="utf-8").read().splitlines() if os.path.exists(log) else []
@@ -566,9 +618,13 @@ section("8b. 🔴 [Sam, 2026-11-18] THE RELAY STEP STARTS THE FOOTBALL CHAIN, ON
 FB_ME = run(100, "collect [cron 34 11 * * *]", "in_progress")      # this run (GITHUB_RUN_ID 100)
 WANT_FB = ["workflow run collect.yml --ref main -f league=%s -f mode=converge -f season= -f relay=true"
            % R.FOOTBALL]
-_d, _out = relay([FB_ME], relay_league=R.FOOTBALL)
+eq(STEP_ENV.get("RELAY_LEAGUE"), "${{ steps.mode.outputs.relay_league }}",
+   "🔴 [2026-11-20, review] the relay step reads its league from the routing step's `relay_league` (its "
+   "own env line; ⛔ gone, every football run reads `mlb`)")
+_FB_ROUTE = route("schedule", "34 11 * * *")         # FB_ME's own cron, through the REAL routing step
+_d, _out = relay([FB_ME], outputs=_FB_ROUTE)
 eq(_d, WANT_FB, "🔴 a football cron that ends with no link alive dispatches ONE `collect [relay %s]`, "
-   "`converge` only" % R.FOOTBALL)
+   "`converge` only (its league from the routing step's real output, through the step's env)" % R.FOOTBALL)
 ck("   ...and says why", "dispatching a successor" in _out and "kicks off" in _out, _out[-300:])
 for _other in (run(301, "collect [relay ncaaf nfl]", "in_progress"),
                run(302, "collect [relay ncaaf nfl]", "queued"),
@@ -597,6 +653,81 @@ eq(len(relay([FB_ME] + _links[:-1], relay_league=R.FOOTBALL)[0]), 1,
 eq(relay([FB_ME] + _links, relay_league=R.FOOTBALL)[0], [],
    "🔴 %d football links already started today (cap %d = 1440 // FB_HOLD_MIN + 3): the chain stops"
    % (R.FB_DAY_CAP, R.FB_DAY_CAP))
+eq(len(relay([FB_ME] + [dict(r, createdAt="2001-01-01T00:00:00Z") for r in _links], relay_league=R.FOOTBALL)[0]), 1,
+   "🔴 [2026-11-20, review] ...and yesterday's football links do not count against today (`gh run list "
+   "--limit 200` spans more than a day; counted, the chain would stay dead until they scroll out)")
+import types  # noqa: E402
+
+
+def relay_with_hold(hold):
+    """relay.py with FB_HOLD_MIN set to `hold` and nothing else changed (its own source, exec'd);
+    None when its one `FB_HOLD_MIN = <n>` line cannot be found."""
+    src = open(os.path.join(ROOT, "relay.py"), encoding="utf-8").read()
+    new, n = re.subn(r"(?m)^FB_HOLD_MIN = \d+", "FB_HOLD_MIN = %d" % hold, src)
+    if n != 1:
+        return None
+    mod = types.ModuleType("relay_hold_%d" % hold)
+    mod.__file__ = os.path.join(ROOT, "relay.py")
+    exec(compile(new, mod.__file__, "exec"), mod.__dict__)
+    return mod
+
+
+def day_of_links(mod, day=datetime.datetime(2026, 11, 21, tzinfo=UTC)):
+    """`[2026-11-20, review]` ONE UTC DAY OF THE FOOTBALL CHAIN, AT ITS BUSIEST, asked of
+    `mod.decide_football` at every handover: the first link created at 00:00Z (the one before
+    it straddled midnight and counts against yesterday); two links that die a minute into their
+    hold, each restarted a minute later by a football cron (the two restarts); then every link
+    handing over after exactly `mod.FB_HOLD_MIN` (the shortest a hold can be: it counts from the
+    job's start). -> (links created that day, [(minute, why) refused])."""
+    t = tempfile.mkdtemp(prefix="relay-capday-")
+    try:
+        season = F.current_football_season(day)
+        for lg in sorted(R.FOOTBALL_LEAGUES):
+            put(t, "data/%s/latest/schedule-%d.json.gz" % (lg, season),
+                {"games": [{"id": 1, "start": (day + datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                            "home_class": "fbs", "away_class": "fbs"}]})
+        data, runs, refused = os.path.join(t, "data"), [], []
+
+        def link(at):
+            runs.append({"databaseId": 1000 + len(runs), "status": "in_progress",
+                         "displayTitle": "collect [relay %s]" % R.FOOTBALL,
+                         "createdAt": (day + datetime.timedelta(minutes=at)).strftime("%Y-%m-%dT%H:%M:%SZ")})
+            return runs[-1]
+
+        def hand_over(me_id, at):
+            go, why = mod.decide_football(runs, me_id, day + datetime.timedelta(minutes=at), data)
+            if not go:
+                refused.append((at, why))
+            return go
+
+        cur, at = link(0), 0
+        for k in range(2):                       # dies at at+1; a football cron restarts it at at+2
+            cur["status"] = "completed"
+            at += 2
+            if not hand_over(900 + k, at):
+                return len(runs), refused
+            cur = link(at)
+        while at + mod.FB_HOLD_MIN < 1440:
+            at += mod.FB_HOLD_MIN
+            if not hand_over(cur["databaseId"], at):
+                break
+            cur["status"] = "completed"
+            cur = link(at)
+        return len(runs), refused
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+
+
+for _h in (R.FB_HOLD_MIN, 120):
+    _m = R if _h == R.FB_HOLD_MIN else relay_with_hold(_h)
+    if _m is None:
+        ck("⚠️ relay.py has one `FB_HOLD_MIN = <n>` line to vary", False)
+        continue
+    _n, _ref = day_of_links(_m)
+    ck("🔴 [2026-11-20, review] the cap never starves the chain at a %d-minute hold: a whole UTC day at its "
+       "busiest (a link at 00:00Z, two restarts, then a handover every %d minutes) is %d links, every "
+       "handover dispatched (cap %d)" % (_h, _h, _n, _m.FB_DAY_CAP),
+       not _ref and _n >= 1440 // _h + 1, "⛔ a cap that is not derived from the hold refuses: %s" % _ref[:2])
 eq(R.FB_DAY_CAP, 1440 // R.FB_HOLD_MIN + 3, "⚠️ the cap is DERIVED from the hold, so a hold change "
    "cannot starve the chain (every full hold a day, one across midnight, two restarts)")
 
@@ -664,6 +795,21 @@ section("8d. 🔴 [Sam, 2026-11-18] THE JOB CLOCK: NO LINK PASS STARTS PAST ITS 
 CONVERGE = (wfparse.step_run(WF, step_id="collect") or "").replace("\r", "")
 CONVERGE_ENV = wfparse.step_env(WF, step_id="collect") or {}
 CLOCK = (wfparse.step_run(WF, step_id="clock") or "").replace("\r", "")
+eq(CONVERGE_ENV.get("RELAY_LINK"), "${{ github.event.inputs.relay == 'true' && 'yes' || '' }}",
+   "🔴 [2026-11-20, review] the Converge step marks a relay link (RELAY_LINK yes for `relay=true`, empty "
+   "otherwise; ⛔ gone, no link ever beats, no cron is ever held, and the watchdog stays silent)")
+
+
+def link_flag(relay_input):
+    """RELAY_LINK as GitHub sets it for a run whose `relay` input is `relay_input`, evaluated
+    from the Converge step's OWN env line (None when that line is gone or reads otherwise)."""
+    m = re.fullmatch(r"\$\{\{\s*github\.event\.inputs\.relay\s*==\s*'(\w+)'\s*&&\s*'(\w*)'\s*\|\|\s*'(\w*)'\s*\}\}",
+                     str(CONVERGE_ENV.get("RELAY_LINK") or "").strip())
+    if not m:
+        return None
+    return m.group(2) if relay_input == m.group(1) else m.group(3)
+
+
 _first = (wfparse.steps(SRC, job="collect") or [None])[0]
 ck("🔴 the job clock is the job's FIRST step, and the Converge step reads it",
    _first is not None and _first.id == "clock" and "t0=$(date +%s)" in CLOCK
@@ -901,18 +1047,28 @@ def beat_pass(env):
         shutil.rmtree(t, ignore_errors=True)
 
 
-_b = beat_pass({"RELAY_LINK": "yes", "GITHUB_RUN_ID": "777"})
+def link_env(relay_input, **kw):
+    """The env a converge pass sees on a run whose `relay` input is `relay_input`."""
+    flag = link_flag(relay_input)
+    return dict(kw, **({} if flag is None else {"RELAY_LINK": flag}))
+
+
+_b = beat_pass(link_env("true", GITHUB_RUN_ID="777"))
 eq((_b or {}).get("run_id"), "777", "🔴 a football link's converge pass writes its beat, naming the run")
 eq((_b or {}).get("at"), NOW.strftime("%Y-%m-%dT%H:%M:%SZ"), "   ...stamped when the pass began")
-eq(beat_pass({"GITHUB_RUN_ID": "778"}), None, "⛔ a run that is not a link writes no beat")
+eq(beat_pass(link_env("", GITHUB_RUN_ID="778")), None, "⛔ a run that is not a link writes no beat")
 
 
-def chain_finding(beats, kick):
-    """watchdog.check_relay_chain on a planted tree at NOW: `beats` = {league: minutes old}."""
+def chain_finding(beats, kick, wf=SRC):
+    """watchdog.check_relay_chain on a planted tree at NOW: `beats` = {league: minutes old};
+    `wf` the DEPLOYED collect.yml planted (the workflow as it will be live)."""
     t, root = tempfile.mkdtemp(prefix="relay-chain-"), W.ROOT
     try:
         W.ROOT = t
         fb_schedules(t, kick)
+        os.makedirs(os.path.join(t, ".github", "workflows"))
+        with open(os.path.join(t, ".github", "workflows", "collect.yml"), "w", encoding="utf-8") as fh:
+            fh.write(wf)
         for lg, age in beats.items():
             put(t, "data/%s/latest/%s" % (lg, R.BEAT_FILE),
                 {"run_id": "1", "at": (NOW - datetime.timedelta(minutes=age)).strftime("%Y-%m-%dT%H:%M:%SZ")})
@@ -939,3 +1095,22 @@ ck("⚠️ RELAY_BEAT_GRACE_MIN is over the hold-free handover a link needs (HEL
    "under a full hold (%d)" % (R.HELD_BEAT_MIN, R.FB_HOLD_MIN),
    R.HELD_BEAT_MIN < R.RELAY_BEAT_GRACE_MIN < R.FB_HOLD_MIN)
 ck("⚠️ the finding's key names the files to read first", "relay" in W.FILES_FIRST)
+ck("🔴 [2026-11-20, review] ...and the watchdog runs the check (it is in watchdog.CHECKS)",
+   W.check_relay_chain in W.CHECKS)
+# ⛔ `[2026-11-20, review]` SWITCHED OFF, THE OLD BEATS STAY ON MAIN: the PR's two switch-offs that
+#    stop the chain (FB_DAY_CAP 0; the previous collect.yml uploaded again, planted here as the
+#    staged one with its football routing line taken out) leave relay-beat.json where it was.
+_STALE = {"ncaaf": R.RELAY_BEAT_GRACE_MIN + 300, "nfl": R.RELAY_BEAT_GRACE_MIN + 300}
+_LINE = 'echo "relay_league=%s" >> "$GITHUB_OUTPUT"' % R.FOOTBALL
+_OFF = "\n".join(l for l in SRC.replace("\r", "").split("\n") if l.strip() != _LINE)
+ck("   (the switched-off workflow differs from the live one by its football routing line only)",
+   SRC.replace("\r", "").count(_LINE) == 1 and len(_OFF.split("\n")) == len(SRC.replace("\r", "").split("\n")) - 1)
+eq(len(chain_finding(_STALE, _soon)), 1, "   control: switched ON, those stale beats are one finding")
+eq(chain_finding(_STALE, _soon, wf=_OFF), [],
+   "⛔ the previous collect.yml uploaded again (no football routing): silent, though the old beats stay")
+_cap0 = R.FB_DAY_CAP
+R.FB_DAY_CAP = 0
+try:
+    eq(chain_finding(_STALE, _soon), [], "⛔ relay.FB_DAY_CAP 0 (no link may start): silent, though the old beats stay")
+finally:
+    R.FB_DAY_CAP = _cap0

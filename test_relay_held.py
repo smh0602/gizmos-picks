@@ -12,10 +12,16 @@ live AND every league it routes has a beat under relay.HELD_BEAT_MIN minutes
 old (`relay.py held`, the workflow's held step -> RELAY_HELD=yes). A held pass
 (`freshness.relay_holds`) builds nothing the contract owes, paid, metered or
 free; writes neither freshness.json nor lateness.json; and runs only its
-EXTRAS (`freshness.extras`): a mode with no row (the live and halftime probes)
-and a metered mode's extra build no deadline covers (the game-day fb-scores
-refreshes, the Sunday cfb-probe rebuild), exactly as today. Its league's gate
-is the link's, which runs it on every pass.
+EXTRAS (`freshness.extras`): a mode the contract never carries a row for (the
+live and halftime probes) and a metered mode's extra build no deadline covers
+(the game-day fb-scores refreshes, the Sunday cfb-probe rebuild), exactly as
+today. Its league's gate is the link's, which runs it on every pass.
+🔴 `[2026-11-20, review]` ~~a mode with no row~~: A MODE WITH NO ROW AT THIS
+MINUTE IS NOT A MODE THAT NEVER HAS ONE. The college props window is 14 hours
+before a stored game, so on a Monday `props-player` has no row, and a held
+`34 12` cron ran it as an extra: an Odds `/events` call, the props board, the
+alt lines and the card the link builds, and the injury reports before them
+(section 2b, the props window closed for every arm).
 ⛔ A hand run is never held, nor a run whose beat is over relay.HELD_BEAT_MIN
 minutes old (a hung link), nor one whose run list cannot be read.
 
@@ -56,6 +62,16 @@ real Converge and held step bodies with stub `python` / `gh` / `git`.
 #   find:         if m not in have:
 #   with:         if False:
 #
+# @vacuity 🔴 [2026-11-20, review] ...but never a mode the link owns, on a minute its row is absent
+#   file: freshness.py
+#   find:             if link_owns is None or m in link_owns:
+#   with:             if link_owns is None:
+#
+# @vacuity 🔴 [2026-11-20, review] ...every mode the contract can carry, not only the card builders
+#   file: freshness.py
+#   find:     return frozenset(r[0] for r in rows) | CARD_BUILDERS
+#   with:     return CARD_BUILDERS
+#
 # @vacuity 🔴 a metered mode's extra build (no deadline covers it) still runs
 #   file: freshness.py
 #   find:         if stand_down(rows, m, now, env) is not None:
@@ -65,6 +81,21 @@ real Converge and held step bodies with stub `python` / `gh` / `git`.
 #   file: freshness.py
 #   find:         if not own or any(owes(r) for r in own):
 #   with:         if not own:
+#
+# @vacuity 🔴 [2026-11-20, review] ...nor one whose cron fires for its deadline (a stale stored-only row)
+#   file: freshness.py
+#   find:         if any(cron_fires_for(r["due_at"], since) for r in own if r.get("due_at")):
+#   with:         if False:
+#
+# @vacuity 🔴 [2026-11-20, review] ...nor one a later build already refreshed (stand_down)
+#   file: freshness.py
+#   find:         if stand_down(rows, m, now, env) is not None:
+#   with:         if False:
+#
+# @vacuity 🔴 [2026-11-20, review] a held pass whose extra raised OUR exception is red (FAIL LOUD)
+#   file: collect.py
+#   find:         return int(bool(failed))            # a held pass: red only for an extra that failed
+#   with:         return 0
 #
 # @vacuity 🔴 the beat must be fresh: an old beat (a hung link) holds nothing
 #   file: relay.py
@@ -185,17 +216,32 @@ def put(d, kind, path, at, paid):
     _write(full, doc)
 
 
-def tree(lg, now, built=None):
+def tree(lg, now, built=None, kicks=None, stale=()):
     """A planted tree for `lg` at `now`. `built` None: only a props board, so every row
     is owed. Else {mode: when its rows were built}, every other row built just after
-    its deadline in force (inside contract)."""
+    its deadline in force (inside contract). `stale`: path patterns of rows planted
+    three days old instead. `kicks`: the league's stored current-season schedule holds
+    one FBS game at each (None: no schedule, so the props window "cannot tell")."""
     d = tempfile.mkdtemp(prefix="tree-", dir=_TMP)
     _write(os.path.join(d, "data", lg, "latest", "props.json.gz"), {})
     if built is not None:
         for m, (kind, path), times, paid, _w in contract_rows(lg, now):
             due = F.last_due(times, now)
             at = built.get(m) or (min(due + MIN, now) if due else now - MIN)
+            if any(re.search(p, path) for p in stale):
+                at = now - 3 * 24 * 60 * MIN
             put(d, kind, path, at, paid)
+    if kicks is not None:
+        sp = os.path.join(d, "data", lg, "latest", "schedule-%d.json.gz" % F.current_football_season(now))
+        try:
+            with gzip.open(sp, "rt", encoding="utf-8") as fh:
+                doc = json.load(fh)
+        except OSError:                 # its fb-scores row: owed, built two days ago
+            doc = {"pulled_at": (now - 2 * 24 * 60 * MIN).strftime("%Y-%m-%dT%H:%M:%SZ")}
+        doc["games"] = [{"id": i + 1, "start": k.strftime("%Y-%m-%dT%H:%M:%SZ"), "home": "H%d" % i,
+                         "away": "A%d" % i, "home_class": "fbs", "away_class": "fbs"}
+                        for i, k in enumerate(kicks)]
+        _write(sp, doc)
     os.makedirs(os.path.join(d, "picks"), exist_ok=True)
     # what a held pass must leave alone, byte for byte
     _write(os.path.join(d, "data", lg, "latest", "freshness.json"), {"planted": "freshness"})
@@ -212,18 +258,36 @@ def _at_now(fn, now):
 
 
 PAID_MODES = {"gamelines", "props-player", "alt-lines"}
+LAST = {}          # the last converge's return code and the builds a paid mode reached
 
 
-def converge(d, lg, now, env, explicit):
+def _collect_literal(name):
+    """collect.py's top-level literal `name`, PARSED (never imported here)."""
+    import ast
+    for node in ast.parse(open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()).body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == name for t in node.targets):
+            return ast.literal_eval(node.value)
+    raise KeyError(name)
+
+
+# ⚠️ The oracle for "never the link's": every PAID kind collect.py registers, and every card
+#    builder, beside the modes the board-only contract carries (contract_rows below).
+PAID_KINDS = frozenset(_collect_literal("PAID_KINDS"))
+
+
+def converge(d, lg, now, env, explicit, fail=()):
     """The REAL collect.converge in `d` at `now`, `explicit` named as its cron names it.
     A paid mode is run for real (its buy is `odds_get`, stubbed and counted); every
-    other mode is recorded and not run. -> (modes run, odds_get calls, HTTP calls, log,
-    freshness.json + lateness.json bytes after)."""
+    other mode is recorded and not run (a mode in `fail` raises our own RuntimeError).
+    -> (modes run, odds_get calls, HTTP calls, log, freshness.json + lateness.json bytes
+    after); LAST["rc"] is converge's return code and LAST["builds"] the board, alt-line,
+    alt-ladder and card builds a paid mode reached."""
     keys = ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH", "LEAGUE", "ODDS_API_KEY", "CFBD_API_KEY",
             "RELAY_HELD", "RELAY_LINK")
     saved_env = {k: os.environ.get(k) for k in keys}
     saved_glf = sys.modules.get("game_lines_fb")
-    ran, calls, http = [], [], []
+    ran, calls, http, builds = [], [], [], []
+    LAST.clear()
     for k in keys:
         os.environ.pop(k, None)
     os.environ["LEAGUE"] = lg
@@ -238,8 +302,13 @@ def converge(d, lg, now, env, explicit):
 
             def run_mode(m):
                 ran.append(m)
+                if m in fail:
+                    raise RuntimeError("planted: %s failed (our own exception)" % m)
                 if m in PAID_MODES:
                     real_run(m)
+
+            def build(name):
+                return lambda *a, **k: builds.append(name)
 
             def odds_get(path, params):
                 calls.append(path)
@@ -252,15 +321,16 @@ def converge(d, lg, now, env, explicit):
             collect.ODDS_KEY = "planted-in-a-test-never-sent"
             collect.daily_spend = lambda *a, **k: 0
             collect._ensure_cfb_team_directory = lambda *a, **k: None
-            collect.collect_props_board_fb = lambda *a, **k: None
-            collect.collect_alt_lines = lambda *a, **k: None
-            collect.build_card_fb = lambda *a, **k: None
-            sys.modules["game_lines_fb"] = types.SimpleNamespace(build=lambda *a, **k: None)
+            collect.collect_props_board_fb = build("props-board")
+            collect.collect_alt_lines = build("alt-lines")
+            collect.build_card_fb = build("card")
+            sys.modules["game_lines_fb"] = types.SimpleNamespace(build=build("alt-ladders"))
             collect.now = lambda: now
             F.plan, F.survey, F.record_builds = (_at_now(f, now) for f in saved_fresh)
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
-                collect.converge(explicit=list(explicit))
+                LAST["rc"] = collect.converge(explicit=list(explicit))
+            LAST["builds"] = builds
             files = tuple(open(os.path.join("data", lg, "latest", n), "rb").read()
                           if os.path.exists(os.path.join("data", lg, "latest", n)) else None
                           for n in ("freshness.json", F.LATENESS_FILE))
@@ -306,7 +376,9 @@ for cron, lgs, ms in ARMS:
         _n += 1
         modes = ms.split()
         have = {r[0] for r in contract_rows(lg, late)}
-        expect = [m for m in modes if m not in have]       # no row: its cron is its only reason
+        # no row EVER (the board-only contract keeps every row: no schedule, "cannot tell"), never
+        # paid, never a card builder: its cron is its only reason
+        expect = [m for m in modes if m not in have and m not in PAID_KINDS and m not in F.CARD_BUILDERS]
         d = tree(lg, late)
         try:
             ran, calls, http, out, files = converge(d, lg, late, dict(event(cron), RELAY_HELD="yes"), modes)
@@ -332,12 +404,73 @@ ck("⛔ RELAY_HELD=yes on a run no cron started (a hand run) is NOT held: it con
    not _hand_bad, _hand_bad[:3])
 
 # ══════════════════════════════════════════════════════════════════════
+section("2b. 🔴 [2026-11-20, review] ...ALSO WHEN THE PROPS WINDOW IS CLOSED AND A PAID ROW IS ABSENT")
+# ══════════════════════════════════════════════════════════════════════
+# The college props window is 14 hours before a stored game and the NFL's the next slate
+# within 72 hours, so on a Monday (and every day the next game is far) `props-player` has NO
+# row. ~~A mode with no row is an extra~~: a held `34 12` cron then ran props-player, an Odds
+# `/events` call, the props board, the alt lines, the card and, before them, the injury
+# reports. Every football arm again, at a Monday minute, each league's schedule planted with
+# its next game five days out; the oracle for "never the link's" is the board-only contract
+# (no schedule: "cannot tell", every row kept), collect.PAID_KINDS and the card builders.
+_MON = datetime.datetime(2026, 11, 23, 18, 0, tzinfo=UTC)          # a Monday, props window closed
+_FAR = [_MON + 5 * 24 * 60 * MIN]                                   # Saturday 11-28, 18:00Z
+_closed_bad, _n2, _absent = [], 0, {lg: set() for lg in R.FOOTBALL_LEAGUES}
+for cron, lgs, ms in ARMS:
+    for lg in lgs.split():
+        _n2 += 1
+        modes = ms.split()
+        ever = {r[0] for r in contract_rows(lg, _MON)}
+        expect = [m for m in modes if m not in ever and m not in PAID_KINDS and m not in F.CARD_BUILDERS]
+        d = tree(lg, _MON, kicks=_FAR)
+        try:
+            with inside(d):
+                _absent[lg] |= {m for m in modes if m in ever} - {
+                    r["mode"] for r in F.survey("data/%s" % lg, "picks", _MON)}
+            ran, calls, http, out, files = converge(d, lg, _MON, dict(event(cron), RELAY_HELD="yes"), modes)
+            if ran != expect or calls or http or LAST.get("builds") or files != PLANTED \
+                    or "cfb-injuries" in ran:
+                _closed_bad.append((cron, lg, ran, expect, len(calls), LAST.get("builds")))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+ck("⚠️ the planted Monday really closes the props window: props-player has no row in EITHER league",
+   all("props-player" in v for v in _absent.values()), {k: sorted(v) for k, v in _absent.items()})
+ck("🔴🔴 held, the props window closed (%d cron x league): 0 odds_get calls, no props board, alt "
+   "lines or card built, no injury read, freshness.json and lateness.json byte for byte" % _n2,
+   not _closed_bad, "⛔ a held props cron ran props-player as a row-less extra: %s" % _closed_bad[:3])
+_d = tree("ncaaf", _MON, kicks=_FAR)
+try:
+    _ran, _calls, _http, _out, _files = converge(_d, "ncaaf", _MON, dict(event("34 12 * * *"), RELAY_HELD="yes"),
+                                                 ["props-player"])
+finally:
+    shutil.rmtree(_d, ignore_errors=True)
+eq((_ran, len(_calls), LAST.get("builds"), _files == PLANTED), ([], 0, [], True),
+   "🔴 the case that was live: ncaaf `34 12 * * *` held on Monday 11-23 18:00Z runs nothing (it ran "
+   "cfb-injuries, props-player, /events, the board, the alt lines, the ladders and the card)")
+# ✅ AND EVERY MODE THE LINK OWNS, not only the ones a cron names today: each, its rows absent
+#    at this minute, is never an extra (freshness.extras, asked directly).
+_own_bad = []
+for lg in sorted(R.FOOTBALL_LEAGUES):
+    _env = dict(event("34 12 * * *"), LEAGUE=lg)
+    for m in sorted({r[0] for r in contract_rows(lg, _MON)}
+                    | (PAID_KINDS & {"gamelines", "props-player", "alt-lines"}) | F.CARD_BUILDERS):
+        _got = F.extras([], [m], _MON, _env)
+        if _got:
+            _own_bad.append((lg, m, _got))
+    for m in ("live-probe", "halftime-probe"):
+        if F.extras([], [m], _MON, _env) != [m]:
+            _own_bad.append((lg, m, "the probe is no longer an extra"))
+ck("🔴 every mode the board-only contract carries, every paid kind and every card builder, with no "
+   "row at this minute, is never a held run's extra; the live and halftime probes (never a row) are",
+   not _own_bad, _own_bad[:4])
+
+# ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 THE EXTRAS: WHAT NO DEADLINE COVERS STILL RUNS, AS TODAY")
 # ══════════════════════════════════════════════════════════════════════
 
 
-def held_run(lg, cron, now, built, modes, held="yes"):
-    d = tree(lg, now, built)
+def held_run(lg, cron, now, built, modes, held="yes", stale=()):
+    d = tree(lg, now, built, stale=stale)
     try:
         env = dict(event(cron), **({"RELAY_HELD": held} if held else {}))
         ran, calls, http, out, files = converge(d, lg, now, env, modes)
@@ -375,6 +508,28 @@ eq((_ran, len(_calls)), ([], 0), "🔴 nfl, held: the late `7 12` odds cron, its
 _ran, _calls, _files = held_run("nfl", "7 12 * * *", _lt, {"gamelines": _lt.replace(hour=11, minute=50)},
                                 ["gamelines"], held=None)
 eq((_ran.count("gamelines"), len(_calls)), (1, 1), "✅ control: not held, the same cron buys it once, as today")
+# `[2026-11-20, review]` the two clauses no case reached: a stored-only row stale beside rows
+#    built for the cron's deadline (stand_down runs it; the cron FIRES FOR the deadline), and a
+#    row a later build already refreshed (the cron's own minute was before that build).
+_thu = datetime.datetime(2026, 11, 19, 13, 0, tzinfo=UTC)          # `4 7` started 6 hours late
+_ran, _calls, _files = held_run("ncaaf", "4 7 * * *", _thu, {"cfb-probe": _thu.replace(hour=7, minute=5)},
+                                ["cfb-probe"], stale=(r"/weather-\d{4}\.json\.gz$",))
+eq(_ran, [], "🔴 ncaaf, held: the late `4 7` cron serves cfb-probe's 07:00Z deadline (built 07:05Z by the "
+   "link) and does not re-sweep CFBD, although a stale stored-only row makes stand_down run it")
+_sat2 = datetime.datetime(2026, 11, 14, 21, 30, tzinfo=UTC)
+_ran, _calls, _files = held_run("ncaaf", "40 */2 * * 6", _sat2, {"fb-scores": _sat2.replace(hour=21, minute=0)},
+                                ["fb-scores"])
+eq(_ran, [], "🔴 ncaaf, held: Saturday's 20:40Z scores cron, its row rebuilt at 21:00Z after the cron's "
+   "minute, refreshes nothing again")
+_d = tree("ncaaf", _sat, {})
+try:
+    _ran, _calls, _http, _out, _files = converge(_d, "ncaaf", _sat, dict(event("50 16 * * 6"), RELAY_HELD="yes"),
+                                                 ["live-probe"], fail=("live-probe",))
+finally:
+    shutil.rmtree(_d, ignore_errors=True)
+eq((_ran, LAST.get("rc"), "::error::live-probe failed" in _out, _files == PLANTED), (["live-probe"], 1, True, True),
+   "🔴 held, an extra that raised OUR exception turns the run red (rc 1, ::error::; FAIL LOUD), and "
+   "freshness.json and lateness.json stay the link's, byte for byte")
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. 🔴 relay.py held: A LIVE LINK AND A FRESH BEAT, NOTHING LESS")

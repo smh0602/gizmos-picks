@@ -1327,10 +1327,15 @@ note boxes, tags and the stale bar now require their absence.
   step asks `relay.py held`): it builds and buys nothing the contract owes, writes neither
   freshness.json nor lateness.json, leaves its league's freshness gate to the link (which
   runs it every pass), and runs only its extras (`freshness.extras`: the live and halftime
-  probes, the game-day score refreshes, the Sunday rebuild). A metered mode (or the team
+  probes, the game-day score refreshes, the Sunday rebuild; `[2026-11-20, review]` never a
+  paid or card-building mode, also on a day its row is absent: on a Monday the college props
+  window is closed and a held `34 12` cron ran `props-player` as an extra, the board, the alt
+  lines and the card with it; `freshness.link_modes`). A metered mode (or the team
   directory) that failed twice in a row waits `METERED_RETRY_MIN` (75) minutes
   (`freshness.retry_wait`). `watchdog.check_relay_chain`: no football beat for over
-  `RELAY_BEAT_GRACE_MIN` (150) minutes while a game is near -> `relay:football` DEGRADED.
+  `RELAY_BEAT_GRACE_MIN` (150) minutes while a game is near -> `relay:football` DEGRADED;
+  `[2026-11-20, review]` silent while the chain is switched off, read from the DEPLOYED
+  collect.yml and `FB_DAY_CAP` (`relay.football_chain_on`), never from a beat left on main.
   ⛔ A hand run uses league `mlb`, `nfl` or `ncaaf`, never exactly `ncaaf nfl` (it would
   cancel the link). Live only after Sam uploads `docs/upload/collect.yml`
   (`UPLOAD-collect-football-relay.md`); MLB's decisions are replayed byte for byte by

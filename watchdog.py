@@ -1307,7 +1307,13 @@ def check_relay_chain(rep, now):
     means no link has passed since: the cap was reached, a dispatch was refused, or a
     link died before its relay step. DEGRADED, no repair: the next football cron to
     finish restarts the chain. ⛔ Silent with no beat file at all (before Sam's upload
-    of the staged collect.yml) and in the off-season."""
+    of the staged collect.yml) and in the off-season.
+    ⛔ `[2026-11-20, review]` AND SILENT WHILE THE CHAIN IS SWITCHED OFF, read from the
+    DEPLOYED collect.yml and relay.FB_DAY_CAP (`relay.football_chain_on`), never from a
+    beat file left on main: after a switch-off the old beats stay, and the finding said
+    all season that a cron would restart a chain nothing can start."""
+    if not RL.football_chain_on(os.path.join(ROOT, ".github", "workflows", "collect.yml"))[0]:
+        return
     data = os.path.join(ROOT, "data")
     ages = {lg: RL.beat_age_min(lg, now, data) for lg in sorted(RL.FOOTBALL_LEAGUES)}
     seen = [a for a in ages.values() if a is not None]

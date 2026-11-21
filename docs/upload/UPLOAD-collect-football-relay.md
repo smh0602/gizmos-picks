@@ -124,3 +124,16 @@ Until you upload, the "runs" report lists `collect.yml` as waiting, and after
 48 hours it says so in an issue: that is expected. I (or the next session)
 check after your upload that the live file matches this one byte for byte and
 that the first **collect [relay ncaaf nfl]** run is green.
+
+## Changelog
+
+- **2026-11-20:** first version, for Sam's 2026-11-18 "Yes" (the relay for
+  football) and "Yes, injuries every 2 h".
+- **2026-11-20, review:** the staged file's held-step comment says a beat
+  over relay.HELD_BEAT_MIN minutes old (101, ~~an hour~~) releases the crons;
+  "How to tell it worked" says the beat moves about every 15 to 60 minutes
+  (~~15 to 35~~). The clicks and the commit message are unchanged.
+- **2026-11-20, review 2:** a held cron never runs a paid or card-building
+  mode, also on a day its props window is closed; the `relay:football`
+  finding stays silent while the chain is switched off. Code only: the
+  staged file, the clicks and the commit message are unchanged.

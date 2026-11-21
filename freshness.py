@@ -2604,18 +2604,48 @@ def relay_link(env=None):
     return env.get("RELAY_LINK") == "yes" and str(env.get("LEAGUE") or "").strip().lower() in FB_TIMES
 
 
+def link_modes(league, now):
+    """`[2026-11-20, review]` Every mode a football relay link builds in `league` when it falls
+    due, WHATEVER ROWS THIS MINUTE'S CONTRACT HOLDS: each mode the league's contract carries a
+    row for in a tree holding a props board and nothing else, and every mode that builds a card
+    (CARD_BUILDERS). -> frozenset.
+    ✅ No row is left out for what a tree holds: without a schedule the props window "cannot
+    tell" and keeps `props-player` and `alt-lines` (the reasoning `paid_times` already uses for
+    every PAID row), and the planted board keeps the card's rows.
+    ⛔ NEVER THIS MINUTE'S ROWS. The college props window is 14 hours before a stored game, so
+    on a Monday `props-player` has no row, and ~~a mode with no row is an extra~~ a held
+    `34 12` cron ran it as one: an Odds `/events` call, the props board, the alt lines and the
+    card the link builds, and the injury reports before them (`with_before_card`)."""
+    if league not in FB_TIMES:
+        raise ValueError(f"{league!r} has no relay link")
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="link-modes-") as d:
+        base = d.replace(os.sep, "/")
+        os.makedirs(f"{base}/data/{league}/latest")
+        with gzip.open(f"{base}/data/{league}/latest/props.json.gz", "wt", encoding="utf-8") as fh:
+            fh.write("{}")
+        rows = contract(f"{base}/data/{league}", f"{base}/picks", now)
+    return frozenset(r[0] for r in rows) | CARD_BUILDERS
+
+
 def extras(rows, explicit, now, env=None):
     """The modes a HELD run still runs: the ones its cron names that no deadline the
     link meets covers (R4). -> [mode], in the cron's order.
-      - a mode with no contract row (`live-probe`, `halftime-probe`): its cron is its
-        only reason to run, exactly as today;
+      - a mode the contract NEVER carries a row for (`live-probe`, `halftime-probe`;
+        `link_modes`, ~~no row at this minute~~): its cron is its only reason to run,
+        exactly as today;
       - a metered mode (STAND_DOWN) none of whose rows is owed, that `stand_down` would
         not stand down, and whose cron fires for none of its deadlines
         (`cron_fires_for`): an EXTRA build, the game-day `fb-scores` refreshes and the
         Sunday `cfb-probe` rebuild, run exactly as today.
-    ⛔ Never a paid mode, a free mode with a row (the card, news, the props board) or a
-    metered mode its cron serves a deadline for: those are the link's."""
+    ⛔ Never a paid mode, a card builder, a free mode with a row (the card, news, the props
+    board) or a metered mode its cron serves a deadline for: those are the link's, ALSO
+    on a minute their rows are absent (the props window closed): the link builds them
+    when they fall due."""
+    env = os.environ if env is None else env
+    lg = str(env.get("LEAGUE") or "").strip().lower()
     have = {r["mode"] for r in rows}
+    link_owns = link_modes(lg, now) if lg in FB_TIMES else None
     cron = fired_cron(env)
     since = cron_last_fire(cron, now) if cron else None
     out = []
@@ -2623,6 +2653,10 @@ def extras(rows, explicit, now, env=None):
         if m in out:
             continue
         if m not in have:
+            # ⛔ no row NOW is not no row EVER: a mode the link owns is never an extra, and a
+            #    league with no link (never held) runs none (fail closed: nothing is built)
+            if link_owns is None or m in link_owns:
+                continue
             out.append(m)
             continue
         if m not in STAND_DOWN or since is None:
