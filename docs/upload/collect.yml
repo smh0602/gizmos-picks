@@ -880,8 +880,9 @@ jobs:
       # still runs the extras no deadline covers (the live and halftime probes, the
       # game-day score refreshes, the Sunday rebuild: `freshness.extras`).
       # ⛔ A hand run, a push and a link are never held. A run list that cannot be
-      #    read, or a beat over an hour old (a hung link), is NOT held: it converges
-      #    as before. `continue-on-error`: this step can only ever hold a run back.
+      #    read, or a beat over relay.HELD_BEAT_MIN minutes old (a hung link), is NOT
+      #    held: it converges as before. `continue-on-error`: this step can only ever
+      #    hold a run back.
       - name: Is a football relay link alive?
         id: held
         if: ${{ github.event_name == 'schedule' && steps.mode.outputs.relay_league == 'ncaaf nfl' }}

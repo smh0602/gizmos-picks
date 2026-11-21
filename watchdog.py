@@ -778,8 +778,9 @@ def _stored_finding(rep, lg, rows):
 def _held_finding(rep, lg, rows):
     """`[2026-11-17]` Stale rows the contract owes but will not plan now: a rebuild its writer
     could not land (`held`, freshness.REBUILD_ATTEMPTS: retried by its writer's own next deadline
-    run) or a REPORT_ONLY_HEALTH row (never planned again). DEGRADED, no repair named; each row
-    says why."""
+    run) or a REPORT_ONLY_HEALTH row (never planned again) `[2026-11-20]` or a HEALTH_AT_DEADLINE
+    row (read again at its next deadline, and before every card, never on every pass). DEGRADED,
+    no repair named; each row says why."""
     if not rows:
         return
 
@@ -789,6 +790,10 @@ def _held_finding(rep, lg, rows):
             return "%s: its writer (%s) tried at %s and could not rebuild it (%s); it is tried " \
                    "again by that writer's own next deadline run, never by an extra one" % (
                        r.get("path"), r.get("mode"), h.get("tried_at"), h.get("outcome"))
+        if r.get("mode") in F.HEALTH_AT_DEADLINE:
+            return "%s: %s; its writer (%s) runs again at its next deadline and before every card " \
+                   "it feeds, never on every pass" % (r.get("path"), r.get("unhealthy") or "stale",
+                                                      r.get("mode"))
         return "%s: %s; reported, never planned again" % (r.get("path"), r.get("unhealthy") or "stale")
     rep.warn("held:%s" % lg,
              "%d %s file(s) are stale and the converge loop is not rebuilding them now" % (len(rows), lg),

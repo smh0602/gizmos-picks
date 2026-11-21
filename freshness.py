@@ -3166,7 +3166,19 @@ def slate_moves(data="data", picks="picks", now=None):
 #    holds a CARD_BUILDERS mode, any day: `card-fb`, and `props-player` (the football
 #    props pull builds the card itself); `injury-check` cascades to `card-fb`, and so
 #    do `slate_moves` and `code_moves`. Its own row (CFB_INJURY_TIMES, every 2 hours)
-#    plans it otherwise. ✅ The contract's order runs it before the card.
+#    plans it otherwise. ✅ ~~The contract's order runs it before the card.~~ It runs
+#    FIRST in the pass (`with_before_card`).
+#    🔴 `[2026-11-20, review]` ON WHAT THE PASS RUNS, NOT ONLY ON WHAT plan() OWES. The
+#    first build applied the rule inside plan() alone, and converge builds a college
+#    card two more ways: a cron that NAMES `card-fb` or `props-player` (appended after
+#    plan(); a card inside contract owes nothing, so plan() had no card and no reader:
+#    "PLAN: card-fb"), and a catch-up round, when the 9:00 or 9:30 ET card deadline
+#    passes while a pass runs. Both read the previous 2-hourly reading; on base,
+#    EVERY_PASS read first in every college pass Wed-Sat. ✅ So `with_before_card` is
+#    the ONE place the rule is applied (rule 117), to the list a pass is about to run:
+#    plan()'s own list, converge's list after the cron's modes are added, and each
+#    catch-up round's (where a reader this pass already ran, or that failed in it, is
+#    not asked again). test_cfb_injuries_wiring.py §10 drives the real converge.
 #    ⛔ PLANNED, NEVER MARKED STALE, like `slate_moves`: a deadline every few
 #    minutes would read stale at the end of any pass longer than that, and
 #    warn on a reader that had just run. 💰 Free; no key, no Odds credit.
@@ -3181,6 +3193,19 @@ def before_card(data="data", need=()):
     if not cascaded(need) & CARD_BUILDERS:
         return set()
     return set(BEFORE_CARD.get(lg) or ())
+
+
+def with_before_card(modes, data="data", skip=()):
+    """`modes`, the list a pass is about to run, in its order, with `before_card`'s modes
+    put FIRST when the list builds a college card, except one in `skip` (a catch-up
+    round: a mode this pass already ran, or that failed in it). -> a new list, each mode
+    once. ⛔ It only adds and moves; nothing is removed. The ONE copy (rule 117): plan(),
+    collect.converge's list after the cron's own modes, and each catch-up round."""
+    modes = list(dict.fromkeys(modes))
+    first = [m for m in sorted(before_card(data, modes)) if m not in set(skip)]
+    if not first:
+        return modes
+    return first + [m for m in modes if m not in first]
 
 
 # 🔴 `[Sam, 2026-11-10]` A MERGED MODEL CHANGE IS LIVE AT THE NEXT PASS, NOT AT THE NEXT
@@ -3277,18 +3302,34 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
                   f"its row stays out of contract and says so")
             need.discard(m)
     # `[Sam, 2026-11-18]` the college injury reports are read before every college card
-    need |= before_card(data, need)
-    return [m for m in order if m in cascaded(need)], rows
+    #    (`with_before_card`, the one copy converge also asks of the list it runs)
+    return with_before_card([m for m in order if m in cascaded(need)], data), rows
+
+
+# 🔴 `[Sam, 2026-11-18]` AN UNHEALTHY COLLEGE INJURY PROBE IS READ AGAIN AT ITS NEXT DEADLINE,
+#    NEVER ON EVERY PASS. `[2026-11-20, review]` A row stale only for its health (one
+#    conference source unread past FETCH_MAX_AGE_H while a game is close, no source read, or
+#    a current-season archive not refreshed, which can hold all week in season) was owed on
+#    EVERY pass until the source recovered: under a relay link passing every 15-35 minutes,
+#    one failing source made the reader ask all seven on every pass, ~96 reads (~670 calls)
+#    a day, against Sam's "every 2 hours otherwise" (about 120 calls a day) on sites whose
+#    terms limit automated reading. ✅ So for these modes an on-time unhealthy row is not
+#    owed: its next 2-hourly deadline makes it LATE, and owed, again (CFB_INJURY_TIMES), and
+#    every college card reads first whatever the row says (BEFORE_CARD). ⛔ It stays STALE
+#    with its reason: a soft warning at the gate, in freshness.json, and the watchdog's
+#    `held:` finding (DEGRADED) says when it is read again. test_cfb_injuries_wiring.py §9.
+HEALTH_AT_DEADLINE = {"cfb-injuries"}
 
 
 def owes(r, allow_paid=True):
     """Does this surveyed row need its mode run? ⛔ ONE COPY: `plan` and
     `caught_up` both ask it (rule 117).
     `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
-    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH."""
+    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH
+    (`[2026-11-20, review]` or HEALTH_AT_DEADLINE: its next deadline plans it)."""
     return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
                 and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: its writer's next deadline
-                and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
+                and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH | HEALTH_AT_DEADLINE))
 
 
 def cascaded(need):

@@ -54,6 +54,16 @@ clock, in planted trees, every other mode recorded and not run.
 #   file: collect.py
 #   find:             _fresh.note_failure(DATA, _fresh.TEAM_DIRECTORY, now(), f"{type(e).__name__}: {e}")
 #   with:             pass
+#
+# @vacuity 🔴 [2026-11-20, review] ...and a CFBD answer that leaves it still needing a rebuild is a failure too
+#   file: collect.py
+#   find:             _fresh.note_failure(DATA, _fresh.TEAM_DIRECTORY, now(), why2)
+#   with:             pass
+#
+# @vacuity 🔴 [2026-11-20, review] a deadline passing mid-pass does not cut the wait short (the catch-up skips it)
+#   file: collect.py
+#   find:             | {m for m in _fresh.STAND_DOWN if _fresh.retry_wait(DATA, m, _at) > 0}
+#   with:             | set()
 """
 import contextlib
 import datetime
@@ -259,10 +269,12 @@ section("4. 🔴 THE COLLEGE TEAM DIRECTORY'S CFBD CALL WAITS TOO")
 # ══════════════════════════════════════════════════════════════════════
 
 
-def directory(fail_at):
+def directory(fail_at, still=False):
     """collect._ensure_cfb_team_directory at each of PASSES, its directory always
-    needing a rebuild; `cfb.fbs_conferences` raises when `fail_at(i)`. -> the passes
-    that called CFBD."""
+    needing a rebuild; `cfb.fbs_conferences` raises when `fail_at(i)`, and with `still`
+    it answers but leaves the directory needing a rebuild (`[2026-11-20, review]`: a
+    season rollover, CFBD holding nothing for the new season yet). -> the passes that
+    called CFBD."""
     keys = ("LEAGUE", "GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH")
     saved_env = {k: os.environ.get(k) for k in keys}
     saved_cfb = sys.modules.get("cfb")
@@ -281,7 +293,7 @@ def directory(fail_at):
                 calls.append(state["i"])
                 if fail_at(state["i"]):
                     raise RuntimeError("planted: our own defect")
-                state["ok"] = True
+                state["ok"] = not still
             sys.modules["cfb"] = types.SimpleNamespace(fbs_conferences=fbs)
             collect.cfb_team_directory_state = lambda: ((False, "ok") if state["ok"] else (True, "missing"))
             collect.log = lambda *a, **k: None
@@ -308,6 +320,99 @@ ck("🔴🔴 the team directory, failing every time: CFBD asked %d times in %d p
    "⛔ before 11-18 it was asked before every college mode of every pass: %s" % _c)
 eq(directory(lambda i: False), list(range(len(PASSES))),
    "✅ a rebuild that works is never held back (each pass here needs one again)")
+_c = directory(lambda i: False, still=True)
+ck("🔴 [2026-11-20, review] ...and one CFBD ANSWERS but that leaves the directory still needing a rebuild (a "
+   "season rollover, nothing for the new season yet) counts as a failure: asked %d times in %d passes (at most %d)"
+   % (len(_c), len(PASSES), BOUND), 2 <= len(_c) <= BOUND and _c[:2] == [0, 1],
+   "⛔ unrecorded, CFBD was asked before every college mode of every link pass: %s" % _c)
+
+# ══════════════════════════════════════════════════════════════════════
+section("5. 🔴 [2026-11-20, review] A DEADLINE THAT PASSES MID-PASS DOES NOT CUT THE WAIT SHORT")
+# ══════════════════════════════════════════════════════════════════════
+# The catch-up (freshness.caught_up) builds a row whose deadline passes WHILE a pass runs. A
+# metered mode inside its wait is skipped there too (`_bad`), or a link pass that straddles one of
+# its deadlines (a game-day fb-scores deadline, the 3:00 ET cfb-probe build) would retry it at once.
+# Each class case: a pass 3 minutes before the mode's next deadline, everything inside contract,
+# the mode's record planted (failed twice, the last 10 minutes ago), the hourly cron naming `news`,
+# each mode taking 7 minutes of the pinned clock, so the deadline passes inside the pass.
+
+
+def straddle(d, lg, at, step=7):
+    """The REAL converge in `d` at `at` naming `news`, each mode recorded and not run and moving
+    the pinned clock `step` minutes. -> [(mode, minute)], the log."""
+    keys = ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH", "LEAGUE", "ODDS_API_KEY", "CFBD_API_KEY",
+            "RELAY_HELD", "RELAY_LINK")
+    saved_env = {k: os.environ.get(k) for k in keys}
+    saved = F.plan, F.survey, F.record_builds, F.code_moves
+    clk, ran = [at], []
+    for k in keys:
+        os.environ.pop(k, None)
+    os.environ["LEAGUE"] = lg
+    try:
+        with inside(d):
+            import collect
+            importlib.reload(collect)
+
+            def run_mode(m):
+                ran.append((m, clk[0]))
+                clk[0] = clk[0] + step * MIN
+
+            def no_http(*a, **k):
+                raise AssertionError("a test reached the network: %r" % (a,))
+
+            def pin(fn):
+                def call(*a, **k):
+                    if len(a) < 3 and k.get("now") is None:
+                        k["now"] = clk[0]
+                    return fn(*a, **k)
+                return call
+            collect.run_mode, collect.get = run_mode, no_http
+            collect.odds_get = lambda *a, **k: ([], 0, 19000)
+            collect.daily_spend = lambda *a, **k: 0
+            collect.now = lambda: clk[0]
+            F.plan, F.survey, F.record_builds = (pin(f) for f in saved[:3])
+            F.code_moves = lambda data="data", root=None: set()
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                collect.converge(explicit=["news"])
+        return ran, out.getvalue()
+    finally:
+        F.plan, F.survey, F.record_builds, F.code_moves = saved
+        for k in keys:
+            os.environ.pop(k, None)
+            if saved_env[k] is not None:
+                os.environ[k] = saved_env[k]
+
+
+_waited, _ctl, _n5 = [], [], 0
+for m, lg in CASES:
+    _rows = [r for r in contract_rows(lg, T0) if r[0] == m and r[2]]
+    _due = min(x for x in (F.next_due(r[2], T0) for r in _rows) if x is not None)
+    _at = _due - 3 * MIN
+    for _planted in (True, False):
+        d = tree(lg, _at, None)
+        try:
+            if _planted:
+                with inside(d):
+                    _write(os.path.join("data", lg, "latest", F.METERED_ATTEMPTS),
+                           {m: {"fails": 2, "first_failed_at": (_at - 40 * MIN).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                                "last_failed_at": (_at - 10 * MIN).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                                "why": "planted: failed twice"}})
+            ran, out = straddle(d, lg, _at)
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+        got = [x for x, _t in ran]
+        if _planted:
+            _n5 += 1
+            if m in got:
+                _waited.append((m, lg, _due.strftime("%a %H:%MZ"), [(x, t.strftime("%H:%M")) for x, t in ran]))
+        elif m not in got or not any("CATCH-UP:" in l and m in l for l in out.splitlines()):
+            _ctl.append((m, lg, _due.strftime("%a %H:%MZ"), got))
+ck("✅ control: with no failures on record, each metered mode IS built by the catch-up when its deadline "
+   "passes inside the pass (%d cases), so the case reaches caught_up" % len(CASES), not _ctl, _ctl[:3])
+ck("🔴 inside its wait it is NOT: %d metered modes, failed twice 10 minutes before, a deadline passing mid-pass: "
+   "none asked again before METERED_RETRY_MIN (%d)" % (_n5, F.METERED_RETRY_MIN), _n5 >= 4 and not _waited,
+   "⛔ without the catch-up's skip each was retried at once: %s" % _waited[:3])
 
 shutil.rmtree(_TMP, ignore_errors=True)
 note("cfb-probe keeps its own longer back-off (3h / 6h / 20h) inside its mode, on top of this floor.")

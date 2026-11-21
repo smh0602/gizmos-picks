@@ -108,7 +108,8 @@ a bot, the schedules could stop silently.
 
 - Open https://github.com/smh0602/gizmos-picks/blob/main/data/ncaaf/latest/relay-beat.json
   (and the same under `data/nfl/latest/`). It exists once a relay run has made
-  its first check, and its `at` time moves forward every 15 to 35 minutes.
+  its first check, and its `at` time moves forward with every check, about
+  every 15 to 60 minutes.
 - In `health.json` there is no `relay:football` finding. If one appears, it
   says no relay run has checked football for over 2.5 hours while a game is
   near; the next football cron to finish restarts the chain by itself.

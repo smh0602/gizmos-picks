@@ -16,8 +16,8 @@ EXTRAS (`freshness.extras`): a mode with no row (the live and halftime probes)
 and a metered mode's extra build no deadline covers (the game-day fb-scores
 refreshes, the Sunday cfb-probe rebuild), exactly as today. Its league's gate
 is the link's, which runs it on every pass.
-⛔ A hand run is never held, nor a run whose beat is over an hour old (a hung
-link), nor one whose run list cannot be read.
+⛔ A hand run is never held, nor a run whose beat is over relay.HELD_BEAT_MIN
+minutes old (a hung link), nor one whose run list cannot be read.
 
 🔴 THE CLASS, DERIVED: every football arm in collect.yml's routing table
 (`wfroutes.parse_arms`), each league it names, the modes it names, against
@@ -473,7 +473,9 @@ def drive_held(runs_ok, runs, beats):
 
 
 eq(drive_held(True, [LINK], FRESH), ["held=yes"], "🔴 the step says held=yes for a live link and fresh beats")
-eq(drive_held(True, [LINK], {"ncaaf": 90, "nfl": 90}), ["held=no"], "🔴 ...held=no for old beats")
+eq(drive_held(True, [LINK], {"ncaaf": R.HELD_BEAT_MIN + 30, "nfl": R.HELD_BEAT_MIN + 30}), ["held=no"],
+   "🔴 ...held=no for old beats (%d minutes, past relay.HELD_BEAT_MIN; `[2026-11-20, review]` ~~90~~, typed "
+   "against the old 60)" % (R.HELD_BEAT_MIN + 30))
 eq(drive_held(False, [LINK], FRESH), ["held=no"], "⛔ ...and held=no when the run list cannot be read")
 
 

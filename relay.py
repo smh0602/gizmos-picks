@@ -89,17 +89,35 @@ FB_HOLD_MIN = 280
 # ⚠️ DERIVED FROM THE HOLD, so a hold change can never starve the chain: every
 #    full hold a day, one that straddles midnight, and two restarts.
 FB_DAY_CAP = 1440 // FB_HOLD_MIN + 3
-# A scheduled football run is held only while the link BEATS: a hung link
-# stops holding the crons back after this long (`held`).
-HELD_BEAT_MIN = 60
-# ⚠️ ABOVE THE WORST SIMULATED HANDOVER GAP (~110 minutes): no football link has
-#    passed for this long while a game is near -> `relay:football` (watchdog).
-RELAY_BEAT_GRACE_MIN = 150
 # ⚠️ THE ROOM A LINK NEEDS AFTER ITS HOLD, under the job's `timeout-minutes`
 #    (read only by the clock test): the longest football pass measured 11-13 ->
 #    11-20 (36.8) + the longest steps after Converge (16.3) + the second league's
 #    share of a two-league pass. FB_HOLD_MIN + ROOM_MIN must fit the job clock.
 ROOM_MIN = 60
+# ⚠️ `[2026-11-20, review]` THE LONGEST LINK PASS, both leagues, from the first
+#    league's beat to the pass's push: ROOM_MIN's allowance less the 16.3 minutes
+#    of steps after Converge, i.e. the longest football pass measured (36.8) and
+#    the second league's share. test_relay.py §8e holds it inside ROOM_MIN.
+LINK_PASS_MAX_MIN = 43
+# The Converge step's sleep between two passes (its `SLEEP=900`; test_relay.py §8e
+# reads it from the workflow, so the two cannot drift).
+LINK_SLEEP_MIN = 15
+# A scheduled football run is held only while the link BEATS: a hung link
+# stops holding the crons back after this long (`held`).
+# 🔴 `[2026-11-20, review]` DERIVED FROM THE LINK'S OWN CYCLE (~~60~~, the design's,
+#    sized when the longest pass was 22.1 minutes). A link writes each league's beat
+#    at the START of that league's converge, but the pass reaches main only after
+#    both leagues, the gates and push_retry, and a cron reads the beat on main. So
+#    just before pass k+1 lands, that beat is a whole pass, the sleep and the next
+#    whole pass old. At 60 the hold lapsed around every heavy pass (the cfb-probe
+#    sweep; a props pull and HC's card), exactly the passes that spend, and a late
+#    cron then converged, and could buy, beside the link's unpushed pass.
+#    test_relay.py §8e drives the real Converge step and asks `held` at every minute.
+HELD_BEAT_MIN = 2 * LINK_PASS_MAX_MIN + LINK_SLEEP_MIN
+# ⚠️ ABOVE THE WORST SIMULATED HANDOVER GAP (~110 minutes) AND HELD_BEAT_MIN: no
+#    football link has passed for this long while a game is near ->
+#    `relay:football` (watchdog).
+RELAY_BEAT_GRACE_MIN = 150
 # A football game within this window (days before / after now) owes the chain.
 FB_OWED_BEFORE_D, FB_OWED_AFTER_D = 3, 8
 BEAT_FILE = "relay-beat.json"     # data/<lg>/latest/, written by a link's converge pass

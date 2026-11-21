@@ -116,6 +116,21 @@ they were before it (research/relay_mlb_frozen.json): MLB is unchanged.
 #   find:     owed, why = RL.football_owed(now, data)
 #   with:     owed, why = True, "planted"
 #
+# @vacuity 🔴 [2026-11-20, review] a beating link holds the crons at every minute (the beat's bound is the link's cycle)
+#   file: relay.py
+#   find: HELD_BEAT_MIN = 2 * LINK_PASS_MAX_MIN + LINK_SLEEP_MIN
+#   with: HELD_BEAT_MIN = 60
+#
+# @vacuity 🔴 [2026-11-20, review] ...two whole passes of it, not one
+#   file: relay.py
+#   find: HELD_BEAT_MIN = 2 * LINK_PASS_MAX_MIN + LINK_SLEEP_MIN
+#   with: HELD_BEAT_MIN = LINK_PASS_MAX_MIN + LINK_SLEEP_MIN
+#
+# @vacuity ⚠️ [2026-11-20, review] ...and the sleep is the workflow's own
+#   file: relay.py
+#   find: LINK_SLEEP_MIN = 15
+#   with: LINK_SLEEP_MIN = 10
+#
 # @vacuity ⛔ [Sam, 2026-11-18] MLB's relay is unchanged: its cap
 #   file: relay.py
 #   find: RELAY_DAY_CAP = 5          # links a league may start in one UTC day
@@ -200,6 +215,7 @@ import datetime
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -710,6 +726,113 @@ ck("🔴 a football link, whatever its Tests took (5 to 60 min), starts no pass 
 _st, _end = clock_drive(320, None, 31.5, 0.5, leagues="mlb")
 ck("⛔ MLB (no `hold_from`) still holds 320 minutes from the Converge step, exactly as before",
    _st and max(_st) > R.FB_HOLD_MIN and 31.5 + 320 - 16 < max(_st) <= 31.5 + 320, (_st[-2:], _end))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("8e. 🔴 [2026-11-20, review] A BEATING LINK HOLDS THE CRONS AT EVERY MINUTE OF ITS HOLD")
+# ══════════════════════════════════════════════════════════════════════
+# A link writes each league's beat at the START of that league's converge (collect.py), but
+# the pass reaches main only at its commit, after both leagues and the gates, and a cron reads
+# the beat on main. ~~HELD_BEAT_MIN 60~~ (sized for a 22.1-minute pass) lapsed around every
+# heavy pass, the passes that spend. The REAL Converge step on §8d's virtual clock, `git` now
+# recording each commit (the beats land then) and `python` each league's converge (a beat is
+# written then), every pass as long as relay.LINK_PASS_MAX_MIN (college the longest football
+# pass measured, 36.8 minutes; the NFL the rest); then relay.held, asked at every minute from
+# the first commit to the last of a planted tree holding the beats then on main.
+_SLEEP = [int(x) for x in re.findall(r"(?m)^\s*SLEEP=(\d+)\s*$", CONVERGE)]
+eq(_SLEEP, [R.LINK_SLEEP_MIN * 60], "⚠️ relay.LINK_SLEEP_MIN is the Converge step's own sleep between passes")
+ck("⚠️ relay.LINK_PASS_MAX_MIN (%s) covers the longest football pass measured (36.8) and fits inside ROOM_MIN (%d)"
+   % (R.LINK_PASS_MAX_MIN, R.ROOM_MIN), 36.8 < R.LINK_PASS_MAX_MIN < R.ROOM_MIN)
+
+
+def beat_drive(ncaaf_min, nfl_min, tests_min=20.3):
+    """The real Converge step of a football link on a virtual clock -> ({league: [minute each
+    beat was written]}, [minute of each commit]), from the job's start."""
+    t = tempfile.mkdtemp(prefix="relay-beat-clock-")
+    try:
+        b = os.path.join(t, "bin")
+        os.makedirs(b)
+        t0 = 1_000_000
+        vc = os.path.join(t, "vclock")
+        open(vc, "w").write(str(t0 + int(tests_min * 60)))
+        stubs = {
+            "date": '#!/bin/bash\nn=$(cat "$VCLOCK")\nfor a in "$@"; do [ "$a" = "+%s" ] && { echo "$n"; exit 0; }; done\n'
+                    'echo "2026-11-20T00:00:00Z"\n',
+            "sleep": '#!/bin/bash\nn=$(cat "$VCLOCK")\necho $(( n + ${1%.*} )) > "$VCLOCK"\n',
+            "python": '#!/bin/bash\nn=$(cat "$VCLOCK")\necho "$n LEAGUE=$LEAGUE $*" >> "$CALLS"\n'
+                      'case "$*" in *collect.py*) case "$LEAGUE" in ncaaf) s=$NCAAF_SECS ;; *) s=$NFL_SECS ;; esac\n'
+                      '  echo $(( n + s )) > "$VCLOCK" ;; esac\nexit 0\n',
+            "git": '#!/bin/bash\nn=$(cat "$VCLOCK")\necho "$n git $1" >> "$CALLS"\n'
+                   '[ "$1" = "diff" ] && exit 1\nexit 0\n'}
+        for k, v in stubs.items():
+            open(os.path.join(b, k), "w", encoding="utf-8", newline="\n").write(v)
+            os.chmod(os.path.join(b, k), 0o755)
+        open(os.path.join(t, "step.sh"), "w", encoding="utf-8", newline="\n").write(CONVERGE)
+        calls = os.path.join(t, "calls")
+        env = dict(os.environ, PATH=b + os.pathsep + os.environ["PATH"], VCLOCK=vc, CALLS=calls,
+                   NCAAF_SECS=str(int(round(ncaaf_min * 60))), NFL_SECS=str(int(round(nfl_min * 60))),
+                   LEAGUES=R.FOOTBALL, MODES="converge", SEASON="2026", LOOP_MINUTES=str(R.FB_HOLD_MIN),
+                   HOLD_FROM="job", JOB_T0=str(t0), GITHUB_OUTPUT=os.path.join(t, "out"), GITHUB_RUN_NUMBER="1",
+                   RELAY_LINK="yes")
+        for k in ("RELAY_HELD", "GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH"):
+            env.pop(k, None)
+        subprocess.run(["bash", os.path.join(t, "step.sh")], cwd=t, env=env, capture_output=True,
+                       text=True, timeout=300)
+        beats, commits = {lg: [] for lg in R.FOOTBALL_LEAGUES}, []
+        for line in (open(calls, encoding="utf-8").read().splitlines() if os.path.exists(calls) else []):
+            w = line.split()
+            at = (int(w[0]) - t0) / 60.0
+            if w[1:] == ["git", "commit"]:
+                commits.append(at)
+            elif len(w) >= 4 and w[1].startswith("LEAGUE=") and w[2:4] == ["collect.py", "converge"]:
+                beats.setdefault(w[1][7:], []).append(at)
+        return beats, commits
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+
+
+def held_every_minute(beats, commits):
+    """relay.held at every minute from the first commit to the last, the beats on main then
+    planted. -> [(minute, why)] where it did not hold, and the oldest beat age seen."""
+    t = tempfile.mkdtemp(prefix="relay-held-min-")
+    link = [{"databaseId": 7, "status": "in_progress", "displayTitle": "collect [relay %s]" % R.FOOTBALL,
+             "createdAt": TODAY + "T06:00:00Z"}]
+    base = datetime.datetime(2026, 11, 21, 12, 0, tzinfo=UTC)
+    lapses, oldest = [], 0.0
+    try:
+        x = commits[0]
+        while x <= commits[-1]:
+            for lg, bs in beats.items():
+                seen = [bt for bt in bs if any(bt <= c <= x for c in commits)]
+                put(t, "data/%s/latest/%s" % (lg, R.BEAT_FILE),
+                    {"run_id": "7", "at": (base + datetime.timedelta(minutes=max(seen))).strftime("%Y-%m-%dT%H:%M:%SZ")})
+                oldest = max(oldest, x - max(seen))
+            ok, why = R.held(link, "99", R.FOOTBALL, now=base + datetime.timedelta(minutes=x),
+                             data=os.path.join(t, "data"))
+            if not ok:
+                lapses.append((round(x, 1), why))
+            x += 0.5
+        return lapses, oldest
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+
+
+_beats, _commits = beat_drive(36.8, R.LINK_PASS_MAX_MIN - 36.8)
+ck("   (the real step: %d passes, each league's beat written as its converge starts, each pass committed once "
+   "after both)" % len(_commits), len(_commits) >= 4 and all(len(v) == len(_commits) for v in _beats.values()),
+   (_beats, _commits))
+_lapses, _oldest = held_every_minute(_beats, _commits)
+ck("🔴 a link whose every pass takes LINK_PASS_MAX_MIN (%s) minutes keeps every scheduled football run HELD at "
+   "every minute between its first and last commit: the beat on main is at most %.1f minutes old, under "
+   "HELD_BEAT_MIN %d = 2 x LINK_PASS_MAX_MIN + LINK_SLEEP_MIN (~~60: lapsed for %d minutes a pass~~)"
+   % (R.LINK_PASS_MAX_MIN, _oldest, R.HELD_BEAT_MIN, max(0, int(_oldest - 60))),
+   not _lapses and _oldest < R.HELD_BEAT_MIN, _lapses[:3])
+_qb, _qc = beat_drive(0.5, 0.2)
+_ql, _qo = held_every_minute(_qb, _qc)
+ck("   ...and so does a link of quiet passes (%d passes, the beat at most %.1f minutes old)" % (len(_qc), _qo),
+   len(_qc) >= 10 and not _ql, _ql[:3])
+ck("⚠️ and a hung link stops holding the crons back long before the chain is called dead: HELD_BEAT_MIN %d < "
+   "RELAY_BEAT_GRACE_MIN %d" % (R.HELD_BEAT_MIN, R.RELAY_BEAT_GRACE_MIN), R.HELD_BEAT_MIN < R.RELAY_BEAT_GRACE_MIN)
 
 
 # ══════════════════════════════════════════════════════════════════════

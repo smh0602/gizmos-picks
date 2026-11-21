@@ -4647,7 +4647,9 @@ def _ensure_cfb_team_directory():
         import cfb as _cfb
         _cfb.fbs_conferences(_fresh.current_football_season(), log)
         _still, why2 = cfb_team_directory_state()
-        log(f"  college team directory rebuilt — {why2}")
+        log(f"  college team directory {'STILL needs a rebuild' if _still else 'rebuilt'} — {why2}")
+        # `[2026-11-20, review]` CFBD answered but left nothing usable (a season rollover): a
+        #    failure in a row like a raise, or CFBD is asked before every college mode of every pass
         if _still:
             _fresh.note_failure(DATA, _fresh.TEAM_DIRECTORY, now(), why2)
         else:
@@ -6145,8 +6147,10 @@ def converge(explicit=(), allow_paid=True):
     #    a pinned collect.now caught up every free mode test_credit_ledger's plan never ran).
     looked = now()
     # 🔴 `[Sam, 2026-11-18]` A FOOTBALL RELAY LINK BEATS, FIRST (R5): a scheduled football
-    #    run is held only while every league it routes has a beat under an hour old
-    #    (relay.HELD_BEAT_MIN), so a hung link stops holding the crons back. It rides
+    #    run is held only while every league it routes has a beat under
+    #    relay.HELD_BEAT_MIN minutes old (`[2026-11-20, review]` ~~an hour~~: two whole link
+    #    passes and the sleep, since the beat reaches main only when the pass is pushed),
+    #    so a hung link stops holding the crons back. It rides
     #    this pass's commit (freshness.json already changes every pass).
     if _fresh.relay_link():
         try:
@@ -6202,6 +6206,15 @@ def converge(explicit=(), allow_paid=True):
                 + (". NOTHING SPENT." if any(r["paid"] for r in rows if r["mode"] == m) else ""))
             continue
         modes.append(m)
+    # 🔴 `[Sam, 2026-11-18]` "INJURY REPORTS READ BEFORE EVERY COLLEGE CARD", ON THE LIST THIS
+    #    PASS RUNS (`[2026-11-20, review]` ~~plan() alone~~: a cron that names `card-fb`, its
+    #    card inside contract, built the card from the last 2-hourly reading, "PLAN: card-fb").
+    #    ⚠️ A held run's extras are never a card (a card has a row), so it reads nothing here.
+    _with = _fresh.with_before_card(modes, DATA)
+    if _with != modes:
+        log(f"BEFORE THE CARD: {' '.join(m for m in _with if m not in modes) or 'the reader moves first'}"
+            f" — this pass builds a {LEAGUE} card, so it reads the injury reports first")
+        modes = _with
     if not modes:
         log("held: nothing to run" if held else "everything inside contract — nothing to do")
         log("=" * 66)
@@ -6328,6 +6341,10 @@ def converge(explicit=(), allow_paid=True):
                 if _round < CATCH_UP_ROUNDS else [])
         if not todo:
             break
+        # 🔴 `[Sam, 2026-11-18]` a college card the catch-up builds reads the injury reports
+        #    first too (`[2026-11-20, review]`: the 9:00 / 9:30 ET card falls inside a pass),
+        #    unless this pass already read them, or the read failed in it
+        todo = _fresh.with_before_card(todo, DATA, skip=attempted | _bad)
         log(f"CATCH-UP: {' '.join(todo)} — a deadline passed while this pass ran "
             f"(it surveyed at {looked:%H:%M:%S}Z): "
             + ", ".join(dict.fromkeys(f"{r['mode']} due {r['due_at']}" for r in rows2
