@@ -1019,8 +1019,8 @@ note boxes, tags and the stale bar now require their absence.
   accurate and up to date, we wouldn't want misinformation ruining our bets."* He was told the
   conference sites' terms limit automated reading; this supersedes ~~his 2026-09-23 "Build it only
   if it is free and allowed by those sites' terms"~~ (`dossier_fb.PERSONNEL_COLLEGE`; its signal 7
-  stays NFL-only). `cfb_injuries.py` (`cfb-injuries` mode, planned by its probe row on every college
-  pass, no cron change): HD Intelligence's public reports for SEC, ACC, Big Ten, Big 12 and MAC and
+  stays NFL-only). `cfb_injuries.py` (`cfb-injuries` mode, planned by its probe row ~~on every college
+  pass~~ `[Sam, 2026-11-18]` every 2 hours and before every college card, no cron change): HD Intelligence's public reports for SEC, ACC, Big Ten, Big 12 and MAC and
   the Sun Belt / Pac-12 feeds, images stripped, written once per change (daystore
   `injury-reports`), the past seasons' archives once (`data/ncaaf/history/injury-archive-<s>`).
   ⛔ ACCURATE: both teams known (an explicit alias table, never fuzzy, never the display names),
@@ -1028,6 +1028,23 @@ note boxes, tags and the stale bar now require their absence.
   statuses only (Exempt is unknown, never healthy); anything else is refused and named in the
   probe. ⛔ UP TO DATE: a report is current only when published at most 36 hours before kickoff
   and our snapshot of it is at most 6 hours old; only a current report is shown (the why) or read.
+  `[Sam, 2026-11-18]` "Yes, injuries every 2 h (Recommended)": *"Injury reports read before every
+  college card and every 2 hours otherwise: about 120 reads a day, below today's ~152. A report is
+  still under 6 hours old whenever it is shown or read."* The probe's row is due every 2 hours
+  (`freshness.CFB_INJURY_TIMES`, the hourly news deadlines on even ET hours; UNTIMED, so a slow
+  pass is no `late:` finding), and the mode is planned in every pass ~~whose plan~~ that builds a
+  college card (`freshness.BEFORE_CARD`, `CARD_BUILDERS` = card-fb, props-player; an injury check
+  cascades to card-fb), any day, first in the pass (~~Wed-Sat on every college pass~~, `EVERY_PASS`).
+  `[2026-11-20, review]` On the list the pass RUNS (`freshness.with_before_card`, one copy): plan()'s,
+  converge's after a cron's own modes (a cron naming `card-fb` built the card unread: "PLAN:
+  card-fb"), and each catch-up round's (the 9:00 / 9:30 ET card due mid-pass), never twice in one
+  pass. An on-time probe stale only for its health (a source or an archive failing) is read again
+  at its next deadline, never on every pass (`freshness.HEALTH_AT_DEADLINE`: under a link one
+  failing source made ~96 reads a day); it stays stale and is named (`held:ncaaf`). The
+  36-hour and 6-hour rules are unchanged. Measured: 136 reads 11-13 -> 11-20 (17 a day, ~119
+  calls); simulated under a relay link, 16.6 a day (~116 calls), the same with a source or an
+  archive failing, against ~57 (82 Wed-Sat) had every pass read.
+  `test_cfb_injuries_wiring.py` §1, §9, §10.
   `cfb.py` keeps the jerseys and defensive stats CFBD already sends (`roster-<s>`, `defense-<s>`,
   zero extra calls; 2025 once, priced). The model (`fb_model.injury_readings` ->
   `cfb_injuries.attach`, design §3: QB out, offence share, defence share; no report = no reading)
@@ -1291,7 +1308,39 @@ note boxes, tags and the stale bar now require their absence.
   MLB games (the off-season; fail closed, so one off-day between game days
   does not stop it): the chain ends and the crons, unchanged, restart it. A relay link WAITS for the run that started
   it (`cancel-in-progress` is false only for it), so a red run stays red.
-  MLB only: football runs are one pass in a queue per cron. And LATENESS
+  ~~MLB only: football runs are one pass in a queue per cron.~~ `[Sam, 2026-11-18]`
+  *"Turn the relay on for football?"* "Yes": ONE football chain for both leagues,
+  `collect [relay ncaaf nfl]` (`relay.FOOTBALL`, its own concurrency group). Every
+  scheduled football run and every football link ends with the same relay step, so a
+  football cron that ends with no link alive starts one. A football link holds
+  `relay.FB_HOLD_MIN` (280) minutes counted from the JOB's first step (`Start the job
+  clock`, `hold_from=job`), so slower Tests shorten its hold and never reach the
+  350-minute kill; MLB's hold still counts from the Converge step. ⛔ No football
+  successor while another football LINK is queued or running (a live cron never counts),
+  past `FB_DAY_CAP` (1440 // FB_HOLD_MIN + 3 = 8) links a UTC day, on a re-run, or when no
+  game in either league's stored schedule kicks off within 3 days back / 8 ahead (fail
+  closed). ✅ A SCHEDULED football run is HELD while a link other than itself is live and
+  every league it routes has a beat under `HELD_BEAT_MIN` (~~60~~ `[2026-11-20, review]` 101 =
+  2 x `LINK_PASS_MAX_MIN` 43 + the 15-minute sleep: the beat reaches main only when a pass is
+  pushed, so at 60 the hold lapsed around every heavy pass; test_relay.py §8e) minutes old
+  (`data/<lg>/latest/relay-beat.json`, written at the start of each link pass; the held
+  step asks `relay.py held`): it builds and buys nothing the contract owes, writes neither
+  freshness.json nor lateness.json, leaves its league's freshness gate to the link (which
+  runs it every pass), and runs only its extras (`freshness.extras`: the live and halftime
+  probes, the game-day score refreshes, the Sunday rebuild; `[2026-11-20, review]` never a
+  paid or card-building mode, also on a day its row is absent: on a Monday the college props
+  window is closed and a held `34 12` cron ran `props-player` as an extra, the board, the alt
+  lines and the card with it; `freshness.link_modes`). A metered mode (or the team
+  directory) that failed twice in a row waits `METERED_RETRY_MIN` (75) minutes
+  (`freshness.retry_wait`). `watchdog.check_relay_chain`: no football beat for over
+  `RELAY_BEAT_GRACE_MIN` (150) minutes while a game is near -> `relay:football` DEGRADED;
+  `[2026-11-20, review]` silent while the chain is switched off, read from the DEPLOYED
+  collect.yml and `FB_DAY_CAP` (`relay.football_chain_on`), never from a beat left on main.
+  ⛔ A hand run uses league `mlb`, `nfl` or `ncaaf`, never exactly `ncaaf nfl` (it would
+  cancel the link). Live only after Sam uploads `docs/upload/collect.yml`
+  (`UPLOAD-collect-football-relay.md`); MLB's decisions are replayed byte for byte by
+  `test_relay.py` §9 (`research/relay_mlb_frozen.json`). `test_relay.py`,
+  `test_relay_held.py`, `test_metered_retry_floor.py`. And LATENESS
   LEAVES A RECORD: every converge pass writes `latest/lateness.json`
   (`freshness.record_builds`, the first build after each deadline); the
   watchdog reports DEGRADED, no repair, while a last build was more than
@@ -1980,6 +2029,12 @@ relay.py          THE RELAY (Sam, 2026-10-06): at the end of an MLB run's
                   re-run, or when no MLB card is owed for the last or the
                   next card deadline's day. Run by
                   collect.yml's last step; exit 0 = dispatch.
+                  `[Sam, 2026-11-18]` TWO CHAINS: MLB's (unchanged) and ONE
+                  football chain for both leagues (`FOOTBALL`, `collect
+                  [relay ncaaf nfl]`, 280 minutes from the job clock, cap 8,
+                  only a live football LINK is busy, ends when no game is
+                  within 3 days back / 8 ahead). `relay.py held`: is a
+                  scheduled football run held by a live, beating link?
 status.py         THE WEEKLY STATUS EMAIL (Sam, 2026-10-07): one issue, updated
                   and commented each Monday, and any day the health check is
                   too old (status.yml, daily), from the repo's own files.

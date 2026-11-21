@@ -5,8 +5,12 @@ r"""test_cfb_injuries_wiring.py — THE COLLEGE INJURY READER RUNS ITSELF. `[Sam
 wouldn't want misinformation ruining our bets."* research/cfb_injuries_design.md
 §1 item 2: the `cfb-injuries` mode (cfb_injuries.run) runs on the college passes
 that already happen, with NO cron change: its PROBE carries a freshness contract
-row that converge plans, and Wednesday to Saturday it is planned on every
-college pass. A reader that ran but read nothing is not fresh (`freshness.health`),
+row that converge plans, and ~~Wednesday to Saturday it is planned on every
+college pass~~ `[Sam, 2026-11-18]` it is planned in every pass that builds a
+college card, and its own row is due every 2 hours ("Yes, injuries every 2 h
+(Recommended)": *"Injury reports read before every college card and every 2
+hours otherwise ... A report is still under 6 hours old whenever it is shown or
+read."*; sections 1 and 9). A reader that ran but read nothing is not fresh (`freshness.health`),
 and neither is a defensive box score that stopped changing. Its stored files
 never plan a run and are never red. Planted trees, a pinned clock (or the real
 clock on a planted tree, never one of each), fake sources. ⛔ Reads no live
@@ -14,7 +18,7 @@ data, makes no network call, writes nothing under data/.
 
 # @vacuity 🔴 a probe with no deadline is never run again
 #   file: freshness.py
-#   find:             ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
+#   find:             ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), CFB_INJURY_TIMES, False,
 #   with:             ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), [], False,
 #
 # @vacuity 🔴 the reader's row is college only
@@ -32,15 +36,75 @@ data, makes no network call, writes nothing under data/.
 #   find: SOFT |= {"cfb-injuries"}
 #   with: SOFT |= set()
 #
-# @vacuity 🔴 Wednesday to Saturday the reader runs on EVERY college pass
+# @vacuity 🔴 [Sam, 2026-11-18] the reader runs in every pass that builds a college card
 #   file: freshness.py
-#   find: EVERY_PASS = {"ncaaf": {"cfb-injuries": frozenset({2, 3, 4, 5})}}     # Wed-Sat ET
-#   with: EVERY_PASS = {"ncaaf": {"cfb-injuries": frozenset()}}     # Wed-Sat ET
+#   find: CARD_BUILDERS = frozenset({"card-fb", "props-player"})
+#   with: CARD_BUILDERS = frozenset({"card-fb"})
 #
-# @vacuity 🔴 the plan takes the every-pass modes
+# @vacuity 🔴 [Sam, 2026-11-18] ...the plan takes it
 #   file: freshness.py
-#   find:         | every_pass(data, now)
-#   with:         | set()
+#   find:     return with_before_card([m for m in order if m in cascaded(need)], data), rows
+#   with:     return [m for m in order if m in cascaded(need)], rows
+#
+# @vacuity 🔴 [2026-11-20, review] ...FIRST in the pass, ahead of the card it feeds
+#   file: freshness.py
+#   find:     return first + [m for m in modes if m not in first]
+#   with:     return [m for m in modes if m not in first] + first
+#
+# @vacuity 🔴 [2026-11-20, review] ...and so does a pass whose CRON names the card (converge's own list)
+#   file: collect.py
+#   find:     _with = _fresh.with_before_card(modes, DATA)
+#   with:     _with = modes
+#
+# @vacuity 🔴 [2026-11-20, review] ...and a catch-up round that builds the card mid-pass
+#   file: collect.py
+#   find:         todo = _fresh.with_before_card(todo, DATA, skip=attempted | _bad)
+#   with:         pass
+#
+# @vacuity ⛔ [2026-11-20, review] ...but never twice in one pass
+#   file: collect.py
+#   find:         todo = _fresh.with_before_card(todo, DATA, skip=attempted | _bad)
+#   with:         todo = _fresh.with_before_card(todo, DATA)
+#
+# @vacuity 🔴 [2026-11-20, review] an unhealthy probe is read again at its next deadline, never on every pass
+#   file: freshness.py
+#   find: HEALTH_AT_DEADLINE = {"cfb-injuries"}
+#   with: HEALTH_AT_DEADLINE = set()
+#
+# @vacuity 🔴 [2026-11-20, review] ...which `owes` asks
+#   file: freshness.py
+#   find:                 and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH | HEALTH_AT_DEADLINE))
+#   with:                 and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
+#
+# @vacuity 🔴 [2026-11-20, review] ...and the watchdog says when it is read again (not "never planned again")
+#   file: watchdog.py
+#   find:         if r.get("mode") in F.HEALTH_AT_DEADLINE:
+#   with:         if False:
+#
+# @vacuity 🔴 [Sam, 2026-11-18] ...for college only
+#   file: freshness.py
+#   find: BEFORE_CARD = {"ncaaf": frozenset({"cfb-injuries"})}
+#   with: BEFORE_CARD = {"ncaaf": frozenset()}
+#
+# @vacuity 🔴 [Sam, 2026-11-18] ...and ONLY then: never on every pass (the sites' terms limit reading)
+#   file: freshness.py
+#   find:     if not cascaded(need) & CARD_BUILDERS:
+#   with:     if False:
+#
+# @vacuity 🔴 [Sam, 2026-11-18] its own row is due every 2 hours, not hourly
+#   file: freshness.py
+#   find: CFB_INJURY_EVERY_H = 2
+#   with: CFB_INJURY_EVERY_H = 1
+#
+# @vacuity 🔴 [Sam, 2026-11-18] ...and not every 3
+#   file: freshness.py
+#   find: CFB_INJURY_EVERY_H = 2
+#   with: CFB_INJURY_EVERY_H = 3
+#
+# @vacuity ⛔ [Sam, 2026-11-18] a 2-hourly read late after a slow pass is no `late:` finding
+#   file: freshness.py
+#   find: UNTIMED |= {"cfb-injuries"}
+#   with: UNTIMED |= set()
 #
 # @vacuity 🔴 a file on time but saying nothing new is stale (survey asks its health)
 #   file: freshness.py
@@ -305,7 +369,7 @@ def lines(buf):
 
 try:
     # ══════════════════════════════════════════════════════════════════
-    section("1. 🔴 THE PROBE ROW PLANS THE READER, ON EVERY COLLEGE PASS WED-SAT")
+    section("1. 🔴 THE PROBE ROW PLANS THE READER, EVERY 2 HOURS AND BEFORE EVERY COLLEGE CARD [Sam, 2026-11-18]")
     # ══════════════════════════════════════════════════════════════════
     P = tree()
     DATA, PICKS = P + "/data/ncaaf", P + "/picks"
@@ -337,49 +401,158 @@ try:
         _m = sorted({r[0] for r in F.contract(_T + _d, _T + "/picks", NOW)})
         ck(_m and "cfb-injuries" not in _m,
            "🔴 %s has no such row: the reader is college only (the NFL's injuries ride nfl-logs)" % _lg, _m)
-        eq(F.every_pass(_T + _d, NOW), set(), "   ...and %s plans nothing on every pass" % _lg)
+        eq(F.before_card(_T + _d, {"card-fb"}), set(),
+           "   ...and %s reads nothing before its card (`[2026-11-18]` ~~on every pass~~)" % _lg)
 
     MODES = F.plan(DATA, PICKS, NOW)[0]
     ck("cfb-injuries" in MODES, "🔴 a missing probe is planned (the reader has never run here)", MODES)
     ck("card-fb" in MODES and "cfb-injuries" in MODES and MODES.index("cfb-injuries") < MODES.index("card-fb"),
        "🔴 ...and BEFORE the card, so a card built in the same pass reads this pass's reports", MODES)
 
-    # ⚠️ EVERY HOUR OF A WHOLE WEEK, Monday 00:30 ET onwards, with a HEALTHY probe
-    #    (every source read when it was built): one from before the top of the
-    #    hour is planned every day; one built a minute ago is planned again
-    #    Wednesday to Saturday (every college pass) and not Sunday to Tuesday.
-    _week = datetime.datetime(2026, 10, 12, 4, 30, tzinfo=UTC)
-    _missed, _wedsat, _twice, _marked = [], [], [], []
+    # 🔴 `[Sam, 2026-11-18]` THE REQUIREMENT CHANGED, SO THESE CHECKS ARE REWRITTEN TO IT, NOT
+    #    DELETED (CLAUDE.md, THE ONE RULE THAT MATTERS MOST, `[Sam, 2026-10-01]`). They read
+    #    ~~"Wednesday to Saturday ET a probe built a minute ago is planned AGAIN: every college
+    #    pass reads the reports before the card it builds"~~ and ~~"at every hour of a week, a
+    #    probe from before the top of the hour plans the reader"~~. A relay link passes every
+    #    15-35 minutes, and Sam chose "Yes, injuries every 2 h (Recommended)": *"Injury reports
+    #    read before every college card and every 2 hours otherwise"*.
+    # ⚠️ A TREE WHERE NOTHING ELSE IS OWED: every other row stamped after the whole week (so
+    #    inside contract at every minute of it), the probe healthy and built when each case says.
+    #    `code_moves` is asked of the real code elsewhere (test_code_moves.py); here it plans
+    #    nothing, so a card is owed only when a case makes one owed.
+    WK = datetime.datetime(2026, 10, 12, 4, 30, tzinfo=UTC)             # Monday 00:30 ET
+    WT = tree()
+    WDATA, WPROBE = "data/ncaaf", CI.probe_path(SEASON, ".")
+    _END = WK + 8 * D
+    with inside(WT):
+        put("data/ncaaf/latest/props.json.gz", {"built_at": stamp(_END)})
+        schedule(WDATA, [game(WK + k * D + 19 * H, gid=str(k)) for k in range(-1, 9)])   # a game every day
+        W_ROWS = F.contract(WDATA, "picks", WK + 3 * D)
+        for _m, (_kind, _path), _times, _paid, _why in W_ROWS:
+            if norm(_path) == norm(WPROBE) or F.stored_only({"path": _path, "why": _why}):
+                continue
+            if _kind == "dir":
+                for _k in range(-1, 9):
+                    _day = (WK + _k * D).strftime("%Y-%m-%d")
+                    put(re.sub(r"\d{4}-\d{2}-\d{2}", _day, _path, count=1) + "/2359.json.gz",
+                        {"pulled_at": _day + "T23:59:00Z"})
+            elif re.search(r"/latest/schedule-\d{4}\.json\.gz$", _path):
+                with gzip.open(_path, "rt", encoding="utf-8") as _fh:
+                    _sd = json.load(_fh)
+                put(_path, dict(_sd, pulled_at=stamp(_END)))
+            elif re.search(r"/history/(schedule|lines)-\d{4}\.json\.gz$", _path):      # a healthy stored season
+                put(_path, {"built_at": stamp(_END), "games": [{"id": 1}] if "/schedule-" in _path
+                            else {"1": {"spread": -3.5}}})
+            else:
+                put(_path, {"built_at": stamp(_END), "written_at": stamp(_END), "pulled_at": stamp(_END)})
+
+    def w_plan(at, probe_at, owed=None, pdoc=None):
+        """The plan of the planted week at `at`, the probe built at `probe_at` (or `pdoc`, a
+        probe doc of the case's own), and the row(s) of `owed` (a mode) built a minute before
+        their deadline in force."""
+        with inside(WT):
+            put(WPROBE, probe(probe_at) if pdoc is None else pdoc)
+            undo = []
+            if owed:
+                for _m, (_kind, _path), _times, _paid, _why in F.contract(WDATA, "picks", at):
+                    _due = F.last_due(_times, at)
+                    if _m != owed or _due is None or F.stored_only({"path": _path, "why": _why}):
+                        continue
+                    if _kind == "dir":
+                        _p = re.sub(r"\d{4}-\d{2}-\d{2}", at.strftime("%Y-%m-%d"), _path, count=1)
+                        for _f in ("2359.json.gz",):
+                            if os.path.exists(os.path.join(_p, _f)):
+                                os.rename(os.path.join(_p, _f), os.path.join(_p, _f + ".off"))
+                                undo.append((os.path.join(_p, _f + ".off"), os.path.join(_p, _f)))
+                        _b = _due - M
+                        put(os.path.join(_p, _b.strftime("%H%M") + ".json.gz"), {"pulled_at": stamp(_b)})
+                        undo.append((None, os.path.join(_p, _b.strftime("%H%M") + ".json.gz")))
+                    else:
+                        _keep = open(_path, "rb").read()
+                        put(_path, {"built_at": stamp(_due - M), "written_at": stamp(_due - M)})
+                        undo.append((_keep, _path))
+            _saved = F.code_moves
+            try:
+                F.code_moves = lambda data="data", root=None: set()
+                modes, rows = F.plan(WDATA, "picks", at)
+            finally:
+                F.code_moves = _saved
+                for a, b in reversed(undo):
+                    if a is None:
+                        os.remove(b)
+                    elif isinstance(a, bytes):
+                        open(b, "wb").write(a)
+                    else:
+                        os.rename(a, b)
+            stale = [r for r in rows if r["stale"] and norm(r["path"]) == norm(WPROBE)]
+            return modes, stale
+
+    # ✅ EVERY HOUR OF A WEEK (168), nothing else owed: a probe from before the last 2-hourly
+    #    deadline (an even ET hour) plans the reader; one built after it does not, on ANY day
+    #    (~~Wed-Sat: every pass~~); and the probe is planned, never marked stale.
+    _missed, _extra, _marked, _rows_owed = [], [], [], []
     for _h in range(7 * 24):
-        _t = _week + _h * H
-        _wd = (_t - F.ET_OFFSET).weekday()
-        put(PROBE[1][1], probe(_t - 61 * M))
-        if "cfb-injuries" not in F.plan(DATA, PICKS, _t)[0]:
+        _t = WK + _h * H
+        _due = F.last_due(F.CFB_INJURY_TIMES, _t)
+        _m, _s = w_plan(_t, _due - M)
+        if "cfb-injuries" not in _m:
             _missed.append(_t.strftime("%a %H:%MZ"))
-        put(PROBE[1][1], probe(_t - M))
-        _modes, _rows = F.plan(DATA, PICKS, _t)
-        if _wd in (2, 3, 4, 5) and "cfb-injuries" not in _modes:
-            _wedsat.append(_t.strftime("%a %H:%MZ"))
-        if _wd not in (2, 3, 4, 5) and "cfb-injuries" in _modes:
-            _twice.append(_t.strftime("%a %H:%MZ"))
-        if any(r["stale"] for r in _rows if norm(r["path"]) == norm(PROBE[1][1])):
+        _m, _s = w_plan(_t, _due + M)
+        if "cfb-injuries" in _m:
+            _extra.append(_t.strftime("%a %H:%MZ"))
+        if [x for x in _m if x != "cfb-injuries"]:
+            _rows_owed.append((_t.strftime("%a %H:%MZ"), _m))
+        if _s:
             _marked.append(_t.strftime("%a %H:%MZ"))
-    ck(not _missed, "🔴 at every hour of a week (168), a probe from before the top of the hour plans the reader",
-       "never planned at: %s" % _missed[:6])
-    ck(not _wedsat, "🔴 Wednesday to Saturday ET a probe built a minute ago is planned AGAIN: every college pass "
-       "reads the reports before the card it builds", "not planned at: %s" % _wedsat[:6])
-    ck(not _twice, "   ...Sunday to Tuesday one built since the top of the hour is not run again",
-       "run twice at: %s" % _twice[:6])
+    ck(not _rows_owed, "   (the planted week owes nothing else at any hour, so the two checks below ask the "
+       "reader's own rules)", _rows_owed[:3])
+    ck(not _missed, "🔴 at every hour of a week (168), a probe from before its last 2-hourly deadline plans the "
+       "reader", "never planned at: %s" % _missed[:6])
+    ck(not _extra, "🔴 [Sam, 2026-11-18] ...and one built since that deadline is NOT read again on any day while "
+       "no card is built (~~Wed-Sat: every pass~~)", "read again at: %s" % _extra[:6])
     ck(not _marked, "⛔ ...and planned, never marked stale: a pass that just read the reports never ends "
        "with its row out of contract", "stale at: %s" % _marked[:6])
-    _tue, _wed = datetime.datetime(2026, 10, 14, 3, 59, tzinfo=UTC), datetime.datetime(2026, 10, 14, 4, 1, tzinfo=UTC)
-    eq((F.every_pass(DATA, _tue), F.every_pass(DATA, _wed)), (set(), {"cfb-injuries"}),
-       "   the ET day turns at midnight ET (the contract's fixed offset): Tue 23:59 no, Wed 00:01 yes")
-    # ⚠️ No cron names the mode: the hourly college news cron's converge pass is
-    #    what reaches it, because the two rows share ONE hourly list.
-    ck(PROBE[2] == F.FB_TIMES["ncaaf"]["news"],
-       "   ...on the same hourly list the hourly college news cron answers, so its pass plans the reader",
-       PROBE[2][:3])
+    _hours = sorted({(t[0] + 4) % 24 for t in F.CFB_INJURY_TIMES})
+    eq((len(F.CFB_INJURY_TIMES), F.CFB_INJURY_EVERY_H), (24 // 2, 2),
+       "🔴 [Sam, 2026-11-18] its own row is due every 2 hours (12 deadlines a day, ET %s)"
+       % ", ".join("%d:00" % t[0] for t in F.CFB_INJURY_TIMES))
+    ck(set(map(tuple, F.CFB_INJURY_TIMES)) <= set(map(tuple, F.FB_TIMES["ncaaf"]["news"])),
+       "   ...each one a deadline of the hourly news list the hourly college news cron answers, so a pass "
+       "after it plans the reader (no cron names the mode)", F.CFB_INJURY_TIMES[:3])
+    ck(PROBE[2] == F.CFB_INJURY_TIMES, "   ...and that list is the probe row's own", PROBE[2][:3])
+
+    # 🔴 G6: EIGHT IDLE PASSES ON A WEDNESDAY (15 minutes apart, 12:05-13:50 ET: no card, no
+    #    injury-check slot, no 2-hourly deadline between them), the probe read at 12:01 ET.
+    _wed = datetime.datetime(2026, 10, 14, 16, 1, tzinfo=UTC)          # Wed 12:01 ET
+    _idle = [w_plan(_wed + (4 + 15 * k) * M, _wed)[0] for k in range(8)]
+    eq(sum("cfb-injuries" in m for m in _idle), 0,
+       "🔴 [Sam, 2026-11-18] 8 idle Wednesday passes 15 minutes apart, the reports read at 12:01 ET: the "
+       "reader is planned 0 times (~~8: every college pass Wed-Sat~~)")
+    # ✅ ...and EVERY pass whose plan builds a college card reads them first, any day.
+    _first_bad, _n_card = [], 0
+    for _owed in ("card-fb", "props-player", "injury-check"):
+        for _d in range(7):
+            _day0 = WK + _d * D
+            with inside(WT):
+                _rows0 = F.contract(WDATA, "picks", _day0 + 8 * H)
+            _dues = sorted({F.next_due(r[2], _day0) for r in _rows0 if r[0] == _owed and r[2]
+                            and not F.stored_only({"path": r[1][1], "why": r[4]})} - {None})
+            for _due in [x for x in _dues if x < _day0 + D][:1]:
+                _at = _due + 5 * M
+                _m, _s = w_plan(_at, _at - 10 * M, owed=_owed)      # the reports read 10 minutes ago
+                _n_card += 1
+                _cards = [x for x in _m if x in F.CARD_BUILDERS or x == "injury-check"]
+                if not _cards or "cfb-injuries" not in _m or _m.index("cfb-injuries") > min(_m.index(x) for x in _cards):
+                    _first_bad.append((_owed, _at.strftime("%a %H:%MZ"), _m))
+    ck(_n_card >= 14 and not _first_bad,
+       "🔴 [Sam, 2026-11-18] %d passes, each owing a college card (card-fb, the props pull that builds it, a "
+       "game-day injury check that rebuilds it), on every day of the week: each reads the reports FIRST, "
+       "even when they were read 10 minutes before" % _n_card, _first_bad[:3])
+    eq((F.before_card(DATA, {"card-fb"}), F.before_card(DATA, {"injury-check"}), F.before_card(DATA, {"news"}),
+        F.before_card(DATA.replace("ncaaf", "nfl"), {"card-fb"})),
+       ({"cfb-injuries"}, {"cfb-injuries"}, set(), set()),
+       "   a plan that builds a college card (or an injury check that cascades to one) takes the reader; one "
+       "that does not, or an NFL plan, does not")
 
     put(PROBE[1][1], probe(NOW - 3 * H))
     _prow = [r for r in F.survey(DATA, PICKS, NOW) if r["mode"] == "cfb-injuries" and r["path"] == PROBE[1][1]]
@@ -417,8 +590,12 @@ try:
        "⛔ ...never LATE: the probe was built on time (no `late:` finding, no lateness entry)", _r["late_min"])
     _hard, _soft = F.classify([_r], HD, refused=False, block={"state": None})
     ck(not _hard and len(_soft) == 1, "   ...a warning (soft), never a red run", "hard=%d" % len(_hard))
+    # `[2026-11-20, review]` ~~(Monday: nothing else would)~~: this sparse tree owes a game-day
+    #    injury check, which rebuilds the card, so the reader is planned before it (BEFORE_CARD).
+    #    With nothing else owed, an unhealthy probe waits for its next 2-hourly deadline (§9).
     eq([m for m in F.plan(HD, HP, MON)[0] if m == "cfb-injuries"], ["cfb-injuries"],
-       "🔴 ...and the pass plans the reader again (Monday: nothing else would)")
+       "🔴 ...and the pass plans the reader again (here a card is rebuilt, so it reads first; with nothing "
+       "else owed it is read at its next deadline, §9)")
     _r = judged(probe(MON - M, SEC=MON - (FETCH - 1) * H))
     ck(_r["stale"] is False, "   ...SEC unread for %dh (under %dh): its reports are still shown, so fresh"
        % (FETCH - 1, FETCH), _r["unhealthy"])
@@ -491,15 +668,15 @@ try:
     _hard, _soft = F.classify(_fake, DATA, refused=False, block={"state": None})
     ck(_fake and not _hard and len(_soft) == len(_fake), "🔴 a missing stored file is a warning, never a red run",
        [r["path"][len(P):] for r in _hard])
-    _sv, _sm, _ep = F.survey, F.slate_moves, F.every_pass
+    _sv, _sm, _ep = F.survey, F.slate_moves, F.before_card
     try:
         F.survey = lambda data="data", picks="picks", now=None: _fake
         F.slate_moves = lambda data, picks, now: set()
-        F.every_pass = lambda data="data", now=None: set()
+        F.before_card = lambda data="data", need=(): set()      # `[2026-11-18]` ~~every_pass~~
         eq(F.plan(DATA, PICKS, NOW)[0], [],
            "🔴 ...and never plans a run (no CFBD rebuild, no conference calls, for a file no model reads)")
     finally:
-        F.survey, F.slate_moves, F.every_pass = _sv, _sm, _ep
+        F.survey, F.slate_moves, F.before_card = _sv, _sm, _ep
 
     _old = NOW - 5 * D
     _snap, _w = daystore.archive({"fetched_at": stamp(_old), "reports": []}, DATA, "injury-reports",
@@ -717,13 +894,14 @@ try:
             _t1 = _built[0] if len(_built) == 1 and _built[0] else datetime.datetime.now(UTC)
             _after, _arows = F.plan("data/ncaaf", "picks", _t1)
         _p = [r for r in _arows if r["mode"] == "cfb-injuries" and not F.stored_only(r)]
-        _every = (_t1 - F.ET_OFFSET).weekday() in F.EVERY_PASS["ncaaf"]["cfb-injuries"]
+        # `[2026-11-18]` ~~Wed-Sat's every pass~~: again only when the plan builds a card
+        _every = bool(F.cascaded(set(_after)) & F.CARD_BUILDERS)
         ck("cfb-injuries" in _before and len(_p) == 1, "   %s: planned before the reader ran (no probe yet)"
            % _label, _before)
         if _ok:
             ck(len(_p) == 1 and not _p[0]["stale"] and ("cfb-injuries" in _after) == _every,
                "🔴 %s: satisfied after, its probe is the file its row watches (planned again only by "
-               "Wed-Sat's every pass: %s)" % (_label, _every), _p[0]["unhealthy"] if _p else _p)
+               "a pass that builds a card: %s)" % (_label, _every), _p[0]["unhealthy"] if _p else _p)
         else:
             ck(len(_p) == 1 and _p[0]["stale"] and "cfb-injuries" in _after
                and (_p[0]["unhealthy"] or "").count("has never been read") == len(CI.SOURCES),
@@ -806,6 +984,347 @@ try:
     ck(all(_says.values()) and not _bad,
        "⛔ no college sentence says the conference injury reports are not collected or may not be used",
        shown(str(_bad)))
+    # ══════════════════════════════════════════════════════════════════
+    section("9. 🔴 [Sam, 2026-11-18] A REPORT SHOWN OR READ IS NEVER FROM A READING OVER 6 HOURS OLD")
+    # ══════════════════════════════════════════════════════════════════
+    # *"A report is still under 6 hours old whenever it is shown or read."* A report is shown
+    # (a why) and read (the model) only when a college card is built: card-fb, the props pull
+    # that builds the card, and the game-day injury check that rebuilds it. cfb_injuries.py
+    # refuses a live read whose source was not read within FETCH_MAX_AGE_H, unchanged
+    # (test_cfb_injuries.py pins 36 h and 6 h and bites on them). Here: the SCHEDULE. A whole
+    # week of passes at a relay link's cadence (every 15 minutes, a 65-minute handover after
+    # every hold, the worst simulated), on the planted week of section 1, every mode the plan
+    # names "built" at that pass: the probe, the card, the props pull and the injury check.
+    eq((CI.FETCH_MAX_AGE_H, CI.MAX_AGE_H), (6, 36),
+       "⛔ cfb_injuries' currency rules are the design's, unchanged: published <= 36 h before kickoff, "
+       "our reading <= 6 h old when shown or read")
+    SIM = ("card-fb", "props-player", "injury-check")
+    with inside(WT):
+        _sim_rows = [r for r in F.contract(WDATA, "picks", WK) if r[0] in SIM
+                     and not F.stored_only({"path": r[1][1], "why": r[4]})]
+
+        def built(mode, at):
+            for _m, (_kind, _path), _t, _pd, _w in _sim_rows:
+                if _m != mode:
+                    continue
+                if _kind == "dir":
+                    put(re.sub(r"\d{4}-\d{2}-\d{2}", at.strftime("%Y-%m-%d"), _path, count=1)
+                        + "/" + at.strftime("%H%M") + ".json.gz", {"pulled_at": stamp(at)})
+                else:
+                    put(_path, {"built_at": stamp(at), "written_at": stamp(at), "pulled_at": stamp(at)})
+
+        def week(read_doc):
+            """A week of passes on WT from a clean start; `read_doc(t)` is the probe a read at t
+            writes. -> (passes, reads, cards, not_first, worst_card, worst_any, per_day)."""
+            for _m, (_kind, _path), _t, _pd, _w in _sim_rows:      # the week starts with no SIM row built
+                if _kind == "dir":
+                    for _k in range(-1, 9):
+                        _f = re.sub(r"\d{4}-\d{2}-\d{2}", (WK + _k * D).strftime("%Y-%m-%d"), _path, count=1)
+                        shutil.rmtree(_f, ignore_errors=True)
+                elif os.path.exists(_path):
+                    os.remove(_path)
+            for _m in SIM:
+                built(_m, WK - 2 * H)
+            put(WPROBE, read_doc(WK - 2 * H))
+            _read_at = WK - 2 * H
+            _t, _since_hold = WK, 0
+            _passes = _reads = _cards = _not_first = 0
+            _worst_card, _worst_any, _per_day = 0.0, 0.0, {}
+            _saved_cm = F.code_moves
+            try:
+                F.code_moves = lambda data="data", root=None: set()
+                while _t < WK + 7 * D:
+                    _modes = F.plan(WDATA, "picks", _t)[0]
+                    _passes += 1
+                    _worst_any = max(_worst_any, (_t - _read_at).total_seconds() / 3600.0)
+                    _card = [x for x in _modes if x in SIM]
+                    if "cfb-injuries" in _modes:
+                        _reads += 1
+                        _per_day[(_t - F.ET_OFFSET).date()] = _per_day.get((_t - F.ET_OFFSET).date(), 0) + 1
+                        put(WPROBE, read_doc(_t))
+                        _read_at = _t
+                    if _card:
+                        _cards += 1
+                        if "cfb-injuries" not in _modes or _modes.index("cfb-injuries") > min(_modes.index(x) for x in _card):
+                            _not_first += 1
+                        _worst_card = max(_worst_card, (_t - _read_at).total_seconds() / 3600.0)
+                        for _m in _card:
+                            built(_m, _t)
+                    _since_hold += 15
+                    _gap = 15 + (50 if _since_hold >= 280 else 0)          # a handover gap after each hold
+                    _since_hold = 0 if _since_hold >= 280 else _since_hold
+                    _t += _gap * M
+            finally:
+                F.code_moves = _saved_cm
+            return _passes, _reads, _cards, _not_first, _worst_card, _worst_any, _per_day
+
+        _passes, _reads, _cards, _not_first, _worst_card, _worst_any, _per_day = week(probe)
+
+        # 🔴 `[2026-11-20, review]` AND WHILE A SOURCE OR AN ARCHIVE FAILS. The probe is unhealthy
+        #    (stale) until it recovers, and ~~a stale row is planned on every pass~~: under a relay
+        #    link that was a read on every pass (~96 a day, ~670 calls), against the 2 hours Sam
+        #    approved. ✅ An on-time unhealthy probe waits for its next deadline (HEALTH_AT_DEADLINE),
+        #    and every card still reads first. The SAME week twice more: PAC12 never read again
+        #    after the week starts, and the SEC archive never refreshed (in season: a final game
+        #    the day before the week, so the archives are judged).
+        _sched = "%s/latest/schedule-%d.json.gz" % (WDATA, SEASON)
+        _sched_bytes = open(_sched, "rb").read()
+        _fail = {}
+        try:
+            _fail["PAC12 down"] = week(lambda t: probe(t, PAC12=WK - 2 * H))
+            with gzip.open(_sched, "rt", encoding="utf-8") as _fh:
+                _sd = json.load(_fh)
+            _sd["games"] = [dict(g, final=True) if g.get("id") == "0" else g for g in _sd["games"]]
+            put(_sched, _sd)
+
+            def _stuck(t):
+                return probe(t, archives={str(SEASON): {"SEC": {"ok": True, "checked_at": stamp(WK - 2 * H)},
+                                                        "ACC": {"ok": True, "checked_at": stamp(t)}}})
+            _fail["the SEC archive stuck"] = week(_stuck)
+            # the stuck week's last probe, as the survey and the watchdog read it
+            _wat = WK + 7 * D - 30 * M
+            _sick_row = [r for r in F.survey(WDATA, "picks", _wat) if norm(r["path"]) == norm(WPROBE)]
+            import watchdog as W  # noqa: E402
+            _wroot = W.ROOT
+            try:
+                W.ROOT = "."
+                put("%s/latest/freshness.json" % WDATA, {"artifacts": _sick_row})
+                _wrep = W.Report()
+                W.check_freshness(_wrep, _wat)
+            finally:
+                W.ROOT = _wroot
+                os.remove("%s/latest/freshness.json" % WDATA)
+        finally:
+            open(_sched, "wb").write(_sched_bytes)
+    ck(_cards >= 7 * 4, "   (%d of %d passes in the week built a college card: the props pulls, the cards, the "
+       "game-day checks)" % (_cards, _passes))
+    for _k, _v in sorted(_fail.items()):
+        ck(_v[1] == _reads and _v[3] == 0 and _v[4] == 0.0,
+           "🔴 [2026-11-20, review] the same week with %s: %d reads (%.1f a day), as many as a healthy week's %d, "
+           "every card still reading first in its own pass (~~a stale probe planned on every pass: ~%d a day~~)"
+           % (_k, _v[1], _v[1] / 7.0, _reads, round(_v[0] / 7.0)), (_v[1], _v[3], _v[4]))
+    ck(len(_sick_row) == 1 and _sick_row[0]["stale"]
+       and "SEC archive not refreshed" in (_sick_row[0].get("unhealthy") or "") and not F.owes(_sick_row[0]),
+       "⛔ ...while it waits the probe stays STALE with its reason (a soft warning, freshness.json), only not "
+       "planned on every pass", [(r["stale"], r.get("unhealthy")) for r in _sick_row])
+    _wh = [i for i in _wrep.items if i["key"] == "held:ncaaf"]
+    ck(len(_wh) == 1 and "runs again at its next deadline" in _wh[0]["why"]
+       and "never planned again" not in _wh[0]["why"] and _wh[0]["severity"] == "DEGRADED",
+       "   ...and the watchdog names it (held:ncaaf, DEGRADED), saying when it is read again (never \"never "
+       "planned again\")", [(i["key"], i["why"][:160]) for i in _wrep.items])
+    # ...and point by point: 8 passes 15 minutes apart on a Thursday, PAC12 not read for 7 hours, the
+    #    reports otherwise read at 12:01 ET; then the first pass after the 14:00 ET deadline.
+    _thu = datetime.datetime(2026, 10, 15, 16, 1, tzinfo=UTC)          # Thu 12:01 ET
+    _pac = probe(_thu, PAC12=_thu - 7 * H)
+    _idle = [w_plan(_thu + (4 + 15 * k) * M, _thu, pdoc=_pac)[0] for k in range(8)]
+    eq(sum("cfb-injuries" in m for m in _idle), 0,
+       "🔴 [2026-11-20, review] PAC12 unread for 7 hours (stale), 8 idle passes 15 minutes apart: the reader is "
+       "planned 0 times (~~8: every pass until PAC12 answers~~)")
+    _next = w_plan(_thu + 2 * H + 4 * M, _thu, pdoc=_pac)[0]
+    ck("cfb-injuries" in _next, "   ...and at its next 2-hourly deadline (14:00 ET) it is read again", _next)
+    eq(_not_first, 0, "🔴 every pass that built a college card read the reports FIRST, in that pass (%d)" % _cards)
+    ck(_worst_card == 0.0, "🔴 ...so what a card shows or its model reads is from a reading made in its own pass, "
+       "never one older than that pass (FETCH_MAX_AGE_H %d h)" % CI.FETCH_MAX_AGE_H, _worst_card)
+    _bound = F.CFB_INJURY_EVERY_H + (15 + 50) / 60.0
+    ck(_worst_any <= _bound < CI.FETCH_MAX_AGE_H,
+       "🔴 ...and between cards the newest reading is never more than CFB_INJURY_EVERY_H (%d) h plus one handover "
+       "old (worst %.2f h, bound %.2f h), under the %d-hour rule, so a read that fails in a card's pass falls "
+       "back on a reading the rule still accepts" % (F.CFB_INJURY_EVERY_H, _worst_any, _bound, CI.FETCH_MAX_AGE_H))
+    _rate = _reads / 7.0
+    # `[2026-11-20, review]` ~~_rate <= 24~~ (an hourly rate): the bound is Sam's own rule, derived:
+    #    one read at each 2-hourly deadline plus one per pass that built a card.
+    ck(_reads <= 7 * len(F.CFB_INJURY_TIMES) + _cards,
+       "🔴 [Sam, 2026-11-18] the week's reads: %.1f a day (%s), %.0f calls a day at %d sources a "
+       "read, at most one per 2-hourly deadline (%d a day) plus one per card-building pass (~~every college "
+       "pass Wed-Sat: %d passes a day here~~)" % (
+           _rate, ", ".join("%s %d" % (d.strftime("%a"), n) for d, n in sorted(_per_day.items())),
+           _rate * len(CI.SOURCES), len(CI.SOURCES), len(F.CFB_INJURY_TIMES), round(_passes / 7.0)),
+       (_reads, 7 * len(F.CFB_INJURY_TIMES), _cards))
+    note("SIMULATED NEW RATE, a link at 15-minute passes: %.1f reads a day (%.0f source calls a day, plus the "
+         "current season's archives once a day); every-pass Wed-Sat would have read on all ~%d passes a day."
+         % (_rate, _rate * len(CI.SOURCES), round(_passes / 7.0)))
+
+    # ⛔ `[Sam, 2026-11-18]` THE READER'S 2-HOURLY ROW IS UNTIMED. ~~Hourly, it was never built
+    #    more than GRACE_MIN late~~; 2-hourly, a pass gap over an hour after an even ET hour would
+    #    be a `late:` finding with nothing to repair. Its currency is cfb_injuries' own 6-hour rule.
+    #    The real record_builds, twice (a first sighting is not a measurement), a probe read 100
+    #    minutes after its deadline and a news file built as late beside it.
+    _due = datetime.datetime(2026, 10, 14, 16, 0, tzinfo=UTC)                 # Wed 12:00 ET
+    _lf = os.path.join(WT, "lateness-untimed.json")
+    for _k, _late in ((0, 1), (1, 100)):
+        _at = _due + _k * 2 * H + _late * M
+        _rows = [{"mode": "cfb-injuries", "path": WPROBE, "due_at": (_due + _k * 2 * H).strftime("%Y-%m-%dT%H:%MZ"),
+                  "stale": False, "age_min": 0.0},
+                 {"mode": "news", "path": "data/ncaaf/latest/news.json",
+                  "due_at": (_due + _k * 2 * H).strftime("%Y-%m-%dT%H:%MZ"), "stale": False, "age_min": 0.0}]
+        _lr = F.record_builds(_rows, _lf, _at)
+    _modes_rec = sorted({a["mode"] for a in _lr["artifacts"].values()})
+    ck(_modes_rec == ["news"] and [x["mode"] for x in _lr["late"]] == ["news"],
+       "⛔ a college injury read 100 minutes after its 2-hourly deadline leaves no lateness entry (so no "
+       "`late:` finding), while a timed row read as late beside it is recorded", (_modes_rec, _lr["late"]))
+
+    # ══════════════════════════════════════════════════════════════════
+    section("10. 🔴 [2026-11-20, review] THE REAL CONVERGE READS THEM BEFORE EVERY COLLEGE CARD IT BUILDS")
+    # ══════════════════════════════════════════════════════════════════
+    # Sections 1 and 9 ask plan(). converge builds a college card two more ways, and the first
+    # build of Sam's 11-18 rule read nothing before either: a cron that NAMES the card (its modes
+    # are added after plan(); with the card inside contract plan() owed no card: "PLAN: card-fb",
+    # built from the last 2-hourly reading), and a catch-up round (the 9:00 or 9:30 ET card falls
+    # due while a pass runs). ✅ THE CLASS, DERIVED: every college route in the workflow
+    # (wfroutes, the staged copy Sam will upload) whose modes build a card (CARD_BUILDERS, after
+    # CASCADE), on time and 3 hours late, in a planted tree where NOTHING is owed (every row built
+    # a minute after its deadline in force, the reports read a minute after their last 2-hourly
+    # deadline, an FBS game 30 hours ahead); then two catch-ups. The REAL collect.converge, every
+    # mode recorded and not run, its clock pinned and moved only by the stub, no network.
+    import wfparse  # noqa: E402
+    import wfroutes  # noqa: E402
+    _WF = open(wfparse.effective_workflows(ROOT)["collect.yml"], encoding="utf-8").read()
+    ck(C._fresh is F, "   (the harness: collect's freshness is this file's, so the pinned clock reaches it)")
+
+    def ctree(at, probe_at):
+        """A college tree at `at` where nothing is owed, the probe healthy and built at `probe_at`."""
+        d = tree()
+        with inside(d):
+            season = F.current_football_season(at)
+            sched = "data/ncaaf/latest/schedule-%d.json.gz" % season
+            games = [dict(game(at + 30 * H), id="0")]
+            put(sched, {"season": season, "games": games, "pulled_at": stamp(at - M)})
+            put("data/ncaaf/latest/props.json.gz", {"built_at": stamp(at - M)})
+            for _m, (_kind, _path), _times, _paid, _why in F.contract("data/ncaaf", "picks", at):
+                _due = F.last_due(_times, at)
+                _b = min(_due + M, at) if _due else at - M
+                doc = {"built_at": stamp(_b), "written_at": stamp(_b), "pulled_at": stamp(_b)}
+                if norm(_path) == norm(sched):
+                    doc.update(season=season, games=games)
+                elif re.search(r"/history/schedule-\d{4}\.json\.gz$", _path):
+                    doc["games"] = [{"id": 1}]
+                elif re.search(r"/history/lines-\d{4}\.json\.gz$", _path):
+                    doc["games"] = {"1": {"spread": -3.5}}
+                if _kind == "dir":
+                    _full = os.path.join(re.sub(r"\d{4}-\d{2}-\d{2}", _b.strftime("%Y-%m-%d"), _path, count=1),
+                                         _b.strftime("%H%M") + ".json.gz")
+                    if _paid:
+                        doc.update(credits_used=12, credits_remaining=19000)
+                else:
+                    _full = _path
+                put(_full, doc)
+            put(CI.probe_path(season, "."), probe(probe_at, season=season))
+        return d
+
+    def drive(d, at, explicit, cron=None, step=0):
+        """The REAL collect.converge in `d` at `at`, `explicit` named as its cron (`cron`, an event
+        file; never held) names them; each mode recorded and not run, the pinned clock moved `step`
+        minutes by each. -> ([(mode, minute)], the log, plan() alone at `at`)."""
+        clk, ran = [at], []
+        keys = ("GITHUB_EVENT_NAME", "GITHUB_EVENT_PATH", "RELAY_HELD", "RELAY_LINK")
+        env0 = {k: os.environ.get(k) for k in keys}
+        saved = (C.run_mode, C.now, C.daily_spend, C.odds_get, C.get)
+        fsaved = (F.plan, F.survey, F.record_builds, F.code_moves)
+
+        def pin(fn):
+            def call(*a, **k):
+                if len(a) < 3 and k.get("now") is None:
+                    k["now"] = clk[0]
+                return fn(*a, **k)
+            return call
+
+        def run_mode(m):
+            ran.append((m, clk[0]))
+            clk[0] = clk[0] + step * M
+
+        def no_net(*a, **k):
+            raise AssertionError("a test reached the network: %r" % (a[:1],))
+        try:
+            for k in keys:
+                os.environ.pop(k, None)
+            if cron:
+                ev = os.path.join(d, "event.json")
+                with open(ev, "w", encoding="utf-8") as fh:
+                    json.dump({"schedule": cron}, fh)
+                os.environ.update(GITHUB_EVENT_NAME="schedule", GITHUB_EVENT_PATH=ev)
+            C.run_mode, C.now, C.daily_spend = run_mode, (lambda: clk[0]), (lambda *a, **k: 0)
+            C.odds_get, C.get = no_net, no_net
+            F.code_moves = lambda data="data", root=None: set()
+            F.plan, F.survey, F.record_builds = pin(fsaved[0]), pin(fsaved[1]), pin(fsaved[2])
+            out = io.StringIO()
+            with inside(d):
+                alone = F.plan("data/ncaaf", "picks", at)[0]
+                with contextlib.redirect_stdout(out):
+                    C.converge(explicit=list(explicit))
+            return ran, out.getvalue(), alone
+        finally:
+            C.run_mode, C.now, C.daily_spend, C.odds_get, C.get = saved
+            F.plan, F.survey, F.record_builds, F.code_moves = fsaved
+            C._RAN_PAID.clear()
+            for k in keys:
+                os.environ.pop(k, None)
+                if env0[k] is not None:
+                    os.environ[k] = env0[k]
+
+    ROUTES = [(c, m.split()) for c, lg, m in wfroutes.parse_routes(_WF)
+              if lg == "ncaaf" and F.cascaded(set(m.split())) & F.CARD_BUILDERS]
+    _named = sorted({c for c, ms in ROUTES if "card-fb" in ms})
+    ck(len(ROUTES) >= 8 and len(_named) >= 6,
+       "⚠️ the college routes whose modes build a card were DERIVED from the workflow (rule 67: never an "
+       "empty class): %d, %d naming card-fb" % (len(ROUTES), len(_named)), sorted(c for c, _m in ROUTES))
+    _DAY_END = datetime.datetime(2026, 10, 15, 23, 59, tzinfo=UTC)          # ⚠️ a pinned in-season Thursday
+    _bad10, _built10, _alone10, _n10 = [], 0, [], 0
+    for _cron, _ms in ROUTES:
+        _fire = F.cron_last_fire(_cron, _DAY_END)
+        for _late in (2, 180):
+            _at = _fire + _late * M
+            _d = ctree(_at, min(F.last_due(F.CFB_INJURY_TIMES, _at) + M, _at))
+            try:
+                _ran, _out, _alone = drive(_d, _at, _ms, cron=_cron)
+            finally:
+                shutil.rmtree(_d, ignore_errors=True)
+            _got = [m for m, _t in _ran]
+            _cards = [i for i, m in enumerate(_got) if m in F.CARD_BUILDERS]
+            _n10 += 1
+            if _alone:
+                _alone10.append((_cron, _late, _alone))
+            if _cards:
+                _built10 += 1
+                if "cfb-injuries" not in _got or _got.index("cfb-injuries") > _cards[0]:
+                    _bad10.append((_cron, _late, _got, [l for l in _out.splitlines() if "PLAN:" in l][:1]))
+    ck(not _alone10, "   (nothing is owed in any of the %d trees: plan() alone runs nothing, so a card here is built "
+       "only because the cron names it)" % _n10, _alone10[:3])
+    ck(_built10 >= 2 * len(_named) and not _bad10,
+       "🔴 [Sam, 2026-11-18] every college cron that builds a card (%d routes, on time and 3 hours late, %d "
+       "passes that built one) reads the injury reports FIRST, though plan() owed neither the card nor the "
+       "reader (~~\"PLAN: card-fb\"~~)" % (len(ROUTES), _built10), shown(str(_bad10[:2])))
+
+    # A CATCH-UP: Thursday 8:58 ET, the hourly college cron naming `news`, each mode taking 7
+    #    minutes, so the card's 9:00 ET deadline passes inside the pass. The reports were read at
+    #    8:01 ET, inside their 2-hourly row, so the pass planned no reader.
+    _c0 = datetime.datetime(2026, 10, 15, 12, 58, tzinfo=UTC)
+    _d = ctree(_c0, _c0 - 57 * M)
+    try:
+        _ran, _out, _alone = drive(_d, _c0, ["news"], cron="20 * * * *", step=7)
+    finally:
+        shutil.rmtree(_d, ignore_errors=True)
+    _got = [m for m, _t in _ran]
+    _cu = [l for l in _out.splitlines() if "CATCH-UP:" in l]
+    ck(_alone == [] and _got[:1] == ["news"] and "card-fb" in _got and _got.count("cfb-injuries") == 1
+       and _got.index("cfb-injuries") < _got.index("card-fb")
+       and _cu and "cfb-injuries" in _cu[0].split("CATCH-UP:")[1].split()[:3],
+       "🔴 a catch-up round that builds the card (its 9:00 ET deadline passed inside the pass, at %s) reads the "
+       "reports first, in that round, once (~~the card built from the 8:01 ET reading~~)"
+       % ", ".join("%s %s" % (m, t.strftime("%H:%MZ")) for m, t in _ran), shown(_cu[:1]))
+    # ...and a pass that already read them at its start does not read them twice.
+    _c1 = datetime.datetime(2026, 10, 15, 12, 50, tzinfo=UTC)
+    _d = ctree(_c1, _c1 - 55 * M)                     # read 7:55 ET: its 8:00 ET deadline owes a read
+    try:
+        _ran, _out, _alone = drive(_d, _c1, ["news"], cron="20 * * * *", step=7)
+    finally:
+        shutil.rmtree(_d, ignore_errors=True)
+    _got = [m for m, _t in _ran]
+    ck(_alone == ["cfb-injuries"] and "card-fb" in _got and _got.count("cfb-injuries") == 1
+       and _got.index("cfb-injuries") < _got.index("card-fb"),
+       "⛔ ...and a pass that read them at its start (its 2-hourly deadline owed it) builds the catch-up card on "
+       "that reading: one read in the pass, never two (%s)"
+       % ", ".join("%s %s" % (m, t.strftime("%H:%MZ")) for m, t in _ran), _got)
+
 finally:
     CI.run, CI._post, CI._get = _REAL_RUN, _REAL_POST, _REAL_GET
     F.HEALTH = _REAL_HEALTH

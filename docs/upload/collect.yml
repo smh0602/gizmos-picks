@@ -11,6 +11,9 @@ name: collect
 # 🔴 `[2026-10-06]` A RELAY LINK AND A HAND-DISPATCH NAME THEIR LEAGUE, so the
 # relay (relay.py) can tell whether another run for its league is queued or
 # running: `collect [relay mlb]`, `collect [workflow_dispatch nfl]`.
+# `[Sam, 2026-11-18]` and the football chain's link: `collect [relay ncaaf nfl]`
+# (relay.FOOTBALL, one canonical string, so its concurrency group is
+# `collect-ncaaf nfl`, its own: no cron and no hand run shares it).
 run-name: ${{ github.event.inputs.relay == 'true' && format('collect [relay {0}]', github.event.inputs.league) || github.event.schedule && format('collect [cron {0}]', github.event.schedule) || github.event.inputs.league && format('collect [{0} {1}]', github.event_name, github.event.inputs.league) || format('collect [{0}]', github.event_name) }}
 
 # Times are UTC. The MLB slate runs roughly 16:00Z (noon ET) to 05:00Z.
@@ -446,6 +449,17 @@ jobs:
       issues: write
 
     steps:
+      # 🔴 `[Sam, 2026-11-18]` THE JOB CLOCK, BEFORE ANYTHING ELSE. A football relay
+      #    link holds relay.FB_HOLD_MIN minutes counted from HERE (`hold_from=job`),
+      #    never from the end of Tests: Tests grew from ~7 to 31 minutes, and a hold
+      #    counted after them needs a Tests allowance that goes stale. Counted from
+      #    the job's start, slower Tests only shorten the hold; they can never push a
+      #    link into the 350-minute kill (test_relay.py §8d). ⚠️ MLB's hold still
+      #    counts from the Converge step, exactly as before.
+      - name: Start the job clock
+        id: clock
+        run: echo "t0=$(date +%s)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
@@ -780,10 +794,19 @@ jobs:
           echo "league=${LEAGUE:-mlb}" >> "$GITHUB_OUTPUT"
           # 🔴 `[Sam, 2026-10-06]` WHO HANDS OVER AT THE END (relay.py): an MLB
           # run that holds (scheduled), a push (it cancelled the holder), and
-          # a relay link. ⛔ Never football, never a plain hand-dispatch.
+          # a relay link. ⛔ ~~Never football,~~ never a plain hand-dispatch.
+          # 🔴 `[Sam, 2026-11-18]` AND EVERY SCHEDULED FOOTBALL RUN AND FOOTBALL LINK,
+          #    on ONE chain for both leagues (`relay_league`, relay.FOOTBALL, whatever
+          #    order the arm names them): a football cron that ends with no link alive
+          #    starts one. ⚠️ MLB's outputs are unchanged, plus `relay_league=mlb`.
           if [ "${LEAGUE:-mlb}" = "mlb" ] && { [ "$RELAY" = "true" ] \
                || [ "${{ github.event_name }}" != "workflow_dispatch" ]; }; then
             echo "relay=yes" >> "$GITHUB_OUTPUT"
+            echo "relay_league=mlb" >> "$GITHUB_OUTPUT"
+          elif case " $LEAGUE " in *" nfl "*|*" ncaaf "*) true ;; *) false ;; esac \
+               && { [ "${{ github.event_name }}" = "schedule" ] || [ "$RELAY" = "true" ]; }; then
+            echo "relay=yes" >> "$GITHUB_OUTPUT"
+            echo "relay_league=ncaaf nfl" >> "$GITHUB_OUTPUT"
           else
             echo "relay=no" >> "$GITHUB_OUTPUT"
           fi
@@ -799,8 +822,11 @@ jobs:
             # reporting it 6.5 hours late. A contract nothing acts on is
             # a comment.
             # ⚠️ STILL NOT A HEARTBEAT: `loop_minutes=0`, so the job runs
-            # ONE pass and exits. Holding a football job open for five
-            # hours would let `cancel-in-progress` kill the MLB loop.
+            # ONE pass and exits. ~~Holding a football job open for five
+            # hours would let `cancel-in-progress` kill the MLB loop.~~
+            # `[2026-11-18]` struck: false since 2026-09-04, when every football
+            # cron got a concurrency group of its own. The football hold is the
+            # RELAY LINK's (below), in its own group `collect-ncaaf nfl`.
             # ✅ NO `converge` WORD IS APPENDED, because it would be a
             # second converge: `collect.py` already routes every explicit
             # mode through `converge(explicit=...)`, which runs the mode
@@ -812,7 +838,16 @@ jobs:
             # RUN, and it is ALWAYS `converge`: it buys only what the
             # contract says is due, under the same daily guard.
             echo "mode=converge" >> "$GITHUB_OUTPUT"      # a relay link: converge only
-            echo "loop_minutes=320" >> "$GITHUB_OUTPUT"
+            if [ "${LEAGUE:-mlb}" = "mlb" ]; then
+              echo "loop_minutes=320" >> "$GITHUB_OUTPUT"
+            else
+              # 🔴 `[Sam, 2026-11-18]` A FOOTBALL LINK converges BOTH leagues every
+              #    pass and holds relay.FB_HOLD_MIN minutes from the JOB CLOCK (the
+              #    first step), so slower Tests shorten its hold and never reach the
+              #    350-minute kill (test_relay.py §8a pins 280 to relay.FB_HOLD_MIN).
+              echo "loop_minutes=280" >> "$GITHUB_OUTPUT"
+              echo "hold_from=job" >> "$GITHUB_OUTPUT"
+            fi
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ github.event.inputs.mode || 'converge' }}" >> "$GITHUB_OUTPUT"
             # A hand-dispatched job is a one-shot: no heartbeat loop, so
@@ -830,6 +865,44 @@ jobs:
               echo "loop_minutes=320" >> "$GITHUB_OUTPUT"
             fi
           fi
+
+      # ══════════════════════════════════════════════════════════════
+      # 🔴 `[Sam, 2026-11-18]` IS A FOOTBALL RELAY LINK ALIVE? A HELD CRON STANDS BACK.
+      # ══════════════════════════════════════════════════════════════
+      # GitHub starts scheduled runs 6-10 hours late, so a late football cron and
+      # the link would build, and BUY, the same deadline. ✅ A SCHEDULED football
+      # run is HELD while a link other than itself is listed live AND every league
+      # it routes has a beat (data/<lg>/latest/relay-beat.json, written at the
+      # start of each link pass) under relay.HELD_BEAT_MIN minutes old, read after
+      # a pull (`relay.py held`). A held run builds nothing the contract owes, writes
+      # neither freshness.json nor lateness.json, and leaves its league's gate to the
+      # link, which runs the same gate on every pass (`freshness.relay_holds`); it
+      # still runs the extras no deadline covers (the live and halftime probes, the
+      # game-day score refreshes, the Sunday rebuild: `freshness.extras`).
+      # ⛔ A hand run, a push and a link are never held. A run list that cannot be
+      #    read, or a beat over relay.HELD_BEAT_MIN minutes old (a hung link), is NOT
+      #    held: it converges as before. `continue-on-error`: this step can only ever
+      #    hold a run back.
+      - name: Is a football relay link alive?
+        id: held
+        if: ${{ github.event_name == 'schedule' && steps.mode.outputs.relay_league == 'ncaaf nfl' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LEAGUES: ${{ steps.mode.outputs.league }}
+        run: |
+          set +e
+          git pull -q --ff-only 2>/dev/null || true
+          RUNS=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/held.XXXXXX")
+          HELD=no
+          if gh run list --workflow collect.yml --limit 200 \
+               --json databaseId,status,displayTitle,createdAt > "$RUNS"; then
+            python relay.py held "$RUNS" --leagues "$LEAGUES" --run-id "${GITHUB_RUN_ID:-0}" && HELD=yes
+          else
+            echo "::warning::relay: the run list could not be read — not held; this run converges as before"
+          fi
+          rm -f "$RUNS"
+          echo "held=$HELD" >> "$GITHUB_OUTPUT"
 
       # 🔴 THE MODE IS A LIST AND A FAILURE IS DEFERRED, NOT FATAL HERE.
       # A block runs several pulls. If the third one dies, the two that
@@ -889,12 +962,25 @@ jobs:
           SEASON: ${{ steps.mode.outputs.season }}
           MODES: ${{ steps.mode.outputs.mode }}
           LOOP_MINUTES: ${{ steps.mode.outputs.loop_minutes }}
+          # 🔴 `[Sam, 2026-11-18]` THE FOOTBALL RELAY. `JOB_T0`/`HOLD_FROM`: a football
+          #    link's hold counts from the job clock. `RELAY_HELD`: this scheduled
+          #    football run is held (collect.py builds only its extras, and the gate
+          #    below is the link's). `RELAY_LINK`: this run IS a link, so each football
+          #    pass writes its beat (data/<lg>/latest/relay-beat.json).
+          JOB_T0: ${{ steps.clock.outputs.t0 }}
+          HOLD_FROM: ${{ steps.mode.outputs.hold_from }}
+          RELAY_HELD: ${{ steps.held.outputs.held }}
+          RELAY_LINK: ${{ github.event.inputs.relay == 'true' && 'yes' || '' }}
         run: |
           set -o pipefail
           git config user.name  "gizmos-collector"
           git config user.email "collector@users.noreply.github.com"
 
-          DEADLINE=$(( $(date +%s) + LOOP_MINUTES * 60 ))
+          # ⚠️ `[2026-11-18]` A FOOTBALL LINK (`hold_from=job`) counts its hold from the
+          #    job clock; every other run from here, exactly as before.
+          START=$(date +%s)
+          if [ "$HOLD_FROM" = "job" ] && [ -n "$JOB_T0" ]; then START=$JOB_T0; fi
+          DEADLINE=$(( START + LOOP_MINUTES * 60 ))
           PASS=0
           rc=0
 
@@ -1146,6 +1232,16 @@ jobs:
             # would leave the other ungated — and an unchecked league is
             # exactly the state this gate exists to end.
             for LG in $LEAGUES; do
+              # 🔴 `[Sam, 2026-11-18]` A HELD RUN LEAVES ITS LEAGUE'S GATE TO THE LINK.
+              #    It built nothing the contract owes, on purpose; the link runs this
+              #    same gate, unchanged, on every pass. `RELAY_HELD` is written only by
+              #    the held step (a scheduled football run), and collect.py held the
+              #    pass on the same two facts (`freshness.relay_holds`).
+              #    ⛔ Not held (no link, an old beat, a hand run): gated exactly as before.
+              if [ "$RELAY_HELD" = "yes" ] && [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+                echo "HELD: a football relay link converges $LG and verifies it on its own pass"
+                continue
+              fi
               LEAGUE="$LG" python verify_freshness.py \
                 || { rc=1; echo "::error::$LG is out of contract"; }
             done
@@ -1526,12 +1622,21 @@ jobs:
       # cancelled run hands over nothing (the run that cancelled it carries
       # on); a failed run still hands over, and keeps its red result
       # because a relay link waits for it (`cancel-in-progress` above).
+      # 🔴 `[Sam, 2026-11-18]` AND THE FOOTBALL CHAIN, THROUGH THIS SAME STEP: a
+      # football link at the end of its hold, and every scheduled football run
+      # (so one that ends with no link alive starts the chain), dispatch ONE
+      # `collect [relay ncaaf nfl]`. ⛔ None while another football LINK is queued
+      # or running (a live cron never counts), past relay.FB_DAY_CAP links a day,
+      # on a re-run, or when no game in either league kicks off within 3 days back
+      # / 8 ahead (the off-season): the chain ends and the crons restart it.
+      # ⚠️ The league is the chain's own (`relay_league`), never a literal.
       # ══════════════════════════════════════════════════════════════
-      - name: Relay — hand the hold to the next MLB run
+      - name: Relay — hand the hold to the next run of its chain
         if: ${{ !cancelled() && steps.mode.outputs.relay == 'yes' }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELAY_LEAGUE: ${{ steps.mode.outputs.relay_league }}
         run: |
           set +e
           RUNS=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/relay.XXXXXX")
@@ -1540,9 +1645,10 @@ jobs:
             echo "::warning::relay: the run list could not be read — no successor; the crons restart the chain"
             exit 0
           fi
-          if python relay.py "$RUNS" --league mlb --run-id "${GITHUB_RUN_ID:-0}" \
+          RELAY_LEAGUE="${RELAY_LEAGUE:-mlb}"
+          if python relay.py "$RUNS" --league "$RELAY_LEAGUE" --run-id "${GITHUB_RUN_ID:-0}" \
                --attempt "${GITHUB_RUN_ATTEMPT:-1}"; then
             gh workflow run collect.yml --ref main \
-              -f league=mlb -f mode=converge -f season= -f relay=true \
+              -f league="$RELAY_LEAGUE" -f mode=converge -f season= -f relay=true \
               || echo "::warning::relay: the dispatch was refused — the crons restart the chain"
           fi

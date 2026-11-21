@@ -944,6 +944,21 @@ FB_TIMES = {
 }
 
 
+# 🔴 `[Sam, 2026-11-18]` THE COLLEGE INJURY READER'S OWN ROW: EVERY 2 HOURS, NOT HOURLY.
+#    Asked how often the conference reports should be read once a relay link passes every
+#    15-35 minutes, Sam chose "Yes, injuries every 2 h (Recommended)": *"Injury reports read
+#    before every college card and every 2 hours otherwise: about 120 reads a day, below
+#    today's ~152. A report is still under 6 hours old whenever it is shown or read."*
+#    ✅ DERIVED, never typed: the hourly news deadlines whose ET hour is a multiple of
+#    CFB_INJURY_EVERY_H, so every one is a deadline the hourly college news cron already
+#    answers (test_fb_freshness §4) and a pass after it plans the reader. Before every
+#    college card it is planned too (BEFORE_CARD). ⛔ cfb_injuries.py's currency rules are
+#    unchanged (published at most MAX_AGE_H = 36 hours before kickoff, our reading at most
+#    FETCH_MAX_AGE_H = 6 hours old when shown or read): test_cfb_injuries_wiring.py §9.
+CFB_INJURY_EVERY_H = 2
+CFB_INJURY_TIMES = [t for t in FB_TIMES["ncaaf"]["news"] if t[0] % CFB_INJURY_EVERY_H == 0]
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE PAID PROPS WINDOW LIVES HERE, NOT IN `collect.py`, BECAUSE THE
 # CONTRACT AND THE COLLECTOR MUST AGREE ABOUT IT.
@@ -1445,15 +1460,18 @@ def _football_contract(league, data, picks, now):
     #    a conference archive no longer refreshed in season, makes the row
     #    stale with its reason, so it is planned again and reaches Sam as a
     #    soft warning, freshness.json and the watchdog's `fresh:` finding.
-    #    ⚠️ ITS DEADLINES ARE HOURLY, EVERY DAY: `T["news"]`, the list the hourly
-    #    college cron already answers (test_fb_freshness §4 holds every
-    #    FB_TIMES list to a cron). An hourly deadline is never built more than
-    #    GRACE_MIN late, so a delayed cron leaves no `late:` finding.
-    #    🔴 AND WED-SAT ET IT IS PLANNED ON EVERY COLLEGE PASS (`EVERY_PASS`),
-    #    fresh or not: a report posted at 17:20Z must not wait for the next
-    #    hour's pass while a card is built in this one. ⛔ Planned, never marked
-    #    stale: a five-minute deadline would read stale at the end of any pass
-    #    that ran longer than five minutes.
+    #    ⚠️ ~~ITS DEADLINES ARE HOURLY, EVERY DAY: `T["news"]`~~ `[Sam, 2026-11-18]`
+    #    EVERY 2 HOURS (CFB_INJURY_TIMES: the hourly news deadlines on even ET hours,
+    #    so the hourly college cron still answers every one). ~~An hourly deadline is
+    #    never built more than GRACE_MIN late, so a delayed cron leaves no `late:`
+    #    finding.~~ A 2-hourly one could be, so the row is UNTIMED: its currency is
+    #    cfb_injuries' own 6-hour rule, asked at every read.
+    #    🔴 ~~AND WED-SAT ET IT IS PLANNED ON EVERY COLLEGE PASS (`EVERY_PASS`)~~
+    #    `[Sam, 2026-11-18]` AND IT IS PLANNED IN EVERY PASS THAT BUILDS A COLLEGE CARD
+    #    (`BEFORE_CARD`, any day), fresh or not: a report posted at 17:20Z must not
+    #    wait for the next deadline while a card is built in this pass. ⛔ Planned,
+    #    never marked stale: a five-minute deadline would read stale at the end of
+    #    any pass that ran longer than five minutes.
     #    ⛔ FIRST OF ALL THE ROWS (~~before the card rows~~): plan() runs modes in contract
     #    order, and the card is built by `props-player` as well as `card-fb`, so a card built
     #    in the same pass reads this pass's reports. `[2026-10-17, review]` placed before the
@@ -1469,7 +1487,7 @@ def _football_contract(league, data, picks, now):
              "Game-day injury check — 9am, 12pm, 7pm ET, then the card is rebuilt")] + rows
     if league == "ncaaf":          # college only: the NFL's injuries ride nfl-logs
         rows.insert(0,
-            ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
+            ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), CFB_INJURY_TIMES, False,
              "College injury reports — the reader's probe, written on every attempt"))
     rows += [
         # ⛔ ONE ROW FOR THE CARD FILE. Picks, Parlays and Track Record all
@@ -2045,6 +2063,13 @@ SOFT |= {"injury-check"}
 #    recorded, it would be a `late:` finding (DEGRADED) on most game-day evenings with nothing
 #    to repair. The probe keeps each check's own `late_min` instead.
 UNTIMED = {"injury-check"}
+# `[Sam, 2026-11-18]` AND THE COLLEGE INJURY READER, now that its row is every 2 hours
+#    (CFB_INJURY_TIMES). ~~Hourly, it was never built more than GRACE_MIN late~~, so it
+#    never made a `late:` finding; 2-hourly, a pass gap over an hour after an even ET
+#    hour would, with nothing to repair. Its currency is cfb_injuries' own rule, asked at
+#    every read (a report shown or read is from a reading at most 6 hours old), and the
+#    reader is planned before every college card.
+UNTIMED |= {"cfb-injuries"}
 # 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
 #    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
@@ -2516,6 +2541,14 @@ def fired_cron(env=None):
     return cron if isinstance(cron, str) and len(cron.split()) == 5 else None
 
 
+def cron_fires_for(due_at, since):
+    """Does a cron that last fired at `since` fire FOR the deadline `due_at`
+    ('YYYY-MM-DDTHH:MMZ'): at or after it, by at most SERVES_MIN? ⛔ ONE copy:
+    `stand_down` and `extras` both ask it (rule 117)."""
+    due = datetime.datetime.strptime(due_at, "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
+    return due <= since and since - due <= datetime.timedelta(minutes=SERVES_MIN)
+
+
 def stand_down(rows, mode, now, env=None):
     """-> the minute of the cron that named `mode` when that cron's work is
     already done (see STAND_DOWN), else None: run it. Asked of a free metered
@@ -2538,11 +2571,181 @@ def stand_down(rows, mode, now, env=None):
             return False
         built = now - datetime.timedelta(minutes=r["age_min"])
         due = datetime.datetime.strptime(r["due_at"], "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
-        fires_for = due <= since and since - due <= datetime.timedelta(minutes=SERVES_MIN)
+        fires_for = cron_fires_for(r["due_at"], since)
         return built >= (due if fires_for else since)
     if not dated or not all(served(r) for r in dated):
         return None
     return since
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 `[Sam, 2026-11-18]` A SCHEDULED FOOTBALL RUN IS HELD WHILE A RELAY LINK BEATS.
+# ══════════════════════════════════════════════════════════════════════
+# The football relay (relay.py) keeps a run alive at every football deadline, and
+# GitHub starts the football crons 6-10 hours late: left alone, a late cron and the
+# link would build, and BUY, the same deadline. ✅ The workflow's held step asks
+# `relay.py held` (a live football link other than this run is listed, and every
+# league this run routes has a beat under relay.HELD_BEAT_MIN minutes old) and sets
+# RELAY_HELD=yes. A HELD run (`relay_holds`): RELAY_HELD is yes, a cron started the
+# run (`fired_cron`, so a hand run, a push and a link are never held), and the league
+# is football. It builds nothing the contract owes and writes neither freshness.json
+# nor lateness.json; only its EXTRAS run (`extras`). The gate for its league is the
+# link's, which runs it on every pass.
+def relay_holds(env=None):
+    """Is this converge pass HELD by a live, beating football relay link? (R4)"""
+    env = os.environ if env is None else env
+    lg = str(env.get("LEAGUE") or "").strip().lower()
+    return env.get("RELAY_HELD") == "yes" and lg in FB_TIMES and fired_cron(env) is not None
+
+
+def relay_link(env=None):
+    """Is this run a football relay link, which writes the league's beat each pass? (R5)"""
+    env = os.environ if env is None else env
+    return env.get("RELAY_LINK") == "yes" and str(env.get("LEAGUE") or "").strip().lower() in FB_TIMES
+
+
+def link_modes(league, now):
+    """`[2026-11-20, review]` Every mode a football relay link builds in `league` when it falls
+    due, WHATEVER ROWS THIS MINUTE'S CONTRACT HOLDS: each mode the league's contract carries a
+    row for in a tree holding a props board and nothing else, and every mode that builds a card
+    (CARD_BUILDERS). -> frozenset.
+    ✅ No row is left out for what a tree holds: without a schedule the props window "cannot
+    tell" and keeps `props-player` and `alt-lines` (the reasoning `paid_times` already uses for
+    every PAID row), and the planted board keeps the card's rows.
+    ⛔ NEVER THIS MINUTE'S ROWS. The college props window is 14 hours before a stored game, so
+    on a Monday `props-player` has no row, and ~~a mode with no row is an extra~~ a held
+    `34 12` cron ran it as one: an Odds `/events` call, the props board, the alt lines and the
+    card the link builds, and the injury reports before them (`with_before_card`)."""
+    if league not in FB_TIMES:
+        raise ValueError(f"{league!r} has no relay link")
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="link-modes-") as d:
+        base = d.replace(os.sep, "/")
+        os.makedirs(f"{base}/data/{league}/latest")
+        # the board only has to EXIST (`contract` asks os.path.exists): an empty file, never a gzip
+        open(f"{base}/data/{league}/latest/props.json.gz", "wb").close()
+        rows = contract(f"{base}/data/{league}", f"{base}/picks", now)
+    return frozenset(r[0] for r in rows) | CARD_BUILDERS
+
+
+def extras(rows, explicit, now, env=None):
+    """The modes a HELD run still runs: the ones its cron names that no deadline the
+    link meets covers (R4). -> [mode], in the cron's order.
+      - a mode the contract NEVER carries a row for (`live-probe`, `halftime-probe`;
+        `link_modes`, ~~no row at this minute~~): its cron is its only reason to run,
+        exactly as today;
+      - a metered mode (STAND_DOWN) none of whose rows is owed, that `stand_down` would
+        not stand down, and whose cron fires for none of its deadlines
+        (`cron_fires_for`): an EXTRA build, the game-day `fb-scores` refreshes and the
+        Sunday `cfb-probe` rebuild, run exactly as today.
+    ⛔ Never a paid mode, a card builder, a free mode with a row (the card, news, the props
+    board) or a metered mode its cron serves a deadline for: those are the link's, ALSO
+    on a minute their rows are absent (the props window closed): the link builds them
+    when they fall due."""
+    env = os.environ if env is None else env
+    lg = str(env.get("LEAGUE") or "").strip().lower()
+    have = {r["mode"] for r in rows}
+    link_owns = link_modes(lg, now) if lg in FB_TIMES else None
+    cron = fired_cron(env)
+    since = cron_last_fire(cron, now) if cron else None
+    out = []
+    for m in explicit:
+        if m in out:
+            continue
+        if m not in have:
+            # ⛔ no row NOW is not no row EVER: a mode the link owns is never an extra, and a
+            #    league with no link (never held) runs none (fail closed: nothing is built)
+            if link_owns is None or m in link_owns:
+                continue
+            out.append(m)
+            continue
+        if m not in STAND_DOWN or since is None:
+            continue
+        own = [r for r in rows if r["mode"] == m and not r.get("held")]
+        if not own or any(owes(r) for r in own):
+            continue
+        if stand_down(rows, m, now, env) is not None:
+            continue
+        if any(cron_fires_for(r["due_at"], since) for r in own if r.get("due_at")):
+            continue
+        out.append(m)
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 `[Sam, 2026-11-18]` A METERED MODE THAT KEEPS FAILING WAITS BEFORE IT TRIES AGAIN.
+# ══════════════════════════════════════════════════════════════════════
+# A relay link passes every 15-35 minutes, and `fb-scores` retries its own failure on
+# every pass (it backs off only when CFBD refuses): about 80 link passes a day at 2
+# calls each while it fails, against about 70 calls a day of CFBD headroom.
+# ✅ A metered mode (STAND_DOWN, the CFBD / nflverse modes) or the college team-
+#    directory rebuild (TEAM_DIRECTORY, asked by collect._ensure_cfb_team_directory) that
+#    failed twice in a row is not planned (or asked) again for METERED_RETRY_MIN minutes
+#    after its last failure. 75 is today's
+#    measured football pass interval (1440 / 19.2 passes a day), so a failing source
+#    is asked no more often than it is today; the first retry is still the next pass,
+#    so a one-off blip recovers in one pass. State: data/<lg>/latest/
+#    metered-attempts.json, written on a failure, cleared on a success.
+# ⛔ The row stays stale and the gate stays red while it waits, exactly as before; a
+#    hand run or a cron that names the mode runs it as before; cfb-probe keeps its own
+#    longer 3h/6h/20h back-off on top.
+METERED_RETRY_MIN = 75
+METERED_FAILS_BEFORE_WAIT = 2
+METERED_ATTEMPTS = "metered-attempts.json"
+TEAM_DIRECTORY = "team-directory"          # collect._ensure_cfb_team_directory's CFBD call
+
+
+def _attempts(data):
+    path = os.path.join(data, "latest", METERED_ATTEMPTS)
+    try:
+        with open(path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+        return path, (doc if isinstance(doc, dict) else {})
+    except (OSError, ValueError):
+        return path, {}
+
+
+def retry_wait(data, mode, now=None):
+    """Minutes before `mode` (a metered mode, or TEAM_DIRECTORY) may be tried again in
+    this league; 0 = go. ⛔ Anything unreadable is 0: an unknown never holds a repair."""
+    now = now or datetime.datetime.now(UTC)
+    e = _attempts(data)[1].get(mode)
+    try:
+        if int(e.get("fails") or 0) < METERED_FAILS_BEFORE_WAIT:
+            return 0
+        last = datetime.datetime.strptime(e["last_failed_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return 0
+    return max(0.0, METERED_RETRY_MIN - (now - last).total_seconds() / 60.0)
+
+
+def note_failure(data, mode, now=None, why=""):
+    """Record one more failure in a row of `mode` (metered-attempts.json)."""
+    now = now or datetime.datetime.now(UTC)
+    path, doc = _attempts(data)
+    e = doc.get(mode) if isinstance(doc.get(mode), dict) else {}
+    doc[mode] = {"fails": int(e.get("fails") or 0) + 1,
+                 "first_failed_at": e.get("first_failed_at") or now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                 "last_failed_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "why": str(why)[:240]}
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=1, sort_keys=True)
+
+
+def note_success(data, mode):
+    """`mode` worked: its failures are forgotten (the file goes when nothing is left)."""
+    path, doc = _attempts(data)
+    if mode not in doc:
+        return
+    doc.pop(mode)
+    if doc:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(doc, fh, indent=1, sort_keys=True)
+    else:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
 
 
 def source_block(data="data", now=None):
@@ -2829,8 +3032,9 @@ CASCADE = {
     "scores":        ["record"],
     # 🔴 `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK REBUILDS THE CARD IN THE SAME PASS:
     #    the game model, the Game Lines tab, the card and its whys, with the status as of the
-    #    check. ⛔ NOT `cfb-injuries`: it is planned on every college pass Wed-Sat, and a
-    #    card rebuild on every pass is not what Sam asked for (test_injury_check.py).
+    #    check. ⛔ NOT `cfb-injuries`: ~~it is planned on every college pass Wed-Sat~~ it is
+    #    planned BEFORE every college card (`BEFORE_CARD`, `[Sam, 2026-11-18]`), and a card
+    #    rebuild after every read is not what Sam asked for (test_injury_check.py).
     "injury-check":  ["card-fb"],
 }
 
@@ -2977,26 +3181,65 @@ def slate_moves(data="data", picks="picks", now=None):
         if (lambda ks: bool(ks) and max(ks) <= now)(_kickoffs_in(path, keys))}
 
 
-# 🔴 `[Sam, 2026-10-17]` MODES PLANNED ON EVERY PASS ON THESE ET DAYS (Monday =
-#    0, the contract's fixed offset), fresh or not. The college injury reader
-#    (research/cfb_injuries_design.md §1 item 2: "converge runs the mode on
-#    every college pass"): Wednesday to Saturday, when the reports for the
-#    weekend's games are posted and replaced, a pass must read them before the
+# 🔴 `[Sam, 2026-10-17]` ~~MODES PLANNED ON EVERY PASS ON THESE ET DAYS (Monday =
+#    0, the contract's fixed offset), fresh or not.~~ The college injury reader
+#    (research/cfb_injuries_design.md §1 item 2: ~~"converge runs the mode on
+#    every college pass"~~): ~~Wednesday to Saturday, when the reports for the
+#    weekend's games are posted and replaced,~~ a pass must read them before the
 #    card it builds, not wait for the next hour (`[2026-10-17]` review of P3:
 #    on Saturday 10-10 six college passes landed between 17:16Z and 17:55Z, and
-#    an hourly row read the reports in the first only). Other days its hourly
-#    row plans it.
+#    an hourly row read the reports in the first only). ~~Other days its hourly
+#    row plans it.~~
+#    ~~EVERY_PASS = {"ncaaf": {"cfb-injuries": frozenset({2, 3, 4, 5})}}     # Wed-Sat ET~~
+# 🔴 `[Sam, 2026-11-18]` BEFORE EVERY COLLEGE CARD, NOT ON EVERY PASS. A relay link
+#    passes every 15-35 minutes: "every college pass" Wed-Sat would have read the
+#    conference sites about 60-80 times a day (the design's estimate: ~765 calls),
+#    sites whose terms limit automated reading. Sam chose "Yes, injuries every 2 h
+#    (Recommended)": *"Injury reports read before every college card and every 2 hours
+#    otherwise"*. ✅ So a mode here is planned in a pass whose plan (after `cascaded`)
+#    holds a CARD_BUILDERS mode, any day: `card-fb`, and `props-player` (the football
+#    props pull builds the card itself); `injury-check` cascades to `card-fb`, and so
+#    do `slate_moves` and `code_moves`. Its own row (CFB_INJURY_TIMES, every 2 hours)
+#    plans it otherwise. ✅ ~~The contract's order runs it before the card.~~ It runs
+#    FIRST in the pass (`with_before_card`).
+#    🔴 `[2026-11-20, review]` ON WHAT THE PASS RUNS, NOT ONLY ON WHAT plan() OWES. The
+#    first build applied the rule inside plan() alone, and converge builds a college
+#    card two more ways: a cron that NAMES `card-fb` or `props-player` (appended after
+#    plan(); a card inside contract owes nothing, so plan() had no card and no reader:
+#    "PLAN: card-fb"), and a catch-up round, when the 9:00 or 9:30 ET card deadline
+#    passes while a pass runs. Both read the previous 2-hourly reading; on base,
+#    EVERY_PASS read first in every college pass Wed-Sat. ✅ So `with_before_card` is
+#    the ONE place the rule is applied (rule 117), to the list a pass is about to run:
+#    plan()'s own list, converge's list after the cron's modes are added, and each
+#    catch-up round's (where a reader this pass already ran, or that failed in it, is
+#    not asked again). test_cfb_injuries_wiring.py §10 drives the real converge.
 #    ⛔ PLANNED, NEVER MARKED STALE, like `slate_moves`: a deadline every few
 #    minutes would read stale at the end of any pass longer than that, and
 #    warn on a reader that had just run. 💰 Free; no key, no Odds credit.
-EVERY_PASS = {"ncaaf": {"cfb-injuries": frozenset({2, 3, 4, 5})}}     # Wed-Sat ET
+CARD_BUILDERS = frozenset({"card-fb", "props-player"})
+BEFORE_CARD = {"ncaaf": frozenset({"cfb-injuries"})}
 
 
-def every_pass(data="data", now=None):
-    """The modes `EVERY_PASS` plans for this league today (ET)."""
+def before_card(data="data", need=()):
+    """The modes BEFORE_CARD plans for this league when `need` (with what CASCADE
+    adds) builds a card (CARD_BUILDERS); set() otherwise."""
     lg = data.replace(os.sep, "/").rstrip("/").split("/")[-1]
-    day = ((now or datetime.datetime.now(UTC)) - ET_OFFSET).weekday()
-    return {m for m, days in (EVERY_PASS.get(lg) or {}).items() if day in days}
+    if not cascaded(need) & CARD_BUILDERS:
+        return set()
+    return set(BEFORE_CARD.get(lg) or ())
+
+
+def with_before_card(modes, data="data", skip=()):
+    """`modes`, the list a pass is about to run, in its order, with `before_card`'s modes
+    put FIRST when the list builds a college card, except one in `skip` (a catch-up
+    round: a mode this pass already ran, or that failed in it). -> a new list, each mode
+    once. ⛔ It only adds and moves; nothing is removed. The ONE copy (rule 117): plan(),
+    collect.converge's list after the cron's own modes, and each catch-up round."""
+    modes = list(dict.fromkeys(modes))
+    first = [m for m in sorted(before_card(data, modes)) if m not in set(skip)]
+    if not first:
+        return modes
+    return first + [m for m in modes if m not in first]
 
 
 # 🔴 `[Sam, 2026-11-10]` A MERGED MODEL CHANGE IS LIVE AT THE NEXT PASS, NOT AT THE NEXT
@@ -3082,19 +3325,45 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
     need = {r["mode"] for r in rows if owes(r, allow_paid)} \
-        | slate_moves(data, picks, now) | every_pass(data, now) | injury_retry(data, now) \
+        | slate_moves(data, picks, now) | injury_retry(data, now) \
         | code_moves(data)
-    return [m for m in order if m in cascaded(need)], rows
+    # `[Sam, 2026-11-18]` a metered mode that failed twice in a row waits (METERED_RETRY_MIN)
+    for m in sorted(m for m in need if m in STAND_DOWN):
+        left = retry_wait(data, m, now)
+        if left > 0:
+            print(f"RETRY FLOOR: {m} failed {METERED_FAILS_BEFORE_WAIT}+ times in a row; not "
+                  f"planned for {left:.0f} more min (METERED_RETRY_MIN {METERED_RETRY_MIN}): "
+                  f"its row stays out of contract and says so")
+            need.discard(m)
+    # `[Sam, 2026-11-18]` the college injury reports are read before every college card
+    #    (`with_before_card`, the one copy converge also asks of the list it runs)
+    return with_before_card([m for m in order if m in cascaded(need)], data), rows
+
+
+# 🔴 `[Sam, 2026-11-18]` AN UNHEALTHY COLLEGE INJURY PROBE IS READ AGAIN AT ITS NEXT DEADLINE,
+#    NEVER ON EVERY PASS. `[2026-11-20, review]` A row stale only for its health (one
+#    conference source unread past FETCH_MAX_AGE_H while a game is close, no source read, or
+#    a current-season archive not refreshed, which can hold all week in season) was owed on
+#    EVERY pass until the source recovered: under a relay link passing every 15-35 minutes,
+#    one failing source made the reader ask all seven on every pass, ~96 reads (~670 calls)
+#    a day, against Sam's "every 2 hours otherwise" (about 120 calls a day) on sites whose
+#    terms limit automated reading. ✅ So for these modes an on-time unhealthy row is not
+#    owed: its next 2-hourly deadline makes it LATE, and owed, again (CFB_INJURY_TIMES), and
+#    every college card reads first whatever the row says (BEFORE_CARD). ⛔ It stays STALE
+#    with its reason: a soft warning at the gate, in freshness.json, and the watchdog's
+#    `held:` finding (DEGRADED) says when it is read again. test_cfb_injuries_wiring.py §9.
+HEALTH_AT_DEADLINE = {"cfb-injuries"}
 
 
 def owes(r, allow_paid=True):
     """Does this surveyed row need its mode run? ⛔ ONE COPY: `plan` and
     `caught_up` both ask it (rule 117).
     `[2026-10-26, review]` ⛔ a row stale ONLY for its health (never late: `survey` asks health
-    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH."""
+    of on-time rows alone) is not planned when its mode is REPORT_ONLY_HEALTH
+    (`[2026-11-20, review]` or HEALTH_AT_DEADLINE: its next deadline plans it)."""
     return bool(r["stale"] and not stored_only(r) and (allow_paid or not r["paid"])
                 and not r.get("held")              # `[2026-11-17]` REBUILD_ATTEMPTS: its writer's next deadline
-                and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH))
+                and not (r.get("unhealthy") and r["mode"] in REPORT_ONLY_HEALTH | HEALTH_AT_DEADLINE))
 
 
 def cascaded(need):

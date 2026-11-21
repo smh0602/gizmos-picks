@@ -4634,17 +4634,35 @@ def _ensure_cfb_team_directory():
         return
     if not need:
         return
+    # 🔴 `[Sam, 2026-11-18]` IT RUNS BEFORE EVERY COLLEGE MODE, so a CFBD call that keeps
+    #    failing was made on every mode of every pass: a relay link would make it ~80
+    #    passes a day. Twice in a row and it waits METERED_RETRY_MIN (freshness, R7).
+    _wait = _fresh.retry_wait(DATA, _fresh.TEAM_DIRECTORY, now())
+    if _wait > 0:
+        log(f"  college team directory needs a rebuild — {why}; it failed twice in a row, "
+            f"so CFBD is not asked for {_wait:.0f} more min (freshness.METERED_RETRY_MIN)")
+        return
     log(f"  college team directory needs a rebuild — {why}")
     try:
         import cfb as _cfb
         _cfb.fbs_conferences(_fresh.current_football_season(), log)
-        _, why2 = cfb_team_directory_state()
-        log(f"  college team directory rebuilt — {why2}")
+        _still, why2 = cfb_team_directory_state()
+        log(f"  college team directory {'STILL needs a rebuild' if _still else 'rebuilt'} — {why2}")
+        # `[2026-11-20, review]` CFBD answered but left nothing usable (a season rollover): a
+        #    failure in a row like a raise, or CFBD is asked before every college mode of every pass
+        if _still:
+            _fresh.note_failure(DATA, _fresh.TEAM_DIRECTORY, now(), why2)
+        else:
+            _fresh.note_success(DATA, _fresh.TEAM_DIRECTORY)
     except Exception as e:
         # ⛔ NEVER FATAL. Logos are cosmetic; the odds pull behind this
         # is not, and odds history cannot be re-bought.
         log(f"  ⚠️ college team directory NOT rebuilt: "
             f"{type(e).__name__}: {e} — logos will fall back to text")
+        try:
+            _fresh.note_failure(DATA, _fresh.TEAM_DIRECTORY, now(), f"{type(e).__name__}: {e}")
+        except Exception as e2:
+            log(f"  ⚠️ its failure was not recorded ({type(e2).__name__}: {e2})")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -6128,6 +6146,22 @@ def converge(explicit=(), allow_paid=True):
     #    instant caught_up compares deadlines with (a survey on freshness's own clock beside
     #    a pinned collect.now caught up every free mode test_credit_ledger's plan never ran).
     looked = now()
+    # 🔴 `[Sam, 2026-11-18]` A FOOTBALL RELAY LINK BEATS, FIRST (R5): a scheduled football
+    #    run is held only while every league it routes has a beat under
+    #    relay.HELD_BEAT_MIN minutes old (`[2026-11-20, review]` ~~an hour~~: two whole link
+    #    passes and the sleep, since the beat reaches main only when the pass is pushed),
+    #    so a hung link stops holding the crons back. It rides
+    #    this pass's commit (freshness.json already changes every pass).
+    if _fresh.relay_link():
+        try:
+            write(f"{LATEST}/relay-beat.json",
+                  {"run_id": os.environ.get("GITHUB_RUN_ID") or None,
+                   "at": looked.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                   "note": "A football relay link began a converge pass of this league here "
+                           "(relay.py). Scheduled football runs stand back while it is under "
+                           "relay.HELD_BEAT_MIN minutes old."})
+        except Exception as e:
+            log(f"⚠️ the relay beat was not written ({type(e).__name__}: {e})")
     modes, rows = _fresh.plan(data=DATA, picks=PICKS, now=looked, allow_paid=allow_paid)
 
     log("=" * 66)
@@ -6140,7 +6174,18 @@ def converge(explicit=(), allow_paid=True):
             f"due {r['due_et']:<20} {'PAID' if r['paid'] else 'free'}{late}"
             + (f"  UNHEALTHY: {r['unhealthy']}" if r.get("unhealthy") else ""))
 
-    for m in explicit:
+    # 🔴 `[Sam, 2026-11-18]` HELD (R4): a live football relay link beat under
+    #    relay.HELD_BEAT_MIN minutes ago (~~within the hour~~), so
+    #    IT converges this league and runs its gate. This scheduled run builds nothing the
+    #    contract owes (paid, metered or free), writes neither freshness.json nor
+    #    lateness.json, and runs only the extras no deadline covers (freshness.extras).
+    held = _fresh.relay_holds()
+    if held:
+        modes = _fresh.extras(rows, explicit, looked)
+        log(f"HELD: a football relay link converges {LEAGUE} and verifies it on its own pass; "
+            f"this run builds only what no deadline covers: {' '.join(modes) or 'nothing'}. "
+            f"NOTHING the contract owes is built or bought here.")
+    for m in (() if held else explicit):
         if m in modes:
             continue
         # 🔴 `[2026-11-11]` A CRON THAT STARTS LATE DOES NOT BUY IT AGAIN
@@ -6162,10 +6207,21 @@ def converge(explicit=(), allow_paid=True):
                 + (". NOTHING SPENT." if any(r["paid"] for r in rows if r["mode"] == m) else ""))
             continue
         modes.append(m)
+    # 🔴 `[Sam, 2026-11-18]` "INJURY REPORTS READ BEFORE EVERY COLLEGE CARD", ON THE LIST THIS
+    #    PASS RUNS (`[2026-11-20, review]` ~~plan() alone~~: a cron that names `card-fb`, its
+    #    card inside contract, built the card from the last 2-hourly reading, "PLAN: card-fb").
+    #    ⚠️ A held run's extras are never a card builder (~~a card has a row~~: on a closed props
+    #    window `props-player` has none; freshness.link_modes), so it reads nothing here.
+    _with = _fresh.with_before_card(modes, DATA)
+    if _with != modes:
+        log(f"BEFORE THE CARD: {' '.join(m for m in _with if m not in modes) or 'the reader moves first'}"
+            f" — this pass builds a {LEAGUE} card, so it reads the injury reports first")
+        modes = _with
     if not modes:
-        log("everything inside contract — nothing to do")
+        log("held: nothing to run" if held else "everything inside contract — nothing to do")
         log("=" * 66)
-        _record_lateness(rows)
+        if not held:                    # a held run leaves lateness.json to the link
+            _record_lateness(rows)
         return 0
 
     log(f"PLAN: {' '.join(modes)}")
@@ -6222,6 +6278,7 @@ def converge(explicit=(), allow_paid=True):
                         f"contract and the page will say so.")
                     skipped.append(m)
                     continue
+            why = None
             try:
                 log(f"--- converge: {m}")
                 attempted.add(m)
@@ -6231,12 +6288,38 @@ def converge(explicit=(), allow_paid=True):
             except SystemExit as e:
                 if e.code:
                     # ⛔ an exit code is no evidence about a source
-                    _record_failure(failed, soft_failed, m, f"exit {e.code}")
+                    why = f"exit {e.code}"
+                    _record_failure(failed, soft_failed, m, why)
             except Exception as e:
-                _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}",
+                why = f"{type(e).__name__}: {e}"
+                _record_failure(failed, soft_failed, m, why,
                                 source=_fresh.outside_source(e))
+            # `[Sam, 2026-11-18]` a metered mode's failures in a row (freshness.retry_wait, R7)
+            if m in _fresh.STAND_DOWN:
+                try:
+                    if why is None:
+                        _fresh.note_success(DATA, m)
+                    else:
+                        _fresh.note_failure(DATA, m, now(), why)
+                except Exception as e:
+                    log(f"⚠️ {m}'s attempt was not recorded ({type(e).__name__}: {e})")
 
     run_modes(modes)
+
+    if held:                            # the link writes freshness.json and lateness.json
+        # ⛔ HELD: no catch-up, no freshness.json, no lateness.json: the link's pass
+        #    writes both and runs the gate. Only this run's extras are judged.
+        failed, excused = _fresh.judge_failures(
+            failed, _fresh.survey(data=DATA, picks=PICKS, now=now()), DATA)
+        for m, why in soft_failed:
+            log(f"SOFT FAILURE (run stays green): {m} — {why}")
+        for m, why, _rows_m, verdict in excused:
+            print(f"::warning::{m} failed for {LEAGUE} ({why}) — {verdict}", flush=True)
+        for m, why, _rows_m, verdict in failed:
+            log(f"FAILED: {m} — {why} — {verdict}")
+            print(f"::error::{m} failed for {LEAGUE} ({why}) — {verdict}", flush=True)
+        log("=" * 66)
+        return int(bool(failed))            # a held pass: red only for an extra that failed
 
     # 🔴 `[2026-11-11]` A DEADLINE THAT PASSES WHILE THIS PASS RUNS IS THIS PASS'S
     #    (freshness.caught_up says which rows, and why the gate is unchanged).
@@ -6253,12 +6336,17 @@ def converge(explicit=(), allow_paid=True):
         rows2 = _fresh.survey(data=DATA, picks=PICKS, now=_at)
         if _round == 0:
             end_rows, end_at = rows2, _at
-        _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed}
+        _bad = {m for m, *_ in failed} | {m for m, _w in soft_failed} \
+            | {m for m in _fresh.STAND_DOWN if _fresh.retry_wait(DATA, m, _at) > 0}
         todo = (_fresh.caught_up(rows2, looked, allow_paid=False, skip=_bad, ran=attempted,
                                  before=rows)
                 if _round < CATCH_UP_ROUNDS else [])
         if not todo:
             break
+        # 🔴 `[Sam, 2026-11-18]` a college card the catch-up builds reads the injury reports
+        #    first too (`[2026-11-20, review]`: the 9:00 / 9:30 ET card falls inside a pass),
+        #    unless this pass already read them, or the read failed in it
+        todo = _fresh.with_before_card(todo, DATA, skip=attempted | _bad)
         log(f"CATCH-UP: {' '.join(todo)} — a deadline passed while this pass ran "
             f"(it surveyed at {looked:%H:%M:%S}Z): "
             + ", ".join(dict.fromkeys(f"{r['mode']} due {r['due_at']}" for r in rows2
