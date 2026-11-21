@@ -1,11 +1,25 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-21T15:45:47Z",
+ "checked_at": "2026-11-21T15:57:22Z",
  "et_date": "2026-11-21",
  "healthy": false,
- "broken": 1,
- "degraded": 11,
+ "broken": 0,
+ "degraded": 15,
  "findings": [
+  {
+   "key": "late:alt-lines:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf alt-lines was built 192 minutes after it was due",
+   "why": "due 2026-11-21T12:30Z, built 2026-11-21T15:41Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:card-fb:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf card-fb was built 140 minutes after it was due",
+   "why": "due 2026-11-21T13:30Z, built 2026-11-21T15:49Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
+   "repair": null
+  },
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
@@ -23,8 +37,22 @@
   {
    "key": "late:news:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf news was built 151 minutes after it was due",
-   "why": "due 2026-11-20T14:05Z, built 2026-11-20T16:35Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "what": "ncaaf news was built 112 minutes after it was due",
+   "why": "due 2026-11-21T14:05Z, built 2026-11-21T15:57Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-board:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf props-board was built 192 minutes after it was due",
+   "why": "due 2026-11-21T12:30Z, built 2026-11-21T15:41Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-player:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf props-player was built 191 minutes after it was due",
+   "why": "due 2026-11-21T12:30Z, built 2026-11-21T15:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -53,13 +81,6 @@
    "severity": "DEGRADED",
    "what": "nfl nfl-logs was built 74 minutes after it was due",
    "why": "due 2026-11-17T16:00Z, built 2026-11-17T17:14Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "credits:unrecorded",
-   "severity": "BROKEN",
-   "what": "434 Odds API credit(s) were spent since 2026-11-20T15:45:47Z that no stored snapshot records",
-   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-11-21T15:44:46Z \u2212434 (data/nfl/2026-11-21/gamelines/1544.json.gz)",
    "repair": null
   },
   {
@@ -92,9 +113,7 @@
   }
  ],
  "repairs": [],
- "unrepairable": [
-  "credits"
- ],
+ "unrepairable": [],
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
@@ -102,11 +121,11 @@
   "pulled_at": "2026-11-21T15:44:49Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-21T15:44:49Z",
   "source": "data/nfl/2026-11-21/props-player/1544.json.gz",
-  "readings_on_disk": 1825,
+  "readings_on_disk": 1827,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
