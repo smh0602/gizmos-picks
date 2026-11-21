@@ -1036,7 +1036,8 @@ note boxes, tags and the stale bar now require their absence.
   card (`freshness.BEFORE_CARD`, `CARD_BUILDERS` = card-fb, props-player; an injury check cascades
   to card-fb), any day, first in the pass (~~Wed-Sat on every college pass~~, `EVERY_PASS`). The
   36-hour and 6-hour rules are unchanged. Measured: 136 reads 11-13 -> 11-20 (17 a day, ~119
-  calls); simulated under a relay link, 16.6 a day (~116 calls), against ~82 had every pass read.
+  calls); simulated under a relay link, 16.6 a day (~116 calls), against ~57 (82 Wed-Sat) had
+  every pass read.
   `test_cfb_injuries_wiring.py` §1, §9.
   `cfb.py` keeps the jerseys and defensive stats CFBD already sends (`roster-<s>`, `defense-<s>`,
   zero extra calls; 2025 once, priced). The model (`fb_model.injury_readings` ->

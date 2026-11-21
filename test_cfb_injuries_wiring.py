@@ -1032,6 +1032,25 @@ try:
          "current season's archives once a day); every-pass Wed-Sat would have read on all ~%d passes a day."
          % (_rate, _rate * len(CI.SOURCES), round(_passes / 7.0)))
 
+    # ⛔ `[Sam, 2026-11-18]` THE READER'S 2-HOURLY ROW IS UNTIMED. ~~Hourly, it was never built
+    #    more than GRACE_MIN late~~; 2-hourly, a pass gap over an hour after an even ET hour would
+    #    be a `late:` finding with nothing to repair. Its currency is cfb_injuries' own 6-hour rule.
+    #    The real record_builds, twice (a first sighting is not a measurement), a probe read 100
+    #    minutes after its deadline and a news file built as late beside it.
+    _due = datetime.datetime(2026, 10, 14, 16, 0, tzinfo=UTC)                 # Wed 12:00 ET
+    _lf = os.path.join(WT, "lateness-untimed.json")
+    for _k, _late in ((0, 1), (1, 100)):
+        _at = _due + _k * 2 * H + _late * M
+        _rows = [{"mode": "cfb-injuries", "path": WPROBE, "due_at": (_due + _k * 2 * H).strftime("%Y-%m-%dT%H:%MZ"),
+                  "stale": False, "age_min": 0.0},
+                 {"mode": "news", "path": "data/ncaaf/latest/news.json",
+                  "due_at": (_due + _k * 2 * H).strftime("%Y-%m-%dT%H:%MZ"), "stale": False, "age_min": 0.0}]
+        _lr = F.record_builds(_rows, _lf, _at)
+    _modes_rec = sorted({a["mode"] for a in _lr["artifacts"].values()})
+    ck(_modes_rec == ["news"] and [x["mode"] for x in _lr["late"]] == ["news"],
+       "⛔ a college injury read 100 minutes after its 2-hourly deadline leaves no lateness entry (so no "
+       "`late:` finding), while a timed row read as late beside it is recorded", (_modes_rec, _lr["late"]))
+
 finally:
     CI.run, CI._post, CI._get = _REAL_RUN, _REAL_POST, _REAL_GET
     F.HEALTH = _REAL_HEALTH

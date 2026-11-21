@@ -2645,8 +2645,9 @@ def extras(rows, explicit, now, env=None):
 # every pass (it backs off only when CFBD refuses): about 80 link passes a day at 2
 # calls each while it fails, against about 70 calls a day of CFBD headroom.
 # ✅ A metered mode (STAND_DOWN, the CFBD / nflverse modes) or the college team-
-#    directory rebuild (RETRY_FLOOR_EXTRA) that failed twice in a row is not planned
-#    again for METERED_RETRY_MIN minutes after its last failure. 75 is today's
+#    directory rebuild (TEAM_DIRECTORY, asked by collect._ensure_cfb_team_directory) that
+#    failed twice in a row is not planned (or asked) again for METERED_RETRY_MIN minutes
+#    after its last failure. 75 is today's
 #    measured football pass interval (1440 / 19.2 passes a day), so a failing source
 #    is asked no more often than it is today; the first retry is still the next pass,
 #    so a one-off blip recovers in one pass. State: data/<lg>/latest/
@@ -2658,7 +2659,6 @@ METERED_RETRY_MIN = 75
 METERED_FAILS_BEFORE_WAIT = 2
 METERED_ATTEMPTS = "metered-attempts.json"
 TEAM_DIRECTORY = "team-directory"          # collect._ensure_cfb_team_directory's CFBD call
-RETRY_FLOOR_EXTRA = {TEAM_DIRECTORY}
 
 
 def _attempts(data):

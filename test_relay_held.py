@@ -71,10 +71,10 @@ real Converge and held step bodies with stub `python` / `gh` / `git`.
 #   find:         if ages[lg] is None or not 0 <= ages[lg] < HELD_BEAT_MIN:
 #   with:         if ages[lg] is None:
 #
-# @vacuity 🔴 ...and a link must be live
+# @vacuity 🔴 ...and a link must be live (a cron, MLB's link or a finished link is not one)
 #   file: relay.py
-#   find:     if not alive:
-#   with:     if False:
+#   find:     alive = links_of(runs, me, FOOTBALL)
+#   with:     alive = [r for r in runs if str(r.get("databaseId")) != str(me)]
 #
 # @vacuity 🔴 the held league's gate is the link's
 #   file: docs/upload/collect.yml
