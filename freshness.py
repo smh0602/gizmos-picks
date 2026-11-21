@@ -2622,8 +2622,8 @@ def link_modes(league, now):
     with tempfile.TemporaryDirectory(prefix="link-modes-") as d:
         base = d.replace(os.sep, "/")
         os.makedirs(f"{base}/data/{league}/latest")
-        with gzip.open(f"{base}/data/{league}/latest/props.json.gz", "wt", encoding="utf-8") as fh:
-            fh.write("{}")
+        # the board only has to EXIST (`contract` asks os.path.exists): an empty file, never a gzip
+        open(f"{base}/data/{league}/latest/props.json.gz", "wb").close()
         rows = contract(f"{base}/data/{league}", f"{base}/picks", now)
     return frozenset(r[0] for r in rows) | CARD_BUILDERS
 
