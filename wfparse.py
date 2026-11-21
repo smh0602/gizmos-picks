@@ -37,11 +37,12 @@ keys reports a workflow that does not exist. The scanner below consumes
 every block scalar whole, which is the only reason it can be trusted.
 """
 import io
+import fnmatch
 import os
 import re
 
 __all__ = ["read", "jobs", "steps", "step_run", "permissions", "Job", "Step",
-           "effective_workflows", "top_level_yaml"]
+           "effective_workflows", "top_level_yaml", "step_tests", "rerun_tests"]
 
 # A mapping key at some indent: `foo:`, `foo: bar`, `foo: |`, `- foo: bar`.
 _KEY = re.compile(r"^(\s*)(-\s+)?([A-Za-z_][A-Za-z0-9_.-]*):\s?(.*?)\s*$")
@@ -385,6 +386,79 @@ def job_names(src):
         for lineno, indent, key, val, _b in _scan(lines):
             if jb.start <= lineno < jb.end and indent == 4 and key == "name":
                 out[jb.name] = _JOB_NAME.match(val).group(1).strip("\"'") or None
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 WHICH TEST FILES A STEP RUNS. `[2026-11-21]`
+# ══════════════════════════════════════════════════════════════════════
+# browser.yml's render job ran its five render files TWICE: "Render tests",
+# then "A skipped render check is a failure in THIS workflow" ran all five
+# again only to grep their output for NO BROWSER (402s of the job's 873s on
+# run 44886195117; with a slow install, 1273s of its 1500s clock on #252).
+# `test_tests_run_once.py` asks it of every workflow as it will be live: no
+# test file is run by two steps of one job.
+# ⚠️ What a step RUNS, never what it mentions: a `python` / `node` command
+#    whose first argument after its flags is a test file, or a `for VAR in
+#    WORDS` loop whose body runs "$VAR" that way (a glob in WORDS matched
+#    against `files`, the test files that exist). Comment lines are not
+#    commands; a `\` continuation is one line.
+# ⛔ It cannot see a step that runs ANOTHER step's script (pr-tests' staged,
+#    offseason and champion jobs: `bash -e "$loop"`), a harness that runs
+#    tests itself (vacuity.py), or a test file started from Python.
+_RUNNER = r"\b(?:python3?|node)(?:\s+-[\w-]+)*\s+[\"']?"
+_RUNS_TEST = re.compile(_RUNNER + r"(test_[\w.-]*?\.(?:py|js))(?![\w.-])")
+_FOR = re.compile(r"\bfor\s+([A-Za-z_]\w*)\s+in\s+([^;\n]*?)\s*(?:;|\n)\s*do\b")
+_DO = re.compile(r"\b(do|done)\b")
+_TEST_WORD = re.compile(r"^test_[\w.*?\[\]-]*\.(?:py|js)$")
+
+
+def _shell_code(run):
+    """A `run:` body as the shell reads it: comment lines dropped, `\\`
+    continuations joined."""
+    live = "\n".join(l for l in (run or "").splitlines()
+                     if not l.lstrip().startswith("#"))
+    return live.replace("\\\n", " ")
+
+
+def _loop_body(code, at):
+    """The text from `at` (just past a loop's `do`) to ITS `done`, nested
+    loops counted."""
+    depth = 1
+    for m in _DO.finditer(code, at):
+        depth += 1 if m.group(1) == "do" else -1
+        if depth == 0:
+            return code[at:m.start()]
+    return code[at:]
+
+
+def step_tests(run, files):
+    """Every test file one step's `run:` body executes, sorted. `files`: the
+    test files that exist, which a loop's glob is matched against."""
+    code = _shell_code(run)
+    out = set(_RUNS_TEST.findall(code))
+    for m in _FOR.finditer(code):
+        var = re.escape(m.group(1))
+        if not re.search(_RUNNER + r"\$\{?" + var + r"\}?[\"']?(?![\w.])",
+                         _loop_body(code, m.end())):
+            continue
+        for w in m.group(2).split():
+            w = w.strip("\"'")
+            if _TEST_WORD.match(w):
+                out.update(fnmatch.filter(files, w) if any(c in w for c in "*?[") else [w])
+    return sorted(out)
+
+
+def rerun_tests(src, files):
+    """[(job, test file, [the steps that run it])] for every test file two or
+    more steps of ONE job run. Should be none."""
+    out = []
+    for jb in jobs(src):
+        by = {}
+        for st in steps(src, jb.name):
+            for f in step_tests(st.run, files):
+                by.setdefault(f, []).append(st.name or st.id or "line %d" % (st.start + 1))
+        out += [(jb.name, f, s) for f, s in sorted(by.items()) if len(s) > 1]
     return out
 
 
