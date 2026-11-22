@@ -107,9 +107,12 @@ a bot, the schedules could stop silently.
 ## How to tell it worked
 
 - Open https://github.com/smh0602/gizmos-picks/blob/main/data/ncaaf/latest/relay-beat.json
-  (and the same under `data/nfl/latest/`). It exists once a relay run has made
-  its first check, and its `at` time moves forward with every check, about
-  every 15 to 60 minutes.
+  and check the breadcrumb at the top reads
+  **gizmos-picks / data / ncaaf / latest / relay-beat.json**
+  (and the same under `data/nfl/latest/`, whose breadcrumb reads `nfl` in
+  place of `ncaaf`). It exists once a relay run has made its first check,
+  and its `at` time moves forward with every check, about every 15 to 60
+  minutes.
 - In `health.json` there is no `relay:football` finding. If one appears, it
   says no relay run has checked football for over 2.5 hours while a game is
   near; the next football cron to finish restarts the chain by itself.
@@ -139,4 +142,8 @@ that the first **collect [relay ncaaf nfl]** run is green.
   staged file, the clicks and the commit message are unchanged.
 - **2026-11-21:** "What this is" says the relay checks every 15 to 60
   minutes (~~15 to 35~~), as "How to tell it worked" already did. The
+  clicks and the commit message are unchanged.
+- **2026-11-22:** "How to tell it worked" gives the breadcrumb of the
+  relay-beat.json page it opens (CLAUDE.md rule 4). Caught by the upload
+  breadcrumb check that the browser render-once pull request adds. The
   clicks and the commit message are unchanged.
