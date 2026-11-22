@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-11-22T08:04:38Z",
+ "written_at": "2026-11-22T23:22:33Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -147,12 +147,12 @@
  "live_state_note": "\u26a0\ufe0f NOTHING WAS IN PROGRESS when this ran, so whether the feed carries a moving clock is NOT ANSWERED. Re-run while games are on. \u26d4 Do not read a full slate of finals as evidence either way.",
  "join": {
   "our_schedule_season": 2026,
-  "our_games": 3735,
+  "our_games": 3758,
   "espn_events": 70,
   "join_field": "our `id` vs ESPN `events[].id`",
   "matched_on_our_id": 70,
   "matched_on_our_espn_column": 70,
-  "our_games_carrying_an_espn_column": 3735,
+  "our_games_carrying_an_espn_column": 3758,
   "ids_in_common": 70,
   "pct_of_espn_events_matched": 100.0,
   "verdict": "EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all",
@@ -230,7 +230,7 @@
  "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=1",
+  "cache_control": "max-age=4",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
