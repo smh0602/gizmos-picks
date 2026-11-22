@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-22T19:29:15Z",
+ "checked_at": "2026-11-22T19:59:19Z",
  "et_date": "2026-11-22",
  "healthy": false,
  "broken": 0,
- "degraded": 16,
+ "degraded": 15,
  "findings": [
   {
    "key": "fresh:ncaaf",
@@ -91,13 +91,6 @@
    "repair": null
   },
   {
-   "key": "double-buy:gamelines:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl gamelines was bought 3 times for its Fri 18:00Z deadline (18 credits)",
-   "why": "1 deadline(s) in the last 48 hours were bought more than once, 2 extra buy(s), 12 credits: due Fri 18:00Z: Fri 19:33Z (6), Fri 19:34Z (6), Fri 20:19Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
-   "repair": null
-  },
-  {
    "key": "clock:browser",
    "severity": "DEGRADED",
    "what": "browser's render used 84% of its clock in the last 7 days",
@@ -128,7 +121,7 @@
   "pulled_at": "2026-11-22T18:47:57Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.7,
+  "reading_age_hours": 1.2,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-22T18:47:57Z",
   "source": "data/nfl/2026-11-22/gamelines/1847.json.gz",
