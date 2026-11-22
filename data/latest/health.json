@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-22T06:52:11Z",
+ "checked_at": "2026-11-22T07:20:53Z",
  "et_date": "2026-11-22",
  "healthy": false,
  "broken": 0,
- "degraded": 16,
+ "degraded": 15,
  "findings": [
   {
    "key": "late:gamelines:mlb",
@@ -32,13 +32,6 @@
    "severity": "DEGRADED",
    "what": "ncaaf card-fb was built 140 minutes after it was due",
    "why": "due 2026-11-21T13:30Z, built 2026-11-21T15:49Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:cfb-probe:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 66 minutes after it was due",
-   "why": "due 2026-11-21T07:00Z, built 2026-11-21T08:05Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -128,7 +121,7 @@
   "pulled_at": "2026-11-22T00:07:49Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 6.7,
+  "reading_age_hours": 7.2,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-22T00:07:49Z",
   "source": "data/2026-11-22/props-pitcher/0007.json.gz",
