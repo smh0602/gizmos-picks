@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-22T22:12:20Z",
+ "checked_at": "2026-11-22T22:16:14Z",
  "et_date": "2026-11-22",
  "healthy": false,
  "broken": 0,
- "degraded": 10,
+ "degraded": 13,
  "findings": [
   {
    "key": "late:card-fb:ncaaf",
@@ -75,6 +75,27 @@
    "what": "ncaaf alt-lines bought 38 game(s) more than once (38 extra game buys, 76 credits)",
    "why": "1 pass(es) in the last 48 hours bought games an earlier pass had already bought: Sat 19:30Z: 38 of its 38 game(s) again, 76 credits (first bought Sat 19:25Z). It buys each game once (collect.alt_plan skips what an earlier snapshot it can read bought), so a repeat is a pass that could not see the earlier buy (two runs that bought before either landed) or a defect in that rule. Nothing to repair: the lines are current; this clears when no game in the window was bought twice.",
    "repair": null
+  },
+  {
+   "key": "clock:browser",
+   "severity": "DEGRADED",
+   "what": "browser's render used 84% of its clock in the last 7 days",
+   "why": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46). 1 job(s) of this workflow were at 75% or more: render 84%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
+  },
+  {
+   "key": "clock:collect",
+   "severity": "DEGRADED",
+   "what": "collect's collect used 101% of the room its clock leaves past its hold in the last 7 days",
+   "why": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4158, 2026-11-22T16:59). 1 job(s) of this workflow were at 75% or more: collect (hold 320) 101%. \u26d4 Count the hold from the job's start, or shorten what runs outside it (the steps before it, its last pass); do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
+  },
+  {
+   "key": "clock:pr-tests",
+   "severity": "DEGRADED",
+   "what": "pr-tests's tests \u00b7 sweep 3/4 used 79% of its clock in the last 7 days",
+   "why": "pr-tests's tests \u00b7 sweep 3/4 used 79% of test_vacuity.py's 5400s clock (4303s, run 227, 2026-11-18T04:55). 3 job(s) of this workflow were at 75% or more: tests \u00b7 sweep 3/4 (file test_vacuity.py) 79%; render 79%; tests (ubuntu-26.04) \u00b7 sweep 2/4 (file test_vacuity.py) 76%. \u26d4 Add parts (pr-tests.yml's `shard:` matrix); do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
   }
  ],
  "repairs": [],
@@ -86,7 +107,7 @@
   "pulled_at": "2026-11-22T20:10:02Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.0,
+  "reading_age_hours": 2.1,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-22T20:10:02Z",
   "source": "data/2026-11-22/props-pitcher/2010.json.gz",
@@ -125,6 +146,9 @@
   }
  },
  "job_clocks": {
-  "could_not_look": "the run list is 2 hours old"
+  "jobs_measured": 696,
+  "days": 7,
+  "warn_at": 0.75,
+  "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4158, 2026-11-22T16:59)"
  }
 }
