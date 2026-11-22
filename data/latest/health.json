@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-22T20:02:09Z",
+ "checked_at": "2026-11-22T20:05:07Z",
  "et_date": "2026-11-22",
  "healthy": false,
  "broken": 0,
@@ -58,8 +58,8 @@
   {
    "key": "double-buy:gamelines:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf gamelines was bought 2 times for its Sat 19:00Z deadline (99 credits)",
-   "why": "1 deadline(s) in the last 48 hours were bought more than once, 1 extra buy(s), 49 credits: due Sat 19:00Z: Sat 19:25Z (50), Sat 19:29Z (49). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
+   "what": "ncaaf gamelines was bought 2 times for its Sun 19:00Z deadline (12 credits)",
+   "why": "2 deadline(s) in the last 48 hours were bought more than once, 2 extra buy(s), 55 credits: due Sat 19:00Z: Sat 19:25Z (50), Sat 19:29Z (49); due Sun 19:00Z: Sun 19:48Z (6), Sun 19:52Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
    "repair": null
   },
   {
@@ -82,15 +82,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 12631,
-  "pulled_at": "2026-11-22T19:48:04Z",
+  "balance": 12625,
+  "pulled_at": "2026-11-22T19:52:15Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-22T19:48:04Z",
-  "source": "data/ncaaf/2026-11-22/gamelines/1948.json.gz",
-  "readings_on_disk": 1846,
+  "newest_paid_pull": "2026-11-22T19:52:15Z",
+  "source": "data/ncaaf/2026-11-22/gamelines/1952.json.gz",
+  "readings_on_disk": 1847,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
