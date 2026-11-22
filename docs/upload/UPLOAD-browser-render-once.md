@@ -93,19 +93,39 @@ green.
 
 ## If you need to undo it
 
-Upload the previous file the same way: in step 2 open
-https://github.com/smh0602/gizmos-picks/blob/85c434f01b14146062e2fb4ac753ccbc7ef8013a/.github/workflows/browser.yml
-instead, and in step 8 paste:
+This puts back the file that was live before your upload.
 
-```
-browser.yml: back to the previous version (render tests run twice; no cron change)
-```
+1. Open **File Explorer**, click **Downloads**, and delete any old
+   `browser.yml` there.
+2. Open
+   https://github.com/smh0602/gizmos-picks/blob/85c434f01b14146062e2fb4ac753ccbc7ef8013a/.github/workflows/browser.yml
+   Its breadcrumb reads **gizmos-picks / .github / workflows / browser.yml**
+   (not docs / upload): that is correct for this link, because it is the old
+   live file. The branch button above the file shows `85c434f` instead of
+   `main`; that is expected too.
+3. Download it exactly as in step 3 above (**Download raw file**, or **Raw**,
+   **Ctrl+S**, **All Files (\*.\*)**, file name exactly `browser.yml`).
+4. Do steps 4 to 7 above unchanged: the **.github / workflows** page, **Add
+   file**, **Upload files**, **choose your files**, exactly **1 file**.
+5. In the **Commit changes** box paste this as the first line:
+
+   ```
+   browser.yml: back to the previous version (render tests run twice; no cron change)
+   ```
+
+6. Leave **Commit directly to the main branch** selected and click the green
+   **Commit changes** button.
 
 The render job is then about 7 minutes longer again, as it was before. Tell
-me too, so the staged copy in `docs/upload/` is put back to match.
+me too, so the staged copy in `docs/upload/` is put back to match (until it
+is, the "runs" report lists `browser.yml` as waiting again).
 
 ---
 
 ## Changelog
 
 - **2026-11-21:** first version.
+- **2026-11-21 (review, before merge):** the undo is its own numbered list.
+  The first version sent you to step 2, whose breadcrumb check
+  (docs / upload) the undo link cannot pass: that link is the old live file,
+  under .github / workflows.

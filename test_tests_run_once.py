@@ -25,6 +25,10 @@ so a real second run could be missed. It also missed `python ./test_x.py`,
 `python -X utf8 test_x.py`, `python3.11 test_x.py`, a `while read` or `xargs`
 fed by a pipe, and a `for` over `$(ls GLOB)`. Section 1 holds each of those;
 wfparse's note says what a runner, a command start and a loop are.
+✅ `[2026-11-21, review 2]` `node --check test_x.js` (`-c`) only parses the
+file; the reader had counted it as a run, so a correct job that syntax-checks
+its .js tests in one step and runs them in the next would have gone red. No
+workflow had that shape (all 28 files driven); section 1 plants it.
 ⚠️ WHAT THIS CANNOT SEE (wfparse's own note, in full): a script handed to
 another shell or runner as a string or on stdin (`bash -e "$loop"`, pr-tests'
 staged / offseason / champion jobs: one test step each; `bash -c`, `bash
@@ -110,6 +114,11 @@ nothing else.
 #   file: wfparse.py
 #   find: python(?:\d+(?:\.\d+)?)?
 #   with: python(?:\d+)?
+#
+# @vacuity 🔴 `node --check` (-c) only parses its file (review: a syntax-check step)
+#   file: wfparse.py
+#   find: "--print", "-c", "--check")
+#   with: "--print")
 #
 # @vacuity ⚠️ -m test_a runs test_a.py
 #   file: wfparse.py
@@ -197,6 +206,11 @@ for body, want, why in (
         ("python -X test_a.py other.py\n", [], "   ...so the word after -X is not the file"),
         ("python3.11 test_a.py\n", ["test_a.py"], "   ...python3.N is a runner"),
         ("python -m test_a\n", ["test_a.py"], "   ...-m test_a runs test_a.py"),
+        # `[2026-11-21, review]` node's check mode parses a file and runs none of it
+        ("node --check test_c.js\nnode -c test_c.js\n"
+         "for t in test_*.js; do node --check \"$t\"; done\n", [],
+         "🔴 `node --check` (-c) only parses its file: no run"),
+        ("node test_c.js -c\n", ["test_c.js"], "   ...while a -c after the file is the file's own"),
         ("python \\\n  test_a.py\n", ["test_a.py"], "   ...across a `\\` continuation"),
         ("for t in test_a.py \\\n         test_b.py; do\n  python \"$t\"\ndone\n",
          AB, "a loop over listed files, across a `\\` continuation"),
@@ -241,6 +255,13 @@ _hint = ("on: push\njobs:\n  j:\n    runs-on: x\n    steps:\n"
          "          EOF\n")
 eq(W.rerun_tests(_hint, F), [],
    "🔴 a suite step, then a step that only PRINTS how to rerun a file, is no finding (review)")
+_syntax = ("on: push\njobs:\n  j:\n    runs-on: x\n    steps:\n"
+           "      - name: Syntax check the js tests\n        run: |\n"
+           "          for t in test_*.js; do node --check \"$t\"; done\n"
+           "      - name: Tests\n        run: |\n"
+           "          for t in test_*.js; do node \"$t\"; done\n")
+eq(W.rerun_tests(_syntax, F), [],
+   "🔴 a `node --check` step, then the step that runs the files, is no finding (review)")
 
 _wf = ("on: push\njobs:\n"
        "  j:\n    runs-on: x\n    steps:\n"

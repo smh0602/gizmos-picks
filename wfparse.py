@@ -413,12 +413,14 @@ def job_names(src):
 #    "$@"; }`) is no wrapper.
 #    A runner is python, python3, python3.N or node, any path in front; its
 #    file is its first word after its own options (python's -X and -W take
-#    a value; -c and - run no file; -m test_x runs test_x.py), any path in
-#    front. A loop runs its words when its body runs "$VAR" that way:
-#    `for VAR in WORDS` (a glob, or the globs in a `$(ls GLOB)`, matched
-#    against `files`, the test files that exist), and `... | while read
-#    VAR` or `... | xargs [-I R] RUNNER [R]`, read as yielding every test
-#    file the commands piped in name.
+#    a value; python's -c, node's -e, -p and -c, and - run no file: `node
+#    --check` (-c) only parses it, ~~counted as a run~~ `[2026-11-21,
+#    review]`; -m test_x runs test_x.py), any path in front. A loop runs
+#    its words when its body runs "$VAR" that way: `for VAR in WORDS` (a
+#    glob, or the globs in a `$(ls GLOB)`, matched against `files`, the
+#    test files that exist), and `... | while read VAR` or `... | xargs [-I
+#    R] RUNNER [R]`, read as yielding every test file the commands piped in
+#    name.
 # ⛔ It cannot see: a script handed to another shell or runner as a string
 #    or on stdin (`bash -e "$loop"`: pr-tests' staged, offseason and
 #    champion jobs; `bash -c "..."`; `bash <<EOF`; `python - < test_x.py`);
@@ -696,7 +698,7 @@ def _functions(toks, out):
 def _target(w):
     """The file a runner command runs: its first word after its own options;
     "" when it names none (xargs supplies it); None when it is no runner, or
-    runs code (-c, -e) or stdin (-)."""
+    runs code (-c, -e) or stdin (-), or only parses its file (node -c)."""
     if not w or not _RUNNER_WORD.match(w[0].rsplit("/", 1)[-1]):
         return None
     node = w[0].rsplit("/", 1)[-1].startswith("node")
@@ -705,8 +707,8 @@ def _target(w):
         a = w[i]
         if a == "--":
             return w[i + 1] if i + 1 < len(w) else ""
-        if a == "-" or (node and a in ("-e", "--eval", "-p", "--print")):
-            return None
+        if a == "-" or (node and a in ("-e", "--eval", "-p", "--print", "-c", "--check")):
+            return None                   # node -c / --check only parses the file
         if not a.startswith("-"):
             return a
         if node or a.startswith("--"):
