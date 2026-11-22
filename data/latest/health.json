@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-22T01:04:19Z",
+ "checked_at": "2026-11-22T01:11:04Z",
  "et_date": "2026-11-21",
  "healthy": false,
  "broken": 0,
- "degraded": 14,
+ "degraded": 16,
  "findings": [
   {
    "key": "late:gamelines:mlb",
@@ -103,6 +103,20 @@
    "what": "nfl gamelines was bought 3 times for its Fri 18:00Z deadline (18 credits)",
    "why": "1 deadline(s) in the last 48 hours were bought more than once, 2 extra buy(s), 12 credits: due Fri 18:00Z: Fri 19:33Z (6), Fri 19:34Z (6), Fri 20:19Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
    "repair": null
+  },
+  {
+   "key": "clock:browser",
+   "severity": "DEGRADED",
+   "what": "browser's render used 84% of its clock in the last 7 days",
+   "why": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46). 1 job(s) of this workflow were at 75% or more: render 84%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
+  },
+  {
+   "key": "clock:pr-tests",
+   "severity": "DEGRADED",
+   "what": "pr-tests's tests \u00b7 sweep 3/4 used 79% of its clock in the last 7 days",
+   "why": "pr-tests's tests \u00b7 sweep 3/4 used 79% of test_vacuity.py's 5400s clock (4303s, run 227, 2026-11-18T04:55). 3 job(s) of this workflow were at 75% or more: tests \u00b7 sweep 3/4 (file test_vacuity.py) 79%; render 79%; tests (ubuntu-26.04) \u00b7 sweep 2/4 (file test_vacuity.py) 76%. \u26d4 Add parts (pr-tests.yml's `shard:` matrix); do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "repair": null
   }
  ],
  "repairs": [],
@@ -114,7 +128,7 @@
   "pulled_at": "2026-11-22T00:07:49Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.9,
+  "reading_age_hours": 1.1,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-22T00:07:49Z",
   "source": "data/2026-11-22/props-pitcher/0007.json.gz",
@@ -153,6 +167,9 @@
   }
  },
  "job_clocks": {
-  "could_not_look": "the run list is 2 hours old"
+  "jobs_measured": 598,
+  "days": 7,
+  "warn_at": 0.75,
+  "slowest": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46)"
  }
 }
