@@ -30,7 +30,10 @@ that sends Sam to another step's link in words ("as in step 2").
 ✅ Driven on every docs/upload/*.md on the day it was written: base 85c434f01
 (17 files, 44 breadcrumbs, 31 opened links) and this branch (18, 47, 34) all
 agree; it fired only on the first version of UPLOAD-browser-render-once.md's
-undo (02644d4f1, its line 97).
+undo (1ecf4576e, its line 97). `[2026-11-22]` Tested together with the open
+football relay pull request, it fired once more: that PR's
+UPLOAD-collect-football-relay.md opened relay-beat.json with no breadcrumb
+(fixed there in 7a2eeb1d9).
 
 # @vacuity 🔴 the undo's link with no breadcrumb of its own is caught (the 11-21 shape)
 #   file: docs/upload/UPLOAD-browser-render-once.md
