@@ -446,8 +446,24 @@ jobs:
           print("browser OK")
           PY
 
+      # 🔴 THE RENDER FILES RUN ONCE, AND WHAT THEY PRINT IS KEPT FOR THE
+      # NEXT STEP. `[2026-11-21]` The next step used to run all five again
+      # only to look for "NO BROWSER HERE", so every run did the render
+      # suite twice: 406s here and 402s there on run 44886195117 (400-405s
+      # on each of 20 runs to 11-21), and a slow `--with-deps` install
+      # (446s, run 44496294172, #252) took the job to 1273s, 85% of its
+      # 25-minute clock. ✅ Each file's output (stdout and stderr) is shown
+      # as before AND written to a log of this step's own (mktemp, never a
+      # fixed path: test_step_tmp.py), whose path goes to the next step as
+      # RENDER_LOG, with one header line for each file it ran.
+      # ⛔ pipefail, because the loop would otherwise read `tee`'s exit
+      # code and a failing file would pass. Driven by test_render_once.py;
+      # no test file runs in two steps of one job (test_tests_run_once.py).
       - name: Render tests
         run: |
+          set -o pipefail
+          log=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/render.XXXXXX")
+          echo "RENDER_LOG=$log" >> "$GITHUB_ENV"
           rc=0
           ran=0
           for t in test_box_live.py test_box_score.py test_live_scores.py \
@@ -455,7 +471,8 @@ jobs:
             [ -e "$t" ] || continue
             ran=$((ran+1))
             echo "── $t"
-            python "$t" || { rc=1; echo "::error::$t FAILED"; }
+            printf '\n── %s\n' "$t" >> "$log"
+            python "$t" 2>&1 | tee -a "$log" || { rc=1; echo "::error::$t FAILED"; }
           done
           echo "ran $ran render test file(s)"
           # ⛔ ZERO FILES IS A FAILURE, NOT A PASS — a glob that matches
@@ -473,14 +490,34 @@ jobs:
       # precisely the silence this file was written to remove.
       # ⚠️ `collect.yml` keeps the note-and-continue behaviour, because
       # there the absence is correct (rule 133).
+      # ✅ `[2026-11-21]` IT READS WHAT RENDER TESTS PRINTED AND RUNS NO
+      # FILE ITSELF (~~it ran all five again~~). ⛔ A log it cannot read is
+      # a FAILURE, never a pass: no log, an empty one, or a render file
+      # with no header in it means Render tests never ran (an earlier step
+      # failed), stopped part way or was cancelled, and a skip in output
+      # nobody printed cannot be ruled out. The re-run caught a skipped
+      # Render tests step by printing NO BROWSER itself; this keeps that.
       - name: A skipped render check is a failure in THIS workflow
         if: always()
         run: |
-          out=$(for t in test_box_live.py test_box_score.py \
-                         test_live_scores.py test_nfl_opener.py \
-                         test_league_switch.py; do
-                  [ -e "$t" ] && python "$t" 2>&1
-                done | grep -c "NO BROWSER HERE" || true)
+          log="${RENDER_LOG:-}"
+          if [ -z "$log" ] || [ ! -s "$log" ]; then
+            echo "::error::Render tests left no output to read (it did not run, or stopped before writing), so a skipped render check cannot be ruled out"
+            exit 1
+          fi
+          missing=""
+          for t in test_box_live.py test_box_score.py \
+                   test_live_scores.py test_nfl_opener.py \
+                   test_league_switch.py; do
+            if [ -e "$t" ] && ! grep -qxF -- "── $t" "$log"; then
+              missing="$missing $t"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Render tests never ran$missing, so a skipped render check there cannot be ruled out"
+            exit 1
+          fi
+          out=$(grep -c "NO BROWSER HERE" "$log" || true)
           if [ "$out" != "0" ]; then
             echo "::error::$out file(s) reported NO BROWSER — the install did not take"
             exit 1
