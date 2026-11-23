@@ -445,18 +445,18 @@ try:
     # ══════════════════════════════════════════════════════════════════
     _fresh = [{"mode": m, "path": p, "stale": False, "paid": False, "unhealthy": None, "missing": False}
               for m, p in (("props-board", "props.json.gz"), ("card-fb", "fb-model.json"))]
-    _keep = FR.survey, FR.slate_moves, FR.every_pass, FR.injury_retry
+    _keep = FR.survey, FR.slate_moves, FR.before_card, FR.injury_retry
     try:
         FR.survey = lambda data, picks, now: [dict(r) for r in _fresh]
         FR.slate_moves = lambda data, picks, now: set()
-        FR.every_pass = lambda data, now: set()
+        FR.before_card = lambda data, need: set()      # `[2026-11-18]` ~~every_pass~~
         FR.injury_retry = lambda data, now: set()
         eq(FR.plan(tree("nfl", {"built_by": "0" * 16}), _D + "/picks")[0], ["card-fb"],
            "🔴🔴 every row fresh, a model file built by other code: the pass runs card-fb")
         eq(FR.plan(tree("nfl", _OK["fb-model.json"]), _D + "/picks")[0], [],
            "   ✅ ...and nothing when this code built both")
     finally:
-        FR.survey, FR.slate_moves, FR.every_pass, FR.injury_retry = _keep
+        FR.survey, FR.slate_moves, FR.before_card, FR.injury_retry = _keep
     import datetime
     _now = datetime.datetime(2026, 11, 10, 3, 0, tzinfo=datetime.timezone.utc)
 

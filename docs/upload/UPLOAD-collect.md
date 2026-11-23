@@ -1,6 +1,18 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: the two alerts leave their issue alone when they could not look `[2026-11-04]`
+## Current: the football relay keeps a run alive at every football deadline `[Sam, 2026-11-18]`
+
+Every click, the commit message, what to expect and how to tell it worked are
+in **`docs/upload/UPLOAD-collect-football-relay.md`**. One file, no cron
+change, +0 credits. Upload it after the pull request "The football relay: one
+run keeps football alive at every deadline, late crons step back, injuries
+every 2 hours" merges.
+
+---
+
+## ~~Current:~~ Done: the two alerts leave their issue alone when they could not look `[2026-11-04]`
+
+✅ Uploaded: commit fdfa13480 on 2026-11-05.
 
 Every click and the commit message are in
 **`docs/upload/UPLOAD-collect-alerts.md`**. One file, no cron change.
@@ -365,6 +377,11 @@ workflows: pin ubuntu-24.04, Node 24 actions, pinned Python (no cron change)
 
 ## Changelog
 
+- **2026-11-20:** new section on top pointing to
+  `UPLOAD-collect-football-relay.md` (the football relay); the 2026-11-04
+  alerts section is marked done (uploaded in fdfa13480 on 2026-11-05), not
+  deleted. (The 2026-11-11 `converge-off` upload, 84af19115, went through
+  `UPLOAD-collect-converge-off.md` and had no section here.)
 - **2026-11-04:** new section on top pointing to `UPLOAD-collect-alerts.md`;
   the 2026-10-06 relay section is marked done (uploaded in c2191c73), not
   deleted.
