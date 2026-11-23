@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-23T01:37:27Z",
+ "checked_at": "2026-11-23T03:25:42Z",
  "et_date": "2026-11-22",
  "healthy": false,
  "broken": 0,
- "degraded": 13,
+ "degraded": 14,
  "findings": [
+  {
+   "key": "late:news:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb news was built 66 minutes after it was due",
+   "why": "due 2026-11-23T01:05Z, built 2026-11-23T02:10Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "repair": null
+  },
   {
    "key": "late:card-fb:ncaaf",
    "severity": "DEGRADED",
@@ -107,7 +114,7 @@
   "pulled_at": "2026-11-22T20:10:02Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 5.5,
+  "reading_age_hours": 7.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-22T20:10:02Z",
   "source": "data/2026-11-22/props-pitcher/2010.json.gz",
@@ -146,7 +153,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 705,
+  "jobs_measured": 710,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4158, 2026-11-22T16:59)"
