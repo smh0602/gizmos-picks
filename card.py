@@ -45,7 +45,7 @@ import unicodedata
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (C2)
+import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (~~C2~~ C1 since Sam, 2026-10-11)
 import calibration as _calib  # noqa: E402  the ONE per-band "runs hot" rule
 import one_side  # noqa: E402  one team per game: the expected winner (Sam, 2026-10-16)
 import freshness as _F  # noqa: E402  with_heartbeat: a file's stamps as last written
@@ -57,6 +57,16 @@ MODEL_VERSION = "v5.0"
 #    caveat sentence (`plain_why.PHRASES`). Every card main() builds is stamped with it, so
 #    verify_card.py holds THAT card to it and never a card published before (permanent).
 WHY_RULE = "plain-2026-11-18"
+
+# 🔴 `[Sam, 2026-10-11]` "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS": the
+#    words under a number never say a price made it when the method that made it reads none
+#    (`price_claims`). Every C1 card from 10-12 to 10-28 said its pitcher rows were
+#    "corrected against the price"; the words now come from the method (`correction_words`).
+#    ✅ A SIBLING OF `WHY_RULE`, NOT A BUMP OF IT (2026-11-19): `why_caveats` holds a card to
+#    the 11-18 rule by EQUALITY, so a new value there would stop checking any card stamped
+#    with the old one; two stamps keep each rule's own scope. Stamped by main() on every
+#    card, so verify_card.py holds THAT card to it, never one published before (permanent).
+OWN_NUMBER_RULE = "own-number-2026-11-19"
 
 # Sam's board size, in his words: "i would like to see 25-50 players
 # everytime, including hitters props as well as pitchers."
@@ -140,6 +150,47 @@ def why_caveats(doc):
                 walk(v, who)
     walk(doc)
     return out
+
+
+def correction_words(method):
+    """How a pitcher row's printed number was corrected, in reader words, FROM the method that
+    corrected it -> (the note's ending, the why's opening), or None for the plain blend.
+    `[2026-11-19]` ~~"then corrected against the price" on every corrected row~~: true under
+    C2, false on every C1 card from 2026-10-12 (Sam, 2026-10-11: "BASED ON THE MODELS
+    CONFIDENCE SCORE NOT THE SPORTSBOOKS"). ⛔ Whether a price entered is asked of the code
+    the card prints through (`mlb_pitcher_cal.reads_price`, which drives `corrected()`), never
+    typed here, so a method switch cannot leave the words behind again. Every method
+    `corrected()` prints is fitted on graded pitcher plays from earlier cards (`mappings`), so
+    the two sentences cover it: with the price (C2, and D as `corrected()` prints it
+    `[2026-11-20]`) or without (C1)."""
+    if method in (None, "BLEND"):
+        return None
+    if pcal.reads_price(method):
+        return ("then corrected against the price using graded pitcher plays from earlier cards",
+                "Before checking it against the price")
+    return ("then corrected by how often our pitcher plays on earlier cards actually hit; "
+            "no price enters it",
+            "Before correcting it by our pitcher picks' own record")
+
+
+def row_reads_price(row):
+    """Does this row's printed number take a price as an input? Only a pitcher row has a
+    correction method (`confidence_method`); a hitter's record and the game model's
+    moneyline and run line never read one (test_mlb_own_number.py)."""
+    return pcal.reads_price(row.get("confidence_method"))
+
+
+def price_claims(doc):
+    """The guard verify_card.py runs: every sentence on the card that says a price made a
+    number whose method reads none -> [(who, phrase, text)]: each row's `confidence_note`
+    and every why line, in every list the card holds (`plain_why.PRICE_INPUT`). A row whose
+    method reads the price (C2) may say so. None when the card was not built by this code
+    (no `own_number_rule` stamp): a published card is permanent and keeps its words
+    (`[2026-11-19]`, from the first 2027 card). `[2026-11-20]` The walk is plain_why's, the
+    one football's guard makes too (`card_fb.price_claims`, rule 117)."""
+    if not isinstance(doc, dict) or doc.get("own_number_rule") != OWN_NUMBER_RULE:
+        return None
+    return plain_why.price_claims(doc, row_reads_price)
 
 
 def player_market_repeats(rows):
@@ -379,7 +430,8 @@ BAND_ORDER = ("under-60", "60-70", "70-80", "80-plus")
 _BUCKET_BAND = {"50-60%": "under-60", "60-70%": "60-70", "70-80%": "70-80",
                 "80-90%": "80-plus", "90-100%": "80-plus"}
 CAL = {}
-# The C2 mapping per market, fitted in main() before any row is built.
+# The ~~C2~~ `pcal.SHIPPED` mapping per market (C1 since Sam, 2026-10-11), fitted in main()
+# before any row is built.
 PCAL = {}
 # Hitter stated-vs-actual on the printed number, from record.json.
 HCAL = []
@@ -1233,11 +1285,14 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         # (the same class as rule 184, where a stamp and the code
         # disagreed). ⛔ A version is a fact about the code: read it,
         # never retype it.
+        # 🔴 `[2026-11-19]` ~~", then corrected against the price using graded pitcher
+        #    plays from earlier cards."~~ on every corrected row: the same class again, a
+        #    method (C1, no price) the words did not follow. They come from the method now
+        #    (`correction_words`); `price_claims` is the guard.
         "confidence_note": (MODEL_VERSION + " model blended 50/50 with his "
                             "own rate at this line"
-                            + ("." if conf_method == "BLEND" else
-                               f" ({blend:.0f}%), then corrected against the price "
-                               f"using graded pitcher plays from earlier cards.")),
+                            + ("." if correction_words(conf_method) is None else
+                               f" ({blend:.0f}%), {correction_words(conf_method)[0]}.")),
         # The single number Sam asked for beside the line, covers-style. It is
         # the blend read backwards, so it can never argue with the confidence.
         # ⛔ SET TO None ON PURPOSE. apply_projections() is the ONLY writer
@@ -1290,7 +1345,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         "why": why_lines(p, market, side, line, h, n, model, raw, blend,
                          ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
                          price, be, k9, era, grp, book, splits, opp_recent,
-                         oppRank, central, shown=shown),
+                         oppRank, central, shown=shown, method=conf_method),
         "flags": flags,
     }
 
@@ -1298,7 +1353,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
 def why_lines(p, market, side, line, h, n, model, raw, blend,
               ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
               price, be, k9, era, grp, book, splits=None, opp_recent=None,
-              oppRank=None, central=None, shown=None):
+              oppRank=None, central=None, shown=None, method=None):
     """Why the card likes this, in words a person reads once and gets.
 
     🔴 REWRITTEN 2026-08-26. Sam: "this is too confusing to read, the user
@@ -1419,11 +1474,16 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
              + (f" with a <b>{era} ERA</b>." if era is not None else "."))
 
     # ---- 7. the price, in plain terms
+    # ✅ The price says which bet is priced and what it needs to break even. `[2026-11-19]`
+    #    ~~"Before checking it against the price it read X%"~~ on every corrected row: false
+    #    under C1, which no price enters (Sam, 2026-10-11). The opening comes from the method
+    #    (`correction_words`); the number before the correction stays, it is the argument.
+    _cw = correction_words(method)
     if price is not None and be is not None:
         w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the time "
                  f"just to break even. We make it <b>{(blend if shown is None else shown):.0f}%</b>."
-                 + ("" if shown is None or round(shown) == round(blend) else
-                    f" Before checking it against the price it read {blend:.0f}%; "
+                 + ("" if shown is None or round(shown) == round(blend) or _cw is None else
+                    f" {_cw[1]} it read {blend:.0f}%; "
                     f"our pitcher picks have hit less often than they claimed, so "
                     f"the number is corrected using every graded pitcher play so far.")
                  + ("" if book in ("hardrockbet", "hardrockbet_oh") else
@@ -2050,7 +2110,7 @@ def build_pairs(plays, limit=8):
             mult = decimal(a["price"]) * decimal(b["price"])
             if mult < FLOOR:
                 continue
-            # ⚠️ The PRINTED number, corrected (C2) where a mapping exists.
+            # ⚠️ The PRINTED number, corrected (~~C2~~ C1 since 2026-10-11) where a mapping exists.
             _ca, _cb = a.get("confidence_value", a["blend"]), b.get("confidence_value", b["blend"])
             joint = _ca / 100.0 * _cb / 100.0
             be = 100.0 / mult
@@ -3058,6 +3118,7 @@ def main(dry=False):
         "generated_by": "card.py -- automated, unattended",
         "model_version": MODEL_VERSION,
         "why_rule": WHY_RULE,
+        "own_number_rule": OWN_NUMBER_RULE,
         "odds_pulled_at": B.get("pitcher_odds_at"),
         "logs_pulled_at": P.get("pulled_at"),
         "opponent_table": {

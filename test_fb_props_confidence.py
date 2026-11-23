@@ -88,6 +88,16 @@ and Low Guy's over at 41.6% must never reach the card (test_one_side_props.py ho
 #   file: card_fb.py
 #   find:                 if r.get("confidence_basis") == "MODEL":
 #   with:                 if False:
+#
+# @vacuity 🔴 [2026-11-19] a MODEL row's note never says a price made its number
+#   file: card_fb.py
+#   find:                                                "and line, priced on this card's own board."),
+#   with:                                                "and line, corrected against the price on this card's own board."),
+#
+# @vacuity 🔴 [2026-11-20] ...nor a record row's sentence, on any list of the card (football's walk)
+#   file: card_fb.py
+#   find:     return [f"<b>{who}</b> {did} in {rec}, {when}."]
+#   with:     return [f"<b>{who}</b> {did} in {rec}, {when}, checked against the books' chance."]
 """
 import atexit
 import datetime
@@ -238,6 +248,21 @@ _bad += [(r["player"], k) for r in _rows for k in ("confidence_note", "projectio
          if plain_why.found(r.get(k)) or "no model" in (r.get(k) or "")]
 ck(bool(_rows) and not _bad, "🔴 every row, priced or not: one sentence, and no caveat in it or its notes",
    str(_bad[:3]))
+# `[2026-11-19]` ...and no row's note or why says a price made its number while the method that made
+#    it reads none (Sam, 2026-10-11: "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS"):
+#    the props model's stage 2 (asked of s2_features: fb_props_model.stage2_reads_price) and a
+#    player's own record. plain_why.PRICE_INPUT is the one list (test_price_words.py, MLB too).
+#    `[2026-11-20]` ~~the board's rows and the liked list, by a predicate typed here~~: the whole
+#    card, every list it holds, through football's guard (`card_fb.price_claims`, the walk MLB's
+#    verify_card.py makes: plain_why.price_claims), each row asked of its own method's code.
+import fb_props_model as _FPM  # noqa: E402
+_s2p = _FPM.stage2_reads_price()
+_rows_l = _rows + [r for d in (DOC, STALE) for r in (d.get("liked") or []) if isinstance(r, dict)]
+_pin = [(lg, w, p) for lg, d in (("doc", DOC), ("stale", STALE)) for w, p, _t in CF.price_claims(d)]
+ck(not _s2p and any(r.get("confidence_basis") == "MODEL" and r.get("confidence_note") for r in _rows_l)
+   and any(r.get("confidence_basis") == "RECORD" and r.get("why") for r in _rows_l) and not _pin,
+   "🔴 no row's note or why on the card, the model's or the record's, in any list, says a price made "
+   "its number (stage 2 reads none)", str(_pin[:3]))
 
 section("4. 🔴 THE TRACK RECORD STARTS A NEW METHOD FROM THE SWITCH")
 # `[Sam, 2026-10-11]` ~~"+props-model"~~ -> "+props-own": the model's own chance, no price.

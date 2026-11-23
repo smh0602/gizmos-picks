@@ -21,9 +21,11 @@ Everything is built in a temp tree; the repo's record is never read.
 #   file: mlb_pitcher_cal.py
 #   find: if before is not None and date >= before:
 #   with: if before is not None and date > before:
+# `[2026-11-20]` re-aimed: corrected() takes the method it prints (`method`, SHIPPED unless
+#    mlb_pitcher_cal.reads_price asks about another), so the switch reads ~~`if SHIPPED`~~ `if method`.
 # @vacuity the off switch must actually switch the correction off
 #   file: mlb_pitcher_cal.py
-#   find: m = (maps or {}).get(market) if SHIPPED else None
+#   find: m = (maps or {}).get(market) if method else None
 #   with: m = (maps or {}).get(market)
 # @vacuity importing fb_model would drag card_fb (which exits on mlb) into the card
 #   file: mlb_pitcher_cal.py

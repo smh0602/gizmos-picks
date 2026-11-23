@@ -171,8 +171,9 @@ def graded_rows(root=ROOT, before=None):
 
 
 def mappings(before, root=ROOT):
-    """{market: fitted C2 mapping, or None below fb_model.MIN_TRAIN}, fitted
-    on every graded row with a card date before `before` (walk-forward)."""
+    """{market: the fitted ~~C2~~ `SHIPPED` mapping (C1 since `[Sam, 2026-10-11]`),
+    or None below fb_model.MIN_TRAIN}, fitted on every graded row with a card
+    date before `before` (walk-forward)."""
     rows = graded_rows(root, before)
     out = {}
     for mk in MARKETS:
@@ -182,15 +183,22 @@ def mappings(before, root=ROOT):
     return out
 
 
-def corrected(maps, market, blend_pct, be_pct=None):
+_AS_SHIPPED = object()      # corrected()'s default method: whatever SHIPPED names when it runs
+
+
+def corrected(maps, market, blend_pct, be_pct=None, method=_AS_SHIPPED):
     """The printed confidence (0-100), or None when there is no mapping.
-    ⛔ Under C1 the price is never read: a row with no price is corrected too."""
+    ⛔ Under C1 the price is never read: a row with no price is corrected too.
+    `[2026-11-20]` `method`: card.py never passes it (the card prints SHIPPED's);
+    `reads_price` does, to ask THIS function, the one the card prints through, what
+    another method would print."""
+    method = SHIPPED if method is _AS_SHIPPED else method
     # ⛔ SAM'S OFF SWITCH: `SHIPPED = None` prints the plain blend again.
-    m = (maps or {}).get(market) if SHIPPED else None
-    if m is None or blend_pct is None or (SHIPPED != "C1" and be_pct is None):
+    m = (maps or {}).get(market) if method else None
+    if m is None or blend_pct is None or (method != "C1" and be_pct is None):
         return None
     return 100.0 * fb_model.predict(m, features(
-        {"blend": blend_pct / 100.0, "be": None if be_pct is None else be_pct / 100.0}, SHIPPED))
+        {"blend": blend_pct / 100.0, "be": None if be_pct is None else be_pct / 100.0}, method))
 
 
 def smoothed(r):
@@ -200,6 +208,42 @@ def smoothed(r):
 
 def features(r, cand):
     return [logit(r["blend"])] if cand == "C1" else [logit(r["blend"]), logit(r["be"])]
+
+
+def reads_price(method):
+    """Does a pitcher row printed by `method` take its PRICE as an input? -> bool.
+
+    `[2026-11-19]` The words under the number say how it was made (card.py's
+    `correction_words`), and a card's note and why said "corrected against the
+    price" on every C1 card from 2026-10-12 to 10-28, after Sam's 2026-10-11
+    "BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS" removed the price.
+    ✅ ASKED OF THE CODE THE CARD PRINTS THROUGH, NEVER A LIST TYPED HERE:
+    `corrected()` itself, under `method`, with a mapping as wide as that method's
+    inputs (`features`, which `mappings()` fits on), is given one row at two prices
+    (the break-even, `be`) and once with none. A method whose number moves with
+    the price, or that prints nothing without one, reads the price.
+    `[2026-11-20]` ~~`smoothed` for D, as `walk_forward` scores it~~: the card never
+    prints through `smoothed`. Under SHIPPED = "D" it prints `corrected()`, whose
+    inputs are the blend AND the price, so D reads the price; the ~~"D no"~~
+    answer would have labelled a price-corrected number "no price enters it", and
+    the guard would have required those words. If D is ever meant to print as the
+    smoothed formula, `corrected()` implements it first and this follows.
+    "BLEND" (no mapping, card.py's label) and None (the off switch,
+    `SHIPPED = None`) print the plain blend, which no price enters.
+    ⛔ A method this file does not score raises: a new one is answered by its
+    code, never assumed."""
+    if method in (None, "BLEND"):
+        return False
+    if method not in CANDIDATES:
+        raise ValueError("mlb_pitcher_cal: no scored method %r" % (method,))
+    width = len(features({"blend": 0.62, "be": 0.45}, method))
+    probe = {"probe": {"mu": [0.0] * width, "sd": [1.0] * width, "w": [0.0] + [1.0] * width}}
+    at = [corrected(probe, "probe", 62.0, be, method=method) for be in (45.0, 58.0)]
+    try:
+        bare = corrected(probe, "probe", 62.0, None, method=method)
+    except (TypeError, ValueError):      # its inputs cannot be made without a price
+        bare = None
+    return at[0] != at[1] or bare is None
 
 
 def walk_forward(rows):

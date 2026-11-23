@@ -5,15 +5,23 @@
     LEAGUE=nfl python fb_props_model.py     # retrain, walk-forward, write
 
 Stage 1 predicts each player's stat distribution from the stored player
-logs (2021–2026), every input known before kickoff. Stage 2 folds in the
-market line, fitted only on EARLIER priced weeks. Walk-forward weekly over
+logs (2021–2026), every input known before kickoff. Stage 2 ~~folds in the
+market line~~ `[Sam, 2026-10-11]` corrects stage 1 by its own past misses, NO
+price (`s2_features`, `stage2_reads_price`), fitted only on EARLIER priced
+weeks. Walk-forward weekly over
 the stored prop snapshots, graded at the best Hard Rock / FanDuel /
 DraftKings price, and scored champion-vs-challenger against the existing
 props card's own probabilities.
 
-⛔ IT DOES NOT REPLACE THE CARD. `card_fb.py` never imports this file, and
-the champion's probabilities are RECOMPUTED with the card's own
-`rate_for`, never edited. Switching is Sam's decision.
+⛔ ~~IT DOES NOT REPLACE THE CARD.~~ `[Sam, 2026-10-09]` it sets the card's
+confidence where it prices a prop (CLAUDE.md: THE PROPS MODEL SETS THE FOOTBALL
+CARD'S CONFIDENCE).
+~~`card_fb.py` never imports this file~~ `[2026-11-20]` card_fb imports it only inside
+`row_reads_price`, the price-words guard its tests run (`card_fb.price_claims`); no
+card build calls that function (`test_import_claims.py` holds every such sentence to
+the imports). The champion's probabilities are RECOMPUTED with the card's own
+`rate_for`, never edited. ~~Switching is Sam's decision.~~ Sam switched it on
+2026-10-09.
 ⛔ NEVER INVENTS A PRICE: a side with no quote at the three books is not
 picked, and a rung with no outcome in the logs is not graded.
 ⚠️ STDLIB ONLY.
@@ -632,6 +640,21 @@ def s2_features(market, p1):
     """`[Sam, 2026-10-11]` stage 1 corrected by its own past misses, NO price:
     ~~[logit(p1), logit(the books' chance), TD]~~ -> [logit(p1), TD]."""
     return [logit(p1), 1.0 if market == TD_MARKET else 0.0]
+
+
+def stage2_reads_price():
+    """Does the chance the card prints (stage 2) take a price as an input? -> bool.
+
+    `[2026-11-19]` For the words under it (`plain_why.PRICE_INPUT`): a sentence
+    about a number no price made never says a price made it. ✅ Asked of
+    `s2_features` itself, the ONE place stage 2's inputs are made (`s2_rows`
+    trains on it, `final_probs` predicts on it): a price reaches stage 2 only as
+    an input to it, and its inputs are the market and stage 1's chance (~~logit(
+    the books' chance)~~ until Sam's 2026-10-11 change). Any other input counts as
+    a price, and test_price_words.py fails on a new input until someone says
+    whether it is one (an input added quietly would otherwise switch the guard off)."""
+    import inspect
+    return list(inspect.signature(s2_features).parameters) != ["market", "p1"]
 
 
 def s2_rows(market, p1_over, y):

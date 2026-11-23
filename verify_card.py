@@ -150,7 +150,8 @@ ck("multiplier = product of the two decimals, recomputed from the prices", mm <=
 # case except the exact-boundary one, because a wrong joint no longer gets
 # to hide behind the verifier's own rounding.
 # ⚠️ `[2026-09-25, C2]` the joint is the product of the two PRINTED
-# numbers (`leg_confidences`, corrected against the price); a card from
+# numbers (`leg_confidences`, corrected ~~against the price~~, by their own
+# record since `[Sam, 2026-10-11]` C1); a card from
 # before carries only `leg_blends`, which were the printed numbers then.
 jm = max((abs(p['joint'] - _lc[0]*_lc[1]/100) for p in doc['pairs']
           for _lc in [p.get('leg_confidences') or p['leg_blends']]), default=0)
@@ -1328,11 +1329,13 @@ ck("no model diagnostic is marked for display", not _bad, str(_bad[:3]))
 
 print("\n39. THE PRINTED PITCHER NUMBER AND THE HITTER BAND LABEL, RE-DERIVED")
 # 🔴 `[2026-09-25]` research/mlb_pitcher_cal_spec.md: C2 qualified, so a
-# pitcher row prints `blend` corrected against its price. ⛔ Re-derived
+# pitcher row prints `blend` ~~corrected against its price~~ corrected
+# (`[Sam, 2026-10-11]` C1: by its own past misses, no price). ⛔ Re-derived
 # here from the mapping the card stored, through the SAME function the
 # card and the test used (one copy, rule 207), on EVERY pitcher row.
 import mlb_pitcher_cal as _pc
 import calibration as _cb
+import plain_why as _pw
 _pcor = doc.get('pitcher_correction') or {}
 _pmaps = _pcor.get('maps') or {}
 _pbad = []
@@ -1364,9 +1367,39 @@ ck(f"every pitcher row prints the number its stored correction gives "
    f"({len(_pall)} priced rows)", not _pbad, str(_pbad[:3]))
 # ⛔ `blend` itself must be untouched by the correction (check 12 above
 # pins the 50/50); a row whose printed number moved must still say so.
-ck("a corrected pitcher row says so in its note",
-   all('corrected against the price' in (r.get('confidence_note') or '')
-       for r in _pall if r.get('confidence_method') not in (None, 'BLEND')))
+# 🔴 `[2026-11-19]` ~~'corrected against the price' in every corrected row's note~~
+#    asked for words that are FALSE under C1 (Sam, 2026-10-11: "BASED ON THE MODELS
+#    CONFIDENCE SCORE NOT THE SPORTSBOOKS"), and every C1 card from 10-12 to 10-28 passed
+#    it by carrying them: the wrong question. Rewritten, never deleted, and harder: a card
+#    this code built (`own_number_rule`) says its correction in the words ITS METHOD's code
+#    gives (`card.correction_words`) AND names a price exactly when that method reads one
+#    (`mlb_pitcher_cal.reads_price`, `plain_why.price_input`). Under C2 that is the old
+#    words, still required. A card published before the stamp is asked the old question:
+#    every one carries the old words, and published cards are permanent.
+_pcorr = [r for r in _pall if r.get('confidence_method') not in (None, 'BLEND')]
+if doc.get('own_number_rule') == C.OWN_NUMBER_RULE:
+    _pnote = [(r.get('pitcher'), r.get('market'), r.get('confidence_method')) for r in _pcorr
+              if C.correction_words(r['confidence_method'])[0] not in (r.get('confidence_note') or '')
+              or bool(_pw.price_input(r.get('confidence_note'))) != _pc.reads_price(r['confidence_method'])]
+    ck(f"a corrected pitcher row says so in its note, in its method's own words, naming a "
+       f"price only when that method reads one ({len(_pcorr)} rows)", not _pnote, str(_pnote[:3]))
+else:
+    ck("a corrected pitcher row says so in its note",
+       all('corrected against the price' in (r.get('confidence_note') or '') for r in _pcorr))
+# 🔴 `[2026-11-19]` ...AND NO SENTENCE ON THE CARD SAYS A PRICE MADE A NUMBER WHOSE METHOD
+#    READS NONE: the CLASS, every row of every list the card holds, its note and every why
+#    line (`card.price_claims`, `plain_why.PRICE_INPUT`). Only a card this code built
+#    carries the stamp: a published card is permanent, never rebuilt, and keeps its words.
+ck("a card dated after the 2026-11-19 change carries the own-number stamp",
+   doc.get('own_number_rule') == C.OWN_NUMBER_RULE or str(doc.get('date') or '') <= '2026-11-19',
+   f"date {doc.get('date')}, own_number_rule {doc.get('own_number_rule')!r}")
+_pcl = C.price_claims(doc)
+if _pcl is None:
+    print("  NOTE  this card has no own_number_rule stamp: published before the 2026-11-19 "
+          "change, so its words keep their old lines (not checked)")
+else:
+    ck("no sentence on the card names a price its number's method never read", not _pcl,
+       str(_pcl[:3]))
 
 # 🔴 AUDIT PROPOSAL B. The hitter "runs hot" label, both directions, on
 # every hitter row, from the band table the card stored.
