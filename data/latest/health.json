@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-24T13:32:47Z",
+ "checked_at": "2026-11-24T16:51:41Z",
  "et_date": "2026-11-24",
  "healthy": false,
  "broken": 0,
- "degraded": 8,
+ "degraded": 6,
  "findings": [
   {
    "key": "late:cfb-teams:ncaaf",
@@ -14,24 +14,10 @@
    "repair": null
   },
   {
-   "key": "late:fb-record:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf fb-record was built 122 minutes after it was due",
-   "why": "due 2026-11-17T13:00Z, built 2026-11-17T15:02Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-record was built 117 minutes after it was due",
    "why": "due 2026-11-18T13:00Z, built 2026-11-18T14:56Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 74 minutes after it was due",
-   "why": "due 2026-11-17T16:00Z, built 2026-11-17T17:14Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -68,15 +54,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 12529,
-  "pulled_at": "2026-11-24T12:34:43Z",
+  "balance": 12523,
+  "pulled_at": "2026-11-24T15:01:17Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 1.0,
+  "reading_age_hours": 1.8,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-24T12:34:43Z",
-  "source": "data/ncaaf/2026-11-24/props-player/1234.json.gz",
-  "readings_on_disk": 1875,
+  "newest_paid_pull": "2026-11-24T15:01:17Z",
+  "source": "data/nfl/2026-11-24/props-player/1501.json.gz",
+  "readings_on_disk": 1877,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
@@ -111,7 +97,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 724,
+  "jobs_measured": 725,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26)"
