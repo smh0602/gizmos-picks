@@ -1,10 +1,10 @@
 {
  "date": "2026-11-24",
  "league": "ncaaf",
- "generated_at": "2026-11-23T13:52:29Z",
+ "generated_at": "2026-11-24T12:35:00Z",
  "generated_by": "card_fb.py",
- "kind": "RECORD + MARKET",
- "odds_pulled_at": "2026-11-21T19:29:54Z",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-11-24T12:34:43Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own+game-HC",
  "props_model_used": true,
@@ -12,7 +12,7 @@
  "snap_floor": null,
  "denominator": "every game he appears in (union denominator)",
  "min_games": 6,
- "n_gated_by_measurement": 0,
+ "n_gated_by_measurement": 6,
  "rate_gates": {
   "min_reception_line": 3.5,
   "measured_markets": [
@@ -219,7 +219,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-11-23T13:52:04Z",
-  "ladder_built_at": "2026-11-23T13:52:14Z",
+  "ladder_built_at": "2026-11-24T12:34:47Z",
   "alt_spreads": 0
  },
  "scores_shown": [
@@ -777,28 +777,363 @@
   }
  ],
  "game_lines_rule": "The game model's own 4 pick(s) for 2026-11-24 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
- "top_plays": [],
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aveion Chenault",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -172,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916542&selectionId=101792819",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 59,
+   "model_p": 58.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 63.2,
+   "edge": -4.2,
+   "rank": 1,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Da'Realyst Clark",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 41.5,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888077&selectionId=104442067",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "11 of 16",
+   "record": "11 of 16",
+   "rate": 64,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 6,
+    "h26": 6,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.636,
+    "weighted_n": 11.71,
+    "mean_all": 32.938
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.0,
+   "projection": 32.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 32.9 rec yds a game.",
+   "why": [
+    "<b>Da'Realyst Clark</b> went under 41.5 rec yds in <b>6 of 10 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.2,
+   "rank": 2
+  }
+ ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 0,
-  "same_game_already_listed": 0,
+  "same_player_already_listed": 1,
+  "same_game_already_listed": 18,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 0,
+  "pool_after_price_gate": 21,
   "cap": 10,
-  "distinct_games": 0,
-  "shared_with_board_head": 0,
-  "board_head_size": 0
+  "distinct_games": 2,
+  "shared_with_board_head": 2,
+  "board_head_size": 10
  },
- "top_plays_rule": "No top plays for 2026-11-24. Nothing is priced for this day yet, so there was nothing to rank. \u26a0\ufe0f When rows do arrive, only those carrying a record are ranked \u2014 ranking by price would be ranking by which bet pays worst while calling it 'most likely to hit'.",
+ "top_plays_rule": "The 2 most likely to hit for 2026-11-24 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 10, over 2 game(s). 18 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
-  "2": [],
+  "2": [
+   {
+    "legs": [
+     "Aveion Chenault o2.5 rec",
+     "Da'Realyst Clark u41.5 rec yds"
+    ],
+    "games": [
+     "Miami (OH) RedHawks @ Western Michigan Broncos",
+     "Kent State Golden Flashes @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "a82769fe54a0f8c714667b8720b67449",
+     "4814277a6e26955eb1df064fed7a3bcb"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -172,
+     -114
+    ],
+    "multiplier": 2.969,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 32.5,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     59,
+     55
+    ],
+    "break_even": 33.7,
+    "edge": -1.2,
+    "ev_30": -1.1
+   },
+   {
+    "legs": [
+     "Aveion Chenault o2.5 rec",
+     "Brandon White u30.5 rush yds"
+    ],
+    "games": [
+     "Miami (OH) RedHawks @ Western Michigan Broncos",
+     "Kent State Golden Flashes @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "a82769fe54a0f8c714667b8720b67449",
+     "4814277a6e26955eb1df064fed7a3bcb"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -172,
+     -112
+    ],
+    "multiplier": 2.993,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.9,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     59,
+     54
+    ],
+    "break_even": 33.4,
+    "edge": -1.5,
+    "ev_30": -1.39
+   },
+   {
+    "legs": [
+     "Aveion Chenault o2.5 rec",
+     "Wayne Harris u71.5 rec yds"
+    ],
+    "games": [
+     "Miami (OH) RedHawks @ Western Michigan Broncos",
+     "Kent State Golden Flashes @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "a82769fe54a0f8c714667b8720b67449",
+     "4814277a6e26955eb1df064fed7a3bcb"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -172,
+     -114
+    ],
+    "multiplier": 2.969,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     59,
+     53
+    ],
+    "break_even": 33.7,
+    "edge": -2.4,
+    "ev_30": -2.15
+   },
+   {
+    "legs": [
+     "Da'Realyst Clark u41.5 rec yds",
+     "Baylin Brooks o2.5 rec"
+    ],
+    "games": [
+     "Kent State Golden Flashes @ Eastern Michigan Eagles",
+     "Miami (OH) RedHawks @ Western Michigan Broncos"
+    ],
+    "game_ids": [
+     "4814277a6e26955eb1df064fed7a3bcb",
+     "a82769fe54a0f8c714667b8720b67449"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -154
+    ],
+    "multiplier": 3.096,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 30.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     55,
+     55
+    ],
+    "break_even": 32.3,
+    "edge": -2.0,
+    "ev_30": -1.9
+   },
+   {
+    "legs": [
+     "Da'Realyst Clark u41.5 rec yds",
+     "Maleek Huggins u37.5 rec yds"
+    ],
+    "games": [
+     "Kent State Golden Flashes @ Eastern Michigan Eagles",
+     "Miami (OH) RedHawks @ Western Michigan Broncos"
+    ],
+    "game_ids": [
+     "4814277a6e26955eb1df064fed7a3bcb",
+     "a82769fe54a0f8c714667b8720b67449"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "multiplier": 3.524,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 29.7,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     55,
+     54
+    ],
+    "break_even": 28.4,
+    "edge": 1.3,
+    "ev_30": 1.4
+   },
+   {
+    "legs": [
+     "Baylin Brooks o2.5 rec",
+     "Brandon White u30.5 rush yds"
+    ],
+    "games": [
+     "Miami (OH) RedHawks @ Western Michigan Broncos",
+     "Kent State Golden Flashes @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "a82769fe54a0f8c714667b8720b67449",
+     "4814277a6e26955eb1df064fed7a3bcb"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -154,
+     -112
+    ],
+    "multiplier": 3.122,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 29.7,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     55,
+     54
+    ],
+    "break_even": 32.0,
+    "edge": -2.3,
+    "ev_30": -2.18
+   },
+   {
+    "legs": [
+     "Baylin Brooks o2.5 rec",
+     "Wayne Harris u71.5 rec yds"
+    ],
+    "games": [
+     "Miami (OH) RedHawks @ Western Michigan Broncos",
+     "Kent State Golden Flashes @ Eastern Michigan Eagles"
+    ],
+    "game_ids": [
+     "a82769fe54a0f8c714667b8720b67449",
+     "4814277a6e26955eb1df064fed7a3bcb"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -154,
+     -114
+    ],
+    "multiplier": 3.096,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 29.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     55,
+     53
+    ],
+    "break_even": 32.3,
+    "edge": -3.1,
+    "ev_30": -2.92
+   },
+   {
+    "legs": [
+     "Brandon White u30.5 rush yds",
+     "Maleek Huggins u37.5 rec yds"
+    ],
+    "games": [
+     "Kent State Golden Flashes @ Eastern Michigan Eagles",
+     "Miami (OH) RedHawks @ Western Michigan Broncos"
+    ],
+    "game_ids": [
+     "4814277a6e26955eb1df064fed7a3bcb",
+     "a82769fe54a0f8c714667b8720b67449"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -112,
+     -114
+    ],
+    "multiplier": 3.553,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 29.2,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     54,
+     54
+    ],
+    "break_even": 28.1,
+    "edge": 1.0,
+    "ev_30": 1.08
+   }
+  ],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 0,
-  "rated_legs": 0,
+  "pool": 13,
+  "rated_legs": 21,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -807,13 +1142,13 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 0,
-    "taken": 0
+    "available": 1,
+    "taken": 1
    },
    {
     "decimal": "1.6-2",
-    "available": 0,
-    "taken": 0
+    "available": 20,
+    "taken": 12
    },
    {
     "decimal": "2-3",
@@ -827,25 +1162,289 @@
    }
   ],
   "rejected": {
-   "same_game": 0,
+   "same_game": 1049,
    "same_player": 0,
-   "mixed_book": 0,
+   "mixed_book": 9,
    "out_of_band": 0
   },
-  "note": "0 rated legs, 0 in the stratified pool. Rejected: 0 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "21 rated legs, 13 in the stratified pool. Rejected: 1049 same game, 0 same player, 9 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
-  "2": [],
-  "3": []
+  "2": [
+   {
+    "legs": [
+     "Aveion Chenault o2.5 rec",
+     "Western Michigan Broncos -6.5 spread"
+    ],
+    "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+    "game_id": "a82769fe54a0f8c714667b8720b67449",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -172,
+     -114
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -114,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 2.969,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 59,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     59
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Da'Realyst Clark u41.5 rec yds",
+     "Eastern Michigan Eagles -5.5 spread"
+    ],
+    "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+    "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.524,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Baylin Brooks o2.5 rec",
+     "Western Michigan Broncos -6.5 spread"
+    ],
+    "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+    "game_id": "a82769fe54a0f8c714667b8720b67449",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -154,
+     -114
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -114,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.096,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Da'Realyst Clark u41.5 rec yds",
+     "Brandon White u30.5 rush yds"
+    ],
+    "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+    "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -112
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.553,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Aveion Chenault o2.5 rec",
+     "Baylin Brooks o2.5 rec",
+     "Western Michigan Broncos -6.5 spread"
+    ],
+    "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+    "game_id": "a82769fe54a0f8c714667b8720b67449",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -172,
+     -154,
+     -114
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -114,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 4.896,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 55,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     59,
+     55
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Da'Realyst Clark u41.5 rec yds",
+     "Brandon White u30.5 rush yds",
+     "Eastern Michigan Eagles -5.5 spread"
+    ],
+    "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+    "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -112,
+     -114
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.67,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Baylin Brooks o2.5 rec",
+     "Maleek Huggins u37.5 rec yds",
+     "Western Michigan Broncos -6.5 spread"
+    ],
+    "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+    "game_id": "a82769fe54a0f8c714667b8720b67449",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -154,
+     -114,
+     -114
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -114,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 5.812,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Da'Realyst Clark u41.5 rec yds",
+     "Brandon White u30.5 rush yds",
+     "Wayne Harris u71.5 rec yds"
+    ],
+    "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+    "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -112,
+     -114
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.67,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 53,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     55,
+     54,
+     53
+    ],
+    "band_floor": 3.0
+   }
+  ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 0,
+  "games_with_rated_legs": 2,
   "games_with_a_line_row": 2,
-  "games_used": 0,
+  "games_used": 2,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 0,
-   "mixed_book": 0,
+   "same_player": 48,
+   "mixed_book": 92,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -853,34 +1452,1272 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "0 game(s) on this card carry a rated leg and 2 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "2 game(s) on this card carry a rated leg and 2 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
- "projections": {},
- "name_match_rate": null,
- "n_priced": 0,
+ "projections": {
+  "Amareon Blue|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Brandon White|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Braydon Bennett|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Da'Realyst Clark|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Dru DeShields|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Harold Mack|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Jakorion Caffey|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Joshua Long|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Nick Devereaux|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Wayne Harris|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Da'Realyst Clark|player_reception_yds|over|41.5": {
+   "v": 32.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 32.9 rec yds a game."
+  },
+  "Da'Realyst Clark|player_reception_yds|under|41.5": {
+   "v": 32.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 32.9 rec yds a game."
+  },
+  "Wayne Harris|player_reception_yds|over|71.5": {
+   "v": 53.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 53.6 rec yds a game."
+  },
+  "Wayne Harris|player_reception_yds|under|71.5": {
+   "v": 53.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 53.6 rec yds a game."
+  },
+  "Brandon White|player_rush_yds|over|30.5": {
+   "v": 27.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 27.5 rush yds a game."
+  },
+  "Brandon White|player_rush_yds|under|30.5": {
+   "v": 27.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 27.5 rush yds a game."
+  },
+  "Aveion Chenault|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Baylin Brooks|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Broc Lowry|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 0.7 TD a game."
+  },
+  "Cole Cabana|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.4 TD a game."
+  },
+  "D'Shawntae Jones|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Jalen Buckley|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Lazaro Rogers|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Maleek Huggins|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Ofa Mataele|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Rodney Nelson|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Broc Lowry|player_pass_yds|over|164.5": {
+   "v": 138.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 138.2 pass yds a game."
+  },
+  "Broc Lowry|player_pass_yds|under|164.5": {
+   "v": 138.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 138.2 pass yds a game."
+  },
+  "Broc Lowry|player_pass_yds|over|166.5": {
+   "v": 138.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 138.2 pass yds a game."
+  },
+  "Broc Lowry|player_pass_yds|under|166.5": {
+   "v": 138.2,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 138.2 pass yds a game."
+  },
+  "Aveion Chenault|player_reception_yds|over|46.5": {
+   "v": 38.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 38.3 rec yds a game."
+  },
+  "Aveion Chenault|player_reception_yds|under|46.5": {
+   "v": 38.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 38.3 rec yds a game."
+  },
+  "Baylin Brooks|player_reception_yds|over|28.5": {
+   "v": 29.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 29.8 rec yds a game."
+  },
+  "Baylin Brooks|player_reception_yds|under|28.5": {
+   "v": 29.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 29.8 rec yds a game."
+  },
+  "Baylin Brooks|player_reception_yds|over|29.5": {
+   "v": 29.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 29.8 rec yds a game."
+  },
+  "Baylin Brooks|player_reception_yds|under|29.5": {
+   "v": 29.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 29.8 rec yds a game."
+  },
+  "Jalen Buckley|player_reception_yds|over|9.5": {
+   "v": 8.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 8.3 rec yds a game."
+  },
+  "Jalen Buckley|player_reception_yds|under|9.5": {
+   "v": 8.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 8.3 rec yds a game."
+  },
+  "Jalen Buckley|player_reception_yds|over|10.5": {
+   "v": 8.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 8.3 rec yds a game."
+  },
+  "Jalen Buckley|player_reception_yds|under|10.5": {
+   "v": 8.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 8.3 rec yds a game."
+  },
+  "Maleek Huggins|player_reception_yds|over|37.5": {
+   "v": 55.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 55.2 rec yds a game."
+  },
+  "Maleek Huggins|player_reception_yds|under|37.5": {
+   "v": 55.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 55.2 rec yds a game."
+  },
+  "Broc Lowry|player_rush_yds|over|29.5": {
+   "v": 51.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 51.0 rush yds a game."
+  },
+  "Broc Lowry|player_rush_yds|under|29.5": {
+   "v": 51.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 25 games this record is built from \u2014 51.0 rush yds a game."
+  },
+  "D'Shawntae Jones|player_rush_yds|over|63.5": {
+   "v": 34.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 34.7 rush yds a game."
+  },
+  "D'Shawntae Jones|player_rush_yds|under|63.5": {
+   "v": 34.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 34.7 rush yds a game."
+  },
+  "D'Shawntae Jones|player_rush_yds|over|64.5": {
+   "v": 34.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 34.7 rush yds a game."
+  },
+  "D'Shawntae Jones|player_rush_yds|under|64.5": {
+   "v": 34.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 34.7 rush yds a game."
+  },
+  "Jalen Buckley|player_rush_yds|over|97.5": {
+   "v": 82.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 82.3 rush yds a game."
+  },
+  "Jalen Buckley|player_rush_yds|under|97.5": {
+   "v": 82.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 82.3 rush yds a game."
+  },
+  "Jalen Buckley|player_rush_yds|over|100.5": {
+   "v": 82.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 82.3 rush yds a game."
+  },
+  "Jalen Buckley|player_rush_yds|under|100.5": {
+   "v": 82.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 82.3 rush yds a game."
+  },
+  "Rodney Nelson|player_rush_yds|over|47.5": {
+   "v": 51.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 51.3 rush yds a game."
+  },
+  "Rodney Nelson|player_rush_yds|under|47.5": {
+   "v": 51.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 51.3 rush yds a game."
+  },
+  "Rodney Nelson|player_rush_yds|over|48.5": {
+   "v": 51.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 51.3 rush yds a game."
+  },
+  "Rodney Nelson|player_rush_yds|under|48.5": {
+   "v": 51.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 51.3 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.875,
+ "n_priced": 26,
  "single_day": true,
  "slate_date": "2026-11-24",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 0,
+ "n_on_slate_day": 26,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-24 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
- "empty_reason": "No College Football picks for 2026-11-24. Nothing is priced for this day yet. An empty board on a day with no games is the correct result, not a failure \u2014 the card was built and it found nothing to show.",
+ "empty_reason": null,
  "short_reason": null,
- "coverage": "0 priced football rows for 2026-11-24 across 0 board games; 0 shown.",
+ "coverage": "26 priced football rows for 2026-11-24 across 2 board games; 20 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 54.4% against a claimed 54.7% (-0.3 pts, n=68); 60-70 hit 53.8% against a claimed 62.5% (-8.7 pts, n=39). The under-60 band is currently the closest to its own claim. 70-80 and 80-plus have too few graded plays to read. 107 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
- "picks": [],
- "liked": [],
- "n_longshots_excluded": 0,
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aveion Chenault",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -172,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916542&selectionId=101792819",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 59,
+   "model_p": 58.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 63.2,
+   "edge": -4.2,
+   "rank": 1,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Da'Realyst Clark",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 41.5,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888077&selectionId=104442067",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "11 of 16",
+   "record": "11 of 16",
+   "rate": 64,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 6,
+    "h26": 6,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.636,
+    "weighted_n": 11.71,
+    "mean_all": 32.938
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.0,
+   "projection": 32.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 32.9 rec yds a game.",
+   "why": [
+    "<b>Da'Realyst Clark</b> went under 41.5 rec yds in <b>6 of 10 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.2,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Baylin Brooks",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -154,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916541&selectionId=101792753",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 55,
+   "model_p": 55.2,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 60.6,
+   "edge": -5.6,
+   "rank": 3,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "RECORD + MARKET \u2014 his own rate",
+   "player": "Brandon White",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 30.5,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888073&selectionId=102995924",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "RECORD",
+   "confidence": 54,
+   "raw": "6 of 11",
+   "record": "6 of 11",
+   "rate": 54,
+   "break_even": 52.8,
+   "edge": 1.2,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 6,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.527,
+    "weighted_n": 11.0,
+    "mean_all": 27.455
+   },
+   "confidence_note": "His record at this exact line, reading this season first: 6 of 11 in 2026, with no 2025 game of his counted, pulled toward the 53% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more.",
+   "own_mean": 27.45,
+   "projection": 27.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 27.5 rush yds a game.",
+   "why": [
+    "<b>Brandon White</b> went under 30.5 rush yds in <b>6 of 11 games</b> in 2026, in the games he appears in."
+   ],
+   "rank": 4
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Maleek Huggins",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 37.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916675&selectionId=104565620",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "4 of 10",
+   "record": "4 of 10",
+   "rate": 51,
+   "break_even": 53.3,
+   "edge": 0.7,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 4,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.598,
+    "weighted_n": 10.0,
+    "mean_all": 55.2
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 55.2,
+   "projection": 55.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 55.2 rec yds a game.",
+   "why": [
+    "<b>Maleek Huggins</b> went under 37.5 rec yds in <b>4 of 10 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 53.5,
+   "rank": 5
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rodney Nelson",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 48.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -105,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2152547625199600032",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "7 of 11",
+   "record": "7 of 11",
+   "rate": 66,
+   "break_even": 51.2,
+   "edge": 1.8,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 7,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.689,
+    "weighted_n": 11.0,
+    "mean_all": 51.273
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 51.27,
+   "projection": 51.3,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 51.3 rush yds a game.",
+   "why": [
+    "<b>Rodney Nelson</b> went under 48.5 rush yds in <b>7 of 11 games</b> in 2026, in the games he appears in."
+   ],
+   "model_p": 52.7,
+   "rank": 6
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Wayne Harris",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 71.5,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888078&selectionId=104442013",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "17 of 23",
+   "record": "17 of 23",
+   "rate": 73,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 11,
+    "n25": 12,
+    "h26": 6,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.84,
+    "weighted_n": 14.2,
+    "mean_all": 53.609
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 31.92,
+   "projection": 53.6,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 53.6 rec yds a game.",
+   "why": [
+    "<b>Wayne Harris</b> went under 71.5 rec yds in <b>6 of 11 games</b> in 2026 and 11 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.2,
+   "rank": 7,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jalen Buckley",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 100.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1862769136675979680",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "15 of 24",
+   "record": "15 of 24",
+   "rate": 73,
+   "break_even": 53.5,
+   "edge": -0.5,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 6,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.908,
+    "weighted_n": 14.47,
+    "mean_all": 82.292
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 77.15,
+   "projection": 82.3,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 24 games this record is built from \u2014 82.3 rush yds a game.",
+   "why": [
+    "<b>Jalen Buckley</b> went under 100.5 rush yds in <b>6 of 11 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.1,
+   "rank": 8,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Baylin Brooks",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 29.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3821975712070500756",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "9 of 23",
+   "record": "9 of 23",
+   "rate": 44,
+   "break_even": 52.4,
+   "edge": -0.4,
+   "season_detail": {
+    "h25": 5,
+    "n25": 13,
+    "h26": 4,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.493,
+    "weighted_n": 13.71,
+    "mean_all": 29.783
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 28.62,
+   "projection": 29.8,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 29.8 rec yds a game.",
+   "why": [
+    "<b>Baylin Brooks</b> went over 29.5 rec yds in <b>4 of 10 games</b> in 2026 and 5 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.5,
+   "rank": 9,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Aveion Chenault",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 46.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916537&selectionId=101792819",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "8 of 22",
+   "record": "8 of 22",
+   "rate": 42,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 2,
+    "n25": 13,
+    "h26": 6,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.319,
+    "weighted_n": 13.0,
+    "mean_all": 38.318
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 21.31,
+   "projection": 38.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 38.3 rec yds a game.",
+   "why": [
+    "<b>Aveion Chenault</b> went over 46.5 rec yds in <b>6 of 9 games</b> in 2026 and 2 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.2,
+   "rank": 10,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jalen Buckley",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 9.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916535&selectionId=101792626",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "18 of 24",
+   "record": "18 of 24",
+   "rate": 56,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 12,
+    "n25": 13,
+    "h26": 6,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.477,
+    "weighted_n": 14.47,
+    "mean_all": 8.292
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.77,
+   "projection": 8.3,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 24 games this record is built from \u2014 8.3 rec yds a game.",
+   "why": [
+    "<b>Jalen Buckley</b> went under 9.5 rec yds in <b>6 of 11 games</b> in 2026 and 12 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.5,
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Broc Lowry",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 29.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916530&selectionId=101792603",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "7 of 25",
+   "record": "7 of 25",
+   "rate": 53,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 2,
+    "n25": 14,
+    "h26": 5,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.721,
+    "weighted_n": 14.73,
+    "mean_all": 51.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 68.79,
+   "projection": 51.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 25 games this record is built from \u2014 51.0 rush yds a game.",
+   "why": [
+    "<b>Broc Lowry</b> went under 29.5 rush yds in <b>5 of 11 games</b> in 2026 and 2 of 14 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.9,
+   "rank": 12,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "D'Shawntae Jones",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 64.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916672&selectionId=104565534",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "4 of 23",
+   "record": "4 of 23",
+   "rate": 22,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 1,
+    "n25": 12,
+    "h26": 3,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.217,
+    "weighted_n": 14.2,
+    "mean_all": 34.696
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 23.08,
+   "projection": 34.7,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 34.7 rush yds a game.",
+   "why": [
+    "<b>D'Shawntae Jones</b> went over 64.5 rush yds in <b>3 of 11 games</b> in 2026 and 1 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.8,
+   "rank": 13,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Broc Lowry",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 164.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916521&selectionId=101792603",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "18 of 25",
+   "record": "18 of 25",
+   "rate": 60,
+   "break_even": 53.3,
+   "edge": -2.3,
+   "season_detail": {
+    "h25": 11,
+    "n25": 14,
+    "h26": 7,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.513,
+    "weighted_n": 14.73,
+    "mean_all": 138.2
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 128.79,
+   "projection": 138.2,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 25 games this record is built from \u2014 138.2 pass yds a game.",
+   "why": [
+    "<b>Broc Lowry</b> went under 164.5 pass yds in <b>7 of 11 games</b> in 2026 and 11 of 14 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.9,
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Maleek Huggins",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -154,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627916677&selectionId=104565620",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 50.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 60.6,
+   "edge": -9.6,
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Eastern Michigan Eagles D/ST",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "draftkings",
+   "price": 400,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA392058342%232378564933_13L87637Q1-626949940Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Eastern Michigan Eagles D/ST \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 16
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Mason King",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "draftkings",
+   "price": 370,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA392058342%232378564925_13L87637Q1-244473452Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Mason King \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 17
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Western Michigan Broncos D/ST",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "draftkings",
+   "price": 360,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA392058773%232378566655_13L87637Q11815302331Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Western Michigan Broncos D/ST \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 18
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Benson Prosper",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": 320,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888052&selectionId=102124999",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Benson Prosper \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 19
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MARKET \u2014 price only, no rate available",
+   "player": "Lolo Mataele",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": null,
+   "game": "Miami (OH) RedHawks @ Western Michigan Broncos",
+   "game_id": "a82769fe54a0f8c714667b8720b67449",
+   "away": "Miami (OH) RedHawks",
+   "home": "Western Michigan Broncos",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "hardrockbet",
+   "price": 260,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1590009026566029726",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MARKET",
+   "why": [
+    "No 2025 or 2026 game log matched Lolo Mataele \u2014 he is new, changed his listed name, or shares one. No record is shown rather than a guess."
+   ],
+   "rank": 20
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Da'Realyst Clark",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 41.5,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888077&selectionId=104442067",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "11 of 16",
+   "record": "11 of 16",
+   "rate": 64,
+   "break_even": 53.3,
+   "edge": 1.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 6,
+    "h26": 6,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.636,
+    "weighted_n": 11.71,
+    "mean_all": 32.938
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.0,
+   "projection": 32.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 32.9 rec yds a game.",
+   "why": [
+    "<b>Da'Realyst Clark</b> went under 41.5 rec yds in <b>6 of 10 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in.",
+    "The Eastern Michigan Eagles allow 177.1 receiving yards a game to wide receivers (36th most of 138).",
+    "The model gives it <b>55%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "model_p": 55.2,
+   "rank": 1,
+   "why_card": [
+    "<b>Da'Realyst Clark</b> went under 41.5 rec yds in <b>6 of 10 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "RECORD + MARKET \u2014 his own rate",
+   "player": "Brandon White",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 30.5,
+   "game": "Kent State Golden Flashes @ Eastern Michigan Eagles",
+   "game_id": "4814277a6e26955eb1df064fed7a3bcb",
+   "away": "Kent State Golden Flashes",
+   "home": "Eastern Michigan Eagles",
+   "commence": "2026-11-25T00:00:00Z",
+   "book": "fanduel",
+   "price": -112,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627888073&selectionId=102995924",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "RECORD",
+   "confidence": 54,
+   "raw": "6 of 11",
+   "record": "6 of 11",
+   "rate": 54,
+   "break_even": 52.8,
+   "edge": 1.2,
+   "season_detail": {
+    "h25": 0,
+    "n25": 0,
+    "h26": 6,
+    "n26": 11,
+    "w25": 0.267,
+    "p0": 0.527,
+    "weighted_n": 11.0,
+    "mean_all": 27.455
+   },
+   "confidence_note": "His record at this exact line, reading this season first: 6 of 11 in 2026, with no 2025 game of his counted, pulled toward the 53% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more.",
+   "own_mean": 27.45,
+   "projection": 27.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 27.5 rush yds a game.",
+   "why": [
+    "<b>Brandon White</b> went under 30.5 rush yds in <b>6 of 11 games</b> in 2026, in the games he appears in.",
+    "His record at this line makes it <b>54%</b>; at -112 it needs 52.8% to pay."
+   ],
+   "rank": 2,
+   "why_card": [
+    "<b>Brandon White</b> went under 30.5 rush yds in <b>6 of 11 games</b> in 2026, in the games he appears in."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 9,
  "price_ceiling": 400,
- "market_max_share": 0.34,
- "board_mixed": true,
+ "market_max_share": null,
+ "board_mixed": false,
  "below_price_floor": [],
  "price_floor": -400,
  "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
