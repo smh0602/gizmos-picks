@@ -1,7 +1,7 @@
 {
  "date": "2026-11-25",
  "league": "nfl",
- "generated_at": "2026-11-24T11:12:08Z",
+ "generated_at": "2026-11-24T11:42:51Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-24T11:11:53Z",
@@ -34,42 +34,14 @@
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 66,
+   "confidence": 65,
    "break_even": 59.2,
-   "edge": 6.3,
+   "edge": 6.0,
    "why": [
-    "The game model gives Los Angeles Rams 66% to win; the price -145 needs 59.2%."
+    "The game model gives Los Angeles Rams 65% to win; the price -145 needs 59.2%."
    ],
    "priced_at": "2026-11-23T18:07:32Z",
    "rank": 1
-  },
-  {
-   "kind": "fb-line",
-   "league": "nfl",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "Over",
-   "market": "total",
-   "market_label": "Total",
-   "side": "over",
-   "line": 44.5,
-   "game": "Green Bay Packers @ Los Angeles Rams",
-   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
-   "away": "Green Bay Packers",
-   "home": "Los Angeles Rams",
-   "commence": "2026-11-26T01:00:00Z",
-   "book": "draftkings",
-   "price": -108,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 61,
-   "break_even": 51.9,
-   "edge": 9.2,
-   "why": [
-    "The game model gives Over 61% at 44.5; the price -108 needs 51.9%."
-   ],
-   "priced_at": "2026-11-23T18:07:32Z",
-   "rank": 2
   },
   {
    "kind": "fb-line",
@@ -90,17 +62,15 @@
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 57,
+   "confidence": 56,
    "break_even": 49.8,
-   "edge": 7.1,
+   "edge": 6.5,
    "why": [
-    "The game model gives Los Angeles Rams 57% to cover -3; the price +101 needs 49.8%."
+    "The game model gives Los Angeles Rams 56% to cover -3; the price +101 needs 49.8%."
    ],
    "priced_at": "2026-11-23T18:07:32Z",
-   "rank": 3
-  }
- ],
- "game_lines_liked": [
+   "rank": 2
+  },
   {
    "kind": "fb-line",
    "league": "nfl",
@@ -120,12 +90,42 @@
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 61,
+   "confidence": 53,
    "break_even": 51.9,
-   "edge": 9.2,
+   "edge": 0.9,
    "why": [
-    "The game model gives Over 61% at 44.5; the price -108 needs 51.9%.",
-    "The model's predicted score: Green Bay Packers 22, Los Angeles Rams 27 (total 49).",
+    "The game model gives Over 53% at 44.5; the price -108 needs 51.9%."
+   ],
+   "priced_at": "2026-11-23T18:07:32Z",
+   "rank": 3
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Los Angeles Rams",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -3.0,
+   "game": "Green Bay Packers @ Los Angeles Rams",
+   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
+   "away": "Green Bay Packers",
+   "home": "Los Angeles Rams",
+   "commence": "2026-11-26T01:00:00Z",
+   "book": "draftkings",
+   "price": 101,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 49.8,
+   "edge": 6.5,
+   "why": [
+    "The game model gives Los Angeles Rams 56% to cover -3; the price +101 needs 49.8%.",
+    "The model's predicted score: Green Bay Packers 20, Los Angeles Rams 25 (total 45).",
     "The Green Bay Packers score 22.6 and allow 22.1 points a game this season (10 games).",
     "The Los Angeles Rams score 24.8 and allow 18.7 points a game this season (10 games).",
     "Against teams the model rates above average this season: Green Bay Packers 3-3, Los Angeles Rams 0-3."
@@ -133,7 +133,7 @@
    "priced_at": "2026-11-23T18:07:32Z",
    "rank": 1,
    "why_card": [
-    "The game model gives Over 61% at 44.5; the price -108 needs 51.9%."
+    "The game model gives Los Angeles Rams 56% to cover -3; the price +101 needs 49.8%."
    ]
   }
  ],
@@ -145,25 +145,17 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-24T00:09:56Z",
-  "ladder_built_at": "2026-11-24T11:11:57Z",
+  "model_built_at": "2026-11-24T11:42:38Z",
+  "ladder_built_at": "2026-11-24T11:42:41Z",
   "alt_spreads": 0
  },
  "scores_shown": [
   {
-   "away": "Cincinnati Bengals",
-   "home": "Washington Commanders",
-   "score": {
-    "home": 27,
-    "away": 32
-   }
-  },
-  {
    "away": "Green Bay Packers",
    "home": "Los Angeles Rams",
    "score": {
-    "home": 27,
-    "away": 22
+    "home": 25,
+    "away": 20
    }
   },
   {
@@ -202,8 +194,8 @@
    "away": "Atlanta Falcons",
    "home": "Minnesota Vikings",
    "score": {
-    "home": 23,
-    "away": 21
+    "home": 22,
+    "away": 20
    }
   },
   {
@@ -218,16 +210,16 @@
    "away": "Las Vegas Raiders",
    "home": "Cleveland Browns",
    "score": {
-    "home": 22,
-    "away": 18
+    "home": 21,
+    "away": 17
    }
   },
   {
    "away": "New Orleans Saints",
    "home": "Cincinnati Bengals",
    "score": {
-    "home": 33,
-    "away": 21
+    "home": 32,
+    "away": 22
    }
   },
   {
@@ -258,15 +250,15 @@
    "away": "Seattle Seahawks",
    "home": "San Francisco 49ers",
    "score": {
-    "home": 26,
-    "away": 24
+    "home": 25,
+    "away": 23
    }
   },
   {
    "away": "Washington Commanders",
    "home": "Arizona Cardinals",
    "score": {
-    "home": 20,
+    "home": 19,
     "away": 25
    }
   },
@@ -274,7 +266,7 @@
    "away": "New England Patriots",
    "home": "Los Angeles Chargers",
    "score": {
-    "home": 19,
+    "home": 18,
     "away": 23
    }
   },
