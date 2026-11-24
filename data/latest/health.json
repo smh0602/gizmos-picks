@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-24T19:23:40Z",
+ "checked_at": "2026-11-24T19:51:33Z",
  "et_date": "2026-11-24",
  "healthy": false,
  "broken": 0,
- "degraded": 6,
+ "degraded": 5,
  "findings": [
   {
    "key": "late:cfb-teams:ncaaf",
@@ -18,13 +18,6 @@
    "severity": "DEGRADED",
    "what": "nfl fb-record was built 117 minutes after it was due",
    "why": "due 2026-11-18T13:00Z, built 2026-11-18T14:56Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "double-buy:gamelines:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf gamelines was bought 2 times for its Sun 19:00Z deadline (12 credits)",
-   "why": "1 deadline(s) in the last 48 hours were bought more than once, 1 extra buy(s), 6 credits: due Sun 19:00Z: Sun 19:48Z (6), Sun 19:52Z (6). A late cron that buys a deadline another run already bought (freshness.stand_down should stand it down), or two runs that bought it before either landed. Nothing to repair: the board is current; this clears when no deadline in the window was bought twice.",
    "repair": null
   },
   {
@@ -58,7 +51,7 @@
   "pulled_at": "2026-11-24T19:01:22Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.4,
+  "reading_age_hours": 0.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-24T19:01:17Z",
   "source": "data/ncaaf/2026-11-24/alt-lines/1901.json.gz",
@@ -97,7 +90,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 720,
+  "jobs_measured": 719,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26)"
