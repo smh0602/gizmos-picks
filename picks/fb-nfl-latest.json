@@ -1,10 +1,10 @@
 {
  "date": "2026-11-25",
  "league": "nfl",
- "generated_at": "2026-11-25T14:12:40Z",
+ "generated_at": "2026-11-25T15:14:11Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-11-25T11:07:36Z",
+ "odds_pulled_at": "2026-11-25T15:13:57Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -74,6 +74,36 @@
   {
    "kind": "fb-line",
    "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Los Angeles Rams",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": -5.0,
+   "game": "Green Bay Packers @ Los Angeles Rams",
+   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
+   "away": "Green Bay Packers",
+   "home": "Los Angeles Rams",
+   "commence": "2026-11-26T01:00:00Z",
+   "book": "hardrockbet",
+   "price": 155,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 50,
+   "break_even": 39.2,
+   "edge": 10.8,
+   "why": [
+    "The game model gives Los Angeles Rams 50% to cover -5; the best price, +155 at Hard Rock, needs 39.2%."
+   ],
+   "priced_at": "2026-11-25T12:15:01Z",
+   "main_line": -2.5,
+   "sched_id": "2026_12_GB_LA",
+   "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
    "basis": "MODEL \u2014 the game model's probability",
    "player": "Over",
    "market": "total",
@@ -97,43 +127,45 @@
     "The game model gives Over 52% at 44.5; the price +100 needs 50.0%."
    ],
    "priced_at": "2026-11-25T12:15:01Z",
-   "rank": 3
+   "rank": 4
   }
  ],
  "game_lines_liked": [
   {
    "kind": "fb-line",
    "league": "nfl",
-   "basis": "MODEL \u2014 the game model's probability",
+   "basis": "MODEL \u2014 the game model's chance at this line",
    "player": "Los Angeles Rams",
-   "market": "moneyline",
-   "market_label": "Moneyline",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
    "side": "home",
-   "line": null,
+   "line": -5.0,
    "game": "Green Bay Packers @ Los Angeles Rams",
    "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
    "away": "Green Bay Packers",
    "home": "Los Angeles Rams",
    "commence": "2026-11-26T01:00:00Z",
-   "book": "draftkings",
-   "price": -137,
+   "book": "hardrockbet",
+   "price": 155,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 65,
-   "break_even": 57.8,
-   "edge": 7.4,
+   "confidence": 50,
+   "break_even": 39.2,
+   "edge": 10.8,
    "why": [
-    "The game model gives Los Angeles Rams 65% to win; the price -137 needs 57.8%.",
-    "The model's predicted score: Green Bay Packers 20, Los Angeles Rams 25 (total 45).",
+    "The game model gives Los Angeles Rams 50% to cover -5; the best price, +155 at Hard Rock, needs 39.2%.",
+    "The model's predicted score: Green Bay Packers 20, Los Angeles Rams 26 (total 46).",
     "The Green Bay Packers score 22.6 and allow 22.1 points a game this season (10 games).",
     "The Los Angeles Rams score 24.8 and allow 18.7 points a game this season (10 games).",
     "Against teams the model rates above average this season: Green Bay Packers 3-3, Los Angeles Rams 0-3."
    ],
    "priced_at": "2026-11-25T12:15:01Z",
+   "main_line": -2.5,
+   "sched_id": "2026_12_GB_LA",
    "rank": 1,
    "why_card": [
-    "The game model gives Los Angeles Rams 65% to win; the price -137 needs 57.8%."
+    "The game model gives Los Angeles Rams 50% to cover -5; the best price, +155 at Hard Rock, needs 39.2%."
    ]
   }
  ],
@@ -146,15 +178,15 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-11-25T14:12:26Z",
-  "ladder_built_at": "2026-11-25T14:12:29Z",
-  "alt_spreads": 0
+  "ladder_built_at": "2026-11-25T15:14:01Z",
+  "alt_spreads": 1
  },
  "scores_shown": [
   {
    "away": "Green Bay Packers",
    "home": "Los Angeles Rams",
    "score": {
-    "home": 25,
+    "home": 26,
     "away": 20
    }
   },
@@ -279,7 +311,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 3 pick(s) for 2026-11-25 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 3 pick(s) for 2026-11-25 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -318,25 +350,25 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 1,
-  "same_game_already_listed": 56,
+  "same_player_already_listed": 2,
+  "same_game_already_listed": 62,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 58,
+  "pool_after_price_gate": 65,
   "cap": 10,
   "distinct_games": 1,
   "shared_with_board_head": 1,
   "board_head_size": 10
  },
- "top_plays_rule": "The 1 most likely to hit for 2026-11-25 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 56 row(s) were held back because their game was already represented and 1 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-11-25 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 62 row(s) were held back because their game was already represented and 2 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 16,
-  "rated_legs": 58,
+  "pool": 17,
+  "rated_legs": 65,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -345,12 +377,12 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 1,
-    "taken": 1
+    "available": 2,
+    "taken": 2
    },
    {
     "decimal": "1.6-2",
-    "available": 54,
+    "available": 60,
     "taken": 12
    },
    {
@@ -365,12 +397,12 @@
    }
   ],
   "rejected": {
-   "same_game": 2500,
+   "same_game": 3196,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "58 rated legs, 16 in the stratified pool. Rejected: 2500 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "65 rated legs, 17 in the stratified pool. Rejected: 3196 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -518,8 +550,8 @@
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 27,
-   "mixed_book": 34,
+   "same_player": 43,
+   "mixed_book": 77,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -640,6 +672,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 25 games this record is built from \u2014 258.6 pass yds a game."
   },
+  "Matthew Stafford|player_pass_yds|over|231.5": {
+   "v": 275.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 30 games this record is built from \u2014 275.5 pass yds a game."
+  },
+  "Matthew Stafford|player_pass_yds|under|231.5": {
+   "v": 275.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 30 games this record is built from \u2014 275.5 pass yds a game."
+  },
   "Matthew Stafford|player_pass_yds|over|232.5": {
    "v": 275.5,
    "u": "pass yds",
@@ -647,18 +691,6 @@
    "n": "His own average over the 30 games this record is built from \u2014 275.5 pass yds a game."
   },
   "Matthew Stafford|player_pass_yds|under|232.5": {
-   "v": 275.5,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 30 games this record is built from \u2014 275.5 pass yds a game."
-  },
-  "Matthew Stafford|player_pass_yds|over|235.5": {
-   "v": 275.5,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 30 games this record is built from \u2014 275.5 pass yds a game."
-  },
-  "Matthew Stafford|player_pass_yds|under|235.5": {
    "v": 275.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -675,6 +707,18 @@
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 30 games this record is built from \u2014 275.5 pass yds a game."
+  },
+  "Christian Watson|player_reception_yds|over|75.5": {
+   "v": 74.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 74.8 rec yds a game."
+  },
+  "Christian Watson|player_reception_yds|under|75.5": {
+   "v": 74.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 74.8 rec yds a game."
   },
   "Christian Watson|player_reception_yds|over|76.5": {
    "v": 74.8,
@@ -699,6 +743,18 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 74.8 rec yds a game."
+  },
+  "Colby Parkinson|player_reception_yds|over|16.5": {
+   "v": 31.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 31.4 rec yds a game."
+  },
+  "Colby Parkinson|player_reception_yds|under|16.5": {
+   "v": 31.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 31.4 rec yds a game."
   },
   "Colby Parkinson|player_reception_yds|over|19.5": {
    "v": 31.4,
@@ -819,6 +875,18 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 49.4 rec yds a game."
+  },
+  "Tyler Higbee|player_reception_yds|over|29.5": {
+   "v": 33.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 33.9 rec yds a game."
+  },
+  "Tyler Higbee|player_reception_yds|under|29.5": {
+   "v": 33.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 33.9 rec yds a game."
   },
   "Tyler Higbee|player_reception_yds|over|30.5": {
    "v": 33.9,
@@ -1002,19 +1070,19 @@
   }
  },
  "name_match_rate": 0.96,
- "n_priced": 58,
+ "n_priced": 65,
  "single_day": true,
  "slate_date": "2026-11-25",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 58,
+ "n_on_slate_day": 65,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-25 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "58 priced football rows for 2026-11-25 across 1 board games; 25 shown.",
+ "coverage": "65 priced football rows for 2026-11-25 across 1 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 50.8% against a claimed 54.3% (-3.5 pts, n=185); 60-70 hit 45.5% against a claimed 63% (-17.5 pts, n=22). The under-60 band is currently the closest to its own claim. 70-80 and 80-plus have too few graded plays to read. 207 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -1070,7 +1138,7 @@
    "book": "draftkings",
    "price": -111,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391616490%232380329410_13L88808Q1-1785896351Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1126,6 +1194,41 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Blake Corum",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "Green Bay Packers @ Los Angeles Rams",
+   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
+   "away": "Green Bay Packers",
+   "home": "Los Angeles Rams",
+   "commence": "2026-11-26T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -190,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1566959537232150936",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 58,
+   "model_p": 58.5,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 65.5,
+   "edge": -7.5,
+   "role": {
+    "snap": 0.3933,
+    "tgt_share": 0.0809,
+    "car": 13.0,
+    "n": 3
+   },
+   "rank": 4,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Kaleb Johnson",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -1139,7 +1242,7 @@
    "book": "draftkings",
    "price": -110,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391620806%232377842840_13L88808Q1-1057711884Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1154,7 +1257,7 @@
     "car": 8.3,
     "n": 3
    },
-   "rank": 4
+   "rank": 5
   },
   {
    "kind": "fb",
@@ -1208,7 +1311,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 5
+   "rank": 6
   },
   {
    "kind": "fb",
@@ -1262,7 +1365,7 @@
     "car": 0.7,
     "n": 3
    },
-   "rank": 6,
+   "rank": 7,
    "below_price": true
   },
   {
@@ -1282,7 +1385,7 @@
    "book": "draftkings",
    "price": -110,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391616619%232380455022_13L88808Q1-1227783981Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1297,7 +1400,7 @@
     "car": 0.0,
     "n": 1
    },
-   "rank": 7
+   "rank": 8
   },
   {
    "kind": "fb",
@@ -1351,7 +1454,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 8,
+   "rank": 9,
    "below_price": true
   },
   {
@@ -1406,7 +1509,7 @@
     "car": 14.3,
     "n": 3
    },
-   "rank": 9,
+   "rank": 10,
    "below_price": true
   },
   {
@@ -1441,7 +1544,7 @@
     "car": 2.0,
     "n": 3
    },
-   "rank": 10,
+   "rank": 11,
    "below_price": true
   },
   {
@@ -1476,7 +1579,7 @@
     "car": 1.3,
     "n": 3
    },
-   "rank": 11,
+   "rank": 12,
    "below_price": true
   },
   {
@@ -1531,7 +1634,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 12,
+   "rank": 13,
    "below_price": true
   },
   {
@@ -1583,40 +1686,6 @@
    "role": {
     "snap": 0.7033,
     "tgt_share": 0.097,
-    "car": 0.0,
-    "n": 3
-   },
-   "rank": 13
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Xavier Smith",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 8.5,
-   "game": "Green Bay Packers @ Los Angeles Rams",
-   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
-   "away": "Green Bay Packers",
-   "home": "Los Angeles Rams",
-   "commence": "2026-11-26T01:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2814664322526085526",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 53,
-   "model_p": 52.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 0.6,
-   "role": {
-    "snap": 0.3267,
-    "tgt_share": 0.0368,
     "car": 0.0,
     "n": 3
    },
@@ -1680,6 +1749,41 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Xavier Smith",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 8.5,
+   "game": "Green Bay Packers @ Los Angeles Rams",
+   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
+   "away": "Green Bay Packers",
+   "home": "Los Angeles Rams",
+   "commence": "2026-11-26T01:00:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.628044536&selectionId=74182544",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": -0.1,
+   "role": {
+    "snap": 0.3267,
+    "tgt_share": 0.0368,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Davis Allen",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
@@ -1728,7 +1832,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 16,
+   "rank": 17,
    "below_price": true
   },
   {
@@ -1745,9 +1849,9 @@
    "away": "Green Bay Packers",
    "home": "Los Angeles Rams",
    "commence": "2026-11-26T01:00:00Z",
-   "book": "fanduel",
-   "price": -188,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.628044538&selectionId=74182530",
+   "book": "hardrockbet",
+   "price": -185,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/5414161942348693910",
    "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -1755,15 +1859,15 @@
    "confidence": 53,
    "model_p": 53.4,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 65.3,
-   "edge": -12.3,
+   "break_even": 64.9,
+   "edge": -11.9,
    "role": {
     "snap": 0.3267,
     "tgt_share": 0.0368,
     "car": 0.0,
     "n": 3
    },
-   "rank": 17,
+   "rank": 18,
    "below_price": true
   },
   {
@@ -1816,40 +1920,6 @@
     "snap": 1.0,
     "tgt_share": 0.0,
     "car": 1.0,
-    "n": 3
-   },
-   "rank": 18
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Blake Corum",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 1.5,
-   "game": "Green Bay Packers @ Los Angeles Rams",
-   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
-   "away": "Green Bay Packers",
-   "home": "Los Angeles Rams",
-   "commence": "2026-11-26T01:00:00Z",
-   "book": "hardrockbet",
-   "price": 130,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3267912821494645144",
-   "n_books": 3,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.5,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 43.5,
-   "edge": 8.5,
-   "role": {
-    "snap": 0.3933,
-    "tgt_share": 0.0809,
-    "car": 13.0,
     "n": 3
    },
    "rank": 19
@@ -1912,41 +1982,6 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Blake Corum",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 11.5,
-   "game": "Green Bay Packers @ Los Angeles Rams",
-   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
-   "away": "Green Bay Packers",
-   "home": "Los Angeles Rams",
-   "commence": "2026-11-26T01:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/998502336225739168",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": -0.4,
-   "role": {
-    "snap": 0.3933,
-    "tgt_share": 0.0809,
-    "car": 13.0,
-    "n": 3
-   },
-   "rank": 21,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Jordan Love",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -1995,7 +2030,7 @@
     "car": 0.7,
     "n": 3
    },
-   "rank": 22,
+   "rank": 21,
    "below_price": true
   },
   {
@@ -2028,6 +2063,41 @@
     "snap": 0.2567,
     "tgt_share": 0.0589,
     "car": 4.3,
+    "n": 3
+   },
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Blake Corum",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 11.5,
+   "game": "Green Bay Packers @ Los Angeles Rams",
+   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
+   "away": "Green Bay Packers",
+   "home": "Los Angeles Rams",
+   "commence": "2026-11-26T01:00:00Z",
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA391615854%232376392574_13L88808Q1769551952Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 51.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.6,
+   "edge": -0.6,
+   "role": {
+    "snap": 0.3933,
+    "tgt_share": 0.0809,
+    "car": 13.0,
     "n": 3
    },
    "rank": 23,
@@ -2142,7 +2212,7 @@
    "book": "draftkings",
    "price": -111,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391616490%232380329410_13L88808Q1-1785896351Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [
@@ -2181,7 +2251,7 @@
    "book": "draftkings",
    "price": -110,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391620806%232377842840_13L88808Q1-1057711884Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [
@@ -2280,7 +2350,7 @@
    "book": "draftkings",
    "price": -110,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391616619%232380455022_13L88808Q1-1227783981Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [
@@ -2300,45 +2370,6 @@
     "n": 1
    },
    "rank": 4,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Xavier Smith",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 8.5,
-   "game": "Green Bay Packers @ Los Angeles Rams",
-   "game_id": "5b612899d6dcdf998107f2c6c6e49a58",
-   "away": "Green Bay Packers",
-   "home": "Los Angeles Rams",
-   "commence": "2026-11-26T01:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2814664322526085526",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [
-    "Over his last 3 games he has played 33% of the snaps and 4% of the team's targets.",
-    "The Green Bay Packers allow 155.9 receiving yards a game to wide receivers (10th most of 32).",
-    "The model gives it <b>53%</b>; at -110 it needs 52.4% to pay."
-   ],
-   "confidence": 53,
-   "model_p": 52.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 0.6,
-   "role": {
-    "snap": 0.3267,
-    "tgt_share": 0.0368,
-    "car": 0.0,
-    "n": 3
-   },
-   "rank": 5,
    "why_card": []
   },
   {
@@ -2396,7 +2427,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 6,
+   "rank": 5,
    "why_card": [
     "<b>Matthew Golden</b> went under 73.5 rec yds in <b>4 of 10 games</b> in 2026 and 7 of 8 in 2025, when he played at least half the snaps."
    ]
@@ -2415,29 +2446,29 @@
    "away": "Green Bay Packers",
    "home": "Los Angeles Rams",
    "commence": "2026-11-26T01:00:00Z",
-   "book": "hardrockbet",
-   "price": 130,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3267912821494645144",
-   "n_books": 3,
+   "book": "draftkings",
+   "price": 126,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA391616711%232376389588_13L88808Q1-847255388Q20",
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [
     "Over his last 3 games he has played 39% of the snaps and 8% of the team's targets.",
     "The Green Bay Packers allow 4.2 catches a game to running backs (13th fewest of 32).",
-    "The model gives it <b>52%</b>; at +130 it needs 43.5% to pay."
+    "The model gives it <b>52%</b>; at +126 it needs 44.2% to pay."
    ],
    "confidence": 52,
    "model_p": 51.5,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 43.5,
-   "edge": 8.5,
+   "break_even": 44.2,
+   "edge": 7.8,
    "role": {
     "snap": 0.3933,
     "tgt_share": 0.0809,
     "car": 13.0,
     "n": 3
    },
-   "rank": 7,
+   "rank": 6,
    "why_card": []
   },
   {
@@ -2495,7 +2526,7 @@
     "car": 1.0,
     "n": 3
    },
-   "rank": 8,
+   "rank": 7,
    "why_card": [
     "<b>Matthew Stafford</b> went over 1.5 pass TD in <b>6 of 10 games</b> in 2026 and 17 of 20 in 2025, when he played at least half the snaps."
    ]
