@@ -1,10 +1,10 @@
 {
  "date": "2026-11-26",
  "league": "nfl",
- "generated_at": "2026-11-26T14:20:38Z",
+ "generated_at": "2026-11-26T15:07:09Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-11-26T11:22:39Z",
+ "odds_pulled_at": "2026-11-26T15:06:53Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -130,6 +130,36 @@
   {
    "kind": "fb-line",
    "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Buffalo Bills",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": -3.5,
+   "game": "Kansas City Chiefs @ Buffalo Bills",
+   "game_id": "f36f518585aec40e8cb40e071c0844aa",
+   "away": "Kansas City Chiefs",
+   "home": "Buffalo Bills",
+   "commence": "2026-11-27T01:20:00Z",
+   "book": "hardrockbet",
+   "price": 115,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 46.5,
+   "edge": 6.5,
+   "why": [
+    "The game model gives Buffalo Bills 53% to cover -3.5; the best price, +115 at Hard Rock, needs 46.5%."
+   ],
+   "priced_at": "2026-11-26T12:09:39Z",
+   "main_line": -3.0,
+   "sched_id": "2026_12_KC_BUF",
+   "rank": 5
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
    "basis": "MODEL \u2014 the game model's probability",
    "player": "Detroit Lions",
    "market": "spread",
@@ -153,45 +183,10 @@
     "The game model gives Detroit Lions 52% to cover +1.5; the price -104 needs 51.0%."
    ],
    "priced_at": "2026-11-26T12:09:39Z",
-   "rank": 5
+   "rank": 6
   }
  ],
  "game_lines_liked": [
-  {
-   "kind": "fb-line",
-   "league": "nfl",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "Over",
-   "market": "total",
-   "market_label": "Total",
-   "side": "over",
-   "line": 45.5,
-   "game": "Kansas City Chiefs @ Buffalo Bills",
-   "game_id": "f36f518585aec40e8cb40e071c0844aa",
-   "away": "Kansas City Chiefs",
-   "home": "Buffalo Bills",
-   "commence": "2026-11-27T01:20:00Z",
-   "book": "draftkings",
-   "price": -109,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 58,
-   "break_even": 52.2,
-   "edge": 5.9,
-   "why": [
-    "The game model gives Over 58% at 45.5; the price -109 needs 52.2%.",
-    "The model's predicted score: Kansas City Chiefs 22, Buffalo Bills 27 (total 49).",
-    "The Kansas City Chiefs score 27.1 and allow 16.3 points a game this season (10 games).",
-    "The Buffalo Bills score 31.3 and allow 20.8 points a game this season (10 games).",
-    "Against teams the model rates above average this season: Kansas City Chiefs 1-2, Buffalo Bills 4-1."
-   ],
-   "priced_at": "2026-11-26T12:09:39Z",
-   "rank": 1,
-   "why_card": [
-    "The game model gives Over 58% at 45.5; the price -109 needs 52.2%."
-   ]
-  },
   {
    "kind": "fb-line",
    "league": "nfl",
@@ -222,9 +217,46 @@
     "Against teams the model rates above average this season: Philadelphia Eagles 0-3, Dallas Cowboys 1-3."
    ],
    "priced_at": "2026-11-26T12:09:39Z",
-   "rank": 2,
+   "rank": 1,
    "why_card": [
     "The game model gives Over 56% at 47.5; the price -120 needs 54.5%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Buffalo Bills",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": -3.5,
+   "game": "Kansas City Chiefs @ Buffalo Bills",
+   "game_id": "f36f518585aec40e8cb40e071c0844aa",
+   "away": "Kansas City Chiefs",
+   "home": "Buffalo Bills",
+   "commence": "2026-11-27T01:20:00Z",
+   "book": "hardrockbet",
+   "price": 115,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 46.5,
+   "edge": 6.5,
+   "why": [
+    "The game model gives Buffalo Bills 53% to cover -3.5; the best price, +115 at Hard Rock, needs 46.5%.",
+    "The model's predicted score: Kansas City Chiefs 22, Buffalo Bills 27 (total 49).",
+    "The Kansas City Chiefs score 27.1 and allow 16.3 points a game this season (10 games).",
+    "The Buffalo Bills score 31.3 and allow 20.8 points a game this season (10 games).",
+    "Against teams the model rates above average this season: Kansas City Chiefs 1-2, Buffalo Bills 4-1."
+   ],
+   "priced_at": "2026-11-26T12:09:39Z",
+   "main_line": -3.0,
+   "sched_id": "2026_12_KC_BUF",
+   "rank": 2,
+   "why_card": [
+    "The game model gives Buffalo Bills 53% to cover -3.5; the best price, +115 at Hard Rock, needs 46.5%."
    ]
   },
   {
@@ -272,8 +304,8 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-11-26T14:20:25Z",
-  "ladder_built_at": "2026-11-26T14:20:27Z",
-  "alt_spreads": 0
+  "ladder_built_at": "2026-11-26T15:06:58Z",
+  "alt_spreads": 1
  },
  "scores_shown": [
   {
@@ -405,7 +437,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 5 pick(s) for 2026-11-26 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 5 pick(s) for 2026-11-26 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -478,7 +510,7 @@
    "book": "draftkings",
    "price": 106,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391904481%232377910044_13L88808Q11522747071Q20",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 60,
@@ -519,9 +551,9 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Brock Wright",
-   "market": "player_receptions",
-   "market_label": "Receptions",
+   "player": "Jared Goff",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
    "side": "over",
    "line": 0.5,
    "game": "Chicago Bears @ Detroit Lions",
@@ -529,42 +561,42 @@
    "away": "Chicago Bears",
    "home": "Detroit Lions",
    "commence": "2026-11-26T18:00:00Z",
-   "book": "draftkings",
-   "price": -140,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA391839818%232377484794_13L88808Q11748027846Q20",
-   "n_books": 3,
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3658841019654472099",
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 60,
-   "raw": "11 of 11",
-   "record": "11 of 11",
-   "rate": 89,
-   "break_even": 58.3,
-   "edge": 1.7,
+   "raw": "13 of 27",
+   "record": "13 of 27",
+   "rate": 72,
+   "break_even": 54.5,
+   "edge": 5.5,
    "season_detail": {
     "h25": 6,
-    "n25": 6,
-    "h26": 5,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 1.0,
-    "weighted_n": 7.67,
-    "mean_all": 2.0
+    "n25": 17,
+    "h26": 7,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.889,
+    "weighted_n": 14.86,
+    "mean_all": 2.963
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 2.33,
-   "projection": 2.0,
-   "projection_unit": "rec",
+   "own_mean": 2.65,
+   "projection": 3.0,
+   "projection_unit": "rush yds",
    "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 11 games this record is built from \u2014 2.0 rec a game.",
+   "projection_note": "His own average over the 27 games this record is built from \u2014 3.0 rush yds a game.",
    "why": [
-    "<b>Brock Wright</b> went over 0.5 rec in <b>5 of 5 games</b> in 2026 and 6 of 6 in 2025, when he played at least half the snaps."
+    "<b>Jared Goff</b> went over 0.5 rush yds in <b>7 of 10 games</b> in 2026 and 6 of 17 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 59.6,
+   "model_p": 60.3,
    "role": {
-    "snap": 0.6533,
-    "tgt_share": 0.0561,
-    "car": 0.0,
+    "snap": 0.9533,
+    "tgt_share": 0.0,
+    "car": 3.3,
     "n": 3
    },
    "rank": 4
@@ -572,17 +604,17 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 9,
-  "same_game_already_listed": 173,
+  "same_player_already_listed": 12,
+  "same_game_already_listed": 180,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 185,
+  "pool_after_price_gate": 195,
   "cap": 10,
   "distinct_games": 3,
   "shared_with_board_head": 3,
   "board_head_size": 10
  },
- "top_plays_rule": "The 3 most likely to hit for 2026-11-26 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 3 game(s). 173 row(s) were held back because their game was already represented and 9 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 3 most likely to hit for 2026-11-26 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 3 game(s). 180 row(s) were held back because their game was already represented and 12 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -648,6 +680,38 @@
     "break_even": 25.3,
     "edge": 14.3,
     "ev_30": 16.92
+   },
+   {
+    "legs": [
+     "Josh Allen u39.5 rush yds",
+     "Jared Goff o0.5 rush yds"
+    ],
+    "games": [
+     "Kansas City Chiefs @ Buffalo Bills",
+     "Chicago Bears @ Detroit Lions"
+    ],
+    "game_ids": [
+     "f36f518585aec40e8cb40e071c0844aa",
+     "9b825e6518156008da499be041975fdd"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -120
+    ],
+    "multiplier": 3.428,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 39.6,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     66,
+     60
+    ],
+    "break_even": 29.2,
+    "edge": 10.4,
+    "ev_30": 10.72
    },
    {
     "legs": [
@@ -808,38 +872,6 @@
     "break_even": 27.1,
     "edge": 11.2,
     "ev_30": 12.41
-   },
-   {
-    "legs": [
-     "Josh Allen u38.5 rush yds",
-     "Brock Wright o2.5 rec yds"
-    ],
-    "games": [
-     "Kansas City Chiefs @ Buffalo Bills",
-     "Chicago Bears @ Detroit Lions"
-    ],
-    "game_ids": [
-     "f36f518585aec40e8cb40e071c0844aa",
-     "9b825e6518156008da499be041975fdd"
-    ],
-    "book": "draftkings",
-    "prices": [
-     -109,
-     -115
-    ],
-    "multiplier": 3.585,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 38.3,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     66,
-     58
-    ],
-    "break_even": 27.9,
-    "edge": 10.4,
-    "ev_30": 11.17
    }
   ],
   "3": [
@@ -1144,7 +1176,7 @@
  },
  "parlay_meta": {
   "pool": 36,
-  "rated_legs": 185,
+  "rated_legs": 195,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -1153,17 +1185,17 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 14,
+    "available": 12,
     "taken": 12
    },
    {
     "decimal": "1.6-2",
-    "available": 156,
+    "available": 166,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 15,
+    "available": 17,
     "taken": 12
    },
    {
@@ -1173,12 +1205,12 @@
    }
   ],
   "rejected": {
-   "same_game": 64672,
+   "same_game": 64632,
    "same_player": 0,
-   "mixed_book": 1514,
+   "mixed_book": 1590,
    "out_of_band": 0
   },
-  "note": "185 rated legs, 36 in the stratified pool. Rejected: 64672 same game, 0 same player, 1514 would need two books, 0 outside Sam's bands."
+  "note": "195 rated legs, 36 in the stratified pool. Rejected: 64632 same game, 0 same player, 1590 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -1246,6 +1278,37 @@
    },
    {
     "legs": [
+     "Jared Goff o0.5 rush yds",
+     "Detroit Lions +1.5 spread"
+    ],
+    "game": "Chicago Bears @ Detroit Lions",
+    "game_id": "9b825e6518156008da499be041975fdd",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -110
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -104,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.5,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 60,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     60
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
      "Brock Wright o0.5 rec",
      "Detroit Lions +1.5 spread"
     ],
@@ -1304,37 +1367,6 @@
     "leg_confidences": [
      60,
      59
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Kyle Monangai o33.5 rush yds",
-     "Detroit Lions +1.5 spread"
-    ],
-    "game": "Chicago Bears @ Detroit Lions",
-    "game_id": "9b825e6518156008da499be041975fdd",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -113,
-     -104
-    ],
-    "line_best_book": "fanduel",
-    "line_best_price": -104,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.697,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 58,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     58
     ],
     "band_floor": 1.8
    },
@@ -1586,8 +1618,8 @@
   "games_used": 3,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 163,
-   "mixed_book": 302,
+   "same_player": 153,
+   "mixed_book": 309,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -1690,18 +1722,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 1.6 pass TD a game."
   },
-  "Caleb Williams|player_pass_tds|over|2.5": {
-   "v": 1.6,
-   "u": "pass TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 26 games this record is built from \u2014 1.6 pass TD a game."
-  },
-  "Caleb Williams|player_pass_tds|under|2.5": {
-   "v": 1.6,
-   "u": "pass TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 26 games this record is built from \u2014 1.6 pass TD a game."
-  },
   "Jared Goff|player_pass_tds|over|1.5": {
    "v": 2.0,
    "u": "pass TD",
@@ -1786,6 +1806,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 84.3 rec yds a game."
   },
+  "Amon-Ra St. Brown|player_reception_yds|over|83.5": {
+   "v": 84.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 84.3 rec yds a game."
+  },
+  "Amon-Ra St. Brown|player_reception_yds|under|83.5": {
+   "v": 84.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 84.3 rec yds a game."
+  },
   "Amon-Ra St. Brown|player_reception_yds|over|84.5": {
    "v": 84.3,
    "u": "rec yds",
@@ -1817,6 +1849,18 @@
    "n": "His own average over the 11 games this record is built from \u2014 16.7 rec yds a game."
   },
   "Brock Wright|player_reception_yds|under|3.5": {
+   "v": 16.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 16.7 rec yds a game."
+  },
+  "Brock Wright|player_reception_yds|over|4.5": {
+   "v": 16.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 16.7 rec yds a game."
+  },
+  "Brock Wright|player_reception_yds|under|4.5": {
    "v": 16.7,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -1869,6 +1913,18 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 24 games this record is built from \u2014 18.5 rec yds a game."
+  },
+  "Isaac TeSlaa|player_reception_yds|over|18.5": {
+   "v": 29.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 29.4 rec yds a game."
+  },
+  "Isaac TeSlaa|player_reception_yds|under|18.5": {
+   "v": 29.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 29.4 rec yds a game."
   },
   "Isaac TeSlaa|player_reception_yds|over|19.5": {
    "v": 29.4,
@@ -1930,6 +1986,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 27 games this record is built from \u2014 64.0 rec yds a game."
   },
+  "Jameson Williams|player_reception_yds|over|58.5": {
+   "v": 64.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 64.0 rec yds a game."
+  },
+  "Jameson Williams|player_reception_yds|under|58.5": {
+   "v": 64.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 64.0 rec yds a game."
+  },
   "Kalif Raymond|player_reception_yds|over|25.5": {
    "v": 27.0,
    "u": "rec yds",
@@ -1966,6 +2034,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 59.0 rec yds a game."
   },
+  "Luther Burden III|player_reception_yds|over|63.5": {
+   "v": 59.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 59.0 rec yds a game."
+  },
+  "Luther Burden III|player_reception_yds|under|63.5": {
+   "v": 59.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 59.0 rec yds a game."
+  },
   "Rome Odunze|player_reception_yds|over|47.5": {
    "v": 55.2,
    "u": "rec yds",
@@ -1985,6 +2065,18 @@
    "n": "His own average over the 23 games this record is built from \u2014 55.2 rec yds a game."
   },
   "Rome Odunze|player_reception_yds|under|48.5": {
+   "v": 55.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 55.2 rec yds a game."
+  },
+  "Rome Odunze|player_reception_yds|over|49.5": {
+   "v": 55.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 55.2 rec yds a game."
+  },
+  "Rome Odunze|player_reception_yds|under|49.5": {
    "v": 55.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -2218,13 +2310,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 27 games this record is built from \u2014 86.0 rush yds a game."
   },
-  "Jahmyr Gibbs|player_rush_yds|over|93.5": {
+  "Jahmyr Gibbs|player_rush_yds|over|94.5": {
    "v": 86.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 27 games this record is built from \u2014 86.0 rush yds a game."
   },
-  "Jahmyr Gibbs|player_rush_yds|under|93.5": {
+  "Jahmyr Gibbs|player_rush_yds|under|94.5": {
    "v": 86.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -2241,6 +2333,18 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 27 games this record is built from \u2014 86.0 rush yds a game."
+  },
+  "Jared Goff|player_rush_yds|over|0.5": {
+   "v": 3.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 3.0 rush yds a game."
+  },
+  "Jared Goff|player_rush_yds|under|0.5": {
+   "v": 3.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 3.0 rush yds a game."
   },
   "Jared Goff|player_rush_yds|over|1.5": {
    "v": 3.0,
@@ -2374,13 +2478,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 28 games this record is built from \u2014 271.5 pass yds a game."
   },
-  "Dak Prescott|player_pass_yds|over|263.5": {
+  "Dak Prescott|player_pass_yds|over|264.5": {
    "v": 271.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 28 games this record is built from \u2014 271.5 pass yds a game."
   },
-  "Dak Prescott|player_pass_yds|under|263.5": {
+  "Dak Prescott|player_pass_yds|under|264.5": {
    "v": 271.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -2470,6 +2574,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 42.0 rec yds a game."
   },
+  "Dallas Goedert|player_reception_yds|over|31.5": {
+   "v": 42.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 42.0 rec yds a game."
+  },
+  "Dallas Goedert|player_reception_yds|under|31.5": {
+   "v": 42.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 42.0 rec yds a game."
+  },
   "Darius Cooper|player_reception_yds|over|30.5": {
    "v": 33.2,
    "u": "rec yds",
@@ -2501,6 +2617,18 @@
    "n": "His own average over the 22 games this record is built from \u2014 62.6 rec yds a game."
   },
   "DeVonta Smith|player_reception_yds|under|63.5": {
+   "v": 62.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 62.6 rec yds a game."
+  },
+  "DeVonta Smith|player_reception_yds|over|65.5": {
+   "v": 62.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 62.6 rec yds a game."
+  },
+  "DeVonta Smith|player_reception_yds|under|65.5": {
    "v": 62.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -2854,18 +2982,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 21 games this record is built from \u2014 71.8 rush yds a game."
   },
-  "Saquon Barkley|player_rush_yds|over|65.5": {
-   "v": 71.8,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 21 games this record is built from \u2014 71.8 rush yds a game."
-  },
-  "Saquon Barkley|player_rush_yds|under|65.5": {
-   "v": 71.8,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 21 games this record is built from \u2014 71.8 rush yds a game."
-  },
   "Saquon Barkley|player_rush_yds|over|66.5": {
    "v": 71.8,
    "u": "rush yds",
@@ -3034,6 +3150,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 24 games this record is built from \u2014 262.3 pass yds a game."
   },
+  "Patrick Mahomes|player_pass_yds|over|234.5": {
+   "v": 262.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 262.3 pass yds a game."
+  },
+  "Patrick Mahomes|player_pass_yds|under|234.5": {
+   "v": 262.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 262.3 pass yds a game."
+  },
   "Patrick Mahomes|player_pass_yds|over|236.5": {
    "v": 262.3,
    "u": "pass yds",
@@ -3190,6 +3318,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 18.2 rec yds a game."
   },
+  "Rashee Rice|player_reception_yds|over|44.5": {
+   "v": 68.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 68.4 rec yds a game."
+  },
+  "Rashee Rice|player_reception_yds|under|44.5": {
+   "v": 68.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 68.4 rec yds a game."
+  },
   "Rashee Rice|player_reception_yds|over|45.5": {
    "v": 68.4,
    "u": "rec yds",
@@ -3197,18 +3337,6 @@
    "n": "His own average over the 12 games this record is built from \u2014 68.4 rec yds a game."
   },
   "Rashee Rice|player_reception_yds|under|45.5": {
-   "v": 68.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 12 games this record is built from \u2014 68.4 rec yds a game."
-  },
-  "Rashee Rice|player_reception_yds|over|46.5": {
-   "v": 68.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 12 games this record is built from \u2014 68.4 rec yds a game."
-  },
-  "Rashee Rice|player_reception_yds|under|46.5": {
    "v": 68.4,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -3238,13 +3366,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 54.1 rec yds a game."
   },
-  "Travis Kelce|player_reception_yds|over|45.5": {
+  "Travis Kelce|player_reception_yds|over|44.5": {
    "v": 54.1,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 54.1 rec yds a game."
   },
-  "Travis Kelce|player_reception_yds|under|45.5": {
+  "Travis Kelce|player_reception_yds|under|44.5": {
    "v": 54.1,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -3394,6 +3522,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 12 games this record is built from \u2014 5.9 rec a game."
   },
+  "Travis Kelce|player_receptions|over|3.5": {
+   "v": 4.4,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 4.4 rec a game."
+  },
+  "Travis Kelce|player_receptions|under|3.5": {
+   "v": 4.4,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 4.4 rec a game."
+  },
   "Travis Kelce|player_receptions|over|4.5": {
    "v": 4.4,
    "u": "rec",
@@ -3437,6 +3577,18 @@
    "n": "His own average over the 26 games this record is built from \u2014 95.4 rush yds a game."
   },
   "James Cook|player_rush_yds|under|82.5": {
+   "v": 95.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 95.4 rush yds a game."
+  },
+  "James Cook|player_rush_yds|over|85.5": {
+   "v": 95.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 95.4 rush yds a game."
+  },
+  "James Cook|player_rush_yds|under|85.5": {
    "v": 95.4,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -3504,19 +3656,19 @@
   }
  },
  "name_match_rate": 1.0,
- "n_priced": 185,
+ "n_priced": 195,
  "single_day": true,
  "slate_date": "2026-11-26",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 185,
+ "n_on_slate_day": 195,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-26 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "185 priced football rows for 2026-11-26 across 3 board games; 25 shown.",
+ "coverage": "195 priced football rows for 2026-11-26 across 3 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 50.8% against a claimed 54.3% (-3.5 pts, n=191); 60-70 hit 45.5% against a claimed 63% (-17.5 pts, n=22). The under-60 band is currently the closest to its own claim. 70-80 and 80-plus have too few graded plays to read. 213 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -3626,7 +3778,7 @@
    "book": "draftkings",
    "price": 106,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391904481%232377910044_13L88808Q11522747071Q20",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 60,
@@ -3662,6 +3814,60 @@
     "n": 3
    },
    "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jared Goff",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 0.5,
+   "game": "Chicago Bears @ Detroit Lions",
+   "game_id": "9b825e6518156008da499be041975fdd",
+   "away": "Chicago Bears",
+   "home": "Detroit Lions",
+   "commence": "2026-11-26T18:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3658841019654472099",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "raw": "13 of 27",
+   "record": "13 of 27",
+   "rate": 72,
+   "break_even": 54.5,
+   "edge": 5.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 17,
+    "h26": 7,
+    "n26": 10,
+    "w25": 0.286,
+    "p0": 0.889,
+    "weighted_n": 14.86,
+    "mean_all": 2.963
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.65,
+   "projection": 3.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 27 games this record is built from \u2014 3.0 rush yds a game.",
+   "why": [
+    "<b>Jared Goff</b> went over 0.5 rush yds in <b>7 of 10 games</b> in 2026 and 6 of 17 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 60.3,
+   "role": {
+    "snap": 0.9533,
+    "tgt_share": 0.0,
+    "car": 3.3,
+    "n": 3
+   },
+   "rank": 4
   },
   {
    "kind": "fb",
@@ -3715,7 +3921,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 4
+   "rank": 5
   },
   {
    "kind": "fb",
@@ -3734,7 +3940,7 @@
    "book": "draftkings",
    "price": -233,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA391841729%232377494277_13L88808Q1-1720642580Q20",
-   "n_books": 2,
+   "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -3749,7 +3955,7 @@
     "car": 7.0,
     "n": 2
    },
-   "rank": 5,
+   "rank": 6,
    "below_price": true
   },
   {
@@ -3804,7 +4010,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 6
+   "rank": 7
   },
   {
    "kind": "fb",
@@ -3838,7 +4044,7 @@
     "car": 16.0,
     "n": 3
    },
-   "rank": 7
+   "rank": 8
   },
   {
    "kind": "fb",
@@ -3892,7 +4098,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 8
+   "rank": 9
   },
   {
    "kind": "fb",
@@ -3946,7 +4152,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 9
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -3980,7 +4186,7 @@
     "car": 17.0,
     "n": 3
    },
-   "rank": 10
+   "rank": 11
   },
   {
    "kind": "fb",
@@ -4012,60 +4218,6 @@
     "snap": 0.0767,
     "tgt_share": 0.0,
     "car": 2.7,
-    "n": 3
-   },
-   "rank": 11
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jared Goff",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 1.5,
-   "game": "Chicago Bears @ Detroit Lions",
-   "game_id": "9b825e6518156008da499be041975fdd",
-   "away": "Chicago Bears",
-   "home": "Detroit Lions",
-   "commence": "2026-11-26T18:00:00Z",
-   "book": "fanduel",
-   "price": -113,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627938598&selectionId=12135315",
-   "n_books": 3,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "12 of 27",
-   "record": "12 of 27",
-   "rate": 67,
-   "break_even": 53.1,
-   "edge": 3.9,
-   "season_detail": {
-    "h25": 6,
-    "n25": 17,
-    "h26": 6,
-    "n26": 10,
-    "w25": 0.286,
-    "p0": 0.849,
-    "weighted_n": 14.86,
-    "mean_all": 2.963
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 2.65,
-   "projection": 3.0,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 27 games this record is built from \u2014 3.0 rush yds a game.",
-   "why": [
-    "<b>Jared Goff</b> went over 1.5 rush yds in <b>6 of 10 games</b> in 2026 and 6 of 17 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 57.3,
-   "role": {
-    "snap": 0.9533,
-    "tgt_share": 0.0,
-    "car": 3.3,
     "n": 3
    },
    "rank": 12
@@ -4238,61 +4390,6 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Caleb Williams",
-   "market": "player_pass_tds",
-   "market_label": "Passing TDs",
-   "side": "under",
-   "line": 2.5,
-   "game": "Chicago Bears @ Detroit Lions",
-   "game_id": "9b825e6518156008da499be041975fdd",
-   "away": "Chicago Bears",
-   "home": "Detroit Lions",
-   "commence": "2026-11-26T18:00:00Z",
-   "book": "hardrockbet",
-   "price": -225,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4184783206981173674",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "23 of 26",
-   "record": "23 of 26",
-   "rate": 87,
-   "break_even": 69.2,
-   "edge": -12.2,
-   "season_detail": {
-    "h25": 16,
-    "n25": 19,
-    "h26": 7,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.804,
-    "weighted_n": 13.91,
-    "mean_all": 1.577
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 1.63,
-   "projection": 1.6,
-   "projection_unit": "pass TD",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 26 games this record is built from \u2014 1.6 pass TD a game.",
-   "why": [
-    "<b>Caleb Williams</b> went under 2.5 pass TD in <b>7 of 7 games</b> in 2026 and 16 of 19 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 57.4,
-   "role": {
-    "snap": 1.0,
-    "tgt_share": 0.0,
-    "car": 3.7,
-    "n": 3
-   },
-   "rank": 16,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Emmett Johnson",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
@@ -4321,7 +4418,7 @@
     "car": 17.0,
     "n": 3
    },
-   "rank": 17
+   "rank": 16
   },
   {
    "kind": "fb",
@@ -4375,7 +4472,7 @@
     "car": 3.7,
     "n": 3
    },
-   "rank": 18
+   "rank": 17
   },
   {
    "kind": "fb",
@@ -4394,7 +4491,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627942862&selectionId=40891131",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 56,
@@ -4429,7 +4526,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 19
+   "rank": 18
   },
   {
    "kind": "fb",
@@ -4448,7 +4545,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.628651098&selectionId=26270330",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 56,
@@ -4481,6 +4578,60 @@
     "snap": 0.68,
     "tgt_share": 0.1278,
     "car": 0.0,
+    "n": 3
+   },
+   "rank": 19
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Luther Burden III",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 63.5,
+   "game": "Chicago Bears @ Detroit Lions",
+   "game_id": "9b825e6518156008da499be041975fdd",
+   "away": "Chicago Bears",
+   "home": "Detroit Lions",
+   "commence": "2026-11-26T18:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/304287152762651053",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "12 of 16",
+   "record": "12 of 16",
+   "rate": 74,
+   "break_even": 53.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 5,
+    "n25": 7,
+    "h26": 7,
+    "n26": 9,
+    "w25": 0.308,
+    "p0": 0.713,
+    "weighted_n": 11.15,
+    "mean_all": 59.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 55.0,
+   "projection": 59.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 59.0 rec yds a game.",
+   "why": [
+    "<b>Luther Burden III</b> went under 63.5 rec yds in <b>7 of 9 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 55.9,
+   "role": {
+    "snap": 0.5733,
+    "tgt_share": 0.2311,
+    "car": 0.3,
     "n": 3
    },
    "rank": 20
@@ -4555,7 +4706,7 @@
    "home": "Dallas Cowboys",
    "commence": "2026-11-26T21:30:00Z",
    "book": "hardrockbet",
-   "price": -155,
+   "price": -145,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/1921027095281140126",
    "n_books": 3,
    "clears_price_floor": true,
@@ -4564,8 +4715,8 @@
    "confidence": 56,
    "model_p": 56.2,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 60.8,
-   "edge": -4.8,
+   "break_even": 59.2,
+   "edge": -3.2,
    "role": {
     "snap": 0.1067,
     "tgt_share": 0.0305,
@@ -5179,7 +5330,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.627940619&selectionId=36072091",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 54,
