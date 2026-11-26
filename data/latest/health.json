@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-26T09:12:50Z",
+ "checked_at": "2026-11-26T10:58:39Z",
  "et_date": "2026-11-26",
  "healthy": false,
  "broken": 0,
@@ -16,8 +16,8 @@
   {
    "key": "clock:browser",
    "severity": "DEGRADED",
-   "what": "browser's render used 84% of its clock in the last 7 days",
-   "why": "browser's render used 84% of its 25-minute job clock (1273s, run 252, 2026-11-19T09:46). 1 job(s) of this workflow were at 75% or more: render 84%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
+   "what": "browser's render used 78% of its clock in the last 7 days",
+   "why": "browser's render used 78% of its 25-minute job clock (1175s, run 254, 2026-11-20T00:39). 1 job(s) of this workflow were at 75% or more: render 78%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
    "repair": null
   },
   {
@@ -37,7 +37,7 @@
   "pulled_at": "2026-11-25T20:09:34Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 13.1,
+  "reading_age_hours": 14.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-25T20:09:34Z",
   "source": "data/2026-11-25/props-pitcher/2009.json.gz",
@@ -76,7 +76,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 584,
+  "jobs_measured": 581,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26)"
