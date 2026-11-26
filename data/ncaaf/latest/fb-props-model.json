@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "MODEL",
- "built_at": "2026-11-25T13:49:57Z",
+ "built_at": "2026-11-26T12:40:25Z",
  "design": "research/fb_props_design.md",
  "train_seasons": [
   2021,
@@ -689,8 +689,8 @@
  },
  "league_only": {
   "n": 5112,
-  "mean_d": 0.054657381406432254,
-  "t": 6.3692359667675085,
+  "mean_d": 0.05465738140643223,
+  "t": 6.369235966767505,
   "p": 2.424244394158031e-10,
   "clusters": 435
  },
@@ -36482,20 +36482,846 @@
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 10792,
-  "mean_d": 0.045347354490555394,
-  "t": 7.888940844099087,
-  "p": 7.29945339690272e-15,
-  "clusters": 598,
+  "n": 10822,
+  "mean_d": 0.04542522993535506,
+  "t": 7.923586262239794,
+  "p": 5.660517342777984e-15,
+  "clusters": 599,
   "verdict": "QUALIFIES",
   "leagues": [
    "ncaaf",
    "nfl"
   ]
  },
- "picks": [],
- "rated": [],
- "board_pulled_at": "2026-11-24T19:01:17Z",
- "picks_total": 0,
+ "picks": [
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Adam Schobel",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": {
+    "value": 175.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 75.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 41.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Jeremy Payne",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": {
+    "value": 61.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 59.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 8.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Jordan Dwyer",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": {
+    "value": 4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -128,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 57.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 56.1,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Thomas Castellanos",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": {
+    "value": 208.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": {
+    "value": 58.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Kenny Johnson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 59.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Kari Ashley",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": {
+    "value": 4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  },
+  {
+   "game": "TCU Horned Frogs at Texas Tech Red Raiders",
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "commence": "2026-11-27T01:00:00Z",
+   "player": "Thomas Castellanos",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": {
+    "value": 55.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.7,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-11-26T12:40:10Z"
+  }
+ ],
+ "rated": [
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Adam Schobel",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 24.9
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Amante Martin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.1
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ashton Rowden",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 22.9
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Bryson Jones",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.5
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Cameron Dickey",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 32.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Coy Eakin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ed Small",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 26.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 37.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jacobe Hayes",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 23.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jeremy Payne",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 32.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jeremy Scott",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jett Carpenter",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jon Denman",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ka'Morreun Pimpton",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kari Ashley",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 29.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kenny Johnson",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Malcolm Simmons",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 28.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Matt Ludwig",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 24.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Micah Hudson",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 25.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 30.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Chase Campbell",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 22.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Lafayette Kaiuway",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 23.1
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Major Everhart",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 23.0
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 35.5
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Adam Schobel",
+   "market": "player_pass_yds",
+   "line": 175.5,
+   "side": "over",
+   "p": 24.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Adam Schobel",
+   "market": "player_pass_yds",
+   "line": 175.5,
+   "side": "under",
+   "p": 75.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_pass_yds",
+   "line": 208.5,
+   "side": "over",
+   "p": 43.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_pass_yds",
+   "line": 208.5,
+   "side": "under",
+   "p": 56.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ed Small",
+   "market": "player_reception_yds",
+   "line": 31.5,
+   "side": "over",
+   "p": 51.1
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ed Small",
+   "market": "player_reception_yds",
+   "line": 31.5,
+   "side": "under",
+   "p": 48.9
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "over",
+   "p": 50.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "under",
+   "p": 49.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "line": 59.5,
+   "side": "over",
+   "p": 54.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "line": 59.5,
+   "side": "under",
+   "p": 45.7
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kari Ashley",
+   "market": "player_reception_yds",
+   "line": 40.5,
+   "side": "over",
+   "p": 51.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kari Ashley",
+   "market": "player_reception_yds",
+   "line": 40.5,
+   "side": "under",
+   "p": 48.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_reception_yds",
+   "line": 36.5,
+   "side": "over",
+   "p": 50.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_reception_yds",
+   "line": 36.5,
+   "side": "under",
+   "p": 49.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ed Small",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "over",
+   "p": 49.0
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Ed Small",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "under",
+   "p": 51.0
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "over",
+   "p": 57.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "under",
+   "p": 42.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_receptions",
+   "line": 4.5,
+   "side": "over",
+   "p": 57.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_receptions",
+   "line": 4.5,
+   "side": "under",
+   "p": 42.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kari Ashley",
+   "market": "player_receptions",
+   "line": 4.5,
+   "side": "over",
+   "p": 54.0
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kari Ashley",
+   "market": "player_receptions",
+   "line": 4.5,
+   "side": "under",
+   "p": 46.0
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "over",
+   "p": 49.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "under",
+   "p": 50.7
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_rush_yds",
+   "line": 98.5,
+   "side": "over",
+   "p": 48.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_rush_yds",
+   "line": 98.5,
+   "side": "under",
+   "p": 51.7
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jeremy Payne",
+   "market": "player_rush_yds",
+   "line": 54.5,
+   "side": "over",
+   "p": 43.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jeremy Payne",
+   "market": "player_rush_yds",
+   "line": 54.5,
+   "side": "under",
+   "p": 56.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_rush_yds",
+   "line": 54.5,
+   "side": "over",
+   "p": 53.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_rush_yds",
+   "line": 54.5,
+   "side": "under",
+   "p": 46.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jack Daulton",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 22.5
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Adam Schobel",
+   "market": "player_pass_yds",
+   "line": 178.5,
+   "side": "over",
+   "p": 24.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Adam Schobel",
+   "market": "player_pass_yds",
+   "line": 178.5,
+   "side": "under",
+   "p": 75.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_pass_yds",
+   "line": 221.5,
+   "side": "over",
+   "p": 41.8
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_pass_yds",
+   "line": 221.5,
+   "side": "under",
+   "p": 58.2
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "line": 58.5,
+   "side": "over",
+   "p": 54.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jordan Dwyer",
+   "market": "player_reception_yds",
+   "line": 58.5,
+   "side": "under",
+   "p": 45.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kenny Johnson",
+   "market": "player_reception_yds",
+   "line": 59.5,
+   "side": "over",
+   "p": 45.7
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Kenny Johnson",
+   "market": "player_reception_yds",
+   "line": 59.5,
+   "side": "under",
+   "p": 54.3
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_reception_yds",
+   "line": 40.5,
+   "side": "over",
+   "p": 48.5
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Terrance Carter Jr.",
+   "market": "player_reception_yds",
+   "line": 40.5,
+   "side": "under",
+   "p": 51.5
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_rush_yds",
+   "line": 96.5,
+   "side": "over",
+   "p": 48.9
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "J'Koby Williams",
+   "market": "player_rush_yds",
+   "line": 96.5,
+   "side": "under",
+   "p": 51.1
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jeremy Payne",
+   "market": "player_rush_yds",
+   "line": 61.5,
+   "side": "over",
+   "p": 40.6
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Jeremy Payne",
+   "market": "player_rush_yds",
+   "line": 61.5,
+   "side": "under",
+   "p": 59.4
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_rush_yds",
+   "line": 55.5,
+   "side": "over",
+   "p": 52.7
+  },
+  {
+   "game_id": "b39108d2cfcd62d29954aee80bbf7b51",
+   "player": "Thomas Castellanos",
+   "market": "player_rush_yds",
+   "line": 55.5,
+   "side": "under",
+   "p": 47.3
+  }
+ ],
+ "board_pulled_at": "2026-11-26T12:40:10Z",
+ "picks_total": 8,
  "built_by": "3fad3b517f3b1625"
 }
