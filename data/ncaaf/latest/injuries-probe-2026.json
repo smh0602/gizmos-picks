@@ -49,7 +49,7 @@
   },
   "2026": {
    "ACC": {
-    "checked_at": "2026-11-25T00:11:40Z",
+    "checked_at": "2026-11-26T02:11:36Z",
     "due": false,
     "n_refused": 0,
     "ok": true,
@@ -58,13 +58,13 @@
     "wrote": false
    },
    "B10": {
-    "checked_at": "2026-11-25T00:11:40Z",
+    "checked_at": "2026-11-26T02:11:36Z",
     "due": false,
     "n_refused": 0,
     "ok": true,
     "refused": [],
-    "rows": 1615,
-    "wrote": false
+    "rows": 1657,
+    "wrote": true
    },
    "B12": {
     "checked_at": "2026-11-25T20:13:45Z",
@@ -76,7 +76,7 @@
     "wrote": false
    },
    "MAC": {
-    "checked_at": "2026-11-25T00:11:40Z",
+    "checked_at": "2026-11-26T02:11:36Z",
     "due": false,
     "n_refused": 16,
     "ok": true,
@@ -89,109 +89,29 @@
       "team": "Miami (OH)"
      }
     ],
-    "rows": 1812,
-    "wrote": false
+    "rows": 1881,
+    "wrote": true
    },
    "SEC": {
-    "checked_at": "2026-11-25T00:11:40Z",
+    "checked_at": "2026-11-26T02:11:36Z",
     "due": false,
     "n_refused": 0,
     "ok": true,
     "refused": [],
-    "rows": 1010,
-    "wrote": false
+    "rows": 1055,
+    "wrote": true
    }
   }
  },
- "built_at": "2026-11-26T00:08:19Z",
- "calls": 7,
- "duplicates": 0,
+ "built_at": "2026-11-26T02:11:36Z",
+ "calls": 11,
+ "duplicates": 3,
  "error": null,
  "kind": "DIAGNOSTIC",
  "note": "College injury reports (SEC, ACC, Big Ten, Big 12, MAC through HD Intelligence; Sun Belt; Pac-12). A refused report is named with its reason; nothing refused is stored. research/cfb_injuries_design.md.",
  "ok": true,
  "posted_after_fetch": [],
  "refused": [
-  {
-   "id": "10003568",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "SEC",
-   "teams": [
-    "LSU",
-    "Arkansas"
-   ]
-  },
-  {
-   "id": "10003609",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "SEC",
-   "teams": [
-    "Oklahoma",
-    "Missouri"
-   ]
-  },
-  {
-   "id": "10003625",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "SEC",
-   "teams": [
-    "Tennessee",
-    "Vanderbilt"
-   ]
-  },
-  {
-   "id": "10003646",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "SEC",
-   "teams": [
-    "Auburn",
-    "Alabama"
-   ]
-  },
-  {
-   "id": "10003550",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "ACC",
-   "teams": [
-    "Boston College",
-    "Miami (FL)"
-   ]
-  },
-  {
-   "id": "10003558",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "ACC",
-   "teams": [
-    "NC State",
-    "North Carolina"
-   ]
-  },
-  {
-   "id": "10003582",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "ACC",
-   "teams": [
-    "Virginia",
-    "Virginia Tech"
-   ]
-  },
-  {
-   "id": "10003594",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "ACC",
-   "teams": [
-    "Duke",
-    "Wake Forest"
-   ]
-  },
   {
    "id": "10003598",
    "label": "Report Pending",
@@ -210,76 +130,6 @@
    "teams": [
     "Pittsburgh",
     "California"
-   ]
-  },
-  {
-   "id": "10003554",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Michigan",
-    "Ohio St."
-   ]
-  },
-  {
-   "id": "10003564",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Illinois",
-    "Northwestern"
-   ]
-  },
-  {
-   "id": "10003586",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Southern California",
-    "UCLA"
-   ]
-  },
-  {
-   "id": "10003602",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Penn St.",
-    "Maryland"
-   ]
-  },
-  {
-   "id": "10003613",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Michigan St.",
-    "Rutgers"
-   ]
-  },
-  {
-   "id": "10003621",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Purdue",
-    "Indiana"
-   ]
-  },
-  {
-   "id": "10003629",
-   "label": "Report Pending",
-   "reason": "report pending",
-   "source": "B10",
-   "teams": [
-    "Washington",
-    "Oregon"
    ]
   },
   {
@@ -390,72 +240,85 @@
    "teams": [
     "Sacramento St."
    ]
+  },
+  {
+   "id": "2026-11-28-Georgia State-Louisiana",
+   "label": "Initial Report",
+   "reason": "kickoff 2026-11-28T17:00:00Z is not the schedule's 2026-11-28T19:00:00Z",
+   "source": "SBC",
+   "teams": [
+    "Louisiana",
+    "Georgia State"
+   ]
   }
  ],
  "season": 2026,
  "snapshot": {
-  "age_h": 20.0,
-  "fetched_at": "2026-11-25T04:08:23Z",
-  "path": "data/ncaaf/2026-11-25/injury-reports/0408.json.gz",
-  "wrote": false
+  "age_h": 0.0,
+  "fetched_at": "2026-11-26T02:11:36Z",
+  "path": "data/ncaaf/2026-11-26/injury-reports/0211.json.gz",
+  "wrote": true
  },
  "sources": {
   "ACC": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
-   "n_refused": 6,
-   "n_reports": 0,
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
+   "n_refused": 2,
+   "n_reports": 4,
    "ok": true
   },
   "B10": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
-   "n_refused": 7,
-   "n_reports": 2,
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
+   "n_refused": 0,
+   "n_reports": 9,
    "ok": true
   },
   "B12": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
    "n_refused": 6,
    "n_reports": 2,
    "ok": true
   },
   "MAC": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
    "n_refused": 5,
    "n_reports": 2,
    "ok": true
   },
   "PAC12": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
    "n_refused": 0,
    "n_reports": 0,
    "ok": true
   },
   "SBC": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
-   "n_refused": 0,
-   "n_reports": 1,
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
+   "n_refused": 1,
+   "n_reports": 6,
    "ok": true
   },
   "SEC": {
-   "fetched_at": "2026-11-26T00:08:19Z",
-   "last_ok_at": "2026-11-26T00:08:19Z",
-   "n_refused": 4,
-   "n_reports": 2,
+   "fetched_at": "2026-11-26T02:11:36Z",
+   "last_ok_at": "2026-11-26T02:11:36Z",
+   "n_refused": 0,
+   "n_reports": 6,
    "ok": true
   }
  },
  "unknown": {
-  "exempt": 150,
+  "exempt": 476,
   "names": [],
   "positions": {
-   "ATH": 2,
-   "NCK": 7
+   "38": 1,
+   "ATH": 3,
+   "NCK": 9,
+   "NG": 4,
+   "P/K": 1
   },
   "statuses": {}
  },
