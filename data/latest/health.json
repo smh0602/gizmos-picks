@@ -1,30 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-26T22:54:42Z",
+ "checked_at": "2026-11-26T23:04:59Z",
  "et_date": "2026-11-26",
  "healthy": false,
  "broken": 0,
- "degraded": 3,
+ "degraded": 1,
  "findings": [
   {
    "key": "late:cfb-teams:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf cfb-teams was built 76 minutes after it was due",
    "why": "due 2026-11-22T14:35Z, built 2026-11-22T15:51Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-teams build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "clock:browser",
-   "severity": "DEGRADED",
-   "what": "browser's render used 78% of its clock in the last 7 days",
-   "why": "browser's render used 78% of its 25-minute job clock (1175s, run 254, 2026-11-20T00:39). 1 job(s) of this workflow were at 75% or more: render 78%. \u26d4 Make it shorter or split it; do not raise the clock: a clock this close is one slow runner from killing the job.",
-   "repair": null
-  },
-  {
-   "key": "clock:collect",
-   "severity": "DEGRADED",
-   "what": "collect's collect used 101% of the room its clock leaves past its hold in the last 7 days",
-   "why": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26). 1 job(s) of this workflow were at 75% or more: collect (hold 320) 101%. \u26d4 Count the hold from the job's start, or shorten what runs outside it (the steps before it, its last pass); do not raise the clock: a clock this close is one slow runner from killing the job.",
    "repair": null
   }
  ],
@@ -37,7 +23,7 @@
   "pulled_at": "2026-11-26T20:23:47Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.5,
+  "reading_age_hours": 2.7,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-11-26T20:23:47Z",
   "source": "data/2026-11-26/props-pitcher/2023.json.gz",
@@ -76,9 +62,6 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 572,
-  "days": 7,
-  "warn_at": 0.75,
-  "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26)"
+  "could_not_look": "the run list is 2 hours old"
  }
 }
