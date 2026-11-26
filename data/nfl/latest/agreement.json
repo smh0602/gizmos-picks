@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_agreement_spec.md",
- "built_at": "2026-11-26T14:20:42Z",
+ "built_at": "2026-11-26T15:38:00Z",
  "bases": {
   "label": "DESCRIPTIVE",
   "model_p": "MODEL",
@@ -112,23 +112,6 @@
    "model_p": 59.6,
    "on_card": true,
    "label": "AGREE"
-  },
-  {
-   "key": "9b825e6518156008da499be041975fdd|Caleb Williams|player_pass_tds|under|2.5",
-   "game_id": "9b825e6518156008da499be041975fdd",
-   "game": "Chicago Bears @ Detroit Lions",
-   "commence": "2026-11-26T18:00:00Z",
-   "player": "Caleb Williams",
-   "market": "player_pass_tds",
-   "side": "under",
-   "line": 2.5,
-   "price": -225,
-   "break_even": 69.2,
-   "card_p": 87,
-   "card_basis": "RECORD",
-   "model_p": 57.4,
-   "on_card": true,
-   "label": "SPLIT"
   },
   {
    "key": "9b825e6518156008da499be041975fdd|Caleb Williams|player_pass_tds|under|1.5",
@@ -301,19 +284,19 @@
    "label": "ONE SOURCE"
   },
   {
-   "key": "9b825e6518156008da499be041975fdd|Jared Goff|player_rush_yds|over|1.5",
+   "key": "9b825e6518156008da499be041975fdd|Jared Goff|player_rush_yds|over|0.5",
    "game_id": "9b825e6518156008da499be041975fdd",
    "game": "Chicago Bears @ Detroit Lions",
    "commence": "2026-11-26T18:00:00Z",
    "player": "Jared Goff",
    "market": "player_rush_yds",
    "side": "over",
-   "line": 1.5,
-   "price": -113,
-   "break_even": 53.1,
-   "card_p": 67,
+   "line": 0.5,
+   "price": -120,
+   "break_even": 54.5,
+   "card_p": 72,
    "card_basis": "RECORD",
-   "model_p": 57.3,
+   "model_p": 60.3,
    "on_card": true,
    "label": "AGREE"
   },
@@ -335,21 +318,21 @@
    "label": "ONE SOURCE"
   },
   {
-   "key": "9b825e6518156008da499be041975fdd|Luther Burden III|player_reception_yds|under|61.5",
+   "key": "9b825e6518156008da499be041975fdd|Luther Burden III|player_reception_yds|under|63.5",
    "game_id": "9b825e6518156008da499be041975fdd",
-   "game": "Chicago Bears at Detroit Lions",
+   "game": "Chicago Bears @ Detroit Lions",
    "commence": "2026-11-26T18:00:00Z",
    "player": "Luther Burden III",
    "market": "player_reception_yds",
    "side": "under",
-   "line": 61.5,
-   "price": -113,
-   "break_even": 53.1,
-   "card_p": null,
-   "card_basis": null,
-   "model_p": 55.4,
-   "on_card": false,
-   "label": "ONE SOURCE"
+   "line": 63.5,
+   "price": -115,
+   "break_even": 53.5,
+   "card_p": 74,
+   "card_basis": "RECORD",
+   "model_p": 55.9,
+   "on_card": true,
+   "label": "AGREE"
   },
   {
    "key": "9b825e6518156008da499be041975fdd|Luther Burden III|player_receptions|under|5.5",
@@ -382,6 +365,23 @@
    "card_p": null,
    "card_basis": null,
    "model_p": 51.5,
+   "on_card": false,
+   "label": "ONE SOURCE"
+  },
+  {
+   "key": "9b825e6518156008da499be041975fdd|Luther Burden III|player_rush_yds|over|0.5",
+   "game_id": "9b825e6518156008da499be041975fdd",
+   "game": "Chicago Bears at Detroit Lions",
+   "commence": "2026-11-26T18:00:00Z",
+   "player": "Luther Burden III",
+   "market": "player_rush_yds",
+   "side": "over",
+   "line": 0.5,
+   "price": 100,
+   "break_even": 50.0,
+   "card_p": null,
+   "card_basis": null,
+   "model_p": 50.3,
    "on_card": false,
    "label": "ONE SOURCE"
   },
@@ -522,23 +522,6 @@
    "label": "ONE SOURCE"
   },
   {
-   "key": "ffaa06af56a7137d4b078c5c46c0b730|KaVontae Turpin|player_reception_yds|over|5.5",
-   "game_id": "ffaa06af56a7137d4b078c5c46c0b730",
-   "game": "Philadelphia Eagles at Dallas Cowboys",
-   "commence": "2026-11-26T21:30:00Z",
-   "player": "KaVontae Turpin",
-   "market": "player_reception_yds",
-   "side": "over",
-   "line": 5.5,
-   "price": -110,
-   "break_even": 52.4,
-   "card_p": null,
-   "card_basis": null,
-   "model_p": 52.5,
-   "on_card": false,
-   "label": "ONE SOURCE"
-  },
-  {
    "key": "ffaa06af56a7137d4b078c5c46c0b730|KaVontae Turpin|player_receptions|over|0.5",
    "game_id": "ffaa06af56a7137d4b078c5c46c0b730",
    "game": "Philadelphia Eagles @ Dallas Cowboys",
@@ -547,8 +530,8 @@
    "market": "player_receptions",
    "side": "over",
    "line": 0.5,
-   "price": -155,
-   "break_even": 60.8,
+   "price": -145,
+   "break_even": 59.2,
    "card_p": null,
    "card_basis": "RECORD",
    "model_p": 56.2,
@@ -853,8 +836,8 @@
    "market": "player_receptions",
    "side": "over",
    "line": 1.5,
-   "price": -102,
-   "break_even": 50.5,
+   "price": 100,
+   "break_even": 50.0,
    "card_p": null,
    "card_basis": null,
    "model_p": 53.8,
@@ -894,23 +877,6 @@
    "model_p": 57.0,
    "on_card": true,
    "label": "SPLIT"
-  },
-  {
-   "key": "f36f518585aec40e8cb40e071c0844aa|Patrick Mahomes|player_rush_yds|under|12.5",
-   "game_id": "f36f518585aec40e8cb40e071c0844aa",
-   "game": "Kansas City Chiefs at Buffalo Bills",
-   "commence": "2026-11-27T01:20:00Z",
-   "player": "Patrick Mahomes",
-   "market": "player_rush_yds",
-   "side": "under",
-   "line": 12.5,
-   "price": -110,
-   "break_even": 52.4,
-   "card_p": null,
-   "card_basis": null,
-   "model_p": 56.2,
-   "on_card": false,
-   "label": "ONE SOURCE"
   },
   {
    "key": "f36f518585aec40e8cb40e071c0844aa|Ty Johnson|player_rush_yds|over|1.5",
@@ -965,9 +931,9 @@
   }
  ],
  "counts": {
-  "AGREE": 11,
-  "SPLIT": 7,
-  "ONE SOURCE": 38
+  "AGREE": 12,
+  "SPLIT": 6,
+  "ONE SOURCE": 36
  },
  "not_frozen": 0,
  "record": {
