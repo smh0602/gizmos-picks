@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-11-26T17:17:09Z",
+ "built_at": "2026-11-27T00:23:27Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
@@ -24,108 +24,6 @@
  },
  "upcoming": [
   {
-   "game_id": "2026_12_CHI_DET",
-   "day": "2026-11-26",
-   "kick": "2026-11-26T13:00",
-   "home": "DET",
-   "away": "CHI",
-   "neutral": false,
-   "score": {
-    "home": 26.9,
-    "away": 25.2
-   },
-   "margin": 1.7,
-   "total": 52.2,
-   "line": {
-    "spread": -1.5,
-    "total": 56.0
-   },
-   "score_curve": {
-    "spread": 59.6,
-    "total": 39.4,
-    "moneyline": 55.1
-   },
-   "calibrated": {
-    "spread": 53.2,
-    "total": 46.4,
-    "moneyline": 55.1
-   },
-   "fb_model": {
-    "spread": 42.1,
-    "total": 51.1,
-    "moneyline": 47.8
-   },
-   "fb_model_ml_curve_spread": 52.4
-  },
-  {
-   "game_id": "2026_12_PHI_DAL",
-   "day": "2026-11-26",
-   "kick": "2026-11-26T16:30",
-   "home": "DAL",
-   "away": "PHI",
-   "neutral": false,
-   "score": {
-    "home": 27.9,
-    "away": 23.9
-   },
-   "margin": 4.0,
-   "total": 51.8,
-   "line": {
-    "spread": 8.5,
-    "total": 48.5
-   },
-   "score_curve": {
-    "spread": 36.5,
-    "total": 59.1,
-    "moneyline": 61.8
-   },
-   "calibrated": {
-    "spread": 45.4,
-    "total": 53.1,
-    "moneyline": 61.8
-   },
-   "fb_model": {
-    "spread": 57.7,
-    "total": 52.8,
-    "moneyline": 74.5
-   },
-   "fb_model_ml_curve_spread": 50.6
-  },
-  {
-   "game_id": "2026_12_KC_BUF",
-   "day": "2026-11-26",
-   "kick": "2026-11-26T20:20",
-   "home": "BUF",
-   "away": "KC",
-   "neutral": false,
-   "score": {
-    "home": 25.0,
-    "away": 23.1
-   },
-   "margin": 1.9,
-   "total": 48.1,
-   "line": {
-    "spread": 3.0,
-    "total": 45.75
-   },
-   "score_curve": {
-    "spread": 46.6,
-    "total": 56.6,
-    "moneyline": 55.7
-   },
-   "calibrated": {
-    "spread": 48.9,
-    "total": 52.2,
-    "moneyline": 55.7
-   },
-   "fb_model": {
-    "spread": 52.6,
-    "total": 57.2,
-    "moneyline": 63.7
-   },
-   "fb_model_ml_curve_spread": 54.9
-  },
-  {
    "game_id": "2026_12_DEN_PIT",
    "day": "2026-11-27",
    "kick": "2026-11-27T15:00",
@@ -139,25 +37,25 @@
    "margin": -4.7,
    "total": 43.1,
    "line": {
-    "spread": -4.0,
+    "spread": -4.5,
     "total": 36.5
    },
    "score_curve": {
-    "spread": 48.0,
+    "spread": 49.5,
     "total": 67.9,
     "moneyline": 36.1
    },
    "calibrated": {
-    "spread": 49.3,
+    "spread": 49.8,
     "total": 56.2,
     "moneyline": 36.1
    },
    "fb_model": {
-    "spread": 54.3,
+    "spread": 54.2,
     "total": 50.2,
     "moneyline": 42.2
    },
-   "fb_model_ml_curve_spread": 54.2
+   "fb_model_ml_curve_spread": 55.8
   },
   {
    "game_id": "2026_12_ATL_MIN",
@@ -174,21 +72,21 @@
    "total": 33.8,
    "line": {
     "spread": 7.0,
-    "total": 41.5
+    "total": 41.25
    },
    "score_curve": {
     "spread": 51.1,
-    "total": 29.4,
+    "total": 30.0,
     "moneyline": 71.2
    },
    "calibrated": {
     "spread": 50.4,
-    "total": 42.8,
+    "total": 43.1,
     "moneyline": 71.2
    },
    "fb_model": {
     "spread": 38.2,
-    "total": 51.9,
+    "total": 51.8,
     "moneyline": 55.8
    },
    "fb_model_ml_curve_spread": 35.0
@@ -207,16 +105,16 @@
    "margin": 8.8,
    "total": 46.3,
    "line": {
-    "spread": 6.75,
+    "spread": 6.5,
     "total": 47.25
    },
    "score_curve": {
-    "spread": 56.2,
+    "spread": 56.9,
     "total": 47.4,
     "moneyline": 74.8
    },
    "calibrated": {
-    "spread": 52.1,
+    "spread": 52.3,
     "total": 49.1,
     "moneyline": 74.8
    },
@@ -225,7 +123,7 @@
     "total": 52.0,
     "moneyline": 81.7
    },
-   "fb_model_ml_curve_spread": 65.2
+   "fb_model_ml_curve_spread": 65.9
   },
   {
    "game_id": "2026_12_NO_CIN",
@@ -310,16 +208,16 @@
    "total": 39.4,
    "line": {
     "spread": -4.5,
-    "total": 40.25
+    "total": 40.0
    },
    "score_curve": {
     "spread": 67.4,
-    "total": 47.7,
+    "total": 48.4,
     "moneyline": 54.4
    },
    "calibrated": {
     "spread": 56.0,
-    "total": 49.2,
+    "total": 49.5,
     "moneyline": 54.4
    },
    "fb_model": {
@@ -344,21 +242,21 @@
    "total": 48.7,
    "line": {
     "spread": 14.75,
-    "total": 49.25
+    "total": 49.5
    },
    "score_curve": {
     "spread": 53.4,
-    "total": 48.3,
+    "total": 47.6,
     "moneyline": 88.6
    },
    "calibrated": {
     "spread": 51.1,
-    "total": 49.4,
+    "total": 49.2,
     "moneyline": 88.6
    },
    "fb_model": {
     "spread": 48.2,
-    "total": 45.4,
+    "total": 45.5,
     "moneyline": 92.9
    },
    "fb_model_ml_curve_spread": 63.5
@@ -411,25 +309,25 @@
    "margin": 1.8,
    "total": 47.5,
    "line": {
-    "spread": 2.75,
-    "total": 44.25
+    "spread": 2.5,
+    "total": 43.5
    },
    "score_curve": {
-    "spread": 47.1,
-    "total": 59.2,
+    "spread": 47.9,
+    "total": 61.2,
     "moneyline": 55.4
    },
    "calibrated": {
-    "spread": 49.0,
-    "total": 53.1,
+    "spread": 49.3,
+    "total": 53.8,
     "moneyline": 55.4
    },
    "fb_model": {
-    "spread": 57.5,
-    "total": 52.4,
+    "spread": 57.4,
+    "total": 52.3,
     "moneyline": 57.1
    },
-   "fb_model_ml_curve_spread": 48.8
+   "fb_model_ml_curve_spread": 49.5
   },
   {
    "game_id": "2026_12_WAS_ARI",
@@ -445,25 +343,25 @@
    "margin": -3.4,
    "total": 47.7,
    "line": {
-    "spread": -7.0,
+    "spread": -6.5,
     "total": 41.5
    },
    "score_curve": {
-    "spread": 60.8,
+    "spread": 59.3,
     "total": 66.9,
     "moneyline": 39.8
    },
    "calibrated": {
-    "spread": 53.6,
+    "spread": 53.1,
     "total": 55.8,
     "moneyline": 39.8
    },
    "fb_model": {
-    "spread": 48.2,
+    "spread": 48.4,
     "total": 60.2,
     "moneyline": 33.9
    },
-   "fb_model_ml_curve_spread": 54.6
+   "fb_model_ml_curve_spread": 53.1
   },
   {
    "game_id": "2026_12_LV_CLE",
