@@ -1,7 +1,7 @@
 {
  "date": "2026-11-27",
  "league": "nfl",
- "generated_at": "2026-11-27T11:15:27Z",
+ "generated_at": "2026-11-27T11:31:05Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-11-27T11:15:13Z",
@@ -36,12 +36,40 @@
    "confidence_basis": "MODEL",
    "confidence": 56,
    "break_even": 52.4,
-   "edge": 3.3,
+   "edge": 3.4,
    "why": [
     "The game model gives Pittsburgh Steelers 56% to cover +4.5; the price -110 needs 52.4%."
    ],
    "priced_at": "2026-11-26T18:03:13Z",
    "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 36.5,
+   "game": "Denver Broncos @ Pittsburgh Steelers",
+   "game_id": "44a3bcf5bd002583ddef2207a92dd977",
+   "away": "Denver Broncos",
+   "home": "Pittsburgh Steelers",
+   "commence": "2026-11-27T20:00:00Z",
+   "book": "draftkings",
+   "price": -101,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 50,
+   "break_even": 50.2,
+   "edge": 0.1,
+   "why": [
+    "The game model gives Under 50% at 36.5; the price -101 needs 50.2%."
+   ],
+   "priced_at": "2026-11-26T18:03:13Z",
+   "rank": 2
   }
  ],
  "game_lines_liked": [
@@ -66,10 +94,10 @@
    "confidence_basis": "MODEL",
    "confidence": 56,
    "break_even": 52.4,
-   "edge": 3.3,
+   "edge": 3.4,
    "why": [
     "The game model gives Pittsburgh Steelers 56% to cover +4.5; the price -110 needs 52.4%.",
-    "The model's predicted score: Denver Broncos 20, Pittsburgh Steelers 17 (total 37).",
+    "The model's predicted score: Denver Broncos 19, Pittsburgh Steelers 17 (total 36).",
     "The Denver Broncos score 23.6 and allow 21 points a game this season (10 games).",
     "The Pittsburgh Steelers score 21.4 and allow 20.1 points a game this season (10 games).",
     "Against teams the model rates above average this season: Denver Broncos 4-2, Pittsburgh Steelers 2-2."
@@ -89,25 +117,17 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-11-27T00:23:09Z",
-  "ladder_built_at": "2026-11-27T11:15:17Z",
+  "model_built_at": "2026-11-27T11:30:53Z",
+  "ladder_built_at": "2026-11-27T11:30:55Z",
   "alt_spreads": 0
  },
  "scores_shown": [
-  {
-   "away": "Kansas City Chiefs",
-   "home": "Buffalo Bills",
-   "score": {
-    "home": 26,
-    "away": 22
-   }
-  },
   {
    "away": "Denver Broncos",
    "home": "Pittsburgh Steelers",
    "score": {
     "home": 17,
-    "away": 20
+    "away": 19
    }
   },
   {
@@ -162,8 +182,8 @@
    "away": "Tennessee Titans",
    "home": "Jacksonville Jaguars",
    "score": {
-    "home": 34,
-    "away": 14
+    "home": 33,
+    "away": 15
    }
   },
   {
@@ -207,7 +227,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 1 pick(s) for 2026-11-27 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-11-27 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -305,7 +325,7 @@
    {
     "legs": [
      "Mason Rudolph u178.5 pass yds",
-     "Over 36.5 total"
+     "Under 36.5 total"
     ],
     "game": "Denver Broncos @ Pittsburgh Steelers",
     "game_id": "44a3bcf5bd002583ddef2207a92dd977",
@@ -313,13 +333,13 @@
     "book": "hardrockbet",
     "prices": [
      -115,
-     -115
+     -105
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -114,
+    "line_best_book": "draftkings",
+    "line_best_price": -101,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.495,
+    "multiplier": 3.65,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -335,22 +355,22 @@
    },
    {
     "legs": [
-     "Mason Rudolph u175.5 pass yds",
-     "Over 36.5 total"
+     "Mason Rudolph u173.5 pass yds",
+     "Under 36.5 total"
     ],
     "game": "Denver Broncos @ Pittsburgh Steelers",
     "game_id": "44a3bcf5bd002583ddef2207a92dd977",
     "same_game": true,
-    "book": "fanduel",
+    "book": "draftkings",
     "prices": [
-     -113,
-     -114
+     -114,
+     -101
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -114,
+    "line_best_book": "draftkings",
+    "line_best_price": -101,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.538,
+    "multiplier": 3.736,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -370,7 +390,7 @@
     "legs": [
      "Mason Rudolph u173.5 pass yds",
      "Max Hurleman o0.5 rec yds",
-     "Over 36.5 total"
+     "Under 36.5 total"
     ],
     "game": "Denver Broncos @ Pittsburgh Steelers",
     "game_id": "44a3bcf5bd002583ddef2207a92dd977",
@@ -379,13 +399,13 @@
     "prices": [
      -114,
      112,
-     -119
+     -101
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -114,
+    "line_best_book": "draftkings",
+    "line_best_price": -101,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 7.324,
+    "multiplier": 7.92,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -404,7 +424,7 @@
     "legs": [
      "Mason Rudolph u175.5 pass yds",
      "Max Hurleman o3.5 rec yds",
-     "Over 36.5 total"
+     "Under 36.5 total"
     ],
     "game": "Denver Broncos @ Pittsburgh Steelers",
     "game_id": "44a3bcf5bd002583ddef2207a92dd977",
@@ -413,13 +433,13 @@
     "prices": [
      -113,
      108,
-     -114
+     -106
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -114,
+    "line_best_book": "draftkings",
+    "line_best_price": -101,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 7.36,
+    "multiplier": 7.619,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
