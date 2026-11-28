@@ -55,7 +55,7 @@
     "ok": true,
     "refused": [],
     "rows": 1978,
-    "wrote": true
+    "wrote": false
    },
    "B10": {
     "checked_at": "2026-11-28T04:05:30Z",
@@ -64,7 +64,7 @@
     "ok": true,
     "refused": [],
     "rows": 1835,
-    "wrote": true
+    "wrote": false
    },
    "B12": {
     "checked_at": "2026-11-28T00:03:51Z",
@@ -99,12 +99,12 @@
     "ok": true,
     "refused": [],
     "rows": 1126,
-    "wrote": true
+    "wrote": false
    }
   }
  },
- "built_at": "2026-11-28T04:05:30Z",
- "calls": 11,
+ "built_at": "2026-11-28T06:13:31Z",
+ "calls": 7,
  "duplicates": 3,
  "error": null,
  "kind": "DIAGNOSTIC",
@@ -112,6 +112,16 @@
  "ok": true,
  "posted_after_fetch": [],
  "refused": [
+  {
+   "id": "10003529",
+   "label": "Game Day",
+   "reason": "kickoff 2026-11-27T17:00:00Z is not the schedule's 2026-11-27T17:08:00Z",
+   "source": "B10",
+   "teams": [
+    "Nebraska",
+    "Iowa"
+   ]
+  },
   {
    "id": "10003563",
    "label": "Report Pending",
@@ -155,63 +165,63 @@
  "season": 2026,
  "snapshot": {
   "age_h": 0.0,
-  "fetched_at": "2026-11-28T04:05:30Z",
-  "path": "data/ncaaf/2026-11-28/injury-reports/0405.json.gz",
+  "fetched_at": "2026-11-28T06:13:31Z",
+  "path": "data/ncaaf/2026-11-28/injury-reports/0613.json.gz",
   "wrote": true
  },
  "sources": {
   "ACC": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
    "n_refused": 0,
    "n_reports": 6,
    "ok": true
   },
   "B10": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
-   "n_refused": 0,
-   "n_reports": 9,
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
+   "n_refused": 1,
+   "n_reports": 8,
    "ok": true
   },
   "B12": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
    "n_refused": 0,
    "n_reports": 8,
    "ok": true
   },
   "MAC": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
    "n_refused": 3,
    "n_reports": 4,
    "ok": true
   },
   "PAC12": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
    "n_refused": 0,
    "n_reports": 4,
    "ok": true
   },
   "SBC": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
    "n_refused": 1,
    "n_reports": 6,
    "ok": true
   },
   "SEC": {
-   "fetched_at": "2026-11-28T04:05:30Z",
-   "last_ok_at": "2026-11-28T04:05:30Z",
+   "fetched_at": "2026-11-28T06:13:31Z",
+   "last_ok_at": "2026-11-28T06:13:31Z",
    "n_refused": 0,
    "n_reports": 6,
    "ok": true
   }
  },
  "unknown": {
-  "exempt": 546,
+  "exempt": 540,
   "names": [],
   "positions": {
    "38": 1,
