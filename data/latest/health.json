@@ -1,23 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-28T18:41:47Z",
+ "checked_at": "2026-11-28T19:11:21Z",
  "et_date": "2026-11-28",
  "healthy": false,
  "broken": 0,
- "degraded": 2,
+ "degraded": 1,
  "findings": [
   {
    "key": "late:cfb-teams:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf cfb-teams was built 76 minutes after it was due",
    "why": "due 2026-11-22T14:35Z, built 2026-11-22T15:51Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-teams build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "clock:collect",
-   "severity": "DEGRADED",
-   "what": "collect's collect used 101% of the room its clock leaves past its hold in the last 7 days",
-   "why": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26). 1 job(s) of this workflow were at 75% or more: collect (hold 320) 101%. \u26d4 Count the hold from the job's start, or shorten what runs outside it (the steps before it, its last pass); do not raise the clock: a clock this close is one slow runner from killing the job.",
    "repair": null
   }
  ],
@@ -26,15 +19,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 11435,
-  "pulled_at": "2026-11-28T18:06:20Z",
+  "balance": 11172,
+  "pulled_at": "2026-11-28T19:07:23Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.6,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-28T18:06:20Z",
-  "source": "data/nfl/2026-11-28/gamelines/1806.json.gz",
-  "readings_on_disk": 1946,
+  "newest_paid_pull": "2026-11-28T19:07:14Z",
+  "source": "data/ncaaf/2026-11-28/alt-lines/1907.json.gz",
+  "readings_on_disk": 1949,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
@@ -69,9 +62,6 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 441,
-  "days": 7,
-  "warn_at": 0.75,
-  "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26)"
+  "could_not_look": "the run list is 2 hours old"
  }
 }
