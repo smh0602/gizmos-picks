@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-11-28T19:32:27Z",
+ "checked_at": "2026-11-28T20:16:38Z",
  "et_date": "2026-11-28",
  "healthy": false,
  "broken": 0,
@@ -27,14 +27,14 @@
  "credits": {
   "state": "HEALTHY",
   "balance": 11172,
-  "pulled_at": "2026-11-28T19:07:23Z",
+  "pulled_at": "2026-11-28T20:03:46Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.4,
+  "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-11-28T19:07:14Z",
-  "source": "data/ncaaf/2026-11-28/alt-lines/1907.json.gz",
-  "readings_on_disk": 1949,
+  "newest_paid_pull": "2026-11-28T20:03:46Z",
+  "source": "data/2026-11-28/props-pitcher/2003.json.gz",
+  "readings_on_disk": 1952,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
@@ -69,7 +69,7 @@
   }
  },
  "job_clocks": {
-  "jobs_measured": 446,
+  "jobs_measured": 441,
   "days": 7,
   "warn_at": 0.75,
   "slowest": "collect's collect ran 1831s past its 320-minute hold, 101% of the 1800s its 350-minute clock leaves after it (run 4196, 2026-11-23T07:26)"
