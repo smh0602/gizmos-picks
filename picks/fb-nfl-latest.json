@@ -1,10 +1,10 @@
 {
  "date": "2026-11-29",
  "league": "nfl",
- "generated_at": "2026-11-28T13:24:30Z",
+ "generated_at": "2026-11-28T15:02:19Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-11-28T11:10:57Z",
+ "odds_pulled_at": "2026-11-28T15:01:59Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -993,7 +993,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-11-28T13:24:08Z",
-  "ladder_built_at": "2026-11-28T13:24:12Z",
+  "ladder_built_at": "2026-11-28T15:02:05Z",
   "alt_spreads": 0
  },
  "scores_shown": [
@@ -1113,7 +1113,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA393277668%232384238072_13L88808Q11440179651Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 81,
@@ -1497,17 +1497,17 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 23,
-  "same_game_already_listed": 128,
+  "same_player_already_listed": 25,
+  "same_game_already_listed": 127,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 496,
+  "pool_after_price_gate": 509,
   "cap": 10,
   "distinct_games": 10,
   "shared_with_board_head": 5,
   "board_head_size": 10
  },
- "top_plays_rule": "The 10 most likely to hit for 2026-11-29 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 5 of 10, over 10 game(s). 128 row(s) were held back because their game was already represented and 23 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 10 most likely to hit for 2026-11-29 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 5 of 10, over 10 game(s). 127 row(s) were held back because their game was already represented and 25 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -1992,43 +1992,6 @@
    },
    {
     "legs": [
-     "Justin Jefferson u85.5 rec yds",
-     "Anthony Richardson u37.5 rush yds",
-     "DJ Uiagalelei u12.5 rush yds"
-    ],
-    "games": [
-     "Atlanta Falcons @ Minnesota Vikings",
-     "New York Giants @ Indianapolis Colts",
-     "New England Patriots @ Los Angeles Chargers"
-    ],
-    "game_ids": [
-     "6a05021bdb6bab24b9bb381ffff10f0c",
-     "e9da808e36e1b7475698a57465ad4519",
-     "c64ceba13ede564e8658693e3171e7f9"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 6.615,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 44.3,
-    "joint_basis": "MODEL + RECORD",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     81,
-     77,
-     71
-    ],
-    "break_even": 15.1,
-    "edge": 29.2,
-    "ev_30": 57.88
-   },
-   {
-    "legs": [
      "Justin Jefferson u6.5 rec",
      "Anthony Richardson u37.5 rush yds",
      "Chris Rodriguez Jr. u77.5 rush yds"
@@ -2063,6 +2026,43 @@
     "break_even": 14.3,
     "edge": 29.5,
     "ev_30": 61.86
+   },
+   {
+    "legs": [
+     "Justin Jefferson u85.5 rec yds",
+     "Chris Rodriguez Jr. u77.5 rush yds",
+     "Anthony Richardson u163.5 pass yds"
+    ],
+    "games": [
+     "Atlanta Falcons @ Minnesota Vikings",
+     "Tennessee Titans @ Jacksonville Jaguars",
+     "New York Giants @ Indianapolis Colts"
+    ],
+    "game_ids": [
+     "6a05021bdb6bab24b9bb381ffff10f0c",
+     "81a8fee5b649a3ad5ad59e9528f2f376",
+     "e9da808e36e1b7475698a57465ad4519"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -114,
+     -114
+    ],
+    "multiplier": 6.615,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 43.8,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     81,
+     74,
+     73
+    ],
+    "break_even": 15.1,
+    "edge": 28.6,
+    "ev_30": 56.83
    }
   ],
   "4": [
@@ -2152,132 +2152,6 @@
    },
    {
     "legs": [
-     "Justin Jefferson u85.5 rec yds",
-     "Anthony Richardson u37.5 rush yds",
-     "Chris Rodriguez Jr. u77.5 rush yds",
-     "DJ Uiagalelei u12.5 rush yds"
-    ],
-    "games": [
-     "Atlanta Falcons @ Minnesota Vikings",
-     "New York Giants @ Indianapolis Colts",
-     "Tennessee Titans @ Jacksonville Jaguars",
-     "New England Patriots @ Los Angeles Chargers"
-    ],
-    "game_ids": [
-     "6a05021bdb6bab24b9bb381ffff10f0c",
-     "e9da808e36e1b7475698a57465ad4519",
-     "81a8fee5b649a3ad5ad59e9528f2f376",
-     "c64ceba13ede564e8658693e3171e7f9"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 12.418,
-    "n_legs": 4,
-    "band": "3x+",
-    "joint": 32.8,
-    "joint_basis": "MODEL + RECORD",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     81,
-     77,
-     74,
-     71
-    ],
-    "break_even": 8.1,
-    "edge": 24.7,
-    "ev_30": 92.07
-   },
-   {
-    "legs": [
-     "Justin Jefferson u6.5 rec",
-     "Anthony Richardson u37.5 rush yds",
-     "Chris Rodriguez Jr. u77.5 rush yds",
-     "DJ Uiagalelei u12.5 rush yds"
-    ],
-    "games": [
-     "Atlanta Falcons @ Minnesota Vikings",
-     "New York Giants @ Indianapolis Colts",
-     "Tennessee Titans @ Jacksonville Jaguars",
-     "New England Patriots @ Los Angeles Chargers"
-    ],
-    "game_ids": [
-     "6a05021bdb6bab24b9bb381ffff10f0c",
-     "e9da808e36e1b7475698a57465ad4519",
-     "81a8fee5b649a3ad5ad59e9528f2f376",
-     "c64ceba13ede564e8658693e3171e7f9"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -102,
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 13.1,
-    "n_legs": 4,
-    "band": "3x+",
-    "joint": 31.2,
-    "joint_basis": "MODEL + RECORD",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     77,
-     77,
-     74,
-     71
-    ],
-    "break_even": 7.6,
-    "edge": 23.5,
-    "ev_30": 92.43
-   },
-   {
-    "legs": [
-     "Justin Jefferson u85.5 rec yds",
-     "Chris Rodriguez Jr. u77.5 rush yds",
-     "Anthony Richardson u163.5 pass yds",
-     "DJ Uiagalelei u12.5 rush yds"
-    ],
-    "games": [
-     "Atlanta Falcons @ Minnesota Vikings",
-     "Tennessee Titans @ Jacksonville Jaguars",
-     "New York Giants @ Indianapolis Colts",
-     "New England Patriots @ Los Angeles Chargers"
-    ],
-    "game_ids": [
-     "6a05021bdb6bab24b9bb381ffff10f0c",
-     "81a8fee5b649a3ad5ad59e9528f2f376",
-     "e9da808e36e1b7475698a57465ad4519",
-     "c64ceba13ede564e8658693e3171e7f9"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 12.418,
-    "n_legs": 4,
-    "band": "3x+",
-    "joint": 31.1,
-    "joint_basis": "MODEL + RECORD",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     81,
-     74,
-     73,
-     71
-    ],
-    "break_even": 8.1,
-    "edge": 23.0,
-    "ev_30": 85.73
-   },
-   {
-    "legs": [
      "Mac Jones u1.5 pass TD",
      "Justin Jefferson u84.5 rec yds",
      "Anthony Richardson u38.5 rush yds",
@@ -2320,48 +2194,6 @@
    },
    {
     "legs": [
-     "Justin Jefferson u6.5 rec",
-     "Chris Rodriguez Jr. u77.5 rush yds",
-     "Anthony Richardson u163.5 pass yds",
-     "DJ Uiagalelei u12.5 rush yds"
-    ],
-    "games": [
-     "Atlanta Falcons @ Minnesota Vikings",
-     "Tennessee Titans @ Jacksonville Jaguars",
-     "New York Giants @ Indianapolis Colts",
-     "New England Patriots @ Los Angeles Chargers"
-    ],
-    "game_ids": [
-     "6a05021bdb6bab24b9bb381ffff10f0c",
-     "81a8fee5b649a3ad5ad59e9528f2f376",
-     "e9da808e36e1b7475698a57465ad4519",
-     "c64ceba13ede564e8658693e3171e7f9"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -102,
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 13.1,
-    "n_legs": 4,
-    "band": "3x+",
-    "joint": 29.5,
-    "joint_basis": "MODEL + RECORD",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     77,
-     74,
-     73,
-     71
-    ],
-    "break_even": 7.6,
-    "edge": 21.9,
-    "ev_30": 86.07
-   },
-   {
-    "legs": [
      "Simi Fehoko u2.5 rec",
      "Mac Jones u212.5 pass yds",
      "Justin Jefferson u84.5 rec yds",
@@ -2401,12 +2233,180 @@
     "break_even": 9.8,
     "edge": 19.2,
     "ev_30": 59.05
+   },
+   {
+    "legs": [
+     "Kyle Williams o0.5 rec",
+     "Mac Jones u212.5 pass yds",
+     "Justin Jefferson u84.5 rec yds",
+     "Anthony Richardson u38.5 rush yds"
+    ],
+    "games": [
+     "New England Patriots @ Los Angeles Chargers",
+     "Seattle Seahawks @ San Francisco 49ers",
+     "Atlanta Falcons @ Minnesota Vikings",
+     "New York Giants @ Indianapolis Colts"
+    ],
+    "game_ids": [
+     "c64ceba13ede564e8658693e3171e7f9",
+     "d68dced0b26726890b9c79bd19a5ffe5",
+     "6a05021bdb6bab24b9bb381ffff10f0c",
+     "e9da808e36e1b7475698a57465ad4519"
+    ],
+    "book": "draftkings",
+    "prices": [
+     -190,
+     -112,
+     -114,
+     -115
+    ],
+    "multiplier": 10.139,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 28.4,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     81,
+     79,
+     78
+    ],
+    "break_even": 9.9,
+    "edge": 18.6,
+    "ev_30": 56.54
+   },
+   {
+    "legs": [
+     "Mac Jones u1.5 pass TD",
+     "Justin Jefferson u84.5 rec yds",
+     "Chris Rodriguez Jr. u76.5 rush yds",
+     "Anthony Richardson u164.5 pass yds"
+    ],
+    "games": [
+     "Seattle Seahawks @ San Francisco 49ers",
+     "Atlanta Falcons @ Minnesota Vikings",
+     "Tennessee Titans @ Jacksonville Jaguars",
+     "New York Giants @ Indianapolis Colts"
+    ],
+    "game_ids": [
+     "d68dced0b26726890b9c79bd19a5ffe5",
+     "6a05021bdb6bab24b9bb381ffff10f0c",
+     "81a8fee5b649a3ad5ad59e9528f2f376",
+     "e9da808e36e1b7475698a57465ad4519"
+    ],
+    "book": "draftkings",
+    "prices": [
+     -212,
+     -114,
+     -110,
+     -113
+    ],
+    "multiplier": 9.942,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 27.8,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     66,
+     79,
+     73,
+     73
+    ],
+    "break_even": 10.1,
+    "edge": 17.7,
+    "ev_30": 52.87
+   },
+   {
+    "legs": [
+     "Mac Jones u212.5 pass yds",
+     "Justin Jefferson u84.5 rec yds",
+     "Anthony Richardson u38.5 rush yds",
+     "Tre Tucker o2.5 rec"
+    ],
+    "games": [
+     "Seattle Seahawks @ San Francisco 49ers",
+     "Atlanta Falcons @ Minnesota Vikings",
+     "New York Giants @ Indianapolis Colts",
+     "Las Vegas Raiders @ Cleveland Browns"
+    ],
+    "game_ids": [
+     "d68dced0b26726890b9c79bd19a5ffe5",
+     "6a05021bdb6bab24b9bb381ffff10f0c",
+     "e9da808e36e1b7475698a57465ad4519",
+     "eaa993c3d62d6b5aeb6142cdd7862fd5"
+    ],
+    "book": "draftkings",
+    "prices": [
+     -112,
+     -114,
+     -115,
+     121
+    ],
+    "multiplier": 14.681,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 27.5,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     81,
+     79,
+     78,
+     55
+    ],
+    "break_even": 6.8,
+    "edge": 20.6,
+    "ev_30": 90.91
+   },
+   {
+    "legs": [
+     "Mac Jones u212.5 pass yds",
+     "Justin Jefferson u84.5 rec yds",
+     "Anthony Richardson u38.5 rush yds",
+     "Efton Chism III o1.5 rec"
+    ],
+    "games": [
+     "Seattle Seahawks @ San Francisco 49ers",
+     "Atlanta Falcons @ Minnesota Vikings",
+     "New York Giants @ Indianapolis Colts",
+     "New England Patriots @ Los Angeles Chargers"
+    ],
+    "game_ids": [
+     "d68dced0b26726890b9c79bd19a5ffe5",
+     "6a05021bdb6bab24b9bb381ffff10f0c",
+     "e9da808e36e1b7475698a57465ad4519",
+     "c64ceba13ede564e8658693e3171e7f9"
+    ],
+    "book": "draftkings",
+    "prices": [
+     -112,
+     -114,
+     -115,
+     118
+    ],
+    "multiplier": 14.482,
+    "n_legs": 4,
+    "band": "3x+",
+    "joint": 27.5,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     81,
+     79,
+     78,
+     55
+    ],
+    "break_even": 6.9,
+    "edge": 20.5,
+    "ev_30": 89.27
    }
   ]
  },
  "parlay_meta": {
   "pool": 36,
-  "rated_legs": 496,
+  "rated_legs": 509,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -2420,12 +2420,12 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 440,
+    "available": 451,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 29,
+    "available": 31,
     "taken": 12
    },
    {
@@ -2435,12 +2435,12 @@
    }
   ],
   "rejected": {
-   "same_game": 34591,
+   "same_game": 35968,
    "same_player": 0,
-   "mixed_book": 30043,
+   "mixed_book": 29214,
    "out_of_band": 0
   },
-  "note": "496 rated legs, 36 in the stratified pool. Rejected: 34591 same game, 0 same player, 30043 would need two books, 0 outside Sam's bands."
+  "note": "509 rated legs, 36 in the stratified pool. Rejected: 35968 same game, 0 same player, 29214 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -2462,6 +2462,37 @@
     "n_legs": 2,
     "n_line_legs": 1,
     "multiplier": 3.629,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 81,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     81
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Mac Jones u211.5 pass yds",
+     "Over 42.5 total"
+    ],
+    "game": "Seattle Seahawks @ San Francisco 49ers",
+    "game_id": "d68dced0b26726890b9c79bd19a5ffe5",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -109,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.569,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -2596,37 +2627,6 @@
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      73
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "DJ Uiagalelei u12.5 rush yds",
-     "New England Patriots -3 spread"
-    ],
-    "game": "New England Patriots @ Los Angeles Chargers",
-    "game_id": "c64ceba13ede564e8658693e3171e7f9",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -106
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -101,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.648,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 71,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     71
     ],
     "band_floor": 1.8
    }
@@ -2844,8 +2844,8 @@
   "games_used": 10,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 612,
-   "mixed_book": 951,
+   "same_player": 659,
+   "mixed_book": 980,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -3500,6 +3500,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 42.3 rec yds a game."
   },
+  "Dalton Schultz|player_reception_yds|over|25.5": {
+   "v": 42.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 42.3 rec yds a game."
+  },
+  "Dalton Schultz|player_reception_yds|under|25.5": {
+   "v": 42.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 42.3 rec yds a game."
+  },
   "Dalton Schultz|player_reception_yds|over|26.5": {
    "v": 42.3,
    "u": "rec yds",
@@ -3632,13 +3644,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 24 games this record is built from \u2014 69.8 rec yds a game."
   },
-  "Nico Collins|player_reception_yds|over|59.5": {
+  "Nico Collins|player_reception_yds|over|60.5": {
    "v": 69.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 24 games this record is built from \u2014 69.8 rec yds a game."
   },
-  "Nico Collins|player_reception_yds|under|59.5": {
+  "Nico Collins|player_reception_yds|under|60.5": {
    "v": 69.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -4401,18 +4413,6 @@
    "n": "His own average over the 18 games this record is built from \u2014 20.3 rec yds a game."
   },
   "Travis Etienne Jr.|player_reception_yds|under|11.5": {
-   "v": 20.3,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 20.3 rec yds a game."
-  },
-  "Travis Etienne Jr.|player_reception_yds|over|12.5": {
-   "v": 20.3,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 20.3 rec yds a game."
-  },
-  "Travis Etienne Jr.|player_reception_yds|under|12.5": {
    "v": 20.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -6188,6 +6188,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 63.8 rush yds a game."
   },
+  "Breece Hall|player_rush_yds|over|60.5": {
+   "v": 63.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 63.8 rush yds a game."
+  },
+  "Breece Hall|player_rush_yds|under|60.5": {
+   "v": 63.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 63.8 rush yds a game."
+  },
   "Geno Smith|player_rush_yds|over|3.5": {
    "v": 6.7,
    "u": "rush yds",
@@ -6387,6 +6399,18 @@
    "n": "His own average over the 29 games this record is built from \u2014 41.3 rec yds a game."
   },
   "Hunter Henry|player_reception_yds|under|22.5": {
+   "v": 41.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 29 games this record is built from \u2014 41.3 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|over|23.5": {
+   "v": 41.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 29 games this record is built from \u2014 41.3 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|under|23.5": {
    "v": 41.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -6842,18 +6866,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 203.3 pass yds a game."
   },
-  "Jayden Daniels|player_pass_yds|over|223.5": {
-   "v": 203.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 203.3 pass yds a game."
-  },
-  "Jayden Daniels|player_pass_yds|under|223.5": {
-   "v": 203.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 203.3 pass yds a game."
-  },
   "Jayden Daniels|player_pass_yds|over|224.5": {
    "v": 203.3,
    "u": "pass yds",
@@ -6873,6 +6885,18 @@
    "n": "His own average over the 7 games this record is built from \u2014 49.3 rec yds a game."
   },
   "Antonio Williams|player_reception_yds|under|41.5": {
+   "v": 49.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 49.3 rec yds a game."
+  },
+  "Antonio Williams|player_reception_yds|over|44.5": {
+   "v": 49.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 49.3 rec yds a game."
+  },
+  "Antonio Williams|player_reception_yds|under|44.5": {
    "v": 49.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -6902,6 +6926,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 35.9 rec yds a game."
   },
+  "Elijah Higgins|player_reception_yds|over|9.5": {
+   "v": 24.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 24.2 rec yds a game."
+  },
+  "Elijah Higgins|player_reception_yds|under|9.5": {
+   "v": 24.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 24.2 rec yds a game."
+  },
   "Elijah Higgins|player_reception_yds|over|10.5": {
    "v": 24.2,
    "u": "rec yds",
@@ -6926,6 +6962,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 25 games this record is built from \u2014 55.6 rec yds a game."
   },
+  "Trey McBride|player_reception_yds|over|57.5": {
+   "v": 68.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 28 games this record is built from \u2014 68.9 rec yds a game."
+  },
+  "Trey McBride|player_reception_yds|under|57.5": {
+   "v": 68.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 28 games this record is built from \u2014 68.9 rec yds a game."
+  },
   "Trey McBride|player_reception_yds|over|59.5": {
    "v": 68.9,
    "u": "rec yds",
@@ -6933,18 +6981,6 @@
    "n": "His own average over the 28 games this record is built from \u2014 68.9 rec yds a game."
   },
   "Trey McBride|player_reception_yds|under|59.5": {
-   "v": 68.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 28 games this record is built from \u2014 68.9 rec yds a game."
-  },
-  "Trey McBride|player_reception_yds|over|60.5": {
-   "v": 68.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 28 games this record is built from \u2014 68.9 rec yds a game."
-  },
-  "Trey McBride|player_reception_yds|under|60.5": {
    "v": 68.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -7070,6 +7106,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 1.9 rec a game."
   },
+  "Tyler Allgeier|player_receptions|over|1.5": {
+   "v": 2.0,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 2.0 rec a game."
+  },
+  "Tyler Allgeier|player_receptions|under|1.5": {
+   "v": 2.0,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 2.0 rec a game."
+  },
   "Jayden Daniels|player_rush_yds|over|31.5": {
    "v": 40.9,
    "u": "rush yds",
@@ -7081,6 +7129,18 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 40.9 rush yds a game."
+  },
+  "Rachaad White|player_rush_yds|over|12.5": {
+   "v": 39.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 39.1 rush yds a game."
+  },
+  "Rachaad White|player_rush_yds|under|12.5": {
+   "v": 39.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 39.1 rush yds a game."
   },
   "Rachaad White|player_rush_yds|over|13.5": {
    "v": 39.1,
@@ -7101,6 +7161,18 @@
    "n": "His own average over the 7 games this record is built from \u2014 52.4 rush yds a game."
   },
   "Tyler Allgeier|player_rush_yds|under|26.5": {
+   "v": 52.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 52.4 rush yds a game."
+  },
+  "Tyler Allgeier|player_rush_yds|over|27.5": {
+   "v": 52.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 52.4 rush yds a game."
+  },
+  "Tyler Allgeier|player_rush_yds|under|27.5": {
    "v": 52.4,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -7220,6 +7292,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 1.5 pass TD a game."
   },
+  "Mac Jones|player_pass_yds|over|211.5": {
+   "v": 268.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 268.9 pass yds a game."
+  },
+  "Mac Jones|player_pass_yds|under|211.5": {
+   "v": 268.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 268.9 pass yds a game."
+  },
   "Mac Jones|player_pass_yds|over|212.5": {
    "v": 268.9,
    "u": "pass yds",
@@ -7244,13 +7328,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 237.9 pass yds a game."
   },
-  "Sam Darnold|player_pass_yds|over|226.5": {
+  "Sam Darnold|player_pass_yds|over|225.5": {
    "v": 237.9,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 237.9 pass yds a game."
   },
-  "Sam Darnold|player_pass_yds|under|226.5": {
+  "Sam Darnold|player_pass_yds|under|225.5": {
    "v": 237.9,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -7387,6 +7471,18 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 10.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|over|55.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|under|55.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
   },
   "Mike Evans|player_reception_yds|over|56.5": {
    "v": 60.0,
@@ -7676,13 +7772,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 53.1 rush yds a game."
   },
-  "Zach Charbonnet|player_rush_yds|over|57.5": {
+  "Zach Charbonnet|player_rush_yds|over|56.5": {
    "v": 53.1,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 53.1 rush yds a game."
   },
-  "Zach Charbonnet|player_rush_yds|under|57.5": {
+  "Zach Charbonnet|player_rush_yds|under|56.5": {
    "v": 53.1,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -8060,18 +8156,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 29.6 rush yds a game."
   },
-  "Deshaun Watson|player_rush_yds|over|26.5": {
-   "v": 29.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 29.6 rush yds a game."
-  },
-  "Deshaun Watson|player_rush_yds|under|26.5": {
-   "v": 29.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 29.6 rush yds a game."
-  },
   "KC Concepcion|player_rush_yds|over|2.5": {
    "v": 4.8,
    "u": "rush yds",
@@ -8122,19 +8206,19 @@
   }
  },
  "name_match_rate": 0.969,
- "n_priced": 500,
+ "n_priced": 513,
  "single_day": true,
  "slate_date": "2026-11-29",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 500,
+ "n_on_slate_day": 513,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-11-29 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "500 priced football rows for 2026-11-29 across 10 board games; 25 shown.",
+ "coverage": "513 priced football rows for 2026-11-29 across 10 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 51.5% against a claimed 54.3% (-2.8 pts, n=204); 60-70 hit 45.8% against a claimed 63.2% (-17.4 pts, n=24). The under-60 band is currently the closest to its own claim. 70-80 and 80-plus have too few graded plays to read. 228 graded NFL plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -8156,7 +8240,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA393277668%232384238072_13L88808Q11440179651Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 81,
@@ -8594,7 +8678,7 @@
    "book": "draftkings",
    "price": -111,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA392256701%232381938223_13L88808Q12100396087Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -10244,9 +10328,9 @@
    "away": "Washington Commanders",
    "home": "Arizona Cardinals",
    "commence": "2026-11-29T21:25:00Z",
-   "book": "hardrockbet",
-   "price": 135,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8004128242286068115",
+   "book": "fanduel",
+   "price": 132,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.628719355&selectionId=40877784",
    "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -10254,13 +10338,13 @@
     "Over his last 3 games he has played 72% of the snaps and 10% of the team's targets.",
     "The Washington Commanders allow 12.5 catches a game to wide receivers (10th most of 32).",
     "The Washington Commanders list CB Amik Robertson (Out).",
-    "The model gives it <b>51%</b>; at +135 it needs 42.6% to pay."
+    "The model gives it <b>51%</b>; at +132 it needs 43.1% to pay."
    ],
    "confidence": 51,
    "model_p": 51.0,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 42.6,
-   "edge": 8.4,
+   "break_even": 43.1,
+   "edge": 7.9,
    "role": {
     "snap": 0.72,
     "tgt_share": 0.1023,
